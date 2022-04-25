@@ -64,11 +64,11 @@ static void EVSpace_Isub(EVector* lhs, const EVector* rhs)
 	lhs->m_arr[2] -= rhs->m_arr[2];
 }
 
-static void EVSpace_Imult(EVector* lhs, const EVector* rhs)
+static void EVSpace_Imult(EVector* lhs, double rhs)
 {
-	lhs->m_arr[0] *= rhs->m_arr[0];
-	lhs->m_arr[1] *= rhs->m_arr[1];
-	lhs->m_arr[2] *= rhs->m_arr[2];
+	lhs->m_arr[0] *= rhs;
+	lhs->m_arr[1] *= rhs;
+	lhs->m_arr[2] *= rhs;
 }
 
 static void EVSpace_Div(EVector* rtn, const EVector* lhs, double rhs)
@@ -218,17 +218,117 @@ static PyObject* Operator_Sub(EVector* self, PyObject* arg)
 static PyObject* Operator_Mult(EVector* self, PyObject* arg)
 {
 	PyTypeObject* type = self->ob_base.ob_type;
+	Py_INCREF(type);
 	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
 	Py_INCREF(rtn);
+	Py_DECREF(type);
 
 	if (!rtn) {
 		Py_DECREF(rtn);
 		return NULL;
 	}
 
-	EVector_Mult(rtn, self, (EVeqqctor*)arg);
+	double rhs;
+	if (!PyArg_ParseTuple(arg, "d", &rhs))
+		return NULL;
+
+	EVector_Mult(rtn, self, rhs);
 
 	return (PyObject*)rtn;
+}
+
+static PyObject* Operator_Neg(EVector* self)
+{
+	PyTypeObject* type = self->ob_base.ob_type;
+	Py_INCREF(type);
+	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
+	Py_INCREF(rtn);
+	Py_DECREF(type);
+
+	if (!rtn) {
+		Py_DECREF(rtn);
+		return NULL;
+	}
+
+	EVector_Neg(rtn, self);
+
+	return (PyObject*)rtn;
+}
+
+static PyObject* Operator_Abs(EVector* self)
+{
+	PyTypeObject* type = self->ob_base.ob_type;
+	Py_INCREF(type);
+	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
+	Py_INCREF(rtn);
+	Py_DECREF(type);
+
+	if (!rtn) {
+		Py_DECREF(rtn);
+		return NULL;
+	}
+
+	EVector_Abs(self);
+
+	return (PyObject*)rtn;
+}
+
+static PyObject* Operator_Iadd(EVector* self, PyObject* arg)
+{
+	EVector_Iadd(self, (EVector*)arg);
+
+	return (PyObject*)self;
+}
+
+static PyObject* Operator_Isub(EVector* self, PyObject* arg)
+{
+	EVector_Isub(self, (EVector*)arg);
+
+	return (PyObject*)self;
+}
+
+static PyObject* Operator_Imult(EVector* self, PyObject* arg)
+{
+	double rhs;
+	if (!PyArg_ParseTuple(arg, "d", &rhs))
+		return NULL;
+		
+	EVector_Imult(self, rhs);
+
+	return (PyObject*)self;
+}
+
+static PyObject* Operator_Div(EVector* self, PyObject* arg)
+{
+	PyTypeObject* type = self->ob_base.ob_type;
+	Py_INCREF(type);
+	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
+	Py_INCREF(rtn);
+	Py_DECREF(type);
+
+	if (!rtn) {
+		Py_DECREF(rtn);
+		return NULL;
+	}
+
+	double rhs;
+	if (!PyArg_ParseTuple(arg, "d", &rhs))
+		return NULL;
+
+	EVector_Div(rtn, self, rhs);
+
+	return (PyObject*)rtn;
+}
+
+static PyObject* Operator_Idiv(EVector* self, PyObject* arg)
+{
+	double rhs;
+	if (!PyArg_ParseTuple(arg, "d", &rhs))
+		return NULL;
+
+	EVector_Idiv(self, rhs);
+
+	return (PyObject*)self;
 }
 
 static PyNumberMethods EVector_NBMethods =
@@ -252,7 +352,7 @@ static PyNumberMethods EVector_NBMethods =
 	0,				/*  nb_int  */
 	0,				/*  nb_reserved  */
 	0,				/*  nb_float  */
-	Opeartor_Iadd,	/*  nb_inplace_add  */
+	Operator_Iadd,	/*  nb_inplace_add  */
 	Operator_Isub,	/*  nb_inplace_subtract  */
 	Operator_Imult,	/*  nb_inplace_multiply  */
 	0,				/*  nb_inplace_remainder  */
@@ -265,7 +365,7 @@ static PyNumberMethods EVector_NBMethods =
 	0,				/*  nb_floor_divide  */
 	Operator_Div,	/*  nb_true_divide  */
 	0,				/*  nb_inplace_floor_divide  */
-	Operator_IDiv,	/*  nb_inplace_true_divide  */
+	Operator_Idiv,	/*  nb_inplace_true_divide  */
 	0,				/*  nb_index  */
 	0,				/*  nb_matrix_multiply  */
 	0				/*  nb_inplace_matrix_multiply  */

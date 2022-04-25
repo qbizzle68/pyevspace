@@ -24,7 +24,7 @@ static const bool True = 1;
 /*	nb_mult  */
 #define EVSpace_Mult_NUM 2
 #define EVSpace_Mult_RETURN void
-#define EVSpace_Mult_PROTO (EVector* ans, const EVector* lhs, const EVector* rhs)
+#define EVSpace_Mult_PROTO (EVector* ans, const EVector* lhs, double rhs)
 /*	nb_negative  */
 #define EVSpace_Neg_NUM 3
 #define EVSpace_Neg_RETURN void
@@ -44,7 +44,7 @@ static const bool True = 1;
 /*	nb_inplace_multiply  */
 #define EVSpace_Imult_NUM 7
 #define EVSpace_Imult_RETURN void
-#define EVSpace_Imult_PROTO (EVector* lhs, const EVector* rhs)
+#define EVSpace_Imult_PROTO (EVector* lhs, double rhs)
 /*	nb_true_divide  */
 #define EVSpace_Div_NUM 8
 #define EVSpace_Div_RETURN void
