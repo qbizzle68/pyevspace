@@ -13,54 +13,55 @@ static const bool True = 1;
 
 #endif
 
+/********************* EVector methods ***********************/
 /*	nb_add	*/
-#define EVSpace_Add_NUM 0
-#define EVSpace_Add_RETURN void
-#define EVSpace_Add_PROTO (EVector* ans, const EVector* lhs, const EVector* rhs)
+#define EVSpace_Vadd_NUM 0
+#define EVSpace_Vadd_RETURN void
+#define EVSpace_Vadd_PROTO (EVector* ans, const EVector* lhs, const EVector* rhs)
 /*	nb_subtract	 */
-#define EVSpace_Sub_NUM 1
-#define EVSpace_Sub_RETURN void
-#define EVSpace_Sub_PROTO (EVector* ans, const EVector* lhs, const EVector* rhs)
+#define EVSpace_Vsub_NUM 1
+#define EVSpace_Vsub_RETURN void
+#define EVSpace_Vsub_PROTO (EVector* ans, const EVector* lhs, const EVector* rhs)
 /*	nb_mult  */
-#define EVSpace_Mult_NUM 2
-#define EVSpace_Mult_RETURN void
-#define EVSpace_Mult_PROTO (EVector* ans, const EVector* lhs, double rhs)
+#define EVSpace_Vmult_NUM 2
+#define EVSpace_Vmult_RETURN void
+#define EVSpace_Vmult_PROTO (EVector* ans, const EVector* lhs, double rhs)
 /*	nb_negative  */
-#define EVSpace_Neg_NUM 3
-#define EVSpace_Neg_RETURN void
-#define EVSpace_Neg_PROTO (EVector* ans, const EVector* vec)
+#define EVSpace_Vneg_NUM 3
+#define EVSpace_Vneg_RETURN void
+#define EVSpace_Vneg_PROTO (EVector* ans, const EVector* vec)
 /*	nb_absolute  */		// magnitude ?
-#define EVSpace_Abs_NUM 4
-#define EVSpace_Abs_RETURN double
-#define EVSpace_Abs_PROTO (const EVector* vec)
+#define EVSpace_Vabs_NUM 4
+#define EVSpace_Vabs_RETURN double
+#define EVSpace_Vabs_PROTO (const EVector* vec)
 /*	nb_inplace_add  */
-#define EVSpace_Iadd_NUM 5
-#define EVSpace_Iadd_RETURN void
-#define EVSpace_Iadd_PROTO (EVector* lhs, const EVector* rhs)
+#define EVSpace_Viadd_NUM 5
+#define EVSpace_Viadd_RETURN void
+#define EVSpace_Viadd_PROTO (EVector* lhs, const EVector* rhs)
 /*	nb_inplace_subtract  */
-#define EVSpace_Isub_NUM 6
-#define EVSpace_Isub_RETURN void
-#define EVSpace_Isub_PROTO (EVector* lhs, const EVector* rhs)
+#define EVSpace_Visub_NUM 6
+#define EVSpace_Visub_RETURN void
+#define EVSpace_Visub_PROTO (EVector* lhs, const EVector* rhs)
 /*	nb_inplace_multiply  */
-#define EVSpace_Imult_NUM 7
-#define EVSpace_Imult_RETURN void
-#define EVSpace_Imult_PROTO (EVector* lhs, double rhs)
+#define EVSpace_Vimult_NUM 7
+#define EVSpace_Vimult_RETURN void
+#define EVSpace_Vimult_PROTO (EVector* lhs, double rhs)
 /*	nb_true_divide  */
-#define EVSpace_Div_NUM 8
-#define EVSpace_Div_RETURN void
-#define EVSpace_Div_PROTO (EVector* ans, const EVector* lhs, double rhs)
+#define EVSpace_Vdiv_NUM 8
+#define EVSpace_Vdiv_RETURN void
+#define EVSpace_Vdiv_PROTO (EVector* ans, const EVector* lhs, double rhs)
 /*	nb_inplace_true_divide  */
-#define EVSpace_Idiv_NUM 9
-#define EVSpace_Idiv_RETURN void
-#define EVSpace_Idiv_PROTO (EVector* lhs, double rhs)
+#define EVSpace_Vidiv_NUM 9
+#define EVSpace_Vidiv_RETURN void
+#define EVSpace_Vidiv_PROTO (EVector* lhs, double rhs)
 /*  equal to  */
-#define EVSpace_ET_NUM 10
-#define EVSpace_ET_RETURN bool
-#define EVSpace_ET_PROTO (const EVector* lhs, const EVector* rhs)
+#define EVSpace_Vet_NUM 10
+#define EVSpace_Vet_RETURN bool
+#define EVSpace_Vet_PROTO (const EVector* lhs, const EVector* rhs)
 /*  not equal to  */
-#define EVSpace_NE_NUM 11
-#define EVSpace_NE_RETURN bool
-#define EVSpace_NE_PROTO (const EVector* lhs, const EVector* rhs)
+#define EVSpace_Vne_NUM 11
+#define EVSpace_Vne_RETURN bool
+#define EVSpace_Vne_PROTO (const EVector* lhs, const EVector* rhs)
 /*  dot  */
 #define EVSpace_Dot_NUM 12
 #define EVSpace_Dot_RETURN double
@@ -94,56 +95,58 @@ static const bool True = 1;
 #define EVSpace_Vxcl_RETURN void
 #define EVSpace_Vxcl_PROTO (EVector* ans, const EVector* vec, const EVector* xcl)
 
+/**************************** EMatrix methods ****************************/
+
 #define EVSpace_API_pointers 20
 
 #ifdef EVSPACE_MODULE
-	static EVSpace_Add_RETURN EVector_Add EVSpace_Add_PROTO;
-	static EVSpace_Sub_RETURN EVector_Sub EVSpace_Sub_PROTO;
-	static EVSpace_Mult_RETURN EVector_Mult EVSpace_Mult_PROTO;
-	static EVSpace_Neg_RETURN EVector_Neg EVSpace_Neg_PROTO;
-	static EVSpace_Abs_RETURN EVector_Abs EVSpace_Abs_PROTO;
-	static EVSpace_Iadd_RETURN EVector_Iadd EVSpace_Iadd_PROTO;
-	static EVSpace_Isub_RETURN EVector_Isub EVSpace_Isub_PROTO;
-	static EVSpace_Imult_RETURN EVector_Imult EVSpace_Imult_PROTO;
-	static EVSpace_Div_RETURN EVector_Div EVSpace_Div_PROTO;
-	static EVSpace_Idiv_RETURN EVector_Idiv EVSpace_Idiv_PROTO;
-	static EVSpace_ET_RETURN EVector_ET EVSpace_ET_PROTO;
-	static EVSpace_NE_RETURN EVector_NE EVSpace_Neg_PROTO;
-	static EVSpace_Dot_RETURN EVector_Dot EVSpace_Dot_PROTO;
-	static EVSpace_Cross_RETURN EVector_Cross EVSpace_Cross_PROTO;
-	static EVSpace_Mag_RETURN EVector_Mag EVSpace_Mag_PROTO;
-	static EVSpace_Mag2_RETURN EVector_Mag2 EVSpace_Mag2_PROTO;
-	static EVSpace_Norm_RETURN EVector_Norm EVSpace_Norm_PROTO;
-	static EVSpace_Inorm_RETURN EVector_Inorm EVSpace_Inorm_PROTO;
-	static EVSpace_Vang_RETURN EVector_Vang EVSpace_Vang_PROTO;
-	static EVSpace_Vxcl_RETURN EVector_Vxcl EVSpace_Vxcl_PROTO;
+	static EVSpace_Vadd_RETURN EVSpace_Vadd EVSpace_Vadd_PROTO;
+	static EVSpace_Vsub_RETURN EVSpace_Vsub EVSpace_Vsub_PROTO;
+	static EVSpace_Vmult_RETURN EVSpace_Vmult EVSpace_Vmult_PROTO;
+	static EVSpace_Vneg_RETURN EVSpace_Vneg EVSpace_Vneg_PROTO;
+	static EVSpace_Vabs_RETURN EVSpace_Vabs EVSpace_Vabs_PROTO;
+	static EVSpace_Viadd_RETURN EVSpace_Viadd EVSpace_Viadd_PROTO;
+	static EVSpace_Visub_RETURN EVSpace_Visub EVSpace_Visub_PROTO;
+	static EVSpace_Vimult_RETURN EVSpace_Vimult EVSpace_Vimult_PROTO;
+	static EVSpace_Vdiv_RETURN EVSpace_Vdiv EVSpace_Vdiv_PROTO;
+	static EVSpace_Vidiv_RETURN EVSpace_Vidiv EVSpace_Vidiv_PROTO;
+	static EVSpace_Vet_RETURN EVSpace_Vet EVSpace_Vet_PROTO;
+	static EVSpace_Vne_RETURN EVSpace_Vne EVSpace_Vne_PROTO;
+	static EVSpace_Dot_RETURN EVSpace_Dot EVSpace_Dot_PROTO;
+	static EVSpace_Cross_RETURN EVSpace_Cross EVSpace_Cross_PROTO;
+	static EVSpace_Mag_RETURN EVSpace_Mag EVSpace_Mag_PROTO;
+	static EVSpace_Mag2_RETURN EVSpace_Mag2 EVSpace_Mag2_PROTO;
+	static EVSpace_Norm_RETURN EVSpace_Norm EVSpace_Norm_PROTO;
+	static EVSpace_Inorm_RETURN EVSpace_Inorm EVSpace_Inorm_PROTO;
+	static EVSpace_Vang_RETURN EVSpace_Vang EVSpace_Vang_PROTO;
+	static EVSpace_Vxcl_RETURN EVSpace_Vxcl EVSpace_Vxcl_PROTO;
 #else
 	static void** EVSpace_API;
 
-#define EVSpace_Add \
-	(*(EVSpace_Add_RETURN) (*)EVSpace_Add_PROTO) EVSpace_API[EVSpace_Add_NUM]
-#define EVSpace_Sub \
-	(*(EVSpace_Sub_RETURN) (*)EVSpace_Sub_PROTO) EVSpace_API[EVSpace_Sub_NUM]
-#define EVSpace_Mult \
-	(*(EVSpace_Mult_RETURN) (*)EVSpace_Mult_PROTO) EVSpace_API[EVSpace_Mult_NUM]
-#define EVSpace_Neg \
-	(*(EVSpace_Neg_RETURN) (*)EVSpace_Neg_PROTO) EVSpace_API[EVSpace_Neg_NUM]
-#define EVSpace_Abs \
-	(*(EVSpace_Abs_RETURN) (*)EVSpace_Abs_PROTO) EVSpace_API[EVSpace_Abs_NUM]
-#define EVSpace_Iadd \
-	(*(EVSpace_Iadd_RETURN) (*)EVSpace_Iadd_PROTO) EVSpace_API[EVSpace_Iadd_NUM]
-#define EVSpace_Isub \
-	(*(EVSpace_Isub_RETURN) (*)EVSpace_Isub_PROTO) EVSpace_API[EVSpace_Isub_NUM]
-#define EVSpace_Imult \
-	(*(EVSpace_Imult_RETURN) (*)EVSpace_Imult_PROTO) EVSpace_API[EVSpace_Imult_NUM]
-#define EVSpace_Div \
-	(*(EVSpace_Div_RETURN) (*)EVSpace_Div_PROTO) EVSpace_API[EVSpace_Div_NUM]
-#define EVSpace_Idiv \
-	(*(EVSpace_Idiv_RETURN) (*)EVSpace_Idiv_PROTO) EVSpace_API[EVSpace_Idiv_NUM]
-#define EVSpace_ET \
-	(*(EVSpace_ET_RETURN) (*)EVSpace_ET_PROTO) EVSpace_API[EVSpace_ET_NUM]
-#define EVSpace_NE \
-	(*(EVSpace_NE_RETURN) (*)EVSpace_NE_PROTO) EVSpace_API[EVSpace_NE_NUM]
+#define EVector_Vadd \
+	(*(EVector_Vadd_RETURN) (*)EVSpace_Vadd_PROTO) EVSpace_API[EVSpace_Vadd_NUM]
+#define EVSpace_Vsub \
+	(*(EVSpace_Vsub_RETURN) (*)EVSpace_Vsub_PROTO) EVSpace_API[EVSpace_Vsub_NUM]
+#define EVSpace_Vmult \
+	(*(EVSpace_Vmult_RETURN) (*)EVSpace_Vmult_PROTO) EVSpace_API[EVSpace_Vmult_NUM]
+#define EVSpace_Vneg \
+	(*(EVSpace_Vneg_RETURN) (*)EVSpace_Vneg_PROTO) EVSpace_API[EVSpace_Vneg_NUM]
+#define EVSpace_Vabs \
+	(*(EVSpace_Vabs_RETURN) (*)EVSpace_Vabs_PROTO) EVSpace_API[EVSpace_Vabs_NUM]
+#define EVSpace_Viadd \
+	(*(EVSpace_Viadd_RETURN) (*)EVSpace_Viadd_PROTO) EVSpace_API[EVSpace_Viadd_NUM]
+#define EVSpace_Visub \
+	(*(EVSpace_Visub_RETURN) (*)EVSpace_Visub_PROTO) EVSpace_API[EVSpace_Visub_NUM]
+#define EVSpace_Vimult \
+	(*(EVSpace_Vimult_RETURN) (*)EVSpace_Vimult_PROTO) EVSpace_API[EVSpace_Vimult_NUM]
+#define EVSpace_Vdiv \
+	(*(EVSpace_Vdiv_RETURN) (*)EVSpace_Vdiv_PROTO) EVSpace_API[EVSpace_Vdiv_NUM]
+#define EVSpace_Vidiv \
+	(*(EVSpace_Vidiv_RETURN) (*)EVSpace_Vidiv_PROTO) EVSpace_API[EVSpace_Vidiv_NUM]
+#define EVSpace_Vet \
+	(*(EVSpace_Vet_RETURN) (*)EVSpace_Vet_PROTO) EVSpace_API[EVSpace_Vet_NUM]
+#define EVSpace_Vne \
+	(*(EVSpace_Vne_RETURN) (*)EVSpace_Vne_PROTO) EVSpace_API[EVSpace_Vne_NUM]
 #define EVSpace_Dot \
 	(*(EVSpace_Dot_RETURN) (*)EVSpace_Dot_PROTO) EVSpace_API[EVSpace_Dot_NUM]
 #define EVSpace_Cross \
