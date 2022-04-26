@@ -55,9 +55,9 @@ static const bool True = 1;
 #define EVSpace_Vidiv_RETURN void
 #define EVSpace_Vidiv_PROTO (EVector* lhs, double rhs)
 /*  equal to  */
-#define EVSpace_Vet_NUM 10
-#define EVSpace_Vet_RETURN bool
-#define EVSpace_Vet_PROTO (const EVector* lhs, const EVector* rhs)
+#define EVSpace_Veq_NUM 10
+#define EVSpace_Veq_RETURN bool
+#define EVSpace_Veq_PROTO (const EVector* lhs, const EVector* rhs)
 /*  not equal to  */
 #define EVSpace_Vne_NUM 11
 #define EVSpace_Vne_RETURN bool
@@ -110,7 +110,7 @@ static const bool True = 1;
 	static EVSpace_Vimult_RETURN EVSpace_Vimult EVSpace_Vimult_PROTO;
 	static EVSpace_Vdiv_RETURN EVSpace_Vdiv EVSpace_Vdiv_PROTO;
 	static EVSpace_Vidiv_RETURN EVSpace_Vidiv EVSpace_Vidiv_PROTO;
-	static EVSpace_Vet_RETURN EVSpace_Vet EVSpace_Vet_PROTO;
+	static EVSpace_Veq_RETURN EVSpace_Veq EVSpace_Veq_PROTO;
 	static EVSpace_Vne_RETURN EVSpace_Vne EVSpace_Vne_PROTO;
 	static EVSpace_Dot_RETURN EVSpace_Dot EVSpace_Dot_PROTO;
 	static EVSpace_Cross_RETURN EVSpace_Cross EVSpace_Cross_PROTO;
@@ -123,8 +123,8 @@ static const bool True = 1;
 #else
 	static void** EVSpace_API;
 
-#define EVector_Vadd \
-	(*(EVector_Vadd_RETURN) (*)EVSpace_Vadd_PROTO) EVSpace_API[EVSpace_Vadd_NUM]
+#define EVSpace_Vadd \
+	(*(EVSpace_Vadd_RETURN) (*)EVSpace_Vadd_PROTO) EVSpace_API[EVSpace_Vadd_NUM]
 #define EVSpace_Vsub \
 	(*(EVSpace_Vsub_RETURN) (*)EVSpace_Vsub_PROTO) EVSpace_API[EVSpace_Vsub_NUM]
 #define EVSpace_Vmult \
@@ -143,8 +143,10 @@ static const bool True = 1;
 	(*(EVSpace_Vdiv_RETURN) (*)EVSpace_Vdiv_PROTO) EVSpace_API[EVSpace_Vdiv_NUM]
 #define EVSpace_Vidiv \
 	(*(EVSpace_Vidiv_RETURN) (*)EVSpace_Vidiv_PROTO) EVSpace_API[EVSpace_Vidiv_NUM]
-#define EVSpace_Vet \
-	(*(EVSpace_Vet_RETURN) (*)EVSpace_Vet_PROTO) EVSpace_API[EVSpace_Vet_NUM]
+#define EVSpace_Veq \
+	(*(EVSpace_Veq_RETURN) (*)EVSpace_Veq_PROTO) EVSpace_API[EVSpace_Veq_NUM]
+#define EVSpace_Vne \
+	(*(EVSpace_Vne_RETURN) (*)EVSpace_Vne_PROTO) EVSpace_API[EVSpace_Vne_NUM]
 #define EVSpace_Vne \
 	(*(EVSpace_Vne_RETURN) (*)EVSpace_Vne_PROTO) EVSpace_API[EVSpace_Vne_NUM]
 #define EVSpace_Dot \
