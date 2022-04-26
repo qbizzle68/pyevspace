@@ -93,7 +93,7 @@ static bool EVSpace_Veq(const EVector* lhs, const EVector* rhs)
 		&& (lhs->m_arr[2] == rhs->m_arr[2]);
 }
 
-static bool EVSpaces_Vne(const EVector* lhs, const EVector* rhs)
+static bool EVSpace_Vne(const EVector* lhs, const EVector* rhs)
 {
 	return !(EVSpace_Veq(lhs, rhs));
 }
@@ -140,7 +140,7 @@ static void EVSpace_Inorm(EVector* rtn)
 
 static double EVSpace_Vang(const EVector* lhs, const EVector* rhs)
 {
-	double theta = acos(dot(lhs, rhs) / (EVSpace_Mag(lhs) * EVSpace_Mag(rhs)));
+	double theta = acos(EVSpace_Dot(lhs, rhs) / (EVSpace_Mag(lhs) * EVSpace_Mag(rhs)));
 	return theta * EVSpace_RADIANS_TO_DEGREES;
 }
 
@@ -348,7 +348,7 @@ static PyNumberMethods EVector_NBMethods =
 /*	Class Methods  */
 static PyObject* EVector_Dot(EVector* self, PyObject* args)
 {
-	if (PyObject_IsInstance(args, (PyObject*)&EVectorType)) {
+	if (PyObject_IsInstance(args, args->ob_type)) {
 		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
 		return NULL;
 	}
@@ -358,7 +358,7 @@ static PyObject* EVector_Dot(EVector* self, PyObject* args)
 
 static PyObject* EVector_Cross(EVector* self, PyObject* args)
 {
-	if (PyObject_IsInstance(args, (PyObject*)&EVectorType)) {
+	if (PyObject_IsInstance(args, args->ob_type)) {
 		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
 		return NULL;
 	}
@@ -413,7 +413,7 @@ static PyObject* EVector_Normalize(EVector* self, PyObject* UNUSED)
 
 static PyObject* EVector_Vang(EVector* self, PyObject* args)
 {
-	if (PyObject_IsInstance(args, (PyObject*)&EVectorType)) {
+	if (PyObject_IsInstance(args, args->ob_type)) {
 		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
 		return NULL;
 	}
@@ -423,7 +423,7 @@ static PyObject* EVector_Vang(EVector* self, PyObject* args)
 
 static PyObject* EVector_Vxcl(EVector* self, PyObject* args)
 {
-	if (PyObject_IsInstance(args, (PyObject*)&EVectorType)) {
+	if (PyObject_IsInstance(args, args->ob_type)) {
 		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
 		return NULL;
 	}
@@ -491,7 +491,7 @@ static PyMemberDef EVector_Members[] = {
 
 static PyObject* EVector_richcompare(PyObject* self, PyObject* other, int op)
 {
-	if (PyObject_IsInstance(other, (PyObject*)&EVectorType)) {
+	if (PyObject_IsInstance(other, self->ob_type)) {
 		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
 		return NULL;
 	}
