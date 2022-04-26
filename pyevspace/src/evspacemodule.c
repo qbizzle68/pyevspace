@@ -155,17 +155,20 @@ static void EVSpace_Vxcl(EVector* ans, const EVector* vec, const EVector* xcl)
 /*	Implimenting C API into Python number metehods  */
 static PyObject* VOperator_Add(EVector* self, PyObject* arg)
 {
-	PyTypeObject* type = self->ob_base.ob_type;
-	Py_INCREF(type);
-	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
-	Py_INCREF(rtn);
-	Py_DECREF(type);
-
-	if (!rtn) {
-		Py_DECREF(rtn);
+	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type)) {
+		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
 		return NULL;
 	}
 
+	PyTypeObject* type = self->ob_base.ob_type;
+	Py_INCREF(type);
+	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
+	Py_DECREF(type);
+
+	if (!rtn)
+		return NULL;
+
+	Py_INCREF(rtn);
 	EVSpace_Vadd(rtn, self, (EVector*)arg);
 
 	return (PyObject*)rtn;
@@ -173,17 +176,20 @@ static PyObject* VOperator_Add(EVector* self, PyObject* arg)
 
 static PyObject* VOperator_Sub(EVector* self, PyObject* arg)
 {
-	PyTypeObject* type = self->ob_base.ob_type;
-	Py_INCREF(type);
-	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
-	Py_INCREF(rtn);
-	Py_DECREF(type);
-
-	if (!rtn) {
-		Py_DECREF(rtn);
+	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type)) {
+		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
 		return NULL;
 	}
 
+	PyTypeObject* type = self->ob_base.ob_type;
+	Py_INCREF(type);
+	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
+	Py_DECREF(type);
+
+	if (!rtn) 
+		return NULL;
+
+	Py_INCREF(rtn);
 	EVSpace_Vsub(rtn, self, (EVector*)arg);
 
 	return (PyObject*)rtn;
@@ -191,21 +197,19 @@ static PyObject* VOperator_Sub(EVector* self, PyObject* arg)
 
 static PyObject* VOperator_Mult(EVector* self, PyObject* arg)
 {
+	double rhs = PyFloat_AsDouble(arg);
+	if (PyErr_Occurred() != NULL)
+		return NULL;
+
 	PyTypeObject* type = self->ob_base.ob_type;
 	Py_INCREF(type);
 	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
-	Py_INCREF(rtn);
 	Py_DECREF(type);
 
-	if (!rtn) {
-		Py_DECREF(rtn);
-		return NULL;
-	}
-
-	double rhs;
-	if (!PyArg_ParseTuple(arg, "d", &rhs))
+	if (!rtn) 
 		return NULL;
 
+	Py_INCREF(rtn);
 	EVSpace_Vmult(rtn, self, rhs);
 
 	return (PyObject*)rtn;
@@ -216,14 +220,12 @@ static PyObject* VOperator_Neg(EVector* self)
 	PyTypeObject* type = self->ob_base.ob_type;
 	Py_INCREF(type);
 	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
-	Py_INCREF(rtn);
 	Py_DECREF(type);
 
-	if (!rtn) {
-		Py_DECREF(rtn);
+	if (!rtn) 
 		return NULL;
-	}
 
+	Py_INCREF(rtn);
 	EVSpace_Vneg(rtn, self);
 
 	return (PyObject*)rtn;
@@ -234,14 +236,12 @@ static PyObject* VOperator_Abs(EVector* self)
 	PyTypeObject* type = self->ob_base.ob_type;
 	Py_INCREF(type);
 	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
-	Py_INCREF(rtn);
 	Py_DECREF(type);
 
-	if (!rtn) {
-		Py_DECREF(rtn);
+	if (!rtn)
 		return NULL;
-	}
 
+	Py_INCREF(rtn);
 	EVSpace_Vabs(self);
 
 	return (PyObject*)rtn;
@@ -249,106 +249,129 @@ static PyObject* VOperator_Abs(EVector* self)
 
 static PyObject* VOperator_Iadd(EVector* self, PyObject* arg)
 {
+	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type)) {
+		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
+		return NULL;
+	}
 	EVSpace_Viadd(self, (EVector*)arg);
 
+	Py_INCREF(self);
 	return (PyObject*)self;
 }
 
 static PyObject* VOperator_Isub(EVector* self, PyObject* arg)
 {
+	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type)) {
+		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
+		return NULL;
+	}
 	EVSpace_Visub(self, (EVector*)arg);
 
+	Py_INCREF(self);
 	return (PyObject*)self;
 }
 
 static PyObject* VOperator_Imult(EVector* self, PyObject* arg)
 {
-	double rhs;
-	if (!PyArg_ParseTuple(arg, "d", &rhs))
+	double rhs = PyFloat_AsDouble(arg);
+	if (PyErr_Occurred() != NULL)
 		return NULL;
 		
 	EVSpace_Vimult(self, rhs);
 
+	Py_INCREF(self);
 	return (PyObject*)self;
 }
 
 static PyObject* VOperator_Div(EVector* self, PyObject* arg)
 {
+	double rhs = PyFloat_AsDouble(arg);
+	if (PyErr_Occurred() != NULL)
+		return NULL;
+
 	PyTypeObject* type = self->ob_base.ob_type;
 	Py_INCREF(type);
 	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
-	Py_INCREF(rtn);
 	Py_DECREF(type);
 
-	if (!rtn) {
-		Py_DECREF(rtn);
-		return NULL;
-	}
-
-	double rhs;
-	if (!PyArg_ParseTuple(arg, "d", &rhs))
+	if (!rtn)
 		return NULL;
 
 	EVSpace_Vdiv(rtn, self, rhs);
 
+	Py_INCREF(rtn);
 	return (PyObject*)rtn;
 }
 
 static PyObject* VOperator_Idiv(EVector* self, PyObject* arg)
 {
-	double rhs;
-	if (!PyArg_ParseTuple(arg, "d", &rhs))
+	double rhs = PyFloat_AsDouble(arg);
+	if (PyErr_Occurred() != NULL)
 		return NULL;
 
 	EVSpace_Vidiv(self, rhs);
 
+	Py_INCREF(self);
 	return (PyObject*)self;
 }
 
-static PyNumberMethods EVector_NBMethods =
-{
-	VOperator_Add,	/*  nb_add  */
-	VOperator_Sub,	/*  nb_sub  */
-	VOperator_Mult,	/*  nb_mult  */
-	0,				/*  nb_remainder  */
-	0,				/*  nb_divmod  */
-	0,				/*  nb_power  */
-	VOperator_Neg,	/*  nb_negative  */
-	0,				/*  nb_positive  */
-	VOperator_Abs,	/*  nb_absolute  */
-	0,				/*  nb_bool  */
-	0,				/*  nb_invert  */
-	0,				/*  nb_lshift  */
-	0,				/*  nb_rshift  */
-	0,				/*  nb_and  */
-	0,				/*  nb_xor  */
-	0,				/*  nb_or  */
-	0,				/*  nb_int  */
-	0,				/*  nb_reserved  */
-	0,				/*  nb_float  */
-	VOperator_Iadd,	/*  nb_inplace_add  */
-	VOperator_Isub,	/*  nb_inplace_subtract  */
-	VOperator_Imult,/*  nb_inplace_multiply  */
-	0,				/*  nb_inplace_remainder  */
-	0,				/*  nb_inplace_power  */
-	0,				/*  nb_inplace_lshift  */
-	0,				/*  nb_inplace_rshift  */
-	0,				/*  nb_inplace_and  */
-	0,				/*  nb_inplace_xor  */
-	0,				/*  nb_inplace_or  */
-	0,				/*  nb_floor_divide  */
-	VOperator_Div,	/*  nb_true_divide  */
-	0,				/*  nb_inplace_floor_divide  */
-	VOperator_Idiv,	/*  nb_inplace_true_divide  */
-	0,				/*  nb_index  */
-	0,				/*  nb_matrix_multiply  */
-	0				/*  nb_inplace_matrix_multiply  */
+static PyNumberMethods EVector_NBMethods = {
+	.nb_add = VOperator_Add,
+	.nb_subtract = VOperator_Sub,
+	.nb_multiply = VOperator_Mult,
+	.nb_negative = VOperator_Neg,
+	.nb_absolute = VOperator_Abs,
+	.nb_inplace_add = VOperator_Iadd,
+	.nb_inplace_subtract = VOperator_Isub,
+	.nb_inplace_multiply = VOperator_Imult,
+	.nb_true_divide = VOperator_Div,
+	.nb_inplace_true_divide = VOperator_Idiv,
 };
+
+//static PyNumberMethods EVector_NBMethods =
+//{
+//	VOperator_Add,	/*  nb_add  */
+//	VOperator_Sub,	/*  nb_sub  */
+//	VOperator_Mult,	/*  nb_mult  */
+//	0,				/*  nb_remainder  */
+//	0,				/*  nb_divmod  */
+//	0,				/*  nb_power  */
+//	VOperator_Neg,	/*  nb_negative  */
+//	0,				/*  nb_positive  */
+//	VOperator_Abs,	/*  nb_absolute  */
+//	0,				/*  nb_bool  */
+//	0,				/*  nb_invert  */
+//	0,				/*  nb_lshift  */
+//	0,				/*  nb_rshift  */
+//	0,				/*  nb_and  */
+//	0,				/*  nb_xor  */
+//	0,				/*  nb_or  */
+//	0,				/*  nb_int  */
+//	0,				/*  nb_reserved  */
+//	0,				/*  nb_float  */
+//	VOperator_Iadd,	/*  nb_inplace_add  */
+//	VOperator_Isub,	/*  nb_inplace_subtract  */
+//	VOperator_Imult,/*  nb_inplace_multiply  */
+//	0,				/*  nb_inplace_remainder  */
+//	0,				/*  nb_inplace_power  */
+//	0,				/*  nb_inplace_lshift  */
+//	0,				/*  nb_inplace_rshift  */
+//	0,				/*  nb_inplace_and  */
+//	0,				/*  nb_inplace_xor  */
+//	0,				/*  nb_inplace_or  */
+//	0,				/*  nb_floor_divide  */
+//	VOperator_Div,	/*  nb_true_divide  */
+//	0,				/*  nb_inplace_floor_divide  */
+//	VOperator_Idiv,	/*  nb_inplace_true_divide  */
+//	0,				/*  nb_index  */
+//	0,				/*  nb_matrix_multiply  */
+//	0				/*  nb_inplace_matrix_multiply  */
+//};
 
 /*	Class Methods  */
 static PyObject* EVector_Dot(EVector* self, PyObject* args)
 {
-	if (PyObject_IsInstance(args, args->ob_type)) {
+	if (!PyObject_TypeCheck(args, self->ob_base.ob_type)) {
 		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
 		return NULL;
 	}
@@ -358,22 +381,20 @@ static PyObject* EVector_Dot(EVector* self, PyObject* args)
 
 static PyObject* EVector_Cross(EVector* self, PyObject* args)
 {
-	if (PyObject_IsInstance(args, args->ob_type)) {
+	if (!PyObject_TypeCheck(args, self->ob_base.ob_type)) {
 		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
 		return NULL;
 	}
 
 	PyTypeObject* type = self->ob_base.ob_type;
 	Py_INCREF(type);
-	EVector* rtn = type->tp_new(type, NULL, NULL);
-	Py_INCREF(rtn);
+	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
 	Py_DECREF(type);
 
-	if (!rtn) {
-		Py_XDECREF(rtn);
+	if (!rtn)
 		return NULL;
-	}
 
+	Py_INCREF(rtn);
 	EVSpace_Cross(rtn, self, (EVector*)args);
 	return (PyObject*)rtn;
 }
@@ -392,15 +413,13 @@ static PyObject* EVector_Norm(EVector* self, PyObject* UNUSED)
 {
 	PyTypeObject* type = self->ob_base.ob_type;
 	Py_INCREF(type);
-	EVector* rtn = type->tp_new(type, NULL, NULL);
-	Py_INCREF(rtn);
+	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
 	Py_DECREF(type);
 
-	if (!rtn) {
-		Py_XDECREF(rtn);
+	if (!rtn)
 		return NULL;
-	}
 
+	Py_INCREF(rtn);
 	EVSpace_Norm(rtn, self);
 	return (PyObject*)rtn;
 }
@@ -413,47 +432,34 @@ static PyObject* EVector_Normalize(EVector* self, PyObject* UNUSED)
 
 static PyObject* EVector_Vang(EVector* self, PyObject* args)
 {
-	if (PyObject_IsInstance(args, args->ob_type)) {
+	if (!PyObject_TypeCheck(args, self->ob_base.ob_type)) {
 		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
 		return NULL;
 	}
 
-	return PyFloat_FromDouble(EVSpace_Vang(self, args));
+	return PyFloat_FromDouble(EVSpace_Vang(self, (EVector*)args));
 }
 
 static PyObject* EVector_Vxcl(EVector* self, PyObject* args)
 {
-	if (PyObject_IsInstance(args, args->ob_type)) {
+	if (!PyObject_TypeCheck(args, self->ob_base.ob_type)) {
 		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
 		return NULL;
 	}
 
 	PyTypeObject* type = self->ob_base.ob_type;
 	Py_INCREF(type);
-	EVector* rtn = type->tp_new(type, NULL, NULL);
-	Py_INCREF(rtn);
+	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
 	Py_DECREF(type);
 
-	if (!rtn) {
-		Py_XDECREF(rtn);
+	if (!rtn)
 		return NULL;
-	}
 
-	EVSpace_Vxcl(rtn, self, args);
+	Py_INCREF(rtn);
+	EVSpace_Vxcl(rtn, self, (EVector*)args);
+
 	return (PyObject*)rtn;
 }
-
-static PyMethodDef EVector_Methods[] = {
-	{"dot", (PyCFunction)EVector_Dot, METH_O, "Return the dot product of two EVectors."},
-	{"cross", (PyCFunction)EVector_Cross, METH_O, "Return the cross product of two EVectors."},
-	{"mag", (PyCFunction)EVector_Mag, METH_NOARGS, "Returns the magnitude of an EVector."},
-	{"mag2", (PyCFunction)EVector_Mag2, METH_NOARGS, "Returns the square of the magnitude of an EVector."},
-	{"norm", (PyCFunction)EVector_Norm, METH_NOARGS, "Returns a normalized version of an EVector."},
-	{"normalize", (PyCFunction)EVector_Normalize, METH_NOARGS, "Normalized an EVector."},
-	{"vang", (PyCFunction)EVector_Vang, METH_O, "Return the shortest angle between two EVector's."},
-	{"vxcl", (PyCFunction)EVector_Vxcl, METH_O, "Returns a vector exculded from another."},
-	{NULL}
-};
 
 /*	Type Methods  */
 static int EVector_init(EVector* self, PyObject* args, PyObject* kwds)
@@ -482,6 +488,18 @@ static PyObject* EVector_str(const EVector* vec)
 	return Py_BuildValue("s#", buffer, strlen(buffer));
 }
 
+static PyObject* EVector_richcompare(PyObject* self, PyObject* other, int op)
+{
+	if (PyObject_TypeCheck(other, self->ob_type)) {
+		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
+		return NULL;
+	}
+
+	if (op == Py_EQ) return PyBool_FromLong(EVSpace_Veq((EVector*)self, (EVector*)other));
+	else if (op == Py_NE) return PyBool_FromLong(EVSpace_Vne((EVector*)self, (EVector*)other));
+	else return Py_NotImplemented;
+}
+
 static PyMemberDef EVector_Members[] = {
 	{"x", T_DOUBLE, offsetof(EVector, m_arr), 0, "x-component"},
 	{"y", T_DOUBLE, offsetof(EVector, m_arr) + sizeof(double), 0, "y-component"},
@@ -489,21 +507,21 @@ static PyMemberDef EVector_Members[] = {
 	{NULL}
 };
 
-static PyObject* EVector_richcompare(PyObject* self, PyObject* other, int op)
-{
-	if (PyObject_IsInstance(other, self->ob_type)) {
-		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
-		return NULL;
-	}
-
-	if (op == Py_EQ) return PyBool_FromLong(EVSpace_Veq(self, other));
-	else if (op == Py_NE) return PyBool_FromLong(EVSpace_Vne(self, other));
-	else return Py_NotImplemented;
-}
+static PyMethodDef EVector_Methods[] = {
+	{"dot", (PyCFunction)EVector_Dot, METH_O, "Return the dot product of two EVectors."},
+	{"cross", (PyCFunction)EVector_Cross, METH_O, "Return the cross product of two EVectors."},
+	{"mag", (PyCFunction)EVector_Mag, METH_NOARGS, "Returns the magnitude of an EVector."},
+	{"mag2", (PyCFunction)EVector_Mag2, METH_NOARGS, "Returns the square of the magnitude of an EVector."},
+	{"norm", (PyCFunction)EVector_Norm, METH_NOARGS, "Returns a normalized version of an EVector."},
+	{"normalize", (PyCFunction)EVector_Normalize, METH_NOARGS, "Normalized an EVector."},
+	{"vang", (PyCFunction)EVector_Vang, METH_O, "Return the shortest angle between two EVector's."},
+	{"vxcl", (PyCFunction)EVector_Vxcl, METH_O, "Returns a vector exculded from another."},
+	{NULL}
+};
 
 static PyTypeObject EVectorType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	.tp_name		= "evspace.EVector",
+	.tp_name		= "pyevspace.EVector",
 	.tp_doc			= PyDoc_STR("Eulcidean Vector"),
 	.tp_basicsize	= sizeof(EVector),
 	.tp_itemsize	= 0,
@@ -519,13 +537,13 @@ static PyTypeObject EVectorType = {
 
 static PyModuleDef EVSpacemodule = {
 	PyModuleDef_HEAD_INIT,
-	.m_name = "evspace",
+	.m_name = "pyevspace",
 	.m_doc = "Module library for a Euclidean vector space with vector and matrix types.",
 	.m_size = -1,
 };
 
 PyMODINIT_FUNC
-PyInit_evspace(void)
+PyInit_pyevspace(void)
 {
 	PyObject* m;
 	static void* EVSpace_API[EVSpace_API_pointers];
