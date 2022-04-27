@@ -548,9 +548,26 @@ PyInit_pyevspace(void)
 	PyObject* m;
 	static void* EVSpace_API[EVSpace_API_pointers];
 	PyObject* c_api_object;
+	EVector* e1, *e2, *e3;
 
 	if (PyType_Ready(&EVectorType) < 0)
 		return NULL;
+
+	e1 = EVectorType.tp_new(&EVectorType, NULL, NULL);
+	Py_XINCREF(e1);
+	if (!e1)
+		return NULL;
+	e1->m_arr[0] = 1;
+	e2 = EVectorType.tp_new(&EVectorType, NULL, NULL);
+	Py_XINCREF(e2);
+	if (!e2)
+		return NULL;
+	e2->m_arr[1] = 1;
+	e3 = EVectorType.tp_new(&EVectorType, NULL, NULL);
+	Py_XINCREF(e3);
+	if (!e3)
+		return NULL;
+	e3->m_arr[2] = 1;
 
 	m = PyModule_Create(&EVSpacemodule);
 	if (m == NULL)
@@ -579,7 +596,22 @@ PyInit_pyevspace(void)
 
 	c_api_object = PyCapsule_New((void*)EVSpace_API, "evspace._C_API", NULL);
 
-	if (PyModule_AddObject(m, "_C_API", c_api_object) < 0) {
+	int capsuleError = PyModule_AddObject(m, "_C_API", c_api_object);
+	int evectorError = PyModule_AddObject(m, "EVector", (PyObject*)&EVectorType);
+	int e1vectorError = PyModule_AddObject(m, "e1", (PyObject*)e1);
+	int e2vectorError = PyModule_AddObject(m, "e2", (PyObject*)e2);
+	int e3vectorError = PyModule_AddObject(m, "e3", (PyObject*)e3);
+
+	if ((capsuleError < 0) || (evectorError < 0) || (e1vectorError < 0) || (e2vectorError) || (e3vectorError)) {
+		Py_XDECREF(c_api_object);
+		Py_DECREF(m);
+		Py_DECREF(&EVectorType);
+		Py_DECREF(e1);
+		Py_DECREF(e2);
+		Py_DECREF(e3);
+	}
+
+	/*if (PyModule_AddObject(m, "_C_API", c_api_object) < 0) {
 		Py_XDECREF(c_api_object);
 		Py_DECREF(m);
 		return NULL;
@@ -588,9 +620,23 @@ PyInit_pyevspace(void)
 	Py_INCREF(&EVectorType);
 	if (PyModule_AddObject(m, "EVector", (PyObject*)&EVectorType) < 0) {
 		Py_DECREF(&EVectorType);
+		Py_XDECREF(c_api_object);
 		Py_DECREF(m);
 		return NULL;
 	}
+
+	Py_INCREF(e1);
+	Py_INCREF(e2);
+	Py_INCREF(e3);
+	if (PyModule_AddObject(m, "e1", (PyObject*)e1) < 0) {
+		Py_DECREF(e1);
+		Py_DECREF(e2);
+		Py_DECREF(e3);
+		Py_DECREF(&EVectorType);
+		Py_XDECREF(c_api_object);
+		Py_DECREF(m);
+		return NULL;
+	}*/
 
 	return m;
 }
