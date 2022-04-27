@@ -23,5 +23,14 @@
     <ClInclude Include="include\evspacemodule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\evspace_vector_defn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\evspace_vector_decl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\evspace_vector_api_defn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -244,19 +244,6 @@ static PyObject* VOperator_Abs(EVector* self)
 
 	Py_INCREF(rtn);
 	return rtn;
-
-	/*PyTypeObject* type = self->ob_base.ob_type;
-	Py_INCREF(type);
-	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
-	Py_DECREF(type);
-
-	if (!rtn)
-		return NULL;
-
-	Py_INCREF(rtn);
-	EVSpace_Vabs(self);
-
-	return (PyObject*)rtn;*/
 }
 
 static PyObject* VOperator_Iadd(EVector* self, PyObject* arg)
@@ -339,46 +326,6 @@ static PyNumberMethods EVector_NBMethods = {
 	.nb_true_divide = VOperator_Div,
 	.nb_inplace_true_divide = VOperator_Idiv,
 };
-
-//static PyNumberMethods EVector_NBMethods =
-//{
-//	VOperator_Add,	/*  nb_add  */
-//	VOperator_Sub,	/*  nb_sub  */
-//	VOperator_Mult,	/*  nb_mult  */
-//	0,				/*  nb_remainder  */
-//	0,				/*  nb_divmod  */
-//	0,				/*  nb_power  */
-//	VOperator_Neg,	/*  nb_negative  */
-//	0,				/*  nb_positive  */
-//	VOperator_Abs,	/*  nb_absolute  */
-//	0,				/*  nb_bool  */
-//	0,				/*  nb_invert  */
-//	0,				/*  nb_lshift  */
-//	0,				/*  nb_rshift  */
-//	0,				/*  nb_and  */
-//	0,				/*  nb_xor  */
-//	0,				/*  nb_or  */
-//	0,				/*  nb_int  */
-//	0,				/*  nb_reserved  */
-//	0,				/*  nb_float  */
-//	VOperator_Iadd,	/*  nb_inplace_add  */
-//	VOperator_Isub,	/*  nb_inplace_subtract  */
-//	VOperator_Imult,/*  nb_inplace_multiply  */
-//	0,				/*  nb_inplace_remainder  */
-//	0,				/*  nb_inplace_power  */
-//	0,				/*  nb_inplace_lshift  */
-//	0,				/*  nb_inplace_rshift  */
-//	0,				/*  nb_inplace_and  */
-//	0,				/*  nb_inplace_xor  */
-//	0,				/*  nb_inplace_or  */
-//	0,				/*  nb_floor_divide  */
-//	VOperator_Div,	/*  nb_true_divide  */
-//	0,				/*  nb_inplace_floor_divide  */
-//	VOperator_Idiv,	/*  nb_inplace_true_divide  */
-//	0,				/*  nb_index  */
-//	0,				/*  nb_matrix_multiply  */
-//	0				/*  nb_inplace_matrix_multiply  */
-//};
 
 /*	Class Methods  */
 static PyObject* EVector_Dot(EVector* self, PyObject* args)
@@ -585,26 +532,26 @@ PyInit_pyevspace(void)
 	if (m == NULL)
 		return NULL;
 
-	EVSpace_API[EVSpace_Vadd_NUM] = (void*)EVSpace_Vadd;
-	EVSpace_API[EVSpace_Vsub_NUM] = (void*)EVSpace_Vsub;
-	EVSpace_API[EVSpace_Vmult_NUM] = (void*)EVSpace_Vmult;
-	EVSpace_API[EVSpace_Vneg_NUM] = (void*)EVSpace_Vneg;
-	EVSpace_API[EVSpace_Vabs_NUM] = (void*)EVSpace_Vabs;
-	EVSpace_API[EVSpace_Viadd_NUM] = (void*)EVSpace_Viadd;
-	EVSpace_API[EVSpace_Visub_NUM] = (void*)EVSpace_Visub;
-	EVSpace_API[EVSpace_Vimult_NUM] = (void*)EVSpace_Vimult;
-	EVSpace_API[EVSpace_Vdiv_NUM] = (void*)EVSpace_Vdiv;
-	EVSpace_API[EVSpace_Vidiv_NUM] = (void*)EVSpace_Vidiv;
-	EVSpace_API[EVSpace_Veq_NUM] = (void*)EVSpace_Veq;
-	EVSpace_API[EVSpace_Vne_NUM] = (void*)EVSpace_Vne;
-	EVSpace_API[EVSpace_Dot_NUM ] = (void*)EVSpace_Dot;
-	EVSpace_API[EVSpace_Cross_NUM] = (void*)EVSpace_Cross;
-	EVSpace_API[EVSpace_Mag_NUM] = (void*)EVSpace_Mag;
-	EVSpace_API[EVSpace_Mag2_NUM] = (void*)EVSpace_Mag2;
-	EVSpace_API[EVSpace_Norm_NUM] = (void*)EVSpace_Norm;
-	EVSpace_API[EVSpace_Inorm_NUM] = (void*)EVSpace_Inorm;
-	EVSpace_API[EVSpace_Vang_NUM] = (void*)EVSpace_Vang;
-	EVSpace_API[EVSpace_Vxcl_NUM] = (void*)EVSpace_Vxcl;
+	EVSpace_API[EVSpace_Vadd_NUM]	= (void*)EVSpace_Vadd;
+	EVSpace_API[EVSpace_Vsub_NUM]	= (void*)EVSpace_Vsub;
+	EVSpace_API[EVSpace_Vmult_NUM]	= (void*)EVSpace_Vmult;
+	EVSpace_API[EVSpace_Vneg_NUM]	= (void*)EVSpace_Vneg;
+	EVSpace_API[EVSpace_Vabs_NUM]	= (void*)EVSpace_Vabs;
+	EVSpace_API[EVSpace_Viadd_NUM]	= (void*)EVSpace_Viadd;
+	EVSpace_API[EVSpace_Visub_NUM]	= (void*)EVSpace_Visub;
+	EVSpace_API[EVSpace_Vimult_NUM]	= (void*)EVSpace_Vimult;
+	EVSpace_API[EVSpace_Vdiv_NUM]	= (void*)EVSpace_Vdiv;
+	EVSpace_API[EVSpace_Vidiv_NUM]	= (void*)EVSpace_Vidiv;
+	EVSpace_API[EVSpace_Veq_NUM]	= (void*)EVSpace_Veq;
+	EVSpace_API[EVSpace_Vne_NUM]	= (void*)EVSpace_Vne;
+	EVSpace_API[EVSpace_Dot_NUM ]	= (void*)EVSpace_Dot;
+	EVSpace_API[EVSpace_Cross_NUM]	= (void*)EVSpace_Cross;
+	EVSpace_API[EVSpace_Mag_NUM]	= (void*)EVSpace_Mag;
+	EVSpace_API[EVSpace_Mag2_NUM]	= (void*)EVSpace_Mag2;
+	EVSpace_API[EVSpace_Norm_NUM]	= (void*)EVSpace_Norm;
+	EVSpace_API[EVSpace_Inorm_NUM]	= (void*)EVSpace_Inorm;
+	EVSpace_API[EVSpace_Vang_NUM]	= (void*)EVSpace_Vang;
+	EVSpace_API[EVSpace_Vxcl_NUM]	= (void*)EVSpace_Vxcl;
 
 	c_api_object = PyCapsule_New((void*)EVSpace_API, "evspace._C_API", NULL);
 
