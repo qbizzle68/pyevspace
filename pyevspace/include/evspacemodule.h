@@ -56,11 +56,11 @@ static const bool True = 1;
 #define EVSpace_Vidiv_PROTO (EVector* lhs, double rhs)
 /*  equal to  */
 #define EVSpace_Veq_NUM 10
-#define EVSpace_Veq_RETURN bool
+#define EVSpace_Veq_RETURN int
 #define EVSpace_Veq_PROTO (const EVector* lhs, const EVector* rhs)
 /*  not equal to  */
 #define EVSpace_Vne_NUM 11
-#define EVSpace_Vne_RETURN bool
+#define EVSpace_Vne_RETURN int
 #define EVSpace_Vne_PROTO (const EVector* lhs, const EVector* rhs)
 /*  dot  */
 #define EVSpace_Dot_NUM 12

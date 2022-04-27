@@ -86,16 +86,21 @@ static void EVSpace_Vidiv(EVector* lhs, double rhs)
 	lhs->m_arr[2] /= rhs;
 }
 
-static bool EVSpace_Veq(const EVector* lhs, const EVector* rhs)
+static int EVSpace_Veq(const EVector* lhs, const EVector* rhs)
 {
-	return (lhs->m_arr[0] == rhs->m_arr[0])
-		&& (lhs->m_arr[1] == rhs->m_arr[1])
-		&& (lhs->m_arr[2] == rhs->m_arr[2]);
+	static double epsilon = 1e-6;
+	if ((fabs(lhs->m_arr[0] - rhs->m_arr[0]) < epsilon) 
+		&& (fabs(lhs->m_arr[1] - rhs->m_arr[1]) < epsilon) 
+		&& (fabs(lhs->m_arr[2] - rhs->m_arr[2]) < epsilon))
+		return 1;
+	return 0;
 }
 
-static bool EVSpace_Vne(const EVector* lhs, const EVector* rhs)
+static int EVSpace_Vne(const EVector* lhs, const EVector* rhs)
 {
-	return !(EVSpace_Veq(lhs, rhs));
+	if (EVSpace_Veq(lhs, rhs))
+		return 0;
+	return 1;
 }
 
 static double EVSpace_Dot(const EVector* lhs, const EVector* rhs)
@@ -108,7 +113,7 @@ static double EVSpace_Dot(const EVector* lhs, const EVector* rhs)
 static void EVSpace_Cross(EVector* rtn, const EVector* lhs, const EVector* rhs)
 {
 	rtn->m_arr[0] = ((lhs->m_arr[1] * rhs->m_arr[2]) - (lhs->m_arr[2] * rhs->m_arr[1]));
-	rtn->m_arr[1] = ((lhs->m_arr[0] * rhs->m_arr[2]) - (lhs->m_arr[2] * rhs->m_arr[0]));
+	rtn->m_arr[1] = ((lhs->m_arr[2] * rhs->m_arr[0]) - (lhs->m_arr[0] * rhs->m_arr[2]));
 	rtn->m_arr[2] = ((lhs->m_arr[0] * rhs->m_arr[1]) - (lhs->m_arr[1] * rhs->m_arr[0]));
 }
 
@@ -233,7 +238,14 @@ static PyObject* VOperator_Neg(EVector* self)
 
 static PyObject* VOperator_Abs(EVector* self)
 {
-	PyTypeObject* type = self->ob_base.ob_type;
+	PyObject* rtn = PyFloat_FromDouble(EVSpace_Vabs(self));
+	if (!rtn)
+		return NULL;
+
+	Py_INCREF(rtn);
+	return rtn;
+
+	/*PyTypeObject* type = self->ob_base.ob_type;
 	Py_INCREF(type);
 	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
 	Py_DECREF(type);
@@ -244,7 +256,7 @@ static PyObject* VOperator_Abs(EVector* self)
 	Py_INCREF(rtn);
 	EVSpace_Vabs(self);
 
-	return (PyObject*)rtn;
+	return (PyObject*)rtn;*/
 }
 
 static PyObject* VOperator_Iadd(EVector* self, PyObject* arg)
@@ -320,7 +332,7 @@ static PyNumberMethods EVector_NBMethods = {
 	.nb_subtract = VOperator_Sub,
 	.nb_multiply = VOperator_Mult,
 	.nb_negative = VOperator_Neg,
-	.nb_absolute = VOperator_Abs,
+	.nb_absolute = (unaryfunc)VOperator_Abs,
 	.nb_inplace_add = VOperator_Iadd,
 	.nb_inplace_subtract = VOperator_Isub,
 	.nb_inplace_multiply = VOperator_Imult,
@@ -490,7 +502,7 @@ static PyObject* EVector_str(const EVector* vec)
 
 static PyObject* EVector_richcompare(PyObject* self, PyObject* other, int op)
 {
-	if (PyObject_TypeCheck(other, self->ob_type)) {
+	if (!PyObject_TypeCheck(other, self->ob_type)) {
 		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
 		return NULL;
 	}
