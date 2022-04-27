@@ -65,5 +65,4 @@
 #define EVSpace_Mset_RETURN void
 #define EVSpace_Mset_PROTO (EMatrix* self, const EVector* c0, const EVector* c1, const EVector* c2)
 
-
 #endif // EVSPACE_MATRIX_DEGN_H
