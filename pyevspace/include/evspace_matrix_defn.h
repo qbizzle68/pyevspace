@@ -19,7 +19,7 @@
 /* nb_negative */
 #define EVSpace_Mneg_NUM 3 + API_NUM_OFFSET
 #define EVSpace_Mneg_RETURN void 
-#define EVSpace_Mneg_PROTO (EMatrix* ans, cons EMatrix* vec)
+#define EVSpace_Mneg_PROTO (EMatrix* ans, const EMatrix* vec)
 /* nb_absolute */
 #define EVSpace_Mabs_NUM 4 + API_NUM_OFFSET
 #define EVSpace_Mabs_RETURN double 
