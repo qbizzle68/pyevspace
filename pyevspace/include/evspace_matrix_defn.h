@@ -27,7 +27,7 @@
 /* nb_negative */
 #define EVSpace_Mneg_NUM 5 + API_NUM_OFFSET
 #define EVSpace_Mneg_RETURN void 
-#define EVSpace_Mneg_PROTO (EMatrix* ans, const EMatrix* vec))
+#define EVSpace_Mneg_PROTO (EMatrix* ans, const EMatrix* vec)
 /* nb_inplace_add */
 #define EVSpace_Miadd_NUM 6 + API_NUM_OFFSET
 #define EVSpace_Miadd_RETURN void 
