@@ -320,6 +320,11 @@ static void EVSpace_Mset(EMatrix* self, int i, int j, double val)
 	self->m_arr[i][j] = val;
 }
 
+static double EVSpace_Mget(EMatrix* self, int i, int j)
+{
+	return self->m_arr[i][j];
+}
+
 /****************************************************/
 /*	Implimenting C API into Python number metehods  */
 /****************************************************/
@@ -886,12 +891,32 @@ static PyObject* EMatrix_set(EMatrix* self, PyObject* args)
 	Py_RETURN_NONE;
 }
 
-static int EMatrix_init(EMatrix* self, PyObject* args, PyObject* kwds)
+static PyObject* EMatrix_get(EMatrix* self, PyObject* args)
 {
-	static char* kwlist[] = { NULL };
+	int i, j;
+
+	if (!PyArg_ParseTuple(args, "ll", &i, &j))
+		return NULL;
+
+	if (i < 0 || i > 3) {
+		PyErr_SetString(PyExc_ValueError, "Row index out of bounds.");
+		return NULL;
+	}
+	if (j < 0 || j > 3) {
+		PyErr_SetString(PyExc_ValueError, "Column index out of bounds.");
+		return NULL;
+	}
+
+	PyObject* rtn = PyFloat_FromDouble(self->m_arr[i][j]);
+	Py_INCREF(rtn); // does pyfloat_fromdouble increment this or do we need to?
+	return rtn;
+}
+
+static int EMatrix_init(EMatrix* self, PyObject* args, PyObject* UNUSED)
+{
 	EVector* c0 = NULL, *c1 = NULL, *c2 = NULL;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|OOO", kwlist, c0, c1, c2))
+	if (!PyArg_ParseTuple(args, "|OOO", &c0, &c1, &c2))
 		return -1;
 	/*Py_INCREF(c0); dont need these if they're borrowed references from args
 	Py_INCREF(c1);
@@ -945,9 +970,10 @@ static PyObject* EMatrix_richcompare(PyObject* self, PyObject* other, int op)
 }
 
 static PyMethodDef EMatrix_Methods[] = {
-	{"det", (PyCFunction)EMatrix_det, METH_NOARGS, "Return the determinate of a matrix."},
-	{"transpose", (PyCFunction)EMatrix_trans, METH_NOARGS, "Return the transpose of a matrix."},
+	{"det", (PyCFunction)EMatrix_det, METH_NOARGS, "Returns the determinate of a matrix."},
+	{"transpose", (PyCFunction)EMatrix_trans, METH_NOARGS, "Returns the transpose of a matrix."},
 	{"set", (PyCFunction)EMatrix_set, METH_VARARGS, "Sets a matrix comonent to a given value."},
+	{"get", (PyCFunction)EMatrix_get, METH_VARARGS, "Returns a matrix comonent."},
 	{NULL}
 };
 

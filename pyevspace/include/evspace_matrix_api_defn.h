@@ -36,5 +36,7 @@
 	(*(EVSpace_Trans_RETURN) (*)EVSpace_Trans_PROTO) EVSpace_API[EVSpace_Trans_NUM]
 #define EVSpace_Mset \
 	(*(EVSpace_Mset_RETURN) (*)EVSpace_Mset_PROTO) EVSpace_API[EVSpace_Mset_NUM]
+#define EVSpace_Mget \
+	(*(EVSpace_Mget_RETURN) (*)EVSpace_Mget_PROTO) EVSpace_API[EVSpace_Mget_NUM]
 
 #endif // EVSPACE_MATRIX_API_DEFN_H

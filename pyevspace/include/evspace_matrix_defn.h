@@ -72,7 +72,11 @@
 #define EVSpace_Mset_NUM 16 + API_NUM_OFFSET
 #define EVSpace_Mset_RETURN void
 #define EVSpace_Mset_PROTO (EMatrix* self, int i, int j, double val)
+/* get */
+#define EVSpace_Mget_NUM 17 + API_NUM_OFFSET
+#define EVSpace_Mget_RETURN double
+#define EVSpace_Mget_PROTO (const EMatrix* self)
 
-#define EVSpace_EMatrix_API_COUNT 17
+#define EVSpace_EMatrix_API_COUNT 18
 
 #endif // EVSPACE_MATRIX_DEGN_H
