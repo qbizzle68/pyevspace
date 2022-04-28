@@ -17,7 +17,11 @@ typedef struct {
 
 #define EVSpace_RADIANS_TO_DEGREES 180.0 / 3.14159265358979323846
 
+/*************************************/
 /*	implimentation of C API methods  */
+/*************************************/
+
+/************** EVector **************/
 
 static void EVSpace_Vadd(EVector* rtn, const EVector* lhs, const EVector* rhs)
 {
@@ -162,7 +166,10 @@ static void EVSpace_Vxcl(EVector* ans, const EVector* vec, const EVector* xcl)
 	ans->m_arr[2] = vec->m_arr[2] - (xcl->m_arr[2] * scale);
 }
 
-/*********** matrix implimentations **************/
+/*********************************************/
+/***************** EMatrix *******************/
+/*********************************************/
+
 static void EVSpace_Madd(EMatrix* ans, const EMatrix* lhs, const EMatrix* rhs)
 {
 	for (int i = 0; i < 3; i++) {
@@ -274,7 +281,7 @@ static void EVSpace_Midiv(EMatrix* lhs, double rhs)
 	}
 }
 
-static int EVSpace_Mqe(const EMatrix* lhs, const EMatrix* rhs)
+static int EVSpace_Meq(const EMatrix* lhs, const EMatrix* rhs)
 {
 	static double epsilon = 1e-6;
 	for (int i = 0; i < 3; i++) {
@@ -288,7 +295,7 @@ static int EVSpace_Mqe(const EMatrix* lhs, const EMatrix* rhs)
 
 static int EVSpace_Mne(const EMatrix* lhs, const EMatrix* rhs)
 {
-	if (EVSpace_Meq == 1) 
+	if (EVSpace_Meq(lhs, rhs) == 1)
 		return 0;
 	return 1;
 }
@@ -313,7 +320,14 @@ static void EVSpace_Mset(EMatrix* self, int i, int j, double val)
 	self->m_arr[i][j] = val;
 }
 
+/****************************************************/
 /*	Implimenting C API into Python number metehods  */
+/****************************************************/
+
+/****************************************************/
+/************** EVector implementations *************/
+/****************************************************/
+
 static PyObject* VOperator_Add(EVector* self, PyObject* arg)
 {
 	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type)) {
@@ -471,16 +485,16 @@ static PyObject* VOperator_Idiv(EVector* self, PyObject* arg)
 }
 
 static PyNumberMethods EVector_NBMethods = {
-	.nb_add = VOperator_Add,
-	.nb_subtract = VOperator_Sub,
-	.nb_multiply = VOperator_Mult,
-	.nb_negative = VOperator_Neg,
+	.nb_add = (binaryfunc)VOperator_Add,
+	.nb_subtract = (binaryfunc)VOperator_Sub,
+	.nb_multiply = (binaryfunc)VOperator_Mult,
+	.nb_negative = (unaryfunc)VOperator_Neg,
 	.nb_absolute = (unaryfunc)VOperator_Abs,
-	.nb_inplace_add = VOperator_Iadd,
-	.nb_inplace_subtract = VOperator_Isub,
-	.nb_inplace_multiply = VOperator_Imult,
-	.nb_true_divide = VOperator_Div,
-	.nb_inplace_true_divide = VOperator_Idiv,
+	.nb_inplace_add = (binaryfunc)VOperator_Iadd,
+	.nb_inplace_subtract = (binaryfunc)VOperator_Isub,
+	.nb_inplace_multiply = (binaryfunc)VOperator_Imult,
+	.nb_true_divide = (binaryfunc)VOperator_Div,
+	.nb_inplace_true_divide = (binaryfunc)VOperator_Idiv,
 };
 
 /*	Class Methods  */
@@ -650,6 +664,308 @@ static PyTypeObject EVectorType = {
 	.tp_richcompare	= (richcmpfunc)EVector_richcompare,
 };
 
+/****************************************************/
+/************** EMatrix implementation **************/
+/****************************************************/
+
+static PyObject* MOperator_Add(EMatrix* self, PyObject* args)
+{
+	if (!PyObject_TypeCheck(args, self->ob_base.ob_type)) {
+		PyErr_SetString(PyExc_TypeError, "Argument must be EMatrix type.");
+		return NULL;
+	}
+
+	PyTypeObject* type = self->ob_base.ob_type;
+	EMatrix* rtn = (EMatrix*)type->tp_new(type, NULL, NULL);
+
+	if (!rtn)
+		return NULL;
+	Py_INCREF(rtn);
+
+	EVSpace_Madd(rtn, self, (EMatrix*)args);
+	return (PyObject*)rtn;
+}
+
+static PyObject* MOperator_Sub(EMatrix* self, PyObject* args)
+{
+	if (!PyObject_TypeCheck(args, self->ob_base.ob_type)) {
+		PyErr_SetString(PyExc_TypeError, "Argument must be EMatrix type.");
+		return NULL;
+	}
+
+	PyTypeObject* type = self->ob_base.ob_type;
+	EMatrix* rtn = (EMatrix*)type->tp_new(type, NULL, NULL);
+
+	if (!rtn)
+		return NULL;
+	Py_INCREF(rtn);
+
+	EVSpace_Msub(rtn, self, (EMatrix*)args);
+	return (PyObject*)rtn;
+}
+
+static PyObject* MOperator_Mult(EMatrix* self, PyObject* args)
+{
+	PyTypeObject* type = self->ob_base.ob_type;
+	PyObject* rtn = NULL;
+
+	int option = -1;
+	if (PyObject_TypeCheck(args, self->ob_base.ob_type)) {
+		option = 0;
+		rtn = type->tp_new(type, NULL, NULL);
+	}
+	else if (PyObject_TypeCheck(args, &EVectorType)) {
+		option = 1;
+		rtn = EVectorType.tp_new(&EVectorType, NULL, NULL);
+	}
+	else if (PyObject_TypeCheck(args, &PyFloat_Type)) {
+		option = 2;
+		rtn = type->tp_new(type, NULL, NULL);
+	}
+	else {
+		PyErr_SetString(PyExc_TypeError, "Argument must be EMatrix, EVector or float type.");
+		return NULL;
+	}
+
+	if (!rtn)
+		return NULL;
+	Py_INCREF(rtn);
+
+	switch (option) {
+	case 0:
+		EVSpace_Mmultm((EMatrix*)rtn, self, (EMatrix*)args);
+		break;
+	case 1:
+		EVSpace_Mmultv((EVector*)rtn, self, (EVector*)args);
+		break;
+	case 2:
+		EVSpace_Mmultd((EMatrix*)rtn, self, PyFloat_AS_DOUBLE(args));
+		break;
+	// no need for default
+	}
+	return (PyObject*)rtn;
+}
+
+static PyObject* MOperator_Neg(EMatrix* self, PyObject* UNUSED)
+{
+	PyTypeObject* type = self->ob_base.ob_type;
+	EMatrix* rtn = (EMatrix*)type->tp_new(type, NULL, NULL);
+
+	if (!rtn)
+		return NULL;
+	Py_INCREF(rtn);
+
+	EVSpace_Mneg(rtn, self);
+	return (PyObject*)rtn;
+}
+
+static PyObject* MOperator_Iadd(EMatrix* self, PyObject* args)
+{
+	if (!PyObject_TypeCheck(args, self->ob_base.ob_type)) {
+		PyErr_SetString(PyExc_TypeError, "Argument must be EMatrix type.");
+		return NULL;
+	}
+
+	EVSpace_Miadd(self, (EMatrix*)args);
+	return (PyObject*)self;
+}
+
+static PyObject* MOperator_Isub(EMatrix* self, PyObject* args)
+{
+	if (!PyObject_TypeCheck(args, self->ob_base.ob_type)) {
+		PyErr_SetString(PyExc_TypeError, "Argument must be EMatrix type.");
+		return NULL;
+	}
+
+	EVSpace_Misub(self, (EMatrix*)args);
+	return (PyObject*)self;
+}
+
+static PyObject* MOperator_Imult(EMatrix* self, PyObject* args)
+{
+	int option = -1;
+	if (PyObject_TypeCheck(args, self->ob_base.ob_type))
+		option = 0;
+	if (PyFloat_CheckExact(args))
+		option = 1;
+
+	switch (option) {
+	case 0:
+		EVSpace_Mimultm(self, (EMatrix*)args);
+		break;
+	case 1:
+		EVSpace_Mimultd(self, PyFloat_AS_DOUBLE(args));
+		break;
+	}
+	return (PyObject*)self;
+}
+
+static PyObject* MOperator_Div(EMatrix* self, PyObject* args)
+{
+	if (!PyFloat_CheckExact(args)) {
+		PyErr_SetString(PyExc_TypeError, "Argument must be float type.");
+		return NULL;
+	}
+
+	PyTypeObject* type = self->ob_base.ob_type;
+	EMatrix* rtn = (EMatrix*)type->tp_new(type, NULL, NULL);
+
+	if (!rtn)
+		return NULL;
+	Py_INCREF(rtn);
+
+	EVSpace_Mdiv(rtn, self, PyFloat_AS_DOUBLE(args));
+	return (PyObject*)rtn;
+}
+
+static PyObject* MOperator_Idiv(EMatrix* self, PyObject* args)
+{
+	if (!PyFloat_CheckExact(args)) {
+		PyErr_SetString(PyExc_TypeError, "Argument must be float type.");
+		return NULL;
+	}
+
+	EVSpace_Midiv(self, PyFloat_AS_DOUBLE(args));
+	return (PyObject*)self;
+}
+
+static PyNumberMethods EMatrix_NBMethods = {
+	.nb_add = (binaryfunc)MOperator_Add,
+	.nb_subtract = (binaryfunc)MOperator_Sub,
+	.nb_multiply = (binaryfunc)MOperator_Mult,
+	.nb_negative = (unaryfunc)MOperator_Neg,
+	.nb_inplace_add = (binaryfunc)MOperator_Iadd,
+	.nb_inplace_subtract = (binaryfunc)MOperator_Isub,
+	.nb_inplace_multiply = (binaryfunc)MOperator_Imult,
+	.nb_true_divide = (binaryfunc)MOperator_Div,
+	.nb_inplace_true_divide = (binaryfunc)MOperator_Idiv,
+};
+
+static PyObject* EMatrix_det(EMatrix* self, PyObject* UNUSED)
+{
+	PyObject* rtn = PyFloat_FromDouble(EVSpace_Det(self));
+
+	if (!rtn)
+		return NULL;
+	Py_INCREF(rtn);
+
+	return rtn;
+}
+
+static PyObject* EMatrix_trans(EMatrix* self, PyObject* UNUSED)
+{
+	PyTypeObject* type = self->ob_base.ob_type;
+	EMatrix* rtn = (EMatrix*)type->tp_new(type, NULL, NULL);
+
+	if (!rtn)
+		return NULL;
+	Py_INCREF(rtn);
+
+	EVSpace_Trans(rtn, self);
+	return (PyObject*)rtn;
+}
+
+static PyObject* EMatrix_set(EMatrix* self, PyObject* args)
+{
+	int i, j;
+	double val;
+
+	if (!PyArg_ParseTuple(args, "lld", &i, &j, &val))
+		return NULL;
+
+	if (i < 0 || i > 3) {
+		PyErr_SetString(PyExc_ValueError, "Row index out of bounds.");
+		return NULL;
+	}
+	if (j < 0 || j > 3) {
+		PyErr_SetString(PyExc_ValueError, "Column index out of bounds.");
+		return NULL;
+	}
+
+	self->m_arr[i][j] = val;
+	Py_RETURN_NONE;
+}
+
+static int EMatrix_init(EMatrix* self, PyObject* args, PyObject* kwds)
+{
+	static char* kwlist[] = { NULL };
+	EVector* c0 = NULL, *c1 = NULL, *c2 = NULL;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|OOO", kwlist, c0, c1, c2))
+		return -1;
+	/*Py_INCREF(c0); dont need these if they're borrowed references from args
+	Py_INCREF(c1);
+	Py_INCREF(c2);*/
+
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++)
+			self->m_arr[i][j] = 0;
+	}
+
+	if (c0 != NULL) {
+		for (int i = 0; i < 3; i++)
+			self->m_arr[0][i] = c0->m_arr[i];
+	}
+	if (c1 != NULL) {
+		for (int i = 0; i < 3; i++)
+			self->m_arr[1][i] = c1->m_arr[i];
+	}
+	if (c2 != NULL) {
+		for (int i = 0; i < 3; i++)
+			self->m_arr[2][i] = c2->m_arr[i];
+	}
+
+	return 0;
+}
+
+static PyObject* EMatrix_str(const EMatrix* mat)
+{
+	char buffer[100]; // todo: find the accurate number here
+	int ok = snprintf(buffer, 100, "[ %f, %f, %f ]\n[ %f, %f, %f ]\n[ %f, %f, %f ]",
+		mat->m_arr[0][0], mat->m_arr[0][1], mat->m_arr[0][2],
+		mat->m_arr[1][0], mat->m_arr[1][1], mat->m_arr[1][2],
+		mat->m_arr[2][0], mat->m_arr[2][1], mat->m_arr[2][2]);
+
+	if (ok < 0 || ok > 100)
+		return NULL; // todo: do we raise an exception here?
+
+	return Py_BuildValue("s#", buffer, strlen(buffer));
+}
+
+static PyObject* EMatrix_richcompare(PyObject* self, PyObject* other, int op)
+{
+	if (!PyObject_TypeCheck(other, self->ob_type)) {
+		PyErr_SetString(PyExc_TypeError, "Argument must be EMatrix type.");
+		return NULL;
+	}
+
+	if (op == Py_EQ) return PyBool_FromLong(EVSpace_Meq((EMatrix*)self, (EMatrix*)other));
+	else if (op == Py_NE) return PyBool_FromLong(EVSpace_Mne((EMatrix*)self, (EMatrix*)other));
+	else return Py_NotImplemented;
+}
+
+static PyMethodDef EMatrix_Methods[] = {
+	{"det", (PyCFunction)EMatrix_det, METH_NOARGS, "Return the determinate of a matrix."},
+	{"transpose", (PyCFunction)EMatrix_trans, METH_NOARGS, "Return the transpose of a matrix."},
+	{"set", (PyCFunction)EMatrix_set, METH_VARARGS, "Sets a matrix comonent to a given value."},
+	{NULL}
+};
+
+static PyTypeObject EMatrixType = {
+	PyVarObject_HEAD_INIT(NULL, 0)
+	.tp_name = "pyevspace.EMatrix",
+	.tp_doc = PyDoc_STR("Eulcidean Matrix"),
+	.tp_basicsize = sizeof(EMatrix),
+	.tp_itemsize = 0,
+	.tp_flags = Py_TPFLAGS_DEFAULT,
+	.tp_new = PyType_GenericNew,
+	.tp_init = (initproc)EMatrix_init,
+	.tp_methods = EMatrix_Methods,
+	.tp_str = (reprfunc)EMatrix_str,
+	.tp_as_number = &EMatrix_NBMethods,
+	.tp_richcompare = (richcmpfunc)EMatrix_richcompare,
+};
+
 static PyModuleDef EVSpacemodule = {
 	PyModuleDef_HEAD_INIT,
 	.m_name = "pyevspace",
@@ -664,30 +980,41 @@ PyInit_pyevspace(void)
 	static void* EVSpace_API[EVSpace_API_pointers];
 	PyObject* c_api_object;
 	EVector* e1, *e2, *e3;
+	EMatrix* I;
 
 	if (PyType_Ready(&EVectorType) < 0)
 		return NULL;
+	if (PyType_Ready(&EMatrixType) < 0)
+		return NULL;
 
-	e1 = EVectorType.tp_new(&EVectorType, NULL, NULL);
+	// todo: these inc/dec references are not right
+	e1 = (EVector*)EVectorType.tp_new(&EVectorType, NULL, NULL);
 	Py_XINCREF(e1);
 	if (!e1)
 		return NULL;
 	e1->m_arr[0] = 1;
-	e2 = EVectorType.tp_new(&EVectorType, NULL, NULL);
+	e2 = (EVector*)EVectorType.tp_new(&EVectorType, NULL, NULL);
 	Py_XINCREF(e2);
 	if (!e2)
 		return NULL;
 	e2->m_arr[1] = 1;
-	e3 = EVectorType.tp_new(&EVectorType, NULL, NULL);
+	e3 = (EVector*)EVectorType.tp_new(&EVectorType, NULL, NULL);
 	Py_XINCREF(e3);
 	if (!e3)
 		return NULL;
 	e3->m_arr[2] = 1;
+	
+	I = (EMatrix*)EMatrixType.tp_new(&EMatrixType, NULL, NULL);
+	Py_XINCREF(I);
+	if (!I)
+		return NULL;
+	I->m_arr[0][0] = I->m_arr[1][1] = I->m_arr[2][2] = 1.0;
 
 	m = PyModule_Create(&EVSpacemodule);
 	if (m == NULL)
 		return NULL;
 
+	// EVector 
 	EVSpace_API[EVSpace_Vadd_NUM]	= (void*)EVSpace_Vadd;
 	EVSpace_API[EVSpace_Vsub_NUM]	= (void*)EVSpace_Vsub;
 	EVSpace_API[EVSpace_Vmult_NUM]	= (void*)EVSpace_Vmult;
@@ -708,22 +1035,45 @@ PyInit_pyevspace(void)
 	EVSpace_API[EVSpace_Inorm_NUM]	= (void*)EVSpace_Inorm;
 	EVSpace_API[EVSpace_Vang_NUM]	= (void*)EVSpace_Vang;
 	EVSpace_API[EVSpace_Vxcl_NUM]	= (void*)EVSpace_Vxcl;
+	// EMatrix
+	EVSpace_API[EVSpace_Madd_NUM] = (void*)EVSpace_Madd;
+	EVSpace_API[EVSpace_Msub_NUM] = (void*)EVSpace_Msub;
+	EVSpace_API[EVSpace_Mmultm_NUM] = (void*)EVSpace_Mmultm;
+	EVSpace_API[EVSpace_Mmultv_NUM] = (void*)EVSpace_Mmultv;
+	EVSpace_API[EVSpace_Mmultd_NUM] = (void*)EVSpace_Mmultd;
+	EVSpace_API[EVSpace_Mneg_NUM] = (void*)EVSpace_Mneg;
+	EVSpace_API[EVSpace_Miadd_NUM] = (void*)EVSpace_Miadd;
+	EVSpace_API[EVSpace_Misub_NUM] = (void*)EVSpace_Misub;
+	EVSpace_API[EVSpace_Mimultm_NUM] = (void*)EVSpace_Mimultm;
+	EVSpace_API[EVSpace_Mimultd_NUM] = (void*)EVSpace_Mimultd;
+	EVSpace_API[EVSpace_Mdiv_NUM] = (void*)EVSpace_Mdiv;
+	EVSpace_API[EVSpace_Midiv_NUM] = (void*)EVSpace_Midiv;
+	EVSpace_API[EVSpace_Meq_NUM] = (void*)EVSpace_Meq;
+	EVSpace_API[EVSpace_Mne_NUM] = (void*)EVSpace_Mne;
+	EVSpace_API[EVSpace_Det_NUM] = (void*)EVSpace_Det;
+	EVSpace_API[EVSpace_Trans_NUM] = (void*)EVSpace_Trans;
+	EVSpace_API[EVSpace_Mset_NUM] = (void*)EVSpace_Mset;
 
 	c_api_object = PyCapsule_New((void*)EVSpace_API, "evspace._C_API", NULL);
 
 	int capsuleError = PyModule_AddObject(m, "_C_API", c_api_object);
 	int evectorError = PyModule_AddObject(m, "EVector", (PyObject*)&EVectorType);
+	int ematrixError = PyModule_AddObject(m, "EMatrix", (PyObject*)&EMatrixType);
 	int e1vectorError = PyModule_AddObject(m, "e1", (PyObject*)e1);
 	int e2vectorError = PyModule_AddObject(m, "e2", (PyObject*)e2);
 	int e3vectorError = PyModule_AddObject(m, "e3", (PyObject*)e3);
+	int Imatrixerror = PyModule_AddObject(m, "I", (PyObject*)I);
 
-	if ((capsuleError < 0) || (evectorError < 0) || (e1vectorError < 0) || (e2vectorError) || (e3vectorError)) {
+	if ((capsuleError < 0) || (evectorError < 0) || (ematrixError < 0) || (e1vectorError < 0)
+		|| (e2vectorError < 0) || (e3vectorError < 0) || (Imatrixerror < 0)) {
 		Py_XDECREF(c_api_object);
 		Py_DECREF(m);
 		Py_DECREF(&EVectorType);
+		Py_DECREF(&EMatrixType);
 		Py_DECREF(e1);
 		Py_DECREF(e2);
 		Py_DECREF(e3);
+		Py_DECREF(I);
 	}
 
 	/*if (PyModule_AddObject(m, "_C_API", c_api_object) < 0) {
