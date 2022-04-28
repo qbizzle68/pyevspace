@@ -7,6 +7,11 @@ typedef struct {
 	double m_arr[3];
 } EVector;
 
+typedef struct {
+	PyObject_HEAD
+	double m_arr[3][3];
+} EMatrix;
+
 #define EVSPACE_MODULE
 #include <evspacemodule.h>
 
@@ -155,6 +160,157 @@ static void EVSpace_Vxcl(EVector* ans, const EVector* vec, const EVector* xcl)
 	ans->m_arr[0] = vec->m_arr[0] - (xcl->m_arr[0] * scale);
 	ans->m_arr[1] = vec->m_arr[1] - (xcl->m_arr[1] * scale);
 	ans->m_arr[2] = vec->m_arr[2] - (xcl->m_arr[2] * scale);
+}
+
+/*********** matrix implimentations **************/
+static void EVSpace_Madd(EMatrix* ans, const EMatrix* lhs, const EMatrix* rhs)
+{
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++)
+			ans->m_arr[i][j] = lhs->m_arr[i][j] + rhs->m_arr[i][j];
+	}
+}
+
+static void EVSpace_Msub(EMatrix* ans, const EMatrix* lhs, const EMatrix* rhs)
+{
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++)
+			ans->m_arr[i][j] = lhs->m_arr[i][j] - rhs->m_arr[i][j];
+	}
+}
+
+static void EVSpace_Mmultm(EMatrix* ans, const EMatrix* lhs, const EMatrix* rhs)
+{
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			double sum = 0;
+			for (int k = 0; k < 3; k++)
+				sum += lhs->m_arr[i][k] * rhs->m_arr[k][j];
+			ans->m_arr[i][j] = sum;
+		}
+	}
+}
+
+static void EVSpace_Mmultv(EVector* ans, const EMatrix* lhs, const EVector* rhs)
+{
+	for (int i = 0; i < 3; i++) {
+		double sum = 0;
+		for (int j = 0; j < 3; j++)
+			sum += lhs->m_arr[i][j] * rhs->m_arr[j];
+		ans->m_arr[i] = sum;
+	}
+}
+
+static void EVSpace_Mmultd(EMatrix* ans, const EMatrix* lhs, double rhs)
+{
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++)
+			ans->m_arr[i][j] = lhs->m_arr[i][j] * rhs;
+	}
+}
+
+static void EVSpace_Mneg(EMatrix* ans, const EMatrix* vec)
+{
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++)
+			ans->m_arr[i][j] = -vec->m_arr[i][j];
+	}
+}
+
+static void EVSpace_Miadd(EMatrix* lhs, const EMatrix* rhs)
+{
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++)
+			lhs->m_arr[i][j] += rhs->m_arr[i][j];
+	}
+}
+
+static void EVSpace_Misub(EMatrix* lhs, const EMatrix* rhs)
+{
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++)
+			lhs->m_arr[i][j] -= rhs->m_arr[i][j];
+	}
+}
+
+static void EVSpace_Mimultm(EMatrix* lhs, const EMatrix* rhs)
+{
+	for (int i = 0; i < 3; i++) {
+		double sumc0 = 0;
+		double sumc1 = 0;
+		double sumc2 = 0;
+		for (int k = 0; k < 3; k++) {
+			sumc0 = lhs->m_arr[i][k] * rhs->m_arr[k][0];
+			sumc1 = lhs->m_arr[i][k] * rhs->m_arr[k][1];
+			sumc2 = lhs->m_arr[i][k] * rhs->m_arr[k][2];
+		}
+		lhs->m_arr[i][0] = sumc0;
+		lhs->m_arr[i][1] = sumc1;
+		lhs->m_arr[i][2] = sumc2;
+	}
+}
+
+static void EVSpace_Mimultd(EMatrix* lhs, double rhs)
+{
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++)
+			lhs->m_arr[i][j] *= rhs;
+	}
+}
+
+static void EVSpace_Mdiv(EMatrix* ans, const EMatrix* lhs, double rhs)
+{
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++)
+			ans->m_arr[i][j] = lhs->m_arr[i][j] / rhs;
+	}
+}
+
+static void EVSpace_Midiv(EMatrix* lhs, double rhs)
+{
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++)
+			lhs->m_arr[i][j] /= rhs;
+	}
+}
+
+static int EVSpace_Mqe(const EMatrix* lhs, const EMatrix* rhs)
+{
+	static double epsilon = 1e-6;
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			if (fabs(lhs->m_arr[i][j] - rhs->m_arr[i][j]) > epsilon) 
+				return 0;
+		}
+	}
+	return 1;
+}
+
+static int EVSpace_Mne(const EMatrix* lhs, const EMatrix* rhs)
+{
+	if (EVSpace_Meq == 1) 
+		return 0;
+	return 1;
+}
+
+static double EVSpace_Det(const EMatrix* lhs)
+{
+	return lhs->m_arr[0][0] * ((lhs->m_arr[1][1] * lhs->m_arr[2][2]) - (lhs->m_arr[1][2] * lhs->m_arr[2][1]))
+		+ lhs->m_arr[0][1] * ((lhs->m_arr[1][2] * lhs->m_arr[2][0]) - (lhs->m_arr[1][0] * lhs->m_arr[2][2]))
+		+ lhs->m_arr[0][2] * ((lhs->m_arr[1][0] * lhs->m_arr[2][1]) - (lhs->m_arr[2][2] * lhs->m_arr[2][0]));
+}
+
+static void EVSpace_Trans(EMatrix* ans, const EMatrix* mat)
+{
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++)
+			ans->m_arr[i][j] = mat->m_arr[j][i];
+	}
+}
+
+static void EVSpace_Mset(EMatrix* self, int i, int j, double val)
+{
+	self->m_arr[i][j] = val;
 }
 
 /*	Implimenting C API into Python number metehods  */
