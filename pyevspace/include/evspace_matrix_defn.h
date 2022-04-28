@@ -27,7 +27,7 @@
 /* nb_inplace_add */
 #define EVSpace_Miadd_NUM 5 + API_NUM_OFFSET
 #define EVSpace_Miadd_RETURN void 
-#define EVSpace_Mmult_PROTO (EMatrix* lhs, const EMatrix* rhs)
+#define EVSpace_Miadd_PROTO (EMatrix* lhs, const EMatrix* rhs)
 /* nb_inplace_subtract */
 #define EVSpace_Misub_NUM 6 + API_NUM_OFFSET
 #define EVSpace_Misub_RETURN void 
@@ -64,5 +64,7 @@
 #define EVSpace_Mset_NUM 14 + API_NUM_OFFSET
 #define EVSpace_Mset_RETURN void
 #define EVSpace_Mset_PROTO (EMatrix* self, const EVector* c0, const EVector* c1, const EVector* c2)
+
+#define EVSPace_EMatrix_API_COUNT 15
 
 #endif // EVSPACE_MATRIX_DEGN_H

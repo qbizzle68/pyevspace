@@ -32,5 +32,14 @@
     <ClInclude Include="include\evspace_vector_api_defn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\evspace_matrix_defn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\evspace_matrix_decl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\evspace_matrix_api_defn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

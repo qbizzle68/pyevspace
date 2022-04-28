@@ -2,7 +2,7 @@
 #ifndef EVSPACE_VECTOR_DECL_H
 #define EVSPACE_VECTOR_DECL_H
 
-/* the macro definitions are found in evspace_vector_defn 
+/* the macro definitions are found in evspace_vector_defn.h
 	include that file before this one */
 
 static EVSpace_Vadd_RETURN EVSpace_Vadd EVSpace_Vadd_PROTO;
