@@ -53,7 +53,7 @@
 #define EVSpace_Midiv_RETURN void 
 #define EVSpace_Midiv_PROTO (EMatrix* lhs, double rhs)
 /* equal to */
-#define EVSpace_Mqe_NUM 12 + API_NUM_OFFSET
+#define EVSpace_Meq_NUM 12 + API_NUM_OFFSET
 #define EVSpace_Meq_RETURN int 
 #define EVSpace_Meq_PROTO (const EMatrix* lhs, const EMatrix* rhs)
 /* not equal to */
