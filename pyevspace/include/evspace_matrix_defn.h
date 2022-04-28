@@ -65,6 +65,6 @@
 #define EVSpace_Mset_RETURN void
 #define EVSpace_Mset_PROTO (EMatrix* self, const EVector* c0, const EVector* c1, const EVector* c2)
 
-#define EVSPace_EMatrix_API_COUNT 15
+#define EVSpace_EMatrix_API_COUNT 15
 
 #endif // EVSPACE_MATRIX_DEGN_H
