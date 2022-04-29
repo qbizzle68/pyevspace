@@ -242,7 +242,24 @@ static void EVSpace_Misub(EMatrix* lhs, const EMatrix* rhs)
 
 static void EVSpace_Mimultm(EMatrix* lhs, const EMatrix* rhs)
 {
+	// todo: return the pointer so this is faster
+	EMatrix* tmp = lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
+	if (!tmp) {
+		Py_XDECREF(lhs);
+		lhs = NULL;
+		return;
+	}
+
+	Py_INCREF(tmp);
 	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++)
+			tmp->m_arr[i][j] = lhs->m_arr[i][j];
+	}
+
+	EVSpace_Mmultm(lhs, tmp, rhs);
+	Py_DECREF(tmp);
+
+	/*for (int i = 0; i < 3; i++) {
 		double sumc0 = 0;
 		double sumc1 = 0;
 		double sumc2 = 0;
@@ -254,7 +271,7 @@ static void EVSpace_Mimultm(EMatrix* lhs, const EMatrix* rhs)
 		lhs->m_arr[i][0] = sumc0;
 		lhs->m_arr[i][1] = sumc1;
 		lhs->m_arr[i][2] = sumc2;
-	}
+	}*/
 }
 
 static void EVSpace_Mimultd(EMatrix* lhs, double rhs)
@@ -304,7 +321,7 @@ static double EVSpace_Det(const EMatrix* lhs)
 {
 	return lhs->m_arr[0][0] * ((lhs->m_arr[1][1] * lhs->m_arr[2][2]) - (lhs->m_arr[1][2] * lhs->m_arr[2][1]))
 		+ lhs->m_arr[0][1] * ((lhs->m_arr[1][2] * lhs->m_arr[2][0]) - (lhs->m_arr[1][0] * lhs->m_arr[2][2]))
-		+ lhs->m_arr[0][2] * ((lhs->m_arr[1][0] * lhs->m_arr[2][1]) - (lhs->m_arr[2][2] * lhs->m_arr[2][0]));
+		+ lhs->m_arr[0][2] * ((lhs->m_arr[1][0] * lhs->m_arr[2][1]) - (lhs->m_arr[1][1] * lhs->m_arr[2][0]));
 }
 
 static void EVSpace_Trans(EMatrix* ans, const EMatrix* mat)
@@ -723,7 +740,7 @@ static PyObject* MOperator_Mult(EMatrix* self, PyObject* args)
 		option = 1;
 		rtn = EVectorType.tp_new(&EVectorType, NULL, NULL);
 	}
-	else if (PyObject_TypeCheck(args, &PyFloat_Type)) {
+	else if (PyFloat_Check(args) || PyLong_Check(args)) {
 		option = 2;
 		rtn = type->tp_new(type, NULL, NULL);
 	}
@@ -744,7 +761,7 @@ static PyObject* MOperator_Mult(EMatrix* self, PyObject* args)
 		EVSpace_Mmultv((EVector*)rtn, self, (EVector*)args);
 		break;
 	case 2:
-		EVSpace_Mmultd((EMatrix*)rtn, self, PyFloat_AS_DOUBLE(args));
+		EVSpace_Mmultd((EMatrix*)rtn, self, PyFloat_AsDouble(args));
 		break;
 	// no need for default
 	}
@@ -807,7 +824,8 @@ static PyObject* MOperator_Imult(EMatrix* self, PyObject* args)
 
 static PyObject* MOperator_Div(EMatrix* self, PyObject* args)
 {
-	if (!PyFloat_CheckExact(args)) {
+	// todo: find the right check for this
+	if (!PyFloat_CheckExact(args) && !PyLong_CheckExact(args)) {
 		PyErr_SetString(PyExc_TypeError, "Argument must be float type.");
 		return NULL;
 	}
@@ -819,18 +837,19 @@ static PyObject* MOperator_Div(EMatrix* self, PyObject* args)
 		return NULL;
 	Py_INCREF(rtn);
 
-	EVSpace_Mdiv(rtn, self, PyFloat_AS_DOUBLE(args));
+	EVSpace_Mdiv(rtn, self, PyFloat_AsDouble(args));
 	return (PyObject*)rtn;
 }
 
 static PyObject* MOperator_Idiv(EMatrix* self, PyObject* args)
 {
-	if (!PyFloat_CheckExact(args)) {
+	// todo: find the right check for this
+	if (!PyFloat_CheckExact(args) && !PyLong_CheckExact(args)) {
 		PyErr_SetString(PyExc_TypeError, "Argument must be float type.");
 		return NULL;
 	}
 
-	EVSpace_Midiv(self, PyFloat_AS_DOUBLE(args));
+	EVSpace_Midiv(self, PyFloat_AsDouble(args));
 	return (PyObject*)self;
 }
 
@@ -929,15 +948,15 @@ static int EMatrix_init(EMatrix* self, PyObject* args, PyObject* UNUSED)
 
 	if (c0 != NULL) {
 		for (int i = 0; i < 3; i++)
-			self->m_arr[0][i] = c0->m_arr[i];
+			self->m_arr[i][0] = c0->m_arr[i];
 	}
 	if (c1 != NULL) {
 		for (int i = 0; i < 3; i++)
-			self->m_arr[1][i] = c1->m_arr[i];
+			self->m_arr[i][1] = c1->m_arr[i];
 	}
 	if (c2 != NULL) {
 		for (int i = 0; i < 3; i++)
-			self->m_arr[2][i] = c2->m_arr[i];
+			self->m_arr[i][2] = c2->m_arr[i];
 	}
 
 	return 0;
@@ -945,21 +964,25 @@ static int EMatrix_init(EMatrix* self, PyObject* args, PyObject* UNUSED)
 
 static PyObject* EMatrix_str(const EMatrix* mat)
 {
-	char buffer[100]; // todo: find the accurate number here
-	int ok = snprintf(buffer, 100, "[ %f, %f, %f ]\n[ %f, %f, %f ]\n[ %f, %f, %f ]",
+	const static int sz_buffer = 200;
+	char buffer[200]; // todo: find the accurate number here
+	int ok = snprintf(buffer, sz_buffer, "[ %f, %f, %f ]\n[ %f, %f, %f ]\n[ %f, %f, %f ]",
 		mat->m_arr[0][0], mat->m_arr[0][1], mat->m_arr[0][2],
 		mat->m_arr[1][0], mat->m_arr[1][1], mat->m_arr[1][2],
 		mat->m_arr[2][0], mat->m_arr[2][1], mat->m_arr[2][2]);
-
-	if (ok < 0 || ok > 100)
-		return NULL; // todo: do we raise an exception here?
+//	printf("number of bytes %i", ok);
+	if (ok < 0 || ok > sz_buffer) {
+		PyErr_SetString(PyExc_BufferError, "Buffer too small to create string.");
+		return NULL;
+	}
+		//return NULL; // todo: do we raise an exception here?
 
 	return Py_BuildValue("s#", buffer, strlen(buffer));
 }
 
-static PyObject* EMatrix_richcompare(PyObject* self, PyObject* other, int op)
+static PyObject* EMatrix_richcompare(EMatrix* self, PyObject* other, int op)
 {
-	if (!PyObject_TypeCheck(other, self->ob_type)) {
+	if (!PyObject_TypeCheck(other, self->ob_base.ob_type)) {
 		PyErr_SetString(PyExc_TypeError, "Argument must be EMatrix type.");
 		return NULL;
 	}
