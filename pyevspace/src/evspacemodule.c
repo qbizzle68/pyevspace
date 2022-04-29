@@ -53,6 +53,7 @@ static void EVSpace_Vneg(EVector* rtn, const EVector* lhs)
 
 static double EVSpace_Vabs(const EVector* vec)
 {
+	// todo: inline this into the return statement
 	double mag2 = vec->m_arr[0] * vec->m_arr[0]
 		+ vec->m_arr[1] * vec->m_arr[1]
 		+ vec->m_arr[2] * vec->m_arr[2];
@@ -245,6 +246,7 @@ static void EVSpace_Mimultm(EMatrix* lhs, const EMatrix* rhs)
 	// todo: return the pointer so this is faster
 	EMatrix* tmp = lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
 	if (!tmp) {
+		// todo: is lhs guaranteed to not be NULL?
 		Py_XDECREF(lhs);
 		lhs = NULL;
 		return;
@@ -257,21 +259,8 @@ static void EVSpace_Mimultm(EMatrix* lhs, const EMatrix* rhs)
 	}
 
 	EVSpace_Mmultm(lhs, tmp, rhs);
+	// todo: can i just delete tmp so we dont have to keep track of references?
 	Py_DECREF(tmp);
-
-	/*for (int i = 0; i < 3; i++) {
-		double sumc0 = 0;
-		double sumc1 = 0;
-		double sumc2 = 0;
-		for (int k = 0; k < 3; k++) {
-			sumc0 = lhs->m_arr[i][k] * rhs->m_arr[k][0];
-			sumc1 = lhs->m_arr[i][k] * rhs->m_arr[k][1];
-			sumc2 = lhs->m_arr[i][k] * rhs->m_arr[k][2];
-		}
-		lhs->m_arr[i][0] = sumc0;
-		lhs->m_arr[i][1] = sumc1;
-		lhs->m_arr[i][2] = sumc2;
-	}*/
 }
 
 static void EVSpace_Mimultd(EMatrix* lhs, double rhs)
@@ -357,6 +346,8 @@ static PyObject* VOperator_Add(EVector* self, PyObject* arg)
 		return NULL;
 	}
 
+	// todo: do i need to track type? i dont think so because the lifetime of the ob_type
+	// if references is guaranteed to be longer than this method...
 	PyTypeObject* type = self->ob_base.ob_type;
 	Py_INCREF(type);
 	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
@@ -365,6 +356,7 @@ static PyObject* VOperator_Add(EVector* self, PyObject* arg)
 	if (!rtn)
 		return NULL;
 
+	// todo: do we need to do this or is it incremented with tp_new?
 	Py_INCREF(rtn);
 	EVSpace_Vadd(rtn, self, (EVector*)arg);
 
@@ -378,6 +370,7 @@ static PyObject* VOperator_Sub(EVector* self, PyObject* arg)
 		return NULL;
 	}
 
+	// todo: do we increment this?
 	PyTypeObject* type = self->ob_base.ob_type;
 	Py_INCREF(type);
 	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
@@ -386,6 +379,7 @@ static PyObject* VOperator_Sub(EVector* self, PyObject* arg)
 	if (!rtn) 
 		return NULL;
 
+	// todo: do we increment this or does tp_new handle that?
 	Py_INCREF(rtn);
 	EVSpace_Vsub(rtn, self, (EVector*)arg);
 
@@ -398,6 +392,7 @@ static PyObject* VOperator_Mult(EVector* self, PyObject* arg)
 	if (PyErr_Occurred() != NULL)
 		return NULL;
 
+	// todo: to we incremen this?
 	PyTypeObject* type = self->ob_base.ob_type;
 	Py_INCREF(type);
 	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
@@ -406,6 +401,7 @@ static PyObject* VOperator_Mult(EVector* self, PyObject* arg)
 	if (!rtn) 
 		return NULL;
 
+	// todo: to we incremen this?
 	Py_INCREF(rtn);
 	EVSpace_Vmult(rtn, self, rhs);
 
@@ -414,6 +410,7 @@ static PyObject* VOperator_Mult(EVector* self, PyObject* arg)
 
 static PyObject* VOperator_Neg(EVector* self)
 {
+	// todo: to we incremen this?
 	PyTypeObject* type = self->ob_base.ob_type;
 	Py_INCREF(type);
 	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
@@ -422,6 +419,7 @@ static PyObject* VOperator_Neg(EVector* self)
 	if (!rtn) 
 		return NULL;
 
+	// todo: to we incremen this?
 	Py_INCREF(rtn);
 	EVSpace_Vneg(rtn, self);
 
@@ -430,6 +428,7 @@ static PyObject* VOperator_Neg(EVector* self)
 
 static PyObject* VOperator_Abs(EVector* self)
 {
+	// todo: does this increase the reference count?
 	PyObject* rtn = PyFloat_FromDouble(EVSpace_Vabs(self));
 	if (!rtn)
 		return NULL;
@@ -446,6 +445,7 @@ static PyObject* VOperator_Iadd(EVector* self, PyObject* arg)
 	}
 	EVSpace_Viadd(self, (EVector*)arg);
 
+	// todo: why is this here? do we need it?
 	Py_INCREF(self);
 	return (PyObject*)self;
 }
@@ -458,6 +458,7 @@ static PyObject* VOperator_Isub(EVector* self, PyObject* arg)
 	}
 	EVSpace_Visub(self, (EVector*)arg);
 
+	// todo: why is this here?
 	Py_INCREF(self);
 	return (PyObject*)self;
 }
@@ -470,6 +471,7 @@ static PyObject* VOperator_Imult(EVector* self, PyObject* arg)
 		
 	EVSpace_Vimult(self, rhs);
 
+	// todo: why is this here?
 	Py_INCREF(self);
 	return (PyObject*)self;
 }
@@ -480,6 +482,7 @@ static PyObject* VOperator_Div(EVector* self, PyObject* arg)
 	if (PyErr_Occurred() != NULL)
 		return NULL;
 
+	// todo: to we incremen this?
 	PyTypeObject* type = self->ob_base.ob_type;
 	Py_INCREF(type);
 	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
@@ -490,6 +493,7 @@ static PyObject* VOperator_Div(EVector* self, PyObject* arg)
 
 	EVSpace_Vdiv(rtn, self, rhs);
 
+	// todo: to we incremen this?
 	Py_INCREF(rtn);
 	return (PyObject*)rtn;
 }
@@ -502,10 +506,12 @@ static PyObject* VOperator_Idiv(EVector* self, PyObject* arg)
 
 	EVSpace_Vidiv(self, rhs);
 
+	// todo: to we incremen this?
 	Py_INCREF(self);
 	return (PyObject*)self;
 }
 
+// todo: find out what all other methods do, and see if we need to/can implement them
 static PyNumberMethods EVector_NBMethods = {
 	.nb_add = (binaryfunc)VOperator_Add,
 	.nb_subtract = (binaryfunc)VOperator_Sub,
@@ -537,6 +543,7 @@ static PyObject* EVector_Cross(EVector* self, PyObject* args)
 		return NULL;
 	}
 
+	// todo: to we incremen this?
 	PyTypeObject* type = self->ob_base.ob_type;
 	Py_INCREF(type);
 	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
@@ -545,6 +552,7 @@ static PyObject* EVector_Cross(EVector* self, PyObject* args)
 	if (!rtn)
 		return NULL;
 
+	// todo: to we incremen this?
 	Py_INCREF(rtn);
 	EVSpace_Cross(rtn, self, (EVector*)args);
 	return (PyObject*)rtn;
@@ -552,16 +560,19 @@ static PyObject* EVector_Cross(EVector* self, PyObject* args)
 
 static PyObject* EVector_Mag(EVector* self, PyObject* UNUSED)
 {
+	// todo: do we need the EVSpace_Mag method? can we avoid another call?
 	return PyFloat_FromDouble(EVSpace_Mag(self));
 }
 
 static PyObject* EVector_Mag2(EVector* self, PyObject* UNUSED)
 {
+	// todo: do we need the EVSpace_Mag2 method? can we avoid another call?
 	return PyFloat_FromDouble(EVSpace_Mag2(self));
 }
 
 static PyObject* EVector_Norm(EVector* self, PyObject* UNUSED)
 {
+	// todo: to we incremen this?
 	PyTypeObject* type = self->ob_base.ob_type;
 	Py_INCREF(type);
 	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
@@ -570,6 +581,7 @@ static PyObject* EVector_Norm(EVector* self, PyObject* UNUSED)
 	if (!rtn)
 		return NULL;
 
+	// todo: to we incremen this?
 	Py_INCREF(rtn);
 	EVSpace_Norm(rtn, self);
 	return (PyObject*)rtn;
@@ -588,6 +600,7 @@ static PyObject* EVector_Vang(EVector* self, PyObject* args)
 		return NULL;
 	}
 
+	// todo: does this increase the reference?
 	return PyFloat_FromDouble(EVSpace_Vang(self, (EVector*)args));
 }
 
@@ -598,6 +611,7 @@ static PyObject* EVector_Vxcl(EVector* self, PyObject* args)
 		return NULL;
 	}
 
+	// todo: do we need to increment this?
 	PyTypeObject* type = self->ob_base.ob_type;
 	Py_INCREF(type);
 	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
@@ -606,6 +620,7 @@ static PyObject* EVector_Vxcl(EVector* self, PyObject* args)
 	if (!rtn)
 		return NULL;
 
+	// todo: do we need to increment this?
 	Py_INCREF(rtn);
 	EVSpace_Vxcl(rtn, self, (EVector*)args);
 
@@ -617,6 +632,8 @@ static int EVector_init(EVector* self, PyObject* args, PyObject* kwds)
 {
 	double x = 0, y = 0, z = 0;
 
+	// todo: should we get rid or keep the keyword?
+	//		it would allow us to construct with a 'y' or 'z' value...
 	static char* kwlist[] = { "x", "y", "z", NULL };
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ddd", kwlist, &x, &y, &z))
 		return -1;
@@ -633,9 +650,12 @@ static PyObject* EVector_str(const EVector* vec)
 	char buffer[50]; // todo: find the accurate number here
 	int ok = snprintf(buffer, 50, "[ %f, %f, %f ]", vec->m_arr[0], vec->m_arr[1], vec->m_arr[2]);
 
-	if (ok < 0 || ok > 50)
-		return NULL; // todo: do we raise an exception here?
+	if (ok < 0 || ok > 50) {
+		PyErr_SetString(PyExc_BufferError, "Buffer too small to create string.");
+		return NULL;
+	}
 
+	// todo: will this increment the returned object?
 	return Py_BuildValue("s#", buffer, strlen(buffer));
 }
 
@@ -646,11 +666,13 @@ static PyObject* EVector_richcompare(PyObject* self, PyObject* other, int op)
 		return NULL;
 	}
 
+	// todo: make this a switch?
 	if (op == Py_EQ) return PyBool_FromLong(EVSpace_Veq((EVector*)self, (EVector*)other));
 	else if (op == Py_NE) return PyBool_FromLong(EVSpace_Vne((EVector*)self, (EVector*)other));
 	else return Py_NotImplemented;
 }
 
+// todo: make this getter/setter like methods
 static PyMemberDef EVector_Members[] = {
 	{"x", T_DOUBLE, offsetof(EVector, m_arr), 0, "x-component"},
 	{"y", T_DOUBLE, offsetof(EVector, m_arr) + sizeof(double), 0, "y-component"},
@@ -670,6 +692,7 @@ static PyMethodDef EVector_Methods[] = {
 	{NULL}
 };
 
+// todo: learn about the other .tp_XXXX values and see if we can add more
 static PyTypeObject EVectorType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	.tp_name		= "pyevspace.EVector",
@@ -697,12 +720,13 @@ static PyObject* MOperator_Add(EMatrix* self, PyObject* args)
 		return NULL;
 	}
 
+	// todo: does this need to be reference counted?
 	PyTypeObject* type = self->ob_base.ob_type;
 	EMatrix* rtn = (EMatrix*)type->tp_new(type, NULL, NULL);
 
 	if (!rtn)
 		return NULL;
-	Py_INCREF(rtn);
+	Py_INCREF(rtn); // todo: to we need to increment this?
 
 	EVSpace_Madd(rtn, self, (EMatrix*)args);
 	return (PyObject*)rtn;
@@ -715,12 +739,13 @@ static PyObject* MOperator_Sub(EMatrix* self, PyObject* args)
 		return NULL;
 	}
 
+	// todo: does this need to be incremented?
 	PyTypeObject* type = self->ob_base.ob_type;
 	EMatrix* rtn = (EMatrix*)type->tp_new(type, NULL, NULL);
 
 	if (!rtn)
 		return NULL;
-	Py_INCREF(rtn);
+	Py_INCREF(rtn); // todo: to we need this?
 
 	EVSpace_Msub(rtn, self, (EMatrix*)args);
 	return (PyObject*)rtn;
@@ -728,6 +753,7 @@ static PyObject* MOperator_Sub(EMatrix* self, PyObject* args)
 
 static PyObject* MOperator_Mult(EMatrix* self, PyObject* args)
 {
+	// todo: do we need to count this?
 	PyTypeObject* type = self->ob_base.ob_type;
 	PyObject* rtn = NULL;
 
@@ -751,7 +777,7 @@ static PyObject* MOperator_Mult(EMatrix* self, PyObject* args)
 
 	if (!rtn)
 		return NULL;
-	Py_INCREF(rtn);
+	Py_INCREF(rtn); // todo: do we need this?
 
 	switch (option) {
 	case 0:
@@ -770,12 +796,13 @@ static PyObject* MOperator_Mult(EMatrix* self, PyObject* args)
 
 static PyObject* MOperator_Neg(EMatrix* self, PyObject* UNUSED)
 {
+	// todo: do we need to count this?
 	PyTypeObject* type = self->ob_base.ob_type;
 	EMatrix* rtn = (EMatrix*)type->tp_new(type, NULL, NULL);
 
 	if (!rtn)
 		return NULL;
-	Py_INCREF(rtn);
+	Py_INCREF(rtn); // todo: do we need this?
 
 	EVSpace_Mneg(rtn, self);
 	return (PyObject*)rtn;
@@ -808,7 +835,7 @@ static PyObject* MOperator_Imult(EMatrix* self, PyObject* args)
 	int option = -1;
 	if (PyObject_TypeCheck(args, self->ob_base.ob_type))
 		option = 0;
-	if (PyFloat_CheckExact(args))
+	if (PyFloat_CheckExact(args)) // todo: do we need to check for long? can we do it in one call?
 		option = 1;
 
 	switch (option) {
@@ -816,7 +843,7 @@ static PyObject* MOperator_Imult(EMatrix* self, PyObject* args)
 		EVSpace_Mimultm(self, (EMatrix*)args);
 		break;
 	case 1:
-		EVSpace_Mimultd(self, PyFloat_AS_DOUBLE(args));
+		EVSpace_Mimultd(self, PyFloat_AS_DOUBLE(args)); // todo: will this work with a long?
 		break;
 	}
 	return (PyObject*)self;
@@ -830,12 +857,13 @@ static PyObject* MOperator_Div(EMatrix* self, PyObject* args)
 		return NULL;
 	}
 
+	// todo: do we need to count this?
 	PyTypeObject* type = self->ob_base.ob_type;
 	EMatrix* rtn = (EMatrix*)type->tp_new(type, NULL, NULL);
 
 	if (!rtn)
 		return NULL;
-	Py_INCREF(rtn);
+	Py_INCREF(rtn); // todo: do we need this?
 
 	EVSpace_Mdiv(rtn, self, PyFloat_AsDouble(args));
 	return (PyObject*)rtn;
@@ -853,6 +881,7 @@ static PyObject* MOperator_Idiv(EMatrix* self, PyObject* args)
 	return (PyObject*)self;
 }
 
+// todo: find out what the rest of these do and see if we need to/can implement them.
 static PyNumberMethods EMatrix_NBMethods = {
 	.nb_add = (binaryfunc)MOperator_Add,
 	.nb_subtract = (binaryfunc)MOperator_Sub,
@@ -867,6 +896,7 @@ static PyNumberMethods EMatrix_NBMethods = {
 
 static PyObject* EMatrix_det(EMatrix* self, PyObject* UNUSED)
 {
+	// todo: does this get incremented?
 	PyObject* rtn = PyFloat_FromDouble(EVSpace_Det(self));
 
 	if (!rtn)
@@ -878,12 +908,13 @@ static PyObject* EMatrix_det(EMatrix* self, PyObject* UNUSED)
 
 static PyObject* EMatrix_trans(EMatrix* self, PyObject* UNUSED)
 {
+	// todo: do we need to count this?
 	PyTypeObject* type = self->ob_base.ob_type;
 	EMatrix* rtn = (EMatrix*)type->tp_new(type, NULL, NULL);
 
 	if (!rtn)
 		return NULL;
-	Py_INCREF(rtn);
+	Py_INCREF(rtn); // todo: do we need this?
 
 	EVSpace_Trans(rtn, self);
 	return (PyObject*)rtn;
@@ -894,7 +925,7 @@ static PyObject* EMatrix_set(EMatrix* self, PyObject* args)
 	int i, j;
 	double val;
 
-	if (!PyArg_ParseTuple(args, "lld", &i, &j, &val))
+	if (!PyArg_ParseTuple(args, "lld", &i, &j, &val)) // will a long work for this?
 		return NULL;
 
 	if (i < 0 || i > 3) {
@@ -927,7 +958,7 @@ static PyObject* EMatrix_get(EMatrix* self, PyObject* args)
 	}
 
 	PyObject* rtn = PyFloat_FromDouble(self->m_arr[i][j]);
-	Py_INCREF(rtn); // does pyfloat_fromdouble increment this or do we need to?
+	Py_INCREF(rtn); // todo: does pyfloat_fromdouble increment this or do we need to?
 	return rtn;
 }
 
@@ -935,12 +966,14 @@ static int EMatrix_init(EMatrix* self, PyObject* args, PyObject* UNUSED)
 {
 	EVector* c0 = NULL, *c1 = NULL, *c2 = NULL;
 
+	// todo: does parsetuple increment these addresses?
 	if (!PyArg_ParseTuple(args, "|OOO", &c0, &c1, &c2))
 		return -1;
 	/*Py_INCREF(c0); dont need these if they're borrowed references from args
 	Py_INCREF(c1);
 	Py_INCREF(c2);*/
 
+	// todo: can we do this more efficiently? we must be able to, too many loops here
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++)
 			self->m_arr[i][j] = 0;
@@ -970,12 +1003,11 @@ static PyObject* EMatrix_str(const EMatrix* mat)
 		mat->m_arr[0][0], mat->m_arr[0][1], mat->m_arr[0][2],
 		mat->m_arr[1][0], mat->m_arr[1][1], mat->m_arr[1][2],
 		mat->m_arr[2][0], mat->m_arr[2][1], mat->m_arr[2][2]);
-//	printf("number of bytes %i", ok);
+
 	if (ok < 0 || ok > sz_buffer) {
 		PyErr_SetString(PyExc_BufferError, "Buffer too small to create string.");
 		return NULL;
 	}
-		//return NULL; // todo: do we raise an exception here?
 
 	return Py_BuildValue("s#", buffer, strlen(buffer));
 }
@@ -987,11 +1019,13 @@ static PyObject* EMatrix_richcompare(EMatrix* self, PyObject* other, int op)
 		return NULL;
 	}
 
+	// todo: use switch here?
 	if (op == Py_EQ) return PyBool_FromLong(EVSpace_Meq((EMatrix*)self, (EMatrix*)other));
 	else if (op == Py_NE) return PyBool_FromLong(EVSpace_Mne((EMatrix*)self, (EMatrix*)other));
 	else return Py_NotImplemented;
 }
 
+// todo: craete a get/set method for the hidden array attribute
 static PyMethodDef EMatrix_Methods[] = {
 	{"det", (PyCFunction)EMatrix_det, METH_NOARGS, "Returns the determinate of a matrix."},
 	{"transpose", (PyCFunction)EMatrix_trans, METH_NOARGS, "Returns the transpose of a matrix."},
@@ -1000,6 +1034,7 @@ static PyMethodDef EMatrix_Methods[] = {
 	{NULL}
 };
 
+// todo: leanr about the rest of the .tp_XXX methods do see what else can help us.
 static PyTypeObject EMatrixType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	.tp_name = "pyevspace.EMatrix",
@@ -1015,6 +1050,7 @@ static PyTypeObject EMatrixType = {
 	.tp_richcompare = (richcmpfunc)EMatrix_richcompare,
 };
 
+// todo: anything else we need to do here?
 static PyModuleDef EVSpacemodule = {
 	PyModuleDef_HEAD_INIT,
 	.m_name = "pyevspace",
@@ -1022,6 +1058,7 @@ static PyModuleDef EVSpacemodule = {
 	.m_size = -1,
 };
 
+// todo: can we document all the methods for the IDE?
 PyMODINIT_FUNC
 PyInit_pyevspace(void)
 {
@@ -1037,6 +1074,8 @@ PyInit_pyevspace(void)
 		return NULL;
 
 	// todo: these inc/dec references are not right
+	// this is a cluster, figure it out
+	// if .tp_new increments the refernce, then we only need to decrement in case of any error in allocating
 	e1 = (EVector*)EVectorType.tp_new(&EVectorType, NULL, NULL);
 	Py_XINCREF(e1);
 	if (!e1)
@@ -1085,26 +1124,27 @@ PyInit_pyevspace(void)
 	EVSpace_API[EVSpace_Vang_NUM]	= (void*)EVSpace_Vang;
 	EVSpace_API[EVSpace_Vxcl_NUM]	= (void*)EVSpace_Vxcl;
 	// EMatrix
-	EVSpace_API[EVSpace_Madd_NUM] = (void*)EVSpace_Madd;
-	EVSpace_API[EVSpace_Msub_NUM] = (void*)EVSpace_Msub;
+	EVSpace_API[EVSpace_Madd_NUM]	= (void*)EVSpace_Madd;
+	EVSpace_API[EVSpace_Msub_NUM]	= (void*)EVSpace_Msub;
 	EVSpace_API[EVSpace_Mmultm_NUM] = (void*)EVSpace_Mmultm;
 	EVSpace_API[EVSpace_Mmultv_NUM] = (void*)EVSpace_Mmultv;
 	EVSpace_API[EVSpace_Mmultd_NUM] = (void*)EVSpace_Mmultd;
-	EVSpace_API[EVSpace_Mneg_NUM] = (void*)EVSpace_Mneg;
-	EVSpace_API[EVSpace_Miadd_NUM] = (void*)EVSpace_Miadd;
-	EVSpace_API[EVSpace_Misub_NUM] = (void*)EVSpace_Misub;
+	EVSpace_API[EVSpace_Mneg_NUM]	= (void*)EVSpace_Mneg;
+	EVSpace_API[EVSpace_Miadd_NUM]	= (void*)EVSpace_Miadd;
+	EVSpace_API[EVSpace_Misub_NUM]	= (void*)EVSpace_Misub;
 	EVSpace_API[EVSpace_Mimultm_NUM] = (void*)EVSpace_Mimultm;
 	EVSpace_API[EVSpace_Mimultd_NUM] = (void*)EVSpace_Mimultd;
-	EVSpace_API[EVSpace_Mdiv_NUM] = (void*)EVSpace_Mdiv;
-	EVSpace_API[EVSpace_Midiv_NUM] = (void*)EVSpace_Midiv;
-	EVSpace_API[EVSpace_Meq_NUM] = (void*)EVSpace_Meq;
-	EVSpace_API[EVSpace_Mne_NUM] = (void*)EVSpace_Mne;
-	EVSpace_API[EVSpace_Det_NUM] = (void*)EVSpace_Det;
-	EVSpace_API[EVSpace_Trans_NUM] = (void*)EVSpace_Trans;
-	EVSpace_API[EVSpace_Mset_NUM] = (void*)EVSpace_Mset;
+	EVSpace_API[EVSpace_Mdiv_NUM]	= (void*)EVSpace_Mdiv;
+	EVSpace_API[EVSpace_Midiv_NUM]	= (void*)EVSpace_Midiv;
+	EVSpace_API[EVSpace_Meq_NUM]	= (void*)EVSpace_Meq;
+	EVSpace_API[EVSpace_Mne_NUM]	= (void*)EVSpace_Mne;
+	EVSpace_API[EVSpace_Det_NUM]	= (void*)EVSpace_Det;
+	EVSpace_API[EVSpace_Trans_NUM]	= (void*)EVSpace_Trans;
+	EVSpace_API[EVSpace_Mset_NUM]	= (void*)EVSpace_Mset;
 
 	c_api_object = PyCapsule_New((void*)EVSpace_API, "evspace._C_API", NULL);
 
+	// todo: is this the best way to structure this?
 	int capsuleError = PyModule_AddObject(m, "_C_API", c_api_object);
 	int evectorError = PyModule_AddObject(m, "EVector", (PyObject*)&EVectorType);
 	int ematrixError = PyModule_AddObject(m, "EMatrix", (PyObject*)&EMatrixType);
@@ -1112,6 +1152,9 @@ PyInit_pyevspace(void)
 	int e2vectorError = PyModule_AddObject(m, "e2", (PyObject*)e2);
 	int e3vectorError = PyModule_AddObject(m, "e3", (PyObject*)e3);
 	int Imatrixerror = PyModule_AddObject(m, "I", (PyObject*)I);
+
+	// todo: can the 'global' objects be attributed to their types somehow?
+	// i.g. the usage like EVector.e1, EMatrix.I ...
 
 	if ((capsuleError < 0) || (evectorError < 0) || (ematrixError < 0) || (e1vectorError < 0)
 		|| (e2vectorError < 0) || (e3vectorError < 0) || (Imatrixerror < 0)) {
@@ -1123,34 +1166,8 @@ PyInit_pyevspace(void)
 		Py_DECREF(e2);
 		Py_DECREF(e3);
 		Py_DECREF(I);
-	}
-
-	/*if (PyModule_AddObject(m, "_C_API", c_api_object) < 0) {
-		Py_XDECREF(c_api_object);
-		Py_DECREF(m);
 		return NULL;
 	}
-
-	Py_INCREF(&EVectorType);
-	if (PyModule_AddObject(m, "EVector", (PyObject*)&EVectorType) < 0) {
-		Py_DECREF(&EVectorType);
-		Py_XDECREF(c_api_object);
-		Py_DECREF(m);
-		return NULL;
-	}
-
-	Py_INCREF(e1);
-	Py_INCREF(e2);
-	Py_INCREF(e3);
-	if (PyModule_AddObject(m, "e1", (PyObject*)e1) < 0) {
-		Py_DECREF(e1);
-		Py_DECREF(e2);
-		Py_DECREF(e3);
-		Py_DECREF(&EVectorType);
-		Py_XDECREF(c_api_object);
-		Py_DECREF(m);
-		return NULL;
-	}*/
 
 	return m;
 }
