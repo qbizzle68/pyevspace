@@ -388,7 +388,17 @@ static PyObject* VOperator_Sub(EVector* self, PyObject* arg)
 
 static PyObject* VOperator_Mult(EVector* self, PyObject* arg)
 {
-	double rhs = PyFloat_AsDouble(arg);
+	double rhs;
+
+	if (PyFloat_Check(arg))
+		rhs = PyFloat_AsDouble(arg);
+	else if (PyLong_Check(arg))
+		rhs = PyLong_AsDouble(arg);
+	else {
+		PyErr_SetString(PyExc_TypeError, "Argument must be Float type.");
+		return NULL;
+	}
+
 	if (PyErr_Occurred() != NULL)
 		return NULL;
 
@@ -401,7 +411,7 @@ static PyObject* VOperator_Mult(EVector* self, PyObject* arg)
 	if (!rtn) 
 		return NULL;
 
-	// todo: to we incremen this?
+	// todo: to we increment this?
 	Py_INCREF(rtn);
 	EVSpace_Vmult(rtn, self, rhs);
 
