@@ -23,42 +23,59 @@ typedef struct {
 
 /************** EVector **************/
 
-static void EVSpace_Vadd(EVector* rtn, const EVector* lhs, const EVector* rhs)
+static EVector* EVSpace_Vadd(const EVector* lhs, const EVector* rhs)
 {
+	EVector* rtn = (EVector*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
+	if (!rtn)
+		return NULL;
+
 	rtn->m_arr[0] = lhs->m_arr[0] + rhs->m_arr[0];
 	rtn->m_arr[1] = lhs->m_arr[1] + rhs->m_arr[1];
 	rtn->m_arr[2] = lhs->m_arr[2] + rhs->m_arr[2];
+	return rtn;
 }
 
-static void EVSpace_Vsub(EVector* rtn, const EVector* lhs, const EVector* rhs)
+static EVector* EVSpace_Vsub(const EVector* lhs, const EVector* rhs)
 {
+	EVector* rtn = (EVector*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
+	if (!rtn)
+		return NULL;
+
 	rtn->m_arr[0] = lhs->m_arr[0] - rhs->m_arr[0];
 	rtn->m_arr[1] = lhs->m_arr[1] - rhs->m_arr[1];
 	rtn->m_arr[2] = lhs->m_arr[2] - rhs->m_arr[2];
+	return rtn;
 }
 
-static void EVSpace_Vmult(EVector* rtn, const EVector* lhs, double rhs)
+static EVector* EVSpace_Vmult(const EVector* lhs, double rhs)
 {
+	EVector* rtn = (EVector*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
+	if (!rtn)
+		return NULL;
+
 	rtn->m_arr[0] = lhs->m_arr[0] * rhs;
 	rtn->m_arr[1] = lhs->m_arr[1] * rhs;
 	rtn->m_arr[2] = lhs->m_arr[2] * rhs;
+	return rtn;
 }
 
-static void EVSpace_Vneg(EVector* rtn, const EVector* lhs)
+static EVector* EVSpace_Vneg(const EVector* lhs)
 {
+	EVector* rtn = (EVector*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
+	if (!rtn)
+		return NULL;
+
 	rtn->m_arr[0] = -lhs->m_arr[0];
 	rtn->m_arr[1] = -lhs->m_arr[1];
 	rtn->m_arr[2] = -lhs->m_arr[2];
+	return rtn;
 }
 
 static double EVSpace_Vabs(const EVector* vec)
 {
-	// todo: inline this into the return statement
-	double mag2 = vec->m_arr[0] * vec->m_arr[0]
+	return sqrt(vec->m_arr[0] * vec->m_arr[0]
 		+ vec->m_arr[1] * vec->m_arr[1]
-		+ vec->m_arr[2] * vec->m_arr[2];
-
-	return sqrt(mag2);
+		+ vec->m_arr[2] * vec->m_arr[2]);
 }
 
 static void EVSpace_Viadd(EVector* lhs, const EVector* rhs)
@@ -82,11 +99,17 @@ static void EVSpace_Vimult(EVector* lhs, double rhs)
 	lhs->m_arr[2] *= rhs;
 }
 
-static void EVSpace_Vdiv(EVector* rtn, const EVector* lhs, double rhs)
+static EVector* EVSpace_Vdiv(const EVector* lhs, double rhs)
 {
+	EVector* rtn = (EVector*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
+	if (!rtn)
+		return NULL;
+
 	rtn->m_arr[0] = lhs->m_arr[0] / rhs;
 	rtn->m_arr[1] = lhs->m_arr[1] / rhs;
 	rtn->m_arr[2] = lhs->m_arr[2] / rhs;
+
+	return rtn;
 }
 
 static void EVSpace_Vidiv(EVector* lhs, double rhs)
@@ -120,11 +143,17 @@ static double EVSpace_Dot(const EVector* lhs, const EVector* rhs)
 		+ (lhs->m_arr[2] * rhs->m_arr[2]);
 }
 
-static void EVSpace_Cross(EVector* rtn, const EVector* lhs, const EVector* rhs)
+static EVector* EVSpace_Cross(const EVector* lhs, const EVector* rhs)
 {
+	EVector* rtn = (EVector*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
+	if (!rtn)
+		return NULL;
+
 	rtn->m_arr[0] = ((lhs->m_arr[1] * rhs->m_arr[2]) - (lhs->m_arr[2] * rhs->m_arr[1]));
 	rtn->m_arr[1] = ((lhs->m_arr[2] * rhs->m_arr[0]) - (lhs->m_arr[0] * rhs->m_arr[2]));
 	rtn->m_arr[2] = ((lhs->m_arr[0] * rhs->m_arr[1]) - (lhs->m_arr[1] * rhs->m_arr[0]));
+
+	return rtn;
 }
 
 static double EVSpace_Mag(const EVector* vec)
@@ -137,20 +166,14 @@ static double EVSpace_Mag2(const EVector* vec)
 	return EVSpace_Dot(vec, vec);
 }
 
-static void EVSpace_Norm(EVector* rtn, const EVector* vec)
+static EVector* EVSpace_Norm(const EVector* vec)
 {
-	double mag = sqrt(EVSpace_Dot(vec, vec));
-	rtn->m_arr[0] = vec->m_arr[0] / mag;
-	rtn->m_arr[1] = vec->m_arr[1] / mag;
-	rtn->m_arr[2] = vec->m_arr[2] / mag;
+	return EVSpace_Vdiv(vec, sqrt(EVSpace_Dot(vec, vec)));
 }
 
 static void EVSpace_Inorm(EVector* rtn)
 {
-	double mag = sqrt(EVSpace_Dot(rtn, rtn));
-	rtn->m_arr[0] /= mag;
-	rtn->m_arr[1] /= mag;
-	rtn->m_arr[2] /= mag;
+	EVSpace_Vidiv(rtn, sqrt(EVSpace_Dot(rtn, rtn)));
 }
 
 static double EVSpace_Vang(const EVector* lhs, const EVector* rhs)
@@ -159,12 +182,18 @@ static double EVSpace_Vang(const EVector* lhs, const EVector* rhs)
 	return theta * EVSpace_RADIANS_TO_DEGREES;
 }
 
-static void EVSpace_Vxcl(EVector* ans, const EVector* vec, const EVector* xcl)
+static EVector* EVSpace_Vxcl(const EVector* vec, const EVector* xcl)
 {
+	EVector* rtn = (EVector*)vec->ob_base.ob_type->tp_new(vec->ob_base.ob_type, NULL, NULL);
+	if (!rtn)
+		return NULL;
+
 	double scale = EVSpace_Dot(vec, xcl) / EVSpace_Mag2(xcl);
-	ans->m_arr[0] = vec->m_arr[0] - (xcl->m_arr[0] * scale);
-	ans->m_arr[1] = vec->m_arr[1] - (xcl->m_arr[1] * scale);
-	ans->m_arr[2] = vec->m_arr[2] - (xcl->m_arr[2] * scale);
+	rtn->m_arr[0] = vec->m_arr[0] - (xcl->m_arr[0] * scale);
+	rtn->m_arr[1] = vec->m_arr[1] - (xcl->m_arr[1] * scale);
+	rtn->m_arr[2] = vec->m_arr[2] - (xcl->m_arr[2] * scale);
+
+	return rtn;
 }
 
 /*********************************************/
@@ -341,49 +370,22 @@ static double EVSpace_Mget(EMatrix* self, int i, int j)
 
 static PyObject* VOperator_Add(EVector* self, PyObject* arg)
 {
-	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type)) {
-		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
-		return NULL;
-	}
+	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type))
+		Py_RETURN_NOTIMPLEMENTED;
 
-	// todo: do i need to track type? i dont think so because the lifetime of the ob_type
-	// if references is guaranteed to be longer than this method...
-	PyTypeObject* type = self->ob_base.ob_type;
-	Py_INCREF(type);
-	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
-	Py_DECREF(type);
-
-	if (!rtn)
-		return NULL;
-
-	// todo: do we need to do this or is it incremented with tp_new?
-	Py_INCREF(rtn);
-	EVSpace_Vadd(rtn, self, (EVector*)arg);
-
+	EVector* rtn = EVSpace_Vadd(self, (EVector*)arg);
+	// no need to error check, if rtn is NULL, we return it anyway
 	return (PyObject*)rtn;
 }
 
 static PyObject* VOperator_Sub(EVector* self, PyObject* arg)
 {
-	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type)) {
-		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
-		return NULL;
-	}
+	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type))
+		Py_RETURN_NOTIMPLEMENTED;
 
-	// todo: do we increment this?
-	PyTypeObject* type = self->ob_base.ob_type;
-	Py_INCREF(type);
-	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
-	Py_DECREF(type);
-
-	if (!rtn) 
-		return NULL;
-
-	// todo: do we increment this or does tp_new handle that?
-	Py_INCREF(rtn);
-	EVSpace_Vsub(rtn, self, (EVector*)arg);
-
-	return (PyObject*)rtn;
+	EVector* rtn = EVSpace_Vsub(self, (EVector*)arg);
+	// no need to error check, if rtn is NULL, we return it anyway
+	return (PyObject*)(rtn);
 }
 
 static PyObject* VOperator_Mult(EVector* self, PyObject* arg)
@@ -391,134 +393,114 @@ static PyObject* VOperator_Mult(EVector* self, PyObject* arg)
 	double rhs;
 
 	if (PyFloat_Check(arg))
-		rhs = PyFloat_AsDouble(arg);
-	else if (PyLong_Check(arg))
+		rhs = PyFloat_AS_DOUBLE(arg);
+	else if (PyLong_Check(arg)) {
 		rhs = PyLong_AsDouble(arg);
-	else {
-		PyErr_SetString(PyExc_TypeError, "Argument must be Float type.");
-		return NULL;
+		if (rhs < 0)
+			return NULL;
 	}
+	else
+		Py_RETURN_NOTIMPLEMENTED;
 
-	if (PyErr_Occurred() != NULL)
-		return NULL;
-
-	// todo: to we incremen this?
-	PyTypeObject* type = self->ob_base.ob_type;
-	Py_INCREF(type);
-	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
-	Py_DECREF(type);
-
-	if (!rtn) 
-		return NULL;
-
-	// todo: to we increment this?
-	Py_INCREF(rtn);
-	EVSpace_Vmult(rtn, self, rhs);
-
-	return (PyObject*)rtn;
+	EVector* rtn = EVSpace_Vmult(self, rhs);
+	// no need to error check, if rtn is NULL, we return it anyway
+	return (PyObject*)(rtn);
 }
 
 static PyObject* VOperator_Neg(EVector* self)
 {
-	// todo: to we incremen this?
-	PyTypeObject* type = self->ob_base.ob_type;
-	Py_INCREF(type);
-	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
-	Py_DECREF(type);
-
-	if (!rtn) 
-		return NULL;
-
-	// todo: to we incremen this?
-	Py_INCREF(rtn);
-	EVSpace_Vneg(rtn, self);
-
-	return (PyObject*)rtn;
+	EVector* rtn = EVSpace_Vneg(self);
+	// no need to error check, if rtn is NULL, we return it anyway
+	return (PyObject*)(rtn);
 }
 
 static PyObject* VOperator_Abs(EVector* self)
 {
-	// todo: does this increase the reference count?
 	PyObject* rtn = PyFloat_FromDouble(EVSpace_Vabs(self));
-	if (!rtn)
-		return NULL;
-
-	Py_INCREF(rtn);
-	return rtn;
+	// no need to error check, if rtn is NULL, we return it anyway
+	return (PyObject*)(rtn);
 }
 
 static PyObject* VOperator_Iadd(EVector* self, PyObject* arg)
 {
-	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type)) {
-		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
-		return NULL;
-	}
-	EVSpace_Viadd(self, (EVector*)arg);
+	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type))
+		Py_RETURN_NOTIMPLEMENTED;
 
-	// todo: why is this here? do we need it?
-	Py_INCREF(self);
-	return (PyObject*)self;
+	EVSpace_Viadd(self, (EVector*)arg); // no errors to report here
+	
+	return (PyObject*)(self);
+}
+
+/* This is for debugging reference counts */
+// todo: delete this when finished 
+static PyObject* Ref_check(EVector* UNUSED, EVector* arg)
+{
+	printf("reference count: %i\n", (int)arg->ob_base.ob_refcnt);
+	Py_RETURN_NONE;
 }
 
 static PyObject* VOperator_Isub(EVector* self, PyObject* arg)
 {
-	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type)) {
-		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
-		return NULL;
-	}
+	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type))
+		Py_RETURN_NOTIMPLEMENTED;
+
 	EVSpace_Visub(self, (EVector*)arg);
 
-	// todo: why is this here?
-	Py_INCREF(self);
-	return (PyObject*)self;
+	return (PyObject*)(self);
 }
 
 static PyObject* VOperator_Imult(EVector* self, PyObject* arg)
 {
-	double rhs = PyFloat_AsDouble(arg);
-	if (PyErr_Occurred() != NULL)
-		return NULL;
-		
+	double rhs;
+	if (PyFloat_Check(arg))
+		rhs = PyFloat_AS_DOUBLE(arg);
+	else if (PyLong_Check(arg)) {
+		rhs = PyLong_AsDouble(arg);
+		if (rhs < 0)
+			return NULL;
+	}
+	else
+		Py_RETURN_NOTIMPLEMENTED;
+
 	EVSpace_Vimult(self, rhs);
 
-	// todo: why is this here?
-	Py_INCREF(self);
-	return (PyObject*)self;
+	return (PyObject*)(self);
 }
 
 static PyObject* VOperator_Div(EVector* self, PyObject* arg)
 {
-	double rhs = PyFloat_AsDouble(arg);
-	if (PyErr_Occurred() != NULL)
-		return NULL;
+	double rhs;
+	if (PyFloat_Check(arg))
+		rhs = PyFloat_AS_DOUBLE(arg);
+	else if (PyLong_Check(arg)) {
+		rhs = PyLong_AsDouble(arg);
+		if (rhs < 0)
+			return NULL;
+	}
+	else
+		Py_RETURN_NOTIMPLEMENTED;
 
-	// todo: to we incremen this?
-	PyTypeObject* type = self->ob_base.ob_type;
-	Py_INCREF(type);
-	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
-	Py_DECREF(type);
-
-	if (!rtn)
-		return NULL;
-
-	EVSpace_Vdiv(rtn, self, rhs);
-
-	// todo: to we incremen this?
-	Py_INCREF(rtn);
-	return (PyObject*)rtn;
+	EVector* rtn = EVSpace_Vdiv(self, rhs);
+	// no need to error check, if rtn is NULL, we return it anyway
+	return (PyObject*)(rtn);
 }
 
 static PyObject* VOperator_Idiv(EVector* self, PyObject* arg)
 {
-	double rhs = PyFloat_AsDouble(arg);
-	if (PyErr_Occurred() != NULL)
-		return NULL;
+	double rhs;
+	if (PyFloat_Check(arg))
+		rhs = PyFloat_AS_DOUBLE(arg);
+	else if (PyLong_Check(arg)) {
+		rhs = PyLong_AsDouble(arg);
+		if (rhs < 0)
+			return NULL;
+	}
+	else
+		Py_RETURN_NOTIMPLEMENTED;
 
 	EVSpace_Vidiv(self, rhs);
-
-	// todo: to we incremen this?
-	Py_INCREF(self);
-	return (PyObject*)self;
+	
+	return (PyObject*)(self);
 }
 
 // todo: find out what all other methods do, and see if we need to/can implement them
@@ -538,69 +520,42 @@ static PyNumberMethods EVector_NBMethods = {
 /*	Class Methods  */
 static PyObject* EVector_Dot(EVector* self, PyObject* args)
 {
-	if (!PyObject_TypeCheck(args, self->ob_base.ob_type)) {
-		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
-		return NULL;
-	}
+	if (!PyObject_TypeCheck(args, self->ob_base.ob_type))
+		Py_RETURN_NOTIMPLEMENTED;
 
 	return PyFloat_FromDouble(EVSpace_Dot(self, (EVector*)args));
 }
 
 static PyObject* EVector_Cross(EVector* self, PyObject* args)
 {
-	if (!PyObject_TypeCheck(args, self->ob_base.ob_type)) {
-		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
-		return NULL;
-	}
+	if (!PyObject_TypeCheck(args, self->ob_base.ob_type)) 
+		Py_RETURN_NOTIMPLEMENTED;
 
-	// todo: to we incremen this?
-	PyTypeObject* type = self->ob_base.ob_type;
-	Py_INCREF(type);
-	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
-	Py_DECREF(type);
+	EVector* rtn = EVSpace_Cross(self, (EVector*)args);
 
-	if (!rtn)
-		return NULL;
-
-	// todo: to we incremen this?
-	Py_INCREF(rtn);
-	EVSpace_Cross(rtn, self, (EVector*)args);
-	return (PyObject*)rtn;
+	return (PyObject*)(rtn);
 }
 
 static PyObject* EVector_Mag(EVector* self, PyObject* UNUSED)
 {
-	// todo: do we need the EVSpace_Mag method? can we avoid another call?
 	return PyFloat_FromDouble(EVSpace_Mag(self));
 }
 
 static PyObject* EVector_Mag2(EVector* self, PyObject* UNUSED)
 {
-	// todo: do we need the EVSpace_Mag2 method? can we avoid another call?
 	return PyFloat_FromDouble(EVSpace_Mag2(self));
 }
 
 static PyObject* EVector_Norm(EVector* self, PyObject* UNUSED)
 {
-	// todo: to we incremen this?
-	PyTypeObject* type = self->ob_base.ob_type;
-	Py_INCREF(type);
-	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
-	Py_DECREF(type);
-
-	if (!rtn)
-		return NULL;
-
-	// todo: to we incremen this?
-	Py_INCREF(rtn);
-	EVSpace_Norm(rtn, self);
-	return (PyObject*)rtn;
+	EVector* rtn = EVSpace_Norm(self);
+	return (PyObject*)(rtn);
 }
 
 static PyObject* EVector_Normalize(EVector* self, PyObject* UNUSED)
 {
 	EVSpace_Inorm(self);
-	return (PyObject*)self;
+	Py_RETURN_NONE;
 }
 
 static PyObject* EVector_Vang(EVector* self, PyObject* args)
@@ -610,41 +565,24 @@ static PyObject* EVector_Vang(EVector* self, PyObject* args)
 		return NULL;
 	}
 
-	// todo: does this increase the reference?
 	return PyFloat_FromDouble(EVSpace_Vang(self, (EVector*)args));
 }
 
-static PyObject* EVector_Vxcl(EVector* self, PyObject* args)
+static PyObject* EVector_Vxcl(EVector* self, PyObject* arg)
 {
-	if (!PyObject_TypeCheck(args, self->ob_base.ob_type)) {
+	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type)) {
 		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
 		return NULL;
 	}
 
-	// todo: do we need to increment this?
-	PyTypeObject* type = self->ob_base.ob_type;
-	Py_INCREF(type);
-	EVector* rtn = (EVector*)type->tp_new(type, NULL, NULL);
-	Py_DECREF(type);
+	EVector* rtn = EVSpace_Vxcl(self, (EVector*)arg);
 
-	if (!rtn)
-		return NULL;
-
-	// todo: do we need to increment this?
-	Py_INCREF(rtn);
-	EVSpace_Vxcl(rtn, self, (EVector*)args);
-
-	return (PyObject*)rtn;
+	return (PyObject*)(rtn);
 }
 
 static PyObject* EVector_getx(EVector* self, void* closure)
 {
-	PyObject* rtn = PyFloat_FromDouble(self->m_arr[0]);
-	
-	if (!rtn)
-		return NULL;
-
-	return rtn;
+	return PyFloat_FromDouble(self->m_arr[0]);
 }
 
 static int EVector_setx(EVector* self, PyObject* value, void* closure)
@@ -659,8 +597,9 @@ static int EVector_setx(EVector* self, PyObject* value, void* closure)
 	}
 	else if (PyLong_Check(value)) {
 		double rhs = PyLong_AsDouble(value); // can raise OverflowError
-		if (rhs < 0) 
+		if (rhs < 0)
 			return (int)rhs;
+
 		self->m_arr[0] = rhs;
 		return 0;
 	}
@@ -672,12 +611,7 @@ static int EVector_setx(EVector* self, PyObject* value, void* closure)
 
 static PyObject* EVector_gety(EVector* self, void* closure)
 {
-	PyObject* rtn = PyFloat_FromDouble(self->m_arr[1]);
-
-	if (!rtn)
-		return NULL;
-
-	return rtn;
+	return PyFloat_FromDouble(self->m_arr[1]);
 }
 
 static int EVector_sety(EVector* self, PyObject* value, void* closure)
@@ -694,6 +628,7 @@ static int EVector_sety(EVector* self, PyObject* value, void* closure)
 		double rhs = PyLong_AsDouble(value); // can raise OverflowError
 		if (rhs < 0)
 			return (int)rhs;
+
 		self->m_arr[1] = rhs;
 		return 0;
 	}
@@ -705,12 +640,7 @@ static int EVector_sety(EVector* self, PyObject* value, void* closure)
 
 static PyObject* EVector_getz(EVector* self, void* closure)
 {
-	PyObject* rtn = PyFloat_FromDouble(self->m_arr[2]);
-
-	if (!rtn)
-		return NULL;
-
-	return rtn;
+	return PyFloat_FromDouble(self->m_arr[2]);
 }
 
 static int EVector_setz(EVector* self, PyObject* value, void* closure)
@@ -727,6 +657,7 @@ static int EVector_setz(EVector* self, PyObject* value, void* closure)
 		double rhs = PyLong_AsDouble(value); // can raise OverflowError
 		if (rhs < 0)
 			return (int)rhs;
+
 		self->m_arr[2] = rhs;
 		return 0;
 	}
@@ -740,10 +671,8 @@ static int EVector_setz(EVector* self, PyObject* value, void* closure)
 static int EVector_init(EVector* self, PyObject* args, PyObject* kwds)
 {
 	double x = 0, y = 0, z = 0;
-
-	// todo: should we get rid or keep the keyword?
-	//		it would allow us to construct with a 'y' or 'z' value...
 	static char* kwlist[] = { "x", "y", "z", NULL };
+		
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ddd", kwlist, &x, &y, &z))
 		return -1;
 
@@ -764,7 +693,6 @@ static PyObject* EVector_str(const EVector* vec)
 		return NULL;
 	}
 
-	// todo: will this increment the returned object?
 	return Py_BuildValue("s#", buffer, strlen(buffer));
 }
 
@@ -775,10 +703,14 @@ static PyObject* EVector_richcompare(PyObject* self, PyObject* other, int op)
 		return NULL;
 	}
 
-	// todo: make this a switch?
-	if (op == Py_EQ) return PyBool_FromLong(EVSpace_Veq((EVector*)self, (EVector*)other));
-	else if (op == Py_NE) return PyBool_FromLong(EVSpace_Vne((EVector*)self, (EVector*)other));
-	else return Py_NotImplemented;
+	switch (op) {
+	case Py_EQ:
+		return PyBool_FromLong(EVSpace_Veq((EVector*)self, (EVector*)other));
+	case Py_NE:
+		return PyBool_FromLong(EVSpace_Vne((EVector*)self, (EVector*)other));
+	default:
+		Py_RETURN_NOTIMPLEMENTED;
+	}
 }
 
 static PyGetSetDef EVector_getsetters[] = {
@@ -787,14 +719,6 @@ static PyGetSetDef EVector_getsetters[] = {
 	{"z", (getter) EVector_getz, (setter) EVector_setz, "Z-Component", NULL},
 	{NULL}
 };
-
-// todo: make this getter/setter like methods
-/*static PyMemberDef EVector_Members[] = {
-	{"x", T_DOUBLE, offsetof(EVector, m_arr), 0, "x-component"},
-	{"y", T_DOUBLE, offsetof(EVector, m_arr) + sizeof(double), 0, "y-component"},
-	{"z", T_DOUBLE, offsetof(EVector, m_arr) + (2 * sizeof(double)), 0, "z-component"},
-	{NULL}
-};*/
 
 static PyMethodDef EVector_Methods[] = {
 	{"dot", (PyCFunction)EVector_Dot, METH_O, "Return the dot product of two EVectors."},
@@ -805,6 +729,7 @@ static PyMethodDef EVector_Methods[] = {
 	{"normalize", (PyCFunction)EVector_Normalize, METH_NOARGS, "Normalized an EVector."},
 	{"vang", (PyCFunction)EVector_Vang, METH_O, "Return the shortest angle between two EVector's."},
 	{"vxcl", (PyCFunction)EVector_Vxcl, METH_O, "Returns a vector exculded from another."},
+	{"ref", (PyCFunction)Ref_check, METH_O, "prints the reference count."},
 	{NULL}
 };
 
@@ -818,7 +743,6 @@ static PyTypeObject EVectorType = {
 	.tp_flags		= Py_TPFLAGS_DEFAULT,
 	.tp_new			= PyType_GenericNew,
 	.tp_init		= (initproc)EVector_init,
-	//.tp_members		= EVector_Members,
 	.tp_getset		= EVector_getsetters,
 	.tp_methods		= EVector_Methods,
 	.tp_str			= (reprfunc)EVector_str,
@@ -1179,45 +1103,53 @@ static PyModuleDef EVSpacemodule = {
 PyMODINIT_FUNC
 PyInit_pyevspace(void)
 {
-	PyObject* m;
+	PyObject* m = NULL;
 	static void* EVSpace_API[EVSpace_API_pointers];
-	PyObject* c_api_object;
-	EVector* e1, *e2, *e3;
-	EMatrix* I;
-
+	PyObject* c_api_object = NULL;
+	EVector* e1 = NULL, *e2 = NULL, *e3 = NULL;
+	EMatrix* I = NULL;
+	
 	if (PyType_Ready(&EVectorType) < 0)
 		return NULL;
 	if (PyType_Ready(&EMatrixType) < 0)
 		return NULL;
 
-	// todo: these inc/dec references are not right
-	// this is a cluster, figure it out
-	// if .tp_new increments the refernce, then we only need to decrement in case of any error in allocating
+	// create e1 vector
 	e1 = (EVector*)EVectorType.tp_new(&EVectorType, NULL, NULL);
-	Py_XINCREF(e1);
 	if (!e1)
-		return NULL;
+		goto error;
 	e1->m_arr[0] = 1;
-	e2 = (EVector*)EVectorType.tp_new(&EVectorType, NULL, NULL);
-	Py_XINCREF(e2);
-	if (!e2)
-		return NULL;
-	e2->m_arr[1] = 1;
-	e3 = (EVector*)EVectorType.tp_new(&EVectorType, NULL, NULL);
-	Py_XINCREF(e3);
-	if (!e3)
-		return NULL;
-	e3->m_arr[2] = 1;
-	
-	I = (EMatrix*)EMatrixType.tp_new(&EMatrixType, NULL, NULL);
-	Py_XINCREF(I);
-	if (!I)
-		return NULL;
-	I->m_arr[0][0] = I->m_arr[1][1] = I->m_arr[2][2] = 1.0;
+	if (PyDict_SetItemString(EVectorType.tp_dict, "e1", (PyObject*)e1) < 0)
+		goto error;
 
+	// create e2 vector
+	e2 = (EVector*)EVectorType.tp_new(&EVectorType, NULL, NULL);
+	if (!e2)
+		goto error;
+	e2->m_arr[1] = 1;
+	if (PyDict_SetItemString(EVectorType.tp_dict, "e2", (PyObject*)e2) < 0)
+		goto error;
+
+	// craete e3 vector
+	e3 = (EVector*)EVectorType.tp_new(&EVectorType, NULL, NULL);
+	if (!e3)
+		goto error;
+	e3->m_arr[2] = 1;
+	if (PyDict_SetItemString(EVectorType.tp_dict, "e3", (PyObject*)e3) < 0)
+		goto error;
+
+	// create identity matrix
+	I = (EMatrix*)EMatrixType.tp_new(&EMatrixType, NULL, NULL);
+	if (!I)
+		goto error;
+	I->m_arr[0][0] = I->m_arr[1][1] = I->m_arr[2][2] = 1.0;
+	if (PyDict_SetItemString(EMatrixType.tp_dict, "I", (PyObject*)I) < 0)
+		goto error;
+
+	// create module
 	m = PyModule_Create(&EVSpacemodule);
-	if (m == NULL)
-		return NULL;
+	if (!m)
+		goto error;
 
 	// EVector 
 	EVSpace_API[EVSpace_Vadd_NUM]	= (void*)EVSpace_Vadd;
@@ -1259,32 +1191,34 @@ PyInit_pyevspace(void)
 	EVSpace_API[EVSpace_Trans_NUM]	= (void*)EVSpace_Trans;
 	EVSpace_API[EVSpace_Mset_NUM]	= (void*)EVSpace_Mset;
 
+	// create capsule
 	c_api_object = PyCapsule_New((void*)EVSpace_API, "evspace._C_API", NULL);
 
-	// todo: is this the best way to structure this?
-	int capsuleError = PyModule_AddObject(m, "_C_API", c_api_object);
-	int evectorError = PyModule_AddObject(m, "EVector", (PyObject*)&EVectorType);
-	int ematrixError = PyModule_AddObject(m, "EMatrix", (PyObject*)&EMatrixType);
-	int e1vectorError = PyModule_AddObject(m, "e1", (PyObject*)e1);
-	int e2vectorError = PyModule_AddObject(m, "e2", (PyObject*)e2);
-	int e3vectorError = PyModule_AddObject(m, "e3", (PyObject*)e3);
-	int Imatrixerror = PyModule_AddObject(m, "I", (PyObject*)I);
+	// add capsule to module
+	Py_INCREF(c_api_object);
+	if (PyModule_AddObject(m, "_C_API", c_api_object) < 0)
+		goto error;
 
-	// todo: can the 'global' objects be attributed to their types somehow?
-	// i.g. the usage like EVector.e1, EMatrix.I ...
+	// add EVector to module
+	Py_INCREF(&EVectorType);
+	if (PyModule_AddObject(m, "EVector", (PyObject*)&EVectorType) < 0)
+		goto error;
 
-	if ((capsuleError < 0) || (evectorError < 0) || (ematrixError < 0) || (e1vectorError < 0)
-		|| (e2vectorError < 0) || (e3vectorError < 0) || (Imatrixerror < 0)) {
-		Py_XDECREF(c_api_object);
-		Py_DECREF(m);
-		Py_DECREF(&EVectorType);
-		Py_DECREF(&EMatrixType);
-		Py_DECREF(e1);
-		Py_DECREF(e2);
-		Py_DECREF(e3);
-		Py_DECREF(I);
-		return NULL;
-	}
-
+	// add EMatrix to module
+	Py_INCREF(&EMatrixType);
+	if (PyModule_AddObject(m, "EMatrix", (PyObject*)&EMatrixType) < 0)
+		goto error;
+		
 	return m;
+
+error:
+
+	Py_XDECREF(m);
+	Py_XDECREF(c_api_object);
+	Py_XDECREF(e1);
+	Py_XDECREF(e2);
+	Py_XDECREF(e3);
+	Py_XDECREF(I);
+
+	return NULL;
 }
