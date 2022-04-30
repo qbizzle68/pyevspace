@@ -244,7 +244,7 @@ static void EVSpace_Misub(EMatrix* lhs, const EMatrix* rhs)
 static void EVSpace_Mimultm(EMatrix* lhs, const EMatrix* rhs)
 {
 	// todo: return the pointer so this is faster
-	EMatrix* tmp = lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
+	EMatrix* tmp = (EMatrix*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
 	if (!tmp) {
 		// todo: is lhs guaranteed to not be NULL?
 		Py_XDECREF(lhs);
@@ -637,6 +637,105 @@ static PyObject* EVector_Vxcl(EVector* self, PyObject* args)
 	return (PyObject*)rtn;
 }
 
+static PyObject* EVector_getx(EVector* self, void* closure)
+{
+	PyObject* rtn = PyFloat_FromDouble(self->m_arr[0]);
+	
+	if (!rtn)
+		return NULL;
+
+	return rtn;
+}
+
+static int EVector_setx(EVector* self, PyObject* value, void* closure)
+{
+	if (value == NULL) {
+		PyErr_SetString(PyExc_TypeError, "Cannot delete the x attribute.");
+		return -1;
+	}
+	if (PyFloat_Check(value)) {
+		self->m_arr[0] = PyFloat_AS_DOUBLE(value); // no need to error check
+		return 0;
+	}
+	else if (PyLong_Check(value)) {
+		double rhs = PyLong_AsDouble(value); // can raise OverflowError
+		if (rhs < 0) 
+			return (int)rhs;
+		self->m_arr[0] = rhs;
+		return 0;
+	}
+	else {
+		PyErr_SetString(PyExc_TypeError, "Value must be either Float or Int type.");
+		return -1;
+	}
+}
+
+static PyObject* EVector_gety(EVector* self, void* closure)
+{
+	PyObject* rtn = PyFloat_FromDouble(self->m_arr[1]);
+
+	if (!rtn)
+		return NULL;
+
+	return rtn;
+}
+
+static int EVector_sety(EVector* self, PyObject* value, void* closure)
+{
+	if (value == NULL) {
+		PyErr_SetString(PyExc_TypeError, "Cannot delete the y attribute.");
+		return -1;
+	}
+	if (PyFloat_Check(value)) {
+		self->m_arr[1] = PyFloat_AS_DOUBLE(value); // no need to error check
+		return 0;
+	}
+	else if (PyLong_Check(value)) {
+		double rhs = PyLong_AsDouble(value); // can raise OverflowError
+		if (rhs < 0)
+			return (int)rhs;
+		self->m_arr[1] = rhs;
+		return 0;
+	}
+	else {
+		PyErr_SetString(PyExc_TypeError, "Value must be either Float or Int type.");
+		return -1;
+	}
+}
+
+static PyObject* EVector_getz(EVector* self, void* closure)
+{
+	PyObject* rtn = PyFloat_FromDouble(self->m_arr[2]);
+
+	if (!rtn)
+		return NULL;
+
+	return rtn;
+}
+
+static int EVector_setz(EVector* self, PyObject* value, void* closure)
+{
+	if (value == NULL) {
+		PyErr_SetString(PyExc_TypeError, "Cannot delete the z attribute.");
+		return -1;
+	}
+	if (PyFloat_Check(value)) {
+		self->m_arr[2] = PyFloat_AS_DOUBLE(value); // no need to error check
+		return 0;
+	}
+	else if (PyLong_Check(value)) {
+		double rhs = PyLong_AsDouble(value); // can raise OverflowError
+		if (rhs < 0)
+			return (int)rhs;
+		self->m_arr[2] = rhs;
+		return 0;
+	}
+	else {
+		PyErr_SetString(PyExc_TypeError, "Value must be either Float or Int type.");
+		return -1;
+	}
+}
+
 /*	Type Methods  */
 static int EVector_init(EVector* self, PyObject* args, PyObject* kwds)
 {
@@ -682,13 +781,20 @@ static PyObject* EVector_richcompare(PyObject* self, PyObject* other, int op)
 	else return Py_NotImplemented;
 }
 
+static PyGetSetDef EVector_getsetters[] = {
+	{"x", (getter) EVector_getx, (setter) EVector_setx, "X-Component", NULL},
+	{"y", (getter) EVector_gety, (setter) EVector_sety, "Y-Component", NULL},
+	{"z", (getter) EVector_getz, (setter) EVector_setz, "Z-Component", NULL},
+	{NULL}
+};
+
 // todo: make this getter/setter like methods
-static PyMemberDef EVector_Members[] = {
+/*static PyMemberDef EVector_Members[] = {
 	{"x", T_DOUBLE, offsetof(EVector, m_arr), 0, "x-component"},
 	{"y", T_DOUBLE, offsetof(EVector, m_arr) + sizeof(double), 0, "y-component"},
 	{"z", T_DOUBLE, offsetof(EVector, m_arr) + (2 * sizeof(double)), 0, "z-component"},
 	{NULL}
-};
+};*/
 
 static PyMethodDef EVector_Methods[] = {
 	{"dot", (PyCFunction)EVector_Dot, METH_O, "Return the dot product of two EVectors."},
@@ -712,7 +818,8 @@ static PyTypeObject EVectorType = {
 	.tp_flags		= Py_TPFLAGS_DEFAULT,
 	.tp_new			= PyType_GenericNew,
 	.tp_init		= (initproc)EVector_init,
-	.tp_members		= EVector_Members,
+	//.tp_members		= EVector_Members,
+	.tp_getset		= EVector_getsetters,
 	.tp_methods		= EVector_Methods,
 	.tp_str			= (reprfunc)EVector_str,
 	.tp_as_number	= &EVector_NBMethods,
