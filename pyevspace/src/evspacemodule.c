@@ -21,6 +21,8 @@ typedef struct {
 /*	implimentation of C API methods  */
 /*************************************/
 
+// MAJOR TODO: change naming convention to EVSpace_Mat_XXX or EVSpace_Vec_XXX for ALL methods not just numeric methods
+
 /************** EVector **************/
 
 static EVector* EVSpace_Vadd(const EVector* lhs, const EVector* rhs)
@@ -32,6 +34,7 @@ static EVector* EVSpace_Vadd(const EVector* lhs, const EVector* rhs)
 	rtn->m_arr[0] = lhs->m_arr[0] + rhs->m_arr[0];
 	rtn->m_arr[1] = lhs->m_arr[1] + rhs->m_arr[1];
 	rtn->m_arr[2] = lhs->m_arr[2] + rhs->m_arr[2];
+
 	return rtn;
 }
 
@@ -44,6 +47,7 @@ static EVector* EVSpace_Vsub(const EVector* lhs, const EVector* rhs)
 	rtn->m_arr[0] = lhs->m_arr[0] - rhs->m_arr[0];
 	rtn->m_arr[1] = lhs->m_arr[1] - rhs->m_arr[1];
 	rtn->m_arr[2] = lhs->m_arr[2] - rhs->m_arr[2];
+
 	return rtn;
 }
 
@@ -56,6 +60,7 @@ static EVector* EVSpace_Vmult(const EVector* lhs, double rhs)
 	rtn->m_arr[0] = lhs->m_arr[0] * rhs;
 	rtn->m_arr[1] = lhs->m_arr[1] * rhs;
 	rtn->m_arr[2] = lhs->m_arr[2] * rhs;
+
 	return rtn;
 }
 
@@ -68,6 +73,7 @@ static EVector* EVSpace_Vneg(const EVector* lhs)
 	rtn->m_arr[0] = -lhs->m_arr[0];
 	rtn->m_arr[1] = -lhs->m_arr[1];
 	rtn->m_arr[2] = -lhs->m_arr[2];
+
 	return rtn;
 }
 
@@ -492,9 +498,9 @@ static PyObject* VOperator_Isub(EVector* self, PyObject* arg)
 static PyObject* VOperator_Imult(EVector* self, PyObject* arg)
 {
 	double rhs;
-	if (PyFloat_Check(arg))
+	if (PyFloat_CheckExact(arg))
 		rhs = PyFloat_AS_DOUBLE(arg);
-	else if (PyLong_Check(arg)) {
+	else if (PyLong_CheckExact(arg)) {
 		rhs = PyLong_AsDouble(arg);
 		if (PyErr_Occurred())
 			return NULL;
@@ -509,9 +515,9 @@ static PyObject* VOperator_Imult(EVector* self, PyObject* arg)
 static PyObject* VOperator_Div(EVector* self, PyObject* arg)
 {
 	double rhs;
-	if (PyFloat_Check(arg))
+	if (PyFloat_CheckExact(arg))
 		rhs = PyFloat_AS_DOUBLE(arg);
-	else if (PyLong_Check(arg)) {
+	else if (PyLong_CheckExact(arg)) {
 		rhs = PyLong_AsDouble(arg);
 		if (PyErr_Occurred())
 			return NULL;
@@ -527,9 +533,9 @@ static PyObject* VOperator_Div(EVector* self, PyObject* arg)
 static PyObject* VOperator_Idiv(EVector* self, PyObject* arg)
 {
 	double rhs;
-	if (PyFloat_Check(arg))
+	if (PyFloat_CheckExact(arg))
 		rhs = PyFloat_AS_DOUBLE(arg);
-	else if (PyLong_Check(arg)) {
+	else if (PyLong_CheckExact(arg)) {
 		rhs = PyLong_AsDouble(arg);
 		if (PyErr_Occurred())
 			return NULL;
@@ -541,7 +547,6 @@ static PyObject* VOperator_Idiv(EVector* self, PyObject* arg)
 	return Py_NewRef(self);
 }
 
-// todo: find out what all other methods do, and see if we need to/can implement them
 static PyNumberMethods EVector_NBMethods = {
 	.nb_add = (binaryfunc)VOperator_Add,
 	.nb_subtract = (binaryfunc)VOperator_Sub,
@@ -556,6 +561,7 @@ static PyNumberMethods EVector_NBMethods = {
 };
 
 /*	Class Methods  */
+// todo: make this a module method
 static PyObject* EVector_Dot(EVector* self, PyObject* args)
 {
 	if (!PyObject_TypeCheck(args, self->ob_base.ob_type))
@@ -564,6 +570,7 @@ static PyObject* EVector_Dot(EVector* self, PyObject* args)
 	return PyFloat_FromDouble(EVSpace_Dot(self, (EVector*)args));
 }
 
+// todo: make this a module method
 static PyObject* EVector_Cross(EVector* self, PyObject* args)
 {
 	if (!PyObject_TypeCheck(args, self->ob_base.ob_type)) 
@@ -584,6 +591,7 @@ static PyObject* EVector_Mag2(EVector* self, PyObject* UNUSED)
 	return PyFloat_FromDouble(EVSpace_Mag2(self));
 }
 
+// todo: make this a module method
 static PyObject* EVector_Norm(EVector* self, PyObject* UNUSED)
 {
 	EVector* rtn = EVSpace_Norm(self);
@@ -596,6 +604,7 @@ static PyObject* EVector_Normalize(EVector* self, PyObject* UNUSED)
 	Py_RETURN_NONE;
 }
 
+// todo: make this a module method
 static PyObject* EVector_Vang(EVector* self, PyObject* args)
 {
 	if (!PyObject_TypeCheck(args, self->ob_base.ob_type)) {
@@ -606,6 +615,7 @@ static PyObject* EVector_Vang(EVector* self, PyObject* args)
 	return PyFloat_FromDouble(EVSpace_Vang(self, (EVector*)args));
 }
 
+// todo: make this a module method
 static PyObject* EVector_Vxcl(EVector* self, PyObject* arg)
 {
 	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type)) {
@@ -618,22 +628,24 @@ static PyObject* EVector_Vxcl(EVector* self, PyObject* arg)
 	return (PyObject*)(rtn);
 }
 
+// todo: replace this with either mapping/sequence protocol method
 static PyObject* EVector_getx(EVector* self, void* closure)
 {
 	return PyFloat_FromDouble(self->m_arr[0]);
 }
 
+// todo: replace this with either mapping/sequence protocol method
 static int EVector_setx(EVector* self, PyObject* value, void* closure)
 {
 	if (value == NULL) {
 		PyErr_SetString(PyExc_TypeError, "Cannot delete the x attribute.");
 		return -1;
 	}
-	if (PyFloat_Check(value)) {
+	if (PyFloat_CheckExact(value)) {
 		self->m_arr[0] = PyFloat_AS_DOUBLE(value); // no need to error check
 		return 0;
 	}
-	else if (PyLong_Check(value)) {
+	else if (PyLong_CheckExact(value)) {
 		double rhs = PyLong_AsDouble(value); // can raise OverflowError
 		if (PyErr_Occurred())
 			return (int)rhs;
@@ -647,22 +659,24 @@ static int EVector_setx(EVector* self, PyObject* value, void* closure)
 	}
 }
 
+// todo: replace this with either mapping/sequence protocol method
 static PyObject* EVector_gety(EVector* self, void* closure)
 {
 	return PyFloat_FromDouble(self->m_arr[1]);
 }
 
+// todo: replace this with either mapping/sequence protocol method
 static int EVector_sety(EVector* self, PyObject* value, void* closure)
 {
 	if (value == NULL) {
 		PyErr_SetString(PyExc_TypeError, "Cannot delete the y attribute.");
 		return -1;
 	}
-	if (PyFloat_Check(value)) {
+	if (PyFloat_CheckExact(value)) {
 		self->m_arr[1] = PyFloat_AS_DOUBLE(value); // no need to error check
 		return 0;
 	}
-	else if (PyLong_Check(value)) {
+	else if (PyLong_CheckExact(value)) {
 		double rhs = PyLong_AsDouble(value); // can raise OverflowError
 		if (PyErr_Occurred())
 			return (int)rhs;
@@ -676,22 +690,24 @@ static int EVector_sety(EVector* self, PyObject* value, void* closure)
 	}
 }
 
+// todo: replace this with either mapping/sequence protocol method
 static PyObject* EVector_getz(EVector* self, void* closure)
 {
 	return PyFloat_FromDouble(self->m_arr[2]);
 }
 
+// todo: replace this with either mapping/sequence protocol method
 static int EVector_setz(EVector* self, PyObject* value, void* closure)
 {
 	if (value == NULL) {
 		PyErr_SetString(PyExc_TypeError, "Cannot delete the z attribute.");
 		return -1;
 	}
-	if (PyFloat_Check(value)) {
+	if (PyFloat_CheckExact(value)) {
 		self->m_arr[2] = PyFloat_AS_DOUBLE(value); // no need to error check
 		return 0;
 	}
-	else if (PyLong_Check(value)) {
+	else if (PyLong_CheckExact(value)) {
 		double rhs = PyLong_AsDouble(value); // can raise OverflowError
 		if (PyErr_Occurred())
 			return (int)rhs;
@@ -758,6 +774,7 @@ static PyGetSetDef EVector_getsetters[] = {
 	{NULL}
 };
 
+// todo: move some of these to module methods
 static PyMethodDef EVector_Methods[] = {
 	{"dot", (PyCFunction)EVector_Dot, METH_O, "Return the dot product of two EVectors."},
 	{"cross", (PyCFunction)EVector_Cross, METH_O, "Return the cross product of two EVectors."},
@@ -771,7 +788,7 @@ static PyMethodDef EVector_Methods[] = {
 	{NULL}
 };
 
-// todo: learn about the other .tp_XXXX values and see if we can add more
+// todo: add call method
 static PyTypeObject EVectorType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	.tp_name		= "pyevspace.EVector",
@@ -867,9 +884,9 @@ static PyObject* MOperator_Imult(EMatrix* self, PyObject* args)
 	int option = -1;
 	if (PyObject_TypeCheck(args, self->ob_base.ob_type))
 		option = 0;
-	else if (PyFloat_CheckExact(args)) // todo: do we need to check for long? can we do it in one call?
+	else if (PyFloat_CheckExact(args))
 		option = 1;
-	else if (PyLong_Check(args)) // todo: do we check exact here?
+	else if (PyLong_CheckExact(args))
 		option = 2;
 	else
 		Py_RETURN_NOTIMPLEMENTED;
@@ -878,10 +895,10 @@ static PyObject* MOperator_Imult(EMatrix* self, PyObject* args)
 	switch (option) {
 	case 0:
 		EVSpace_Mimultm(self, (EMatrix*)args);
-		return (PyObject*)self;
+		return Py_NewRef(self);
 	case 1:
 		EVSpace_Mimultd(self, PyFloat_AS_DOUBLE(args));
-		return (PyObject*)self;
+		return Py_NewRef(self);
 	default: // todo: does this matter which is default?
 		rhs = PyLong_AsDouble(args);
 		if (PyErr_Occurred())
@@ -895,9 +912,9 @@ static PyObject* MOperator_Imult(EMatrix* self, PyObject* args)
 static PyObject* MOperator_Div(EMatrix* self, PyObject* args)
 {
 	double rhs;
-	if (PyFloat_Check(args))
+	if (PyFloat_CheckExact(args))
 		rhs = PyFloat_AS_DOUBLE(args);
-	else if (PyLong_Check(args)) {
+	else if (PyLong_CheckExact(args)) {
 		rhs = PyLong_AsDouble(args);
 		if (PyErr_Occurred())
 			return NULL;
@@ -911,9 +928,9 @@ static PyObject* MOperator_Div(EMatrix* self, PyObject* args)
 static PyObject* MOperator_Idiv(EMatrix* self, PyObject* args)
 {
 	double rhs;
-	if (PyFloat_Check(args))
+	if (PyFloat_CheckExact(args))
 		rhs = PyFloat_AS_DOUBLE(args);
-	else if (PyLong_Check(args)) {
+	else if (PyLong_CheckExact(args)) {
 		rhs = PyLong_AsDouble(args);
 		if (PyErr_Occurred())
 			return NULL;
@@ -925,7 +942,7 @@ static PyObject* MOperator_Idiv(EMatrix* self, PyObject* args)
 	return Py_NewRef(self);
 }
 
-// todo: find out what the rest of these do and see if we need to/can implement them.
+// todo: split the multiply into multiply(float/int) and matrix multiply(vector/matrix)
 static PyNumberMethods EMatrix_NBMethods = {
 	.nb_add = (binaryfunc)MOperator_Add,
 	.nb_subtract = (binaryfunc)MOperator_Sub,
@@ -938,22 +955,25 @@ static PyNumberMethods EMatrix_NBMethods = {
 	.nb_inplace_true_divide = (binaryfunc)MOperator_Idiv,
 };
 
+// todo: make this a module method
 static PyObject* EMatrix_det(EMatrix* self, PyObject* UNUSED)
 {
 	return (PyObject*)PyFloat_FromDouble(EVSpace_Det(self));
 }
 
+// todo: make this a module method
 static PyObject* EMatrix_trans(EMatrix* self, PyObject* UNUSED)
 {
 	return (PyObject*)EVSpace_Trans(self);
 }
 
+// todo: make this implement by __call__
 static PyObject* EMatrix_set(EMatrix* self, PyObject* args)
 {
 	int i, j;
 	double val;
 
-	if (!PyArg_ParseTuple(args, "lld", &i, &j, &val)) // todo: will a long work for this?
+	if (!PyArg_ParseTuple(args, "lld", &i, &j, &val))
 		return NULL;
 
 	if (i < 0 || i > 3) {
@@ -969,6 +989,7 @@ static PyObject* EMatrix_set(EMatrix* self, PyObject* args)
 	Py_RETURN_NONE;
 }
 
+// todo: make this implemented by __call__
 static PyObject* EMatrix_get(EMatrix* self, PyObject* args)
 {
 	int i, j;
@@ -985,8 +1006,7 @@ static PyObject* EMatrix_get(EMatrix* self, PyObject* args)
 		return NULL;
 	}
 
-	PyObject* rtn = PyFloat_FromDouble(self->m_arr[i][j]);
-	return rtn;
+	return PyFloat_FromDouble(self->m_arr[i][j]);
 }
 
 static int EMatrix_init(EMatrix* self, PyObject* args, PyObject* UNUSED)
@@ -1055,11 +1075,10 @@ static PyObject* EMatrix_richcompare(EMatrix* self, PyObject* other, int op)
 		PyErr_SetString(PyExc_TypeError, "Argument must be EMatrix type.");
 		return NULL;
 	}
-	PyObject* rtn;
+
 	switch (op) {
 	case Py_EQ:
-		rtn = PyBool_FromLong(EVSpace_Meq((EMatrix*)self, (EMatrix*)other));
-		return rtn;
+		return PyBool_FromLong(EVSpace_Meq((EMatrix*)self, (EMatrix*)other));
 	case Py_NE:
 		return PyBool_FromLong(EVSpace_Mne((EMatrix*)self, (EMatrix*)other));
 	default:
@@ -1076,7 +1095,7 @@ static PyMethodDef EMatrix_Methods[] = {
 	{NULL}
 };
 
-// todo: leanr about the rest of the .tp_XXX methods do see what else can help us.
+// todo: add call method
 static PyTypeObject EMatrixType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	.tp_name = "pyevspace.EMatrix",
