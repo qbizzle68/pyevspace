@@ -6,28 +6,28 @@
 
 /* nb_add */
 #define EVSpace_Madd_NUM 0 + API_NUM_OFFSET
-#define EVSpace_Madd_RETURN void 
-#define EVSpace_Madd_PROTO (EMatrix* ans, const EMatrix* lhs, const EMatrix* rhs)
+#define EVSpace_Madd_RETURN EMatrix* 
+#define EVSpace_Madd_PROTO (const EMatrix* lhs, const EMatrix* rhs)
 /* nb_sub */
 #define EVSpace_Msub_NUM 1 + API_NUM_OFFSET
-#define EVSpace_Msub_RETURN void 
-#define EVSpace_Msub_PROTO (EMatrix* ans, const EMatrix* lhs, const EMatrix* rhs)
+#define EVSpace_Msub_RETURN EMatrix* 
+#define EVSpace_Msub_PROTO (const EMatrix* lhs, const EMatrix* rhs)
 /* nb_mult (matrix) */
 #define EVSpace_Mmultm_NUM 2 + API_NUM_OFFSET
-#define EVSpace_Mmultm_RETURN void 
-#define EVSpace_Mmultm_PROTO (EMatrix* ans, const EMatrix* lhs, const EMatrix* rhs)
+#define EVSpace_Mmultm_RETURN EMatrix* 
+#define EVSpace_Mmultm_PROTO (const EMatrix* lhs, const EMatrix* rhs)
 /* nb_mult (vector) */
 #define EVSpace_Mmultv_NUM 3 + API_NUM_OFFSET
-#define EVSpace_Mmultv_RETURN void 
-#define EVSpace_Mmultv_PROTO (EVector* ans, const EMatrix* lhs, const EVector* rhs)
+#define EVSpace_Mmultv_RETURN EVector* 
+#define EVSpace_Mmultv_PROTO (const EMatrix* lhs, const EVector* rhs)
 /* nb_mult (double) */
 #define EVSpace_Mmultd_NUM 4 + API_NUM_OFFSET
-#define EVSpace_Mmultd_RETURN void
-#define EVSpace_Mmultd_PROTO (EMatrix* ans, const EMatrix* lhs, double rhs)
+#define EVSpace_Mmultd_RETURN EMatrix*
+#define EVSpace_Mmultd_PROTO (const EMatrix* lhs, double rhs)
 /* nb_negative */
 #define EVSpace_Mneg_NUM 5 + API_NUM_OFFSET
-#define EVSpace_Mneg_RETURN void 
-#define EVSpace_Mneg_PROTO (EMatrix* ans, const EMatrix* vec)
+#define EVSpace_Mneg_RETURN EMatrix* 
+#define EVSpace_Mneg_PROTO (const EMatrix* vec)
 /* nb_inplace_add */
 #define EVSpace_Miadd_NUM 6 + API_NUM_OFFSET
 #define EVSpace_Miadd_RETURN void 
@@ -46,8 +46,8 @@
 #define EVSpace_Mimultd_PROTO (EMatrix* lhs, double rhs)
 /* nb_true_divide */
 #define EVSpace_Mdiv_NUM 10 + API_NUM_OFFSET
-#define EVSpace_Mdiv_RETURN void 
-#define EVSpace_Mdiv_PROTO (EMatrix* ans, const EMatrix* lhs, double rhs)
+#define EVSpace_Mdiv_RETURN EMatrix* 
+#define EVSpace_Mdiv_PROTO (const EMatrix* lhs, double rhs)
 /* nb_inplace_true_divide */
 #define EVSpace_Midiv_NUM 11 + API_NUM_OFFSET
 #define EVSpace_Midiv_RETURN void 
@@ -66,8 +66,8 @@
 #define EVSpace_Det_PROTO (const EMatrix* lhs)
 /* transpose */
 #define EVSpace_Trans_NUM 15 + API_NUM_OFFSET
-#define EVSpace_Trans_RETURN void 
-#define EVSpace_Trans_PROTO (EMatrix* ans, const EMatrix* mat)
+#define EVSpace_Trans_RETURN EMatrix*
+#define EVSpace_Trans_PROTO (const EMatrix* mat)
 /* set */
 #define EVSpace_Mset_NUM 16 + API_NUM_OFFSET
 #define EVSpace_Mset_RETURN void

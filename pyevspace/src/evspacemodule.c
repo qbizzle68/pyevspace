@@ -200,58 +200,94 @@ static EVector* EVSpace_Vxcl(const EVector* vec, const EVector* xcl)
 /***************** EMatrix *******************/
 /*********************************************/
 
-static void EVSpace_Madd(EMatrix* ans, const EMatrix* lhs, const EMatrix* rhs)
+static EMatrix* EVSpace_Madd(const EMatrix* lhs, const EMatrix* rhs)
 {
+	EMatrix* rtn = (EMatrix*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
+	if (!rtn)
+		return NULL;
+
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++)
-			ans->m_arr[i][j] = lhs->m_arr[i][j] + rhs->m_arr[i][j];
+			rtn->m_arr[i][j] = lhs->m_arr[i][j] + rhs->m_arr[i][j];
 	}
+
+	return rtn;
 }
 
-static void EVSpace_Msub(EMatrix* ans, const EMatrix* lhs, const EMatrix* rhs)
+static EMatrix* EVSpace_Msub(const EMatrix* lhs, const EMatrix* rhs)
 {
+	EMatrix* rtn = (EMatrix*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
+	if (!rtn)
+		return NULL;
+
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++)
-			ans->m_arr[i][j] = lhs->m_arr[i][j] - rhs->m_arr[i][j];
+			rtn->m_arr[i][j] = lhs->m_arr[i][j] - rhs->m_arr[i][j];
 	}
+
+	return rtn;
 }
 
-static void EVSpace_Mmultm(EMatrix* ans, const EMatrix* lhs, const EMatrix* rhs)
+static EMatrix* EVSpace_Mmultm(const EMatrix* lhs, const EMatrix* rhs)
 {
+	EMatrix* rtn = (EMatrix*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
+	if (!rtn)
+		return NULL;
+
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
 			double sum = 0;
 			for (int k = 0; k < 3; k++)
 				sum += lhs->m_arr[i][k] * rhs->m_arr[k][j];
-			ans->m_arr[i][j] = sum;
+			rtn->m_arr[i][j] = sum;
 		}
 	}
+
+	return rtn;
 }
 
-static void EVSpace_Mmultv(EVector* ans, const EMatrix* lhs, const EVector* rhs)
+static EVector* EVSpace_Mmultv(const EMatrix* lhs, const EVector* rhs)
 {
+	EVector* rtn = (EVector*)rhs->ob_base.ob_type->tp_new(rhs->ob_base.ob_type, NULL, NULL);
+	if (!rtn)
+		return NULL;
+
 	for (int i = 0; i < 3; i++) {
 		double sum = 0;
 		for (int j = 0; j < 3; j++)
 			sum += lhs->m_arr[i][j] * rhs->m_arr[j];
-		ans->m_arr[i] = sum;
+		rtn->m_arr[i] = sum;
 	}
+
+	return rtn;
 }
 
-static void EVSpace_Mmultd(EMatrix* ans, const EMatrix* lhs, double rhs)
+static EMatrix* EVSpace_Mmultd(const EMatrix* lhs, double rhs)
 {
+	EMatrix* rtn = (EMatrix*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
+	if (!rtn)
+		return NULL;
+
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++)
-			ans->m_arr[i][j] = lhs->m_arr[i][j] * rhs;
+			rtn->m_arr[i][j] = lhs->m_arr[i][j] * rhs;
 	}
+
+	return rtn;
 }
 
-static void EVSpace_Mneg(EMatrix* ans, const EMatrix* vec)
+static EMatrix* EVSpace_Mneg(const EMatrix* mat)
 {
+	EMatrix* rtn = (EMatrix*)mat->ob_base.ob_type->tp_new(mat->ob_base.ob_type, NULL, NULL);
+	if (!rtn)
+		return NULL;
+
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++)
-			ans->m_arr[i][j] = -vec->m_arr[i][j];
+			rtn->m_arr[i][j] = -mat->m_arr[i][j];
 	}
+
+	return rtn;
 }
 
 static void EVSpace_Miadd(EMatrix* lhs, const EMatrix* rhs)
@@ -272,24 +308,18 @@ static void EVSpace_Misub(EMatrix* lhs, const EMatrix* rhs)
 
 static void EVSpace_Mimultm(EMatrix* lhs, const EMatrix* rhs)
 {
-	// todo: return the pointer so this is faster
-	EMatrix* tmp = (EMatrix*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
+	EMatrix* tmp = EVSpace_Mmultm(lhs, rhs);
 	if (!tmp) {
-		// todo: is lhs guaranteed to not be NULL?
-		Py_XDECREF(lhs);
 		lhs = NULL;
 		return;
 	}
 
-	Py_INCREF(tmp);
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++)
-			tmp->m_arr[i][j] = lhs->m_arr[i][j];
+			lhs->m_arr[i][j] = tmp->m_arr[i][j];
 	}
 
-	EVSpace_Mmultm(lhs, tmp, rhs);
-	// todo: can i just delete tmp so we dont have to keep track of references?
-	Py_DECREF(tmp);
+	tmp->ob_base.ob_type->tp_dealloc((PyObject*)tmp);
 }
 
 static void EVSpace_Mimultd(EMatrix* lhs, double rhs)
@@ -300,12 +330,18 @@ static void EVSpace_Mimultd(EMatrix* lhs, double rhs)
 	}
 }
 
-static void EVSpace_Mdiv(EMatrix* ans, const EMatrix* lhs, double rhs)
+static EMatrix* EVSpace_Mdiv(const EMatrix* lhs, double rhs)
 {
+	EMatrix* rtn = (EMatrix*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
+	if (!rtn)
+		return NULL;
+
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++)
-			ans->m_arr[i][j] = lhs->m_arr[i][j] / rhs;
+			rtn->m_arr[i][j] = lhs->m_arr[i][j] / rhs;
 	}
+
+	return rtn;
 }
 
 static void EVSpace_Midiv(EMatrix* lhs, double rhs)
@@ -342,12 +378,18 @@ static double EVSpace_Det(const EMatrix* lhs)
 		+ lhs->m_arr[0][2] * ((lhs->m_arr[1][0] * lhs->m_arr[2][1]) - (lhs->m_arr[1][1] * lhs->m_arr[2][0]));
 }
 
-static void EVSpace_Trans(EMatrix* ans, const EMatrix* mat)
+static EMatrix* EVSpace_Trans(const EMatrix* mat)
 {
+	EMatrix* rtn = (EMatrix*)mat->ob_base.ob_type->tp_new(mat->ob_base.ob_type, NULL, NULL);
+	if (!rtn)
+		return NULL;
+
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++)
-			ans->m_arr[i][j] = mat->m_arr[j][i];
+			rtn->m_arr[i][j] = mat->m_arr[j][i];
 	}
+
+	return rtn;
 }
 
 static void EVSpace_Mset(EMatrix* self, int i, int j, double val)
@@ -391,12 +433,12 @@ static PyObject* VOperator_Sub(EVector* self, PyObject* arg)
 static PyObject* VOperator_Mult(EVector* self, PyObject* arg)
 {
 	double rhs;
-
-	if (PyFloat_Check(arg))
+	
+	if (PyFloat_CheckExact(arg))
 		rhs = PyFloat_AS_DOUBLE(arg);
-	else if (PyLong_Check(arg)) {
+	else if (PyLong_CheckExact(arg)) {
 		rhs = PyLong_AsDouble(arg);
-		if (rhs < 0)
+		if (PyErr_Occurred())
 			return NULL;
 	}
 	else
@@ -427,8 +469,7 @@ static PyObject* VOperator_Iadd(EVector* self, PyObject* arg)
 		Py_RETURN_NOTIMPLEMENTED;
 
 	EVSpace_Viadd(self, (EVector*)arg); // no errors to report here
-	
-	return (PyObject*)(self);
+	return Py_NewRef(self);
 }
 
 /* This is for debugging reference counts */
@@ -445,8 +486,7 @@ static PyObject* VOperator_Isub(EVector* self, PyObject* arg)
 		Py_RETURN_NOTIMPLEMENTED;
 
 	EVSpace_Visub(self, (EVector*)arg);
-
-	return (PyObject*)(self);
+	return Py_NewRef(self);
 }
 
 static PyObject* VOperator_Imult(EVector* self, PyObject* arg)
@@ -456,15 +496,14 @@ static PyObject* VOperator_Imult(EVector* self, PyObject* arg)
 		rhs = PyFloat_AS_DOUBLE(arg);
 	else if (PyLong_Check(arg)) {
 		rhs = PyLong_AsDouble(arg);
-		if (rhs < 0)
+		if (PyErr_Occurred())
 			return NULL;
 	}
 	else
 		Py_RETURN_NOTIMPLEMENTED;
 
 	EVSpace_Vimult(self, rhs);
-
-	return (PyObject*)(self);
+	return Py_NewRef(self);
 }
 
 static PyObject* VOperator_Div(EVector* self, PyObject* arg)
@@ -474,7 +513,7 @@ static PyObject* VOperator_Div(EVector* self, PyObject* arg)
 		rhs = PyFloat_AS_DOUBLE(arg);
 	else if (PyLong_Check(arg)) {
 		rhs = PyLong_AsDouble(arg);
-		if (rhs < 0)
+		if (PyErr_Occurred())
 			return NULL;
 	}
 	else
@@ -492,15 +531,14 @@ static PyObject* VOperator_Idiv(EVector* self, PyObject* arg)
 		rhs = PyFloat_AS_DOUBLE(arg);
 	else if (PyLong_Check(arg)) {
 		rhs = PyLong_AsDouble(arg);
-		if (rhs < 0)
+		if (PyErr_Occurred())
 			return NULL;
 	}
 	else
 		Py_RETURN_NOTIMPLEMENTED;
 
 	EVSpace_Vidiv(self, rhs);
-	
-	return (PyObject*)(self);
+	return Py_NewRef(self);
 }
 
 // todo: find out what all other methods do, and see if we need to/can implement them
@@ -597,7 +635,7 @@ static int EVector_setx(EVector* self, PyObject* value, void* closure)
 	}
 	else if (PyLong_Check(value)) {
 		double rhs = PyLong_AsDouble(value); // can raise OverflowError
-		if (rhs < 0)
+		if (PyErr_Occurred())
 			return (int)rhs;
 
 		self->m_arr[0] = rhs;
@@ -626,7 +664,7 @@ static int EVector_sety(EVector* self, PyObject* value, void* closure)
 	}
 	else if (PyLong_Check(value)) {
 		double rhs = PyLong_AsDouble(value); // can raise OverflowError
-		if (rhs < 0)
+		if (PyErr_Occurred())
 			return (int)rhs;
 
 		self->m_arr[1] = rhs;
@@ -655,7 +693,7 @@ static int EVector_setz(EVector* self, PyObject* value, void* closure)
 	}
 	else if (PyLong_Check(value)) {
 		double rhs = PyLong_AsDouble(value); // can raise OverflowError
-		if (rhs < 0)
+		if (PyErr_Occurred())
 			return (int)rhs;
 
 		self->m_arr[2] = rhs;
@@ -756,119 +794,72 @@ static PyTypeObject EVectorType = {
 
 static PyObject* MOperator_Add(EMatrix* self, PyObject* args)
 {
-	if (!PyObject_TypeCheck(args, self->ob_base.ob_type)) {
-		PyErr_SetString(PyExc_TypeError, "Argument must be EMatrix type.");
-		return NULL;
-	}
+	if (!PyObject_TypeCheck(args, self->ob_base.ob_type))
+		Py_RETURN_NOTIMPLEMENTED;
 
-	// todo: does this need to be reference counted?
-	PyTypeObject* type = self->ob_base.ob_type;
-	EMatrix* rtn = (EMatrix*)type->tp_new(type, NULL, NULL);
-
-	if (!rtn)
-		return NULL;
-	Py_INCREF(rtn); // todo: to we need to increment this?
-
-	EVSpace_Madd(rtn, self, (EMatrix*)args);
-	return (PyObject*)rtn;
+	return (PyObject*)EVSpace_Madd(self, (EMatrix*)args);
 }
 
 static PyObject* MOperator_Sub(EMatrix* self, PyObject* args)
 {
-	if (!PyObject_TypeCheck(args, self->ob_base.ob_type)) {
-		PyErr_SetString(PyExc_TypeError, "Argument must be EMatrix type.");
-		return NULL;
-	}
+	if (!PyObject_TypeCheck(args, self->ob_base.ob_type))
+		Py_RETURN_NOTIMPLEMENTED;
 
-	// todo: does this need to be incremented?
-	PyTypeObject* type = self->ob_base.ob_type;
-	EMatrix* rtn = (EMatrix*)type->tp_new(type, NULL, NULL);
-
-	if (!rtn)
-		return NULL;
-	Py_INCREF(rtn); // todo: to we need this?
-
-	EVSpace_Msub(rtn, self, (EMatrix*)args);
-	return (PyObject*)rtn;
+	return (PyObject*)EVSpace_Msub(self, (EMatrix*)args);
 }
 
 static PyObject* MOperator_Mult(EMatrix* self, PyObject* args)
 {
-	// todo: do we need to count this?
-	PyTypeObject* type = self->ob_base.ob_type;
-	PyObject* rtn = NULL;
-
 	int option = -1;
-	if (PyObject_TypeCheck(args, self->ob_base.ob_type)) {
+	if (PyFloat_CheckExact(args))
 		option = 0;
-		rtn = type->tp_new(type, NULL, NULL);
-	}
-	else if (PyObject_TypeCheck(args, &EVectorType)) {
+	else if (PyLong_CheckExact(args))
 		option = 1;
-		rtn = EVectorType.tp_new(&EVectorType, NULL, NULL);
-	}
-	else if (PyFloat_Check(args) || PyLong_Check(args)) {
+	else if (PyObject_TypeCheck(args, self->ob_base.ob_type))
 		option = 2;
-		rtn = type->tp_new(type, NULL, NULL);
-	}
-	else {
-		PyErr_SetString(PyExc_TypeError, "Argument must be EMatrix, EVector or float type.");
-		return NULL;
-	}
+	else if (PyObject_TypeCheck(args, &EVectorType))
+		option = 3;
+	else
+		Py_RETURN_NOTIMPLEMENTED;
 
-	if (!rtn)
-		return NULL;
-	Py_INCREF(rtn); // todo: do we need this?
-
+	double rhs;
 	switch (option) {
 	case 0:
-		EVSpace_Mmultm((EMatrix*)rtn, self, (EMatrix*)args);
-		break;
+		return (PyObject*)EVSpace_Mmultd(self, PyFloat_AS_DOUBLE(args));
 	case 1:
-		EVSpace_Mmultv((EVector*)rtn, self, (EVector*)args);
-		break;
+		rhs = PyLong_AsDouble(args);
+		if (PyErr_Occurred())
+			return NULL;
+
+		return (PyObject*)EVSpace_Mmultd(self, rhs);
 	case 2:
-		EVSpace_Mmultd((EMatrix*)rtn, self, PyFloat_AsDouble(args));
-		break;
-	// no need for default
+		return (PyObject*)EVSpace_Mmultm(self, (EMatrix*)args);
+	default:
+		return (PyObject*)EVSpace_Mmultv(self, (EVector*)args);
 	}
-	return (PyObject*)rtn;
 }
 
 static PyObject* MOperator_Neg(EMatrix* self, PyObject* UNUSED)
 {
-	// todo: do we need to count this?
-	PyTypeObject* type = self->ob_base.ob_type;
-	EMatrix* rtn = (EMatrix*)type->tp_new(type, NULL, NULL);
-
-	if (!rtn)
-		return NULL;
-	Py_INCREF(rtn); // todo: do we need this?
-
-	EVSpace_Mneg(rtn, self);
-	return (PyObject*)rtn;
+	return (PyObject*)EVSpace_Mneg(self);
 }
 
 static PyObject* MOperator_Iadd(EMatrix* self, PyObject* args)
 {
-	if (!PyObject_TypeCheck(args, self->ob_base.ob_type)) {
-		PyErr_SetString(PyExc_TypeError, "Argument must be EMatrix type.");
-		return NULL;
-	}
+	if (!PyObject_TypeCheck(args, self->ob_base.ob_type))
+		Py_RETURN_NOTIMPLEMENTED;
 
 	EVSpace_Miadd(self, (EMatrix*)args);
-	return (PyObject*)self;
+	return Py_NewRef(self);
 }
 
 static PyObject* MOperator_Isub(EMatrix* self, PyObject* args)
 {
-	if (!PyObject_TypeCheck(args, self->ob_base.ob_type)) {
-		PyErr_SetString(PyExc_TypeError, "Argument must be EMatrix type.");
-		return NULL;
-	}
+	if (!PyObject_TypeCheck(args, self->ob_base.ob_type))
+		Py_RETURN_NOTIMPLEMENTED;
 
 	EVSpace_Misub(self, (EMatrix*)args);
-	return (PyObject*)self;
+	return Py_NewRef(self);
 }
 
 static PyObject* MOperator_Imult(EMatrix* self, PyObject* args)
@@ -876,50 +867,62 @@ static PyObject* MOperator_Imult(EMatrix* self, PyObject* args)
 	int option = -1;
 	if (PyObject_TypeCheck(args, self->ob_base.ob_type))
 		option = 0;
-	if (PyFloat_CheckExact(args)) // todo: do we need to check for long? can we do it in one call?
+	else if (PyFloat_CheckExact(args)) // todo: do we need to check for long? can we do it in one call?
 		option = 1;
+	else if (PyLong_Check(args)) // todo: do we check exact here?
+		option = 2;
+	else
+		Py_RETURN_NOTIMPLEMENTED;
 
+	double rhs;
 	switch (option) {
 	case 0:
 		EVSpace_Mimultm(self, (EMatrix*)args);
-		break;
+		return (PyObject*)self;
 	case 1:
-		EVSpace_Mimultd(self, PyFloat_AS_DOUBLE(args)); // todo: will this work with a long?
-		break;
+		EVSpace_Mimultd(self, PyFloat_AS_DOUBLE(args));
+		return (PyObject*)self;
+	default: // todo: does this matter which is default?
+		rhs = PyLong_AsDouble(args);
+		if (PyErr_Occurred())
+			return NULL;
+
+		EVSpace_Mimultd(self, rhs);
+		return Py_NewRef(self);
 	}
-	return (PyObject*)self;
 }
 
 static PyObject* MOperator_Div(EMatrix* self, PyObject* args)
 {
-	// todo: find the right check for this
-	if (!PyFloat_CheckExact(args) && !PyLong_CheckExact(args)) {
-		PyErr_SetString(PyExc_TypeError, "Argument must be float type.");
-		return NULL;
+	double rhs;
+	if (PyFloat_Check(args))
+		rhs = PyFloat_AS_DOUBLE(args);
+	else if (PyLong_Check(args)) {
+		rhs = PyLong_AsDouble(args);
+		if (PyErr_Occurred())
+			return NULL;
 	}
+	else
+		Py_RETURN_NOTIMPLEMENTED;
 
-	// todo: do we need to count this?
-	PyTypeObject* type = self->ob_base.ob_type;
-	EMatrix* rtn = (EMatrix*)type->tp_new(type, NULL, NULL);
-
-	if (!rtn)
-		return NULL;
-	Py_INCREF(rtn); // todo: do we need this?
-
-	EVSpace_Mdiv(rtn, self, PyFloat_AsDouble(args));
-	return (PyObject*)rtn;
+	return (PyObject*)EVSpace_Mdiv(self, rhs);
 }
 
 static PyObject* MOperator_Idiv(EMatrix* self, PyObject* args)
 {
-	// todo: find the right check for this
-	if (!PyFloat_CheckExact(args) && !PyLong_CheckExact(args)) {
-		PyErr_SetString(PyExc_TypeError, "Argument must be float type.");
-		return NULL;
+	double rhs;
+	if (PyFloat_Check(args))
+		rhs = PyFloat_AS_DOUBLE(args);
+	else if (PyLong_Check(args)) {
+		rhs = PyLong_AsDouble(args);
+		if (PyErr_Occurred())
+			return NULL;
 	}
+	else
+		Py_RETURN_NOTIMPLEMENTED;
 
-	EVSpace_Midiv(self, PyFloat_AsDouble(args));
-	return (PyObject*)self;
+	EVSpace_Midiv(self, rhs);
+	return Py_NewRef(self);
 }
 
 // todo: find out what the rest of these do and see if we need to/can implement them.
@@ -937,28 +940,12 @@ static PyNumberMethods EMatrix_NBMethods = {
 
 static PyObject* EMatrix_det(EMatrix* self, PyObject* UNUSED)
 {
-	// todo: does this get incremented?
-	PyObject* rtn = PyFloat_FromDouble(EVSpace_Det(self));
-
-	if (!rtn)
-		return NULL;
-	Py_INCREF(rtn);
-
-	return rtn;
+	return (PyObject*)PyFloat_FromDouble(EVSpace_Det(self));
 }
 
 static PyObject* EMatrix_trans(EMatrix* self, PyObject* UNUSED)
 {
-	// todo: do we need to count this?
-	PyTypeObject* type = self->ob_base.ob_type;
-	EMatrix* rtn = (EMatrix*)type->tp_new(type, NULL, NULL);
-
-	if (!rtn)
-		return NULL;
-	Py_INCREF(rtn); // todo: do we need this?
-
-	EVSpace_Trans(rtn, self);
-	return (PyObject*)rtn;
+	return (PyObject*)EVSpace_Trans(self);
 }
 
 static PyObject* EMatrix_set(EMatrix* self, PyObject* args)
@@ -966,7 +953,7 @@ static PyObject* EMatrix_set(EMatrix* self, PyObject* args)
 	int i, j;
 	double val;
 
-	if (!PyArg_ParseTuple(args, "lld", &i, &j, &val)) // will a long work for this?
+	if (!PyArg_ParseTuple(args, "lld", &i, &j, &val)) // todo: will a long work for this?
 		return NULL;
 
 	if (i < 0 || i > 3) {
@@ -999,7 +986,6 @@ static PyObject* EMatrix_get(EMatrix* self, PyObject* args)
 	}
 
 	PyObject* rtn = PyFloat_FromDouble(self->m_arr[i][j]);
-	Py_INCREF(rtn); // todo: does pyfloat_fromdouble increment this or do we need to?
 	return rtn;
 }
 
@@ -1008,11 +994,21 @@ static int EMatrix_init(EMatrix* self, PyObject* args, PyObject* UNUSED)
 	EVector* c0 = NULL, *c1 = NULL, *c2 = NULL;
 
 	// todo: does parsetuple increment these addresses?
-	if (!PyArg_ParseTuple(args, "|OOO", &c0, &c1, &c2))
+	if (!PyArg_ParseTuple(args, "|OOO", &c0, &c1, &c2)) // todo: allow this to be a list or evector
 		return -1;
-	/*Py_INCREF(c0); dont need these if they're borrowed references from args
-	Py_INCREF(c1);
-	Py_INCREF(c2);*/
+
+	if (c0 && !PyObject_TypeCheck(c0, &EVectorType)) {
+		PyErr_SetString(PyExc_TypeError, "First argument must be EVector type.");
+		return NULL;
+	}
+	else if (c1 && !PyObject_TypeCheck(c1, &EVectorType)) {
+		PyErr_SetString(PyExc_TypeError, "Second argument must be EVector type.");
+		return NULL;
+	}
+	else if (c2 && !PyObject_TypeCheck(c2, &EVectorType)) {
+		PyErr_SetString(PyExc_TypeError, "Third argument must be EVector type.");
+		return NULL;
+	}
 
 	// todo: can we do this more efficiently? we must be able to, too many loops here
 	for (int i = 0; i < 3; i++) {
@@ -1050,7 +1046,7 @@ static PyObject* EMatrix_str(const EMatrix* mat)
 		return NULL;
 	}
 
-	return Py_BuildValue("s#", buffer, strlen(buffer));
+	return Py_BuildValue("s#", buffer, strlen(buffer)); // todo: does this need incrementing
 }
 
 static PyObject* EMatrix_richcompare(EMatrix* self, PyObject* other, int op)
@@ -1059,11 +1055,16 @@ static PyObject* EMatrix_richcompare(EMatrix* self, PyObject* other, int op)
 		PyErr_SetString(PyExc_TypeError, "Argument must be EMatrix type.");
 		return NULL;
 	}
-
-	// todo: use switch here?
-	if (op == Py_EQ) return PyBool_FromLong(EVSpace_Meq((EMatrix*)self, (EMatrix*)other));
-	else if (op == Py_NE) return PyBool_FromLong(EVSpace_Mne((EMatrix*)self, (EMatrix*)other));
-	else return Py_NotImplemented;
+	PyObject* rtn;
+	switch (op) {
+	case Py_EQ:
+		rtn = PyBool_FromLong(EVSpace_Meq((EMatrix*)self, (EMatrix*)other));
+		return rtn;
+	case Py_NE:
+		return PyBool_FromLong(EVSpace_Mne((EMatrix*)self, (EMatrix*)other));
+	default:
+		Py_RETURN_NOTIMPLEMENTED;
+	}
 }
 
 // todo: craete a get/set method for the hidden array attribute
