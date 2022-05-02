@@ -735,7 +735,7 @@ static Py_ssize_t EVector_length(EVector* self)
 
 static PyObject* EVector_get(EVector* self, Py_ssize_t index)
 {
-	if (index < -2 || index > 2) {
+	if (index < 0 || index > 2) {
 		PyErr_SetString(PyExc_ValueError, "Index out of bounds.");
 		return NULL;
 	}
@@ -745,7 +745,7 @@ static PyObject* EVector_get(EVector* self, Py_ssize_t index)
 
 static int EVector_set(EVector* self, Py_ssize_t index, PyObject* val)
 {
-	if (index < -2 || index > 2) {
+	if (index < -3 || index > 2) {
 		PyErr_SetString(PyExc_ValueError, "Index out of bounds.");
 		return -1;
 	}
