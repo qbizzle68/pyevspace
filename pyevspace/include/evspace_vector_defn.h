@@ -3,85 +3,85 @@
 #define EVSPACE_VECTOR_DEFN_H
 
 /*	nb_add	*/
-#define EVSpace_Vadd_NUM 0
-#define EVSpace_Vadd_RETURN EVector*
-#define EVSpace_Vadd_PROTO (const EVector* lhs, const EVector* rhs)
+#define EVSpace_Vector_add_NUM 0
+#define EVSpace_Vector_add_RETURN EVector*
+#define EVSpace_Vector_add_PROTO (const EVector* lhs, const EVector* rhs)
 /*	nb_subtract	 */
-#define EVSpace_Vsub_NUM 1
-#define EVSpace_Vsub_RETURN EVector*
-#define EVSpace_Vsub_PROTO (const EVector* lhs, const EVector* rhs)
+#define EVSpace_Vector_sub_NUM 1
+#define EVSpace_Vector_sub_RETURN EVector*
+#define EVSpace_Vector_sub_PROTO (const EVector* lhs, const EVector* rhs)
 /*	nb_mult  */
-#define EVSpace_Vmult_NUM 2
-#define EVSpace_Vmult_RETURN EVector*
-#define EVSpace_Vmult_PROTO (const EVector* lhs, double rhs)
+#define EVSpace_Vector_mult_NUM 2
+#define EVSpace_Vector_mult_RETURN EVector*
+#define EVSpace_Vector_mult_PROTO (const EVector* lhs, double rhs)
 /*	nb_negative  */
-#define EVSpace_Vneg_NUM 3
-#define EVSpace_Vneg_RETURN EVector*
-#define EVSpace_Vneg_PROTO (const EVector* vec)
+#define EVSpace_Vector_neg_NUM 3
+#define EVSpace_Vector_neg_RETURN EVector*
+#define EVSpace_Vector_neg_PROTO (const EVector* vec)
 /*	nb_absolute  */		// magnitude ?
-#define EVSpace_Vabs_NUM 4
-#define EVSpace_Vabs_RETURN double
-#define EVSpace_Vabs_PROTO (const EVector* vec)
+#define EVSpace_Vector_abs_NUM 4
+#define EVSpace_Vector_abs_RETURN double
+#define EVSpace_Vector_abs_PROTO (const EVector* vec)
 /*	nb_inplace_add  */
-#define EVSpace_Viadd_NUM 5
-#define EVSpace_Viadd_RETURN void
-#define EVSpace_Viadd_PROTO (EVector* lhs, const EVector* rhs)
+#define EVSpace_Vector_iadd_NUM 5
+#define EVSpace_Vector_iadd_RETURN void
+#define EVSpace_Vector_iadd_PROTO (EVector* lhs, const EVector* rhs)
 /*	nb_inplace_subtract  */
-#define EVSpace_Visub_NUM 6
-#define EVSpace_Visub_RETURN void
-#define EVSpace_Visub_PROTO (EVector* lhs, const EVector* rhs)
+#define EVSpace_Vector_isub_NUM 6
+#define EVSpace_Vector_isub_RETURN void
+#define EVSpace_Vector_isub_PROTO (EVector* lhs, const EVector* rhs)
 /*	nb_inplace_multiply  */
-#define EVSpace_Vimult_NUM 7
-#define EVSpace_Vimult_RETURN void
-#define EVSpace_Vimult_PROTO (EVector* lhs, double rhs)
+#define EVSpace_Vector_imult_NUM 7
+#define EVSpace_Vector_imult_RETURN void
+#define EVSpace_Vector_imult_PROTO (EVector* lhs, double rhs)
 /*	nb_true_divide  */
-#define EVSpace_Vdiv_NUM 8
-#define EVSpace_Vdiv_RETURN EVector*
-#define EVSpace_Vdiv_PROTO (const EVector* lhs, double rhs)
+#define EVSpace_Vector_div_NUM 8
+#define EVSpace_Vector_div_RETURN EVector*
+#define EVSpace_Vector_div_PROTO (const EVector* lhs, double rhs)
 /*	nb_inplace_true_divide  */
-#define EVSpace_Vidiv_NUM 9
-#define EVSpace_Vidiv_RETURN void
-#define EVSpace_Vidiv_PROTO (EVector* lhs, double rhs)
+#define EVSpace_Vector_idiv_NUM 9
+#define EVSpace_Vector_idiv_RETURN void
+#define EVSpace_Vector_idiv_PROTO (EVector* lhs, double rhs)
 /*  equal to  */
-#define EVSpace_Veq_NUM 10
-#define EVSpace_Veq_RETURN int
-#define EVSpace_Veq_PROTO (const EVector* lhs, const EVector* rhs)
+#define EVSpace_Vector_eq_NUM 10
+#define EVSpace_Vector_eq_RETURN int
+#define EVSpace_Vector_eq_PROTO (const EVector* lhs, const EVector* rhs)
 /*  not equal to  */
-#define EVSpace_Vne_NUM 11
-#define EVSpace_Vne_RETURN int
-#define EVSpace_Vne_PROTO (const EVector* lhs, const EVector* rhs)
+#define EVSpace_Vector_ne_NUM 11
+#define EVSpace_Vector_ne_RETURN int
+#define EVSpace_Vector_ne_PROTO (const EVector* lhs, const EVector* rhs)
 /*  dot  */
-#define EVSpace_Dot_NUM 12
-#define EVSpace_Dot_RETURN double
-#define EVSpace_Dot_PROTO (const EVector* lhs, const EVector* rhs)
+#define EVSpace_Vector_dot_NUM 12
+#define EVSpace_Vector_dot_RETURN double
+#define EVSpace_Vector_dot_PROTO (const EVector* lhs, const EVector* rhs)
 /*  cross  */
-#define EVSpace_Cross_NUM 13
-#define EVSpace_Cross_RETURN EVector*
-#define EVSpace_Cross_PROTO (const EVector* lhs, const EVector* rhs)
+#define EVSpace_Vector_cross_NUM 13
+#define EVSpace_Vector_cross_RETURN EVector*
+#define EVSpace_Vector_cross_PROTO (const EVector* lhs, const EVector* rhs)
 /*  magnitude  */
-#define EVSpace_Mag_NUM 14
-#define EVSpace_Mag_RETURN double
-#define EVSpace_Mag_PROTO (const EVector* vec)
+#define EVSpace_Vector_mag_NUM 14
+#define EVSpace_Vector_mag_RETURN double
+#define EVSpace_Vector_mag_PROTO (const EVector* vec)
 /*  magnitude squared  */
-#define EVSpace_Mag2_NUM 15
-#define EVSpace_Mag2_RETURN double
-#define EVSpace_Mag2_PROTO (const EVector* vec)
+#define EVSpace_Vector_mag2_NUM 15
+#define EVSpace_Vector_mag2_RETURN double
+#define EVSpace_Vector_mag2_PROTO (const EVector* vec)
 /*  norm  */
-#define EVSpace_Norm_NUM 16
-#define EVSpace_Norm_RETURN EVector*
-#define EVSpace_Norm_PROTO (const EVector* vec)
+#define EVSpace_Vector_norm_NUM 16
+#define EVSpace_Vector_norm_RETURN EVector*
+#define EVSpace_Vector_norm_PROTO (const EVector* vec)
 /*  inplace norm  */
-#define EVSpace_Inorm_NUM 17
-#define EVSpace_Inorm_RETURN void
-#define EVSpace_Inorm_PROTO (EVector* ans)
+#define EVSpace_Vector_inorm_NUM 17
+#define EVSpace_Vector_inorm_RETURN void
+#define EVSpace_Vector_inorm_PROTO (EVector* ans)
 /*  vector angle  */
-#define EVSpace_Vang_NUM 18
-#define EVSpace_Vang_RETURN double
-#define EVSpace_Vang_PROTO (const EVector* lhs, const EVector* rhs)
+#define EVSpace_Vector_vang_NUM 18
+#define EVSpace_Vector_vang_RETURN double
+#define EVSpace_Vector_vang_PROTO (const EVector* lhs, const EVector* rhs)
 /*  vector exclude  */
-#define EVSpace_Vxcl_NUM 19
-#define EVSpace_Vxcl_RETURN EVector*
-#define EVSpace_Vxcl_PROTO (const EVector* vec, const EVector* xcl)
+#define EVSpace_Vector_vxcl_NUM 19
+#define EVSpace_Vector_vxcl_RETURN EVector*
+#define EVSpace_Vector_vxcl_PROTO (const EVector* vec, const EVector* xcl)
 
 #define EVSpace_EVector_API_COUNT 20
 

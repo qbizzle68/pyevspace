@@ -7,44 +7,44 @@
 /* the api array must be declared before inclusion of this file */
 
 #define EVSpace_Vector_add \
-	(*(EVSpace_Vadd_RETURN) (*)EVSpace_Vadd_PROTO) EVSpace_API[EVSpace_Vadd_NUM]
+	(*(EVSpace_Vector_add_RETURN) (*)EVSpace_Vector_add_PROTO) EVSpace_API[EVSpace_Vector_add_NUM]
 #define EVSpace_Vector_sub \
-	(*(EVSpace_Vsub_RETURN) (*)EVSpace_Vsub_PROTO) EVSpace_API[EVSpace_Vsub_NUM]
+	(*(EVSpace_Vector_sub_RETURN) (*)EVSpace_Vector_sub_PROTO) EVSpace_API[EVSpace_Vector_sub_NUM]
 #define EVSpace_Vector_mult \
-	(*(EVSpace_Vmult_RETURN) (*)EVSpace_Vmult_PROTO) EVSpace_API[EVSpace_Vmult_NUM]
+	(*(EVSpace_Vector_mult_RETURN) (*)EVSpace_Vector_mult_PROTO) EVSpace_API[EVSpace_Vector_mult_NUM]
 #define EVSpace_Vector_neg \
-	(*(EVSpace_Vneg_RETURN) (*)EVSpace_Vneg_PROTO) EVSpace_API[EVSpace_Vneg_NUM]
+	(*(EVSpace_Vector_neg_RETURN) (*)EVSpace_Vector_neg_PROTO) EVSpace_API[EVSpace_Vector_neg_NUM]
 #define EVSpace_Vector_abs \
-	(*(EVSpace_Vabs_RETURN) (*)EVSpace_Vabs_PROTO) EVSpace_API[EVSpace_Vabs_NUM]
+	(*(EVSpace_Vector_abs_RETURN) (*)EVSpace_Vector_abs_PROTO) EVSpace_API[EVSpace_Vector_abs_NUM]
 #define EVSpace_Vector_iadd \
-	(*(EVSpace_Viadd_RETURN) (*)EVSpace_Viadd_PROTO) EVSpace_API[EVSpace_Viadd_NUM]
+	(*(EVSpace_Vector_iadd_RETURN) (*)EVSpace_Vector_iadd_PROTO) EVSpace_API[EVSpace_Vector_iadd_NUM]
 #define EVSpace_Vector_isub \
-	(*(EVSpace_Visub_RETURN) (*)EVSpace_Visub_PROTO) EVSpace_API[EVSpace_Visub_NUM]
+	(*(EVSpace_Vector_isub_RETURN) (*)EVSpace_Vector_isub_PROTO) EVSpace_API[EVSpace_Vector_isub_NUM]
 #define EVSpace_Vector_imult \
-	(*(EVSpace_Vimult_RETURN) (*)EVSpace_Vimult_PROTO) EVSpace_API[EVSpace_Vimult_NUM]
+	(*(EVSpace_Vector_imult_RETURN) (*)EVSpace_Vector_imult_PROTO) EVSpace_API[EVSpace_Vector_imult_NUM]
 #define EVSpace_Vector_div \
-	(*(EVSpace_Vdiv_RETURN) (*)EVSpace_Vdiv_PROTO) EVSpace_API[EVSpace_Vdiv_NUM]
+	(*(EVSpace_Vector_div_RETURN) (*)EVSpace_Vector_div_PROTO) EVSpace_API[EVSpace_Vector_div_NUM]
 #define EVSpace_Vector_idiv \
-	(*(EVSpace_Vidiv_RETURN) (*)EVSpace_Vidiv_PROTO) EVSpace_API[EVSpace_Vidiv_NUM]
+	(*(EVSpace_Vector_idiv_RETURN) (*)EVSpace_Vector_idiv_PROTO) EVSpace_API[EVSpace_Vector_idiv_NUM]
 #define EVSpace_Vector_eq \
-	(*(EVSpace_Veq_RETURN) (*)EVSpace_Veq_PROTO) EVSpace_API[EVSpace_Veq_NUM]
+	(*(EVSpace_Vector_eq_RETURN) (*)EVSpace_Vector_eq_PROTO) EVSpace_API[EVSpace_Vector_eq_NUM]
 #define EVSpace_Vector_ne \
-	(*(EVSpace_Vne_RETURN) (*)EVSpace_Vne_PROTO) EVSpace_API[EVSpace_Vne_NUM]
+	(*(EVSpace_Vector_ne_RETURN) (*)EVSpace_Vector_ne_PROTO) EVSpace_API[EVSpace_Vector_ne_NUM]
 #define EVSpace_Vector_dot \
-	(*(EVSpace_Dot_RETURN) (*)EVSpace_Dot_PROTO) EVSpace_API[EVSpace_Dot_NUM]
+	(*(EVSpace_Vector_dot_RETURN) (*)EVSpace_Vector_dot_PROTO) EVSpace_API[EVSpace_Vector_dot_NUM]
 #define EVSpace_Vector_cross \
-	(*(EVSpace_Cross_RETURN) (*)EVSpace_Cross_PROTO) EVSpace_API[EVSpace_Cross_NUM]
+	(*(EVSpace_Vector_cross_RETURN) (*)EVSpace_Vector_cross_PROTO) EVSpace_API[EVSpace_Vector_cross_NUM]
 #define EVSpace_vector_mag \
-	(*(EVSpace_Mag_RETURN) (*)EVSpace_Mag_PROTO) EVSpace_API[EVSpace_Mag_NUM]
+	(*(EVSpace_Vector_mag_RETURN) (*)EVSpace_Vector_mag_PROTO) EVSpace_API[EVSpace_Vector_mag_NUM]
 #define EVSpace_Vector_mag2 \
-	(*(EVSpace_Mag2_RETURN) (*)EVSpace_Mag2_PROTO) EVSpace_API[EVSpace_Mag2_NUM]
+	(*(EVSpace_Vector_mag2_RETURN) (*)EVSpace_Vector_mag2_PROTO) EVSpace_API[EVSpace_Vector_mag2_NUM]
 #define EVSpace_Vector_norm \
-	(*(EVSpace_Norm_RETURN) (*)EVSpace_Norm_PROTO) EVSpace_API[EVSpace_Norm_NUM]
+	(*(EVSpace_Vector_norm_RETURN) (*)EVSpace_Vector_norm_PROTO) EVSpace_API[EVSpace_Vector_norm_NUM]
 #define EVSpace_Vector_inorm \
-	(*(EVSpace_Inorm_RETURN) (*)EVSpace_Inorm_PROTO) EVSpace_API[EVSpace_Inorm_NUM]
+	(*(EVSpace_Vector_inorm_RETURN) (*)EVSpace_Vector_inorm_PROTO) EVSpace_API[EVSpace_Vector_inorm_NUM]
 #define EVSpace_Vector_vang \
-	(*(EVSpace_Vang_RETURN) (*)EVSpace_Vang_PROTO) EVSpace_API[EVSpace_Vang_NUM]
+	(*(EVSpace_Vector_vang_RETURN) (*)EVSpace_Vector_vang_PROTO) EVSpace_API[EVSpace_Vector_vang_NUM]
 #define EVSpace_Vector_vxcl \
-	(*(EVSpace_Vxcl_RETURN) (*)EVSpace_Vxcl_PROTO) EVSpace_API[EVSpace_Vxcl_NUM]
+	(*(EVSpace_Vector_vxcl_RETURN) (*)EVSpace_Vector_vxcl_PROTO) EVSpace_API[EVSpace_Vector_vxcl_NUM]
 
 #endif // EVSPACE_VECTOR_API_DEFN_H

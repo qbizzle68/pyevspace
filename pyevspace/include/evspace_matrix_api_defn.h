@@ -7,32 +7,32 @@
 /* the api array must be declared before include of this file */
 
 #define EVSpace_Matrix_add \
-	(*(EVSpace_Madd_RETURN) (*)EVSpace_Madd_PROTO) EVSpace_API[EVSpace_Madd_NUM]
+	(*(EVSpace_Matrix_add_RETURN) (*)EVSpace_Matrix_add_PROTO) EVSpace_API[EVSpace_Matrix_add_NUM]
 #define EVSpace_Matrix_sub \
-	(*(EVSpace_Msub_RETURN) (*)EVSpace_Msub_PROTO) EVSpace_API[EVSpace_Msub_NUM]
+	(*(EVSpace_Matrix_sub_RETURN) (*)EVSpace_Matrix_sub_PROTO) EVSpace_API[EVSpace_Matrix_sub_NUM]
 #define EVSpace_Mmult \
 	(*(EVSpace_Mmult_RETURN) (*)EVSpace_Mmult_PROTO) EVSpace_API[EVSpace_Mmult_NUM]
 #define EVSpace_Matrix_neg \
-	(*(EVSpace_Mneg_RETURN) (*)EVSpace_Mneg_PROTO) EVSpace_API[EVSpace_Mneg_NUM]
+	(*(EVSpace_Matrix_neg_RETURN) (*)EVSpace_Matrix_neg_PROTO) EVSpace_API[EVSpace_Matrix_neg_NUM]
 #define EVSpace_Mabs \
 	(*(EVSpace_Mabs_RETURN) (*)EVSpace_Mabs_PROTO) EVSpace_API[EVSpace_Mabs_NUM]
 #define EVSpace_Matrix_iadd \
-	(*(EVSpace_Miadd_RETURN) (*)EVSpace_Miadd_PROTO) EVSpace_API[EVSpace_Miadd_NUM]
+	(*(EVSpace_Matrix_iadd_RETURN) (*)EVSpace_Matrix_iadd_PROTO) EVSpace_API[EVSpace_Matrix_iadd_NUM]
 #define EVSpace_Matrix_isub \
-	(*(EVSpace_Misub_RETURN) (*)EVSpace_Misub_PROTO) EVSpace_API[EVSpace_Misub_NUM]
+	(*(EVSpace_Matrix_isub_RETURN) (*)EVSpace_Matrix_isub_PROTO) EVSpace_API[EVSpace_Matrix_isub_NUM]
 #define EVSpace_Mimult \
 	(*(EVSpace_Mimult_RETURN) (*)EVSpace_Mimult_PROTO) EVSpace_API[EVSpace_Mimult_NUM]
 #define EVSpace_Matrix_div \
-	(*(EVSpace_Mdiv_RETURN) (*)EVSpace_Mdiv_PROTO) EVSpace_API[EVSpace_Mdiv_NUM]
+	(*(EVSpace_Matrix_div_RETURN) (*)EVSpace_Matrix_div_PROTO) EVSpace_API[EVSpace_Matrix_div_NUM]
 #define EVSpace_Matrix_idiv \
-	(*(EVSpace_Midiv_RETURN) (*)EVSpace_Midiv_PROTO) EVSpace_API[EVSpace_Midiv_NUM]
+	(*(EVSpace_Matrix_idiv_RETURN) (*)EVSpace_Matrix_idiv_PROTO) EVSpace_API[EVSpace_Matrix_idiv_NUM]
 #define EVSpace_Matrix_eq \
-	(*(EVSpace_Meq_RETURN) (*)EVSpace_Meq_PROTO) EVSpace_API[EVSpace_Meq_NUM]
+	(*(EVSpace_Matrix_eq_RETURN) (*)EVSpace_Matrix_eq_PROTO) EVSpace_API[EVSpace_Matrix_eq_NUM]
 #define EVSpace_Matrix_ne \
-	(*(EVSpace_Mne_RETURN) (*)EVSpace_Mne_PROTO) EVSpace_API[EVSpace_Mne_NUM]
+	(*(EVSpace_Matrix_ne_RETURN) (*)EVSpace_Matrix_ne_PROTO) EVSpace_API[EVSpace_Matrix_ne_NUM]
 #define EVSpace_Matrix_det \
-	(*(EVSpace_Det_RETURN) (*)EVSpace_Det_PROTO) EVSpace_API[EVSpace_Det_NUM]
+	(*(EVSpace_Matrix_det_RETURN) (*)EVSpace_Matrix_det_PROTO) EVSpace_API[EVSpace_Matrix_det_NUM]
 #define EVSpace_Matrix_trans \
-	(*(EVSpace_Trans_RETURN) (*)EVSpace_Trans_PROTO) EVSpace_API[EVSpace_Trans_NUM]
+	(*(EVSpace_Matrix_trans_RETURN) (*)EVSpace_Matrix_trans_PROTO) EVSpace_API[EVSpace_Matrix_trans_NUM]
 
 #endif // EVSPACE_MATRIX_API_DEFN_H
