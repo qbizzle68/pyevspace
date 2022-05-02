@@ -7,10 +7,14 @@ typedef struct {
 	double m_arr[3];
 } EVector;
 
+static PyTypeObject EVectorType;
+
 typedef struct {
 	PyObject_HEAD
 	double m_arr[3][3];
 } EMatrix;
+
+static PyTypeObject EMatrixType;
 
 #define EVSPACE_MODULE
 #include <evspacemodule.h>
@@ -416,14 +420,16 @@ static double EVSpace_Mget(EMatrix* self, int i, int j)
 /************** EVector implementations *************/
 /****************************************************/
 
+/****************************************************/
+/************* EVector Numeric Methods **************/
+/****************************************************/
+
 static PyObject* VOperator_Add(EVector* self, PyObject* arg)
 {
 	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type))
 		Py_RETURN_NOTIMPLEMENTED;
 
-	EVector* rtn = EVSpace_Vadd(self, (EVector*)arg);
-	// no need to error check, if rtn is NULL, we return it anyway
-	return (PyObject*)rtn;
+	return (PyObject*)EVSpace_Vadd(self, (EVector*)arg);
 }
 
 static PyObject* VOperator_Sub(EVector* self, PyObject* arg)
@@ -431,9 +437,7 @@ static PyObject* VOperator_Sub(EVector* self, PyObject* arg)
 	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type))
 		Py_RETURN_NOTIMPLEMENTED;
 
-	EVector* rtn = EVSpace_Vsub(self, (EVector*)arg);
-	// no need to error check, if rtn is NULL, we return it anyway
-	return (PyObject*)(rtn);
+	return (PyObject*)EVSpace_Vsub(self, (EVector*)arg);
 }
 
 static PyObject* VOperator_Mult(EVector* self, PyObject* arg)
@@ -450,23 +454,17 @@ static PyObject* VOperator_Mult(EVector* self, PyObject* arg)
 	else
 		Py_RETURN_NOTIMPLEMENTED;
 
-	EVector* rtn = EVSpace_Vmult(self, rhs);
-	// no need to error check, if rtn is NULL, we return it anyway
-	return (PyObject*)(rtn);
+	return (PyObject*)EVSpace_Vmult(self, rhs);
 }
 
 static PyObject* VOperator_Neg(EVector* self)
 {
-	EVector* rtn = EVSpace_Vneg(self);
-	// no need to error check, if rtn is NULL, we return it anyway
-	return (PyObject*)(rtn);
+	return (PyObject*)EVSpace_Vneg(self);
 }
 
 static PyObject* VOperator_Abs(EVector* self)
 {
-	PyObject* rtn = PyFloat_FromDouble(EVSpace_Vabs(self));
-	// no need to error check, if rtn is NULL, we return it anyway
-	return (PyObject*)(rtn);
+	return (PyObject*)PyFloat_FromDouble(EVSpace_Vabs(self));
 }
 
 static PyObject* VOperator_Iadd(EVector* self, PyObject* arg)
@@ -474,16 +472,8 @@ static PyObject* VOperator_Iadd(EVector* self, PyObject* arg)
 	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type))
 		Py_RETURN_NOTIMPLEMENTED;
 
-	EVSpace_Viadd(self, (EVector*)arg); // no errors to report here
+	EVSpace_Viadd(self, (EVector*)arg);
 	return Py_NewRef(self);
-}
-
-/* This is for debugging reference counts */
-// todo: delete this when finished 
-static PyObject* Ref_check(EVector* UNUSED, EVector* arg)
-{
-	printf("reference count: %i\n", (int)arg->ob_base.ob_refcnt);
-	Py_RETURN_NONE;
 }
 
 static PyObject* VOperator_Isub(EVector* self, PyObject* arg)
@@ -525,9 +515,7 @@ static PyObject* VOperator_Div(EVector* self, PyObject* arg)
 	else
 		Py_RETURN_NOTIMPLEMENTED;
 
-	EVector* rtn = EVSpace_Vdiv(self, rhs);
-	// no need to error check, if rtn is NULL, we return it anyway
-	return (PyObject*)(rtn);
+	return (PyObject*)EVSpace_Vdiv(self, rhs);
 }
 
 static PyObject* VOperator_Idiv(EVector* self, PyObject* arg)
@@ -560,26 +548,9 @@ static PyNumberMethods EVector_NBMethods = {
 	.nb_inplace_true_divide = (binaryfunc)VOperator_Idiv,
 };
 
-/*	Class Methods  */
-// todo: make this a module method
-static PyObject* EVector_Dot(EVector* self, PyObject* args)
-{
-	if (!PyObject_TypeCheck(args, self->ob_base.ob_type))
-		Py_RETURN_NOTIMPLEMENTED;
-
-	return PyFloat_FromDouble(EVSpace_Dot(self, (EVector*)args));
-}
-
-// todo: make this a module method
-static PyObject* EVector_Cross(EVector* self, PyObject* args)
-{
-	if (!PyObject_TypeCheck(args, self->ob_base.ob_type)) 
-		Py_RETURN_NOTIMPLEMENTED;
-
-	EVector* rtn = EVSpace_Cross(self, (EVector*)args);
-
-	return (PyObject*)(rtn);
-}
+/****************************************************/
+/************** EVector Class Methods ***************/
+/****************************************************/
 
 static PyObject* EVector_Mag(EVector* self, PyObject* UNUSED)
 {
@@ -591,137 +562,219 @@ static PyObject* EVector_Mag2(EVector* self, PyObject* UNUSED)
 	return PyFloat_FromDouble(EVSpace_Mag2(self));
 }
 
-// todo: make this a module method
-static PyObject* EVector_Norm(EVector* self, PyObject* UNUSED)
-{
-	EVector* rtn = EVSpace_Norm(self);
-	return (PyObject*)(rtn);
-}
-
 static PyObject* EVector_Normalize(EVector* self, PyObject* UNUSED)
 {
 	EVSpace_Inorm(self);
 	Py_RETURN_NONE;
 }
 
-// todo: make this a module method
-static PyObject* EVector_Vang(EVector* self, PyObject* args)
+/* This is for debugging reference counts */
+// todo: delete this when finished 
+static PyObject* Ref_check(EVector* UNUSED, EVector* arg)
 {
-	if (!PyObject_TypeCheck(args, self->ob_base.ob_type)) {
-		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
-		return NULL;
-	}
-
-	return PyFloat_FromDouble(EVSpace_Vang(self, (EVector*)args));
+	printf("reference count: %i\n", (int)arg->ob_base.ob_refcnt);
+	Py_RETURN_NONE;
 }
 
-// todo: make this a module method
-static PyObject* EVector_Vxcl(EVector* self, PyObject* arg)
+static PyMethodDef EVector_Methods[] = {
+	{"mag", (PyCFunction)EVector_Mag, METH_NOARGS, "Returns the magnitude of an EVector."},
+	{"mag2", (PyCFunction)EVector_Mag2, METH_NOARGS, "Returns the square of the magnitude of an EVector."},
+	{"normalize", (PyCFunction)EVector_Normalize, METH_NOARGS, "Normalized an EVector."},
+	{"ref", (PyCFunction)Ref_check, METH_O, "prints the reference count."},
+	{NULL}
+};
+
+/****************************************************/
+/************* EVector Static Methods ***************/
+/****************************************************/
+
+static PyObject* EVector_Dot(PyObject* UNUSED, PyObject *const *args, Py_ssize_t size)
 {
-	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type)) {
-		PyErr_SetString(PyExc_TypeError, "Argument must be EVector type.");
+	if (size != 2) {
+		PyErr_SetString(PyExc_IndexError, "Number of arguments should be 2.");
+		return NULL;
+	}
+ 
+	EVector* lhs = args[0];
+	EVector* rhs = args[1];
+
+	if (!lhs && !rhs) {
+		PyErr_SetString(PyExc_ValueError, "Arguments cannot be NULL.");
+		return NULL;
+	}
+	if (!PyObject_TypeCheck(lhs, &EVectorType)) {
+		PyErr_SetString(PyExc_TypeError, "First argument must be EVector type.");
+		return NULL;
+	}
+	if (!PyObject_TypeCheck(rhs, &EVectorType)) {
+		PyErr_SetString(PyExc_TypeError, "Second argument must be EVector type.");
 		return NULL;
 	}
 
-	EVector* rtn = EVSpace_Vxcl(self, (EVector*)arg);
+	return PyFloat_FromDouble(EVSpace_Dot(lhs, rhs));
+}
+
+static PyObject* EVector_Cross(PyObject* UNUSED, PyObject* const* args, Py_ssize_t size)
+{
+	if (size != 2) {
+		PyErr_SetString(PyExc_IndexError, "Number of arguments should be 2.");
+		return NULL;
+	}
+
+	EVector* lhs = args[0];
+	EVector* rhs = args[1];
+
+	if (!lhs && !rhs) {
+		PyErr_SetString(PyExc_ValueError, "Arguments cannot be NULL.");
+		return NULL;
+	}
+	if (!PyObject_TypeCheck(lhs, &EVectorType)) {
+		PyErr_SetString(PyExc_TypeError, "First argument must be EVector type.");
+		return NULL;
+	}
+	if (!PyObject_TypeCheck(rhs, &EVectorType)) {
+		PyErr_SetString(PyExc_TypeError, "Second argument must be EVector type.");
+		return NULL;
+	}
+
+	EVector* rtn = EVSpace_Cross(lhs, rhs);
 
 	return (PyObject*)(rtn);
 }
 
-// todo: replace this with either mapping/sequence protocol method
-static PyObject* EVector_getx(EVector* self, void* closure)
+static PyObject* EVector_Norm(PyObject* UNUSED, PyObject* const* args, Py_ssize_t size)
 {
-	return PyFloat_FromDouble(self->m_arr[0]);
+	if (size != 1) {
+		PyErr_SetString(PyExc_IndexError, "Number of arguments should be 2.");
+		return NULL;
+	}
+
+	EVector* lhs = args[0];
+
+	if (!lhs) {
+		PyErr_SetString(PyExc_ValueError, "Arguments cannot be NULL.");
+		return NULL;
+	}
+	if (!PyObject_TypeCheck(lhs, &EVectorType)) {
+		PyErr_SetString(PyExc_TypeError, "First argument must be EVector type.");
+		return NULL;
+	}
+
+	return (PyObject*)EVSpace_Norm(lhs);
 }
 
-// todo: replace this with either mapping/sequence protocol method
-static int EVector_setx(EVector* self, PyObject* value, void* closure)
+static PyObject* EVector_Vang(PyObject* UNUSED, PyObject* const* args, Py_ssize_t size)
 {
-	if (value == NULL) {
-		PyErr_SetString(PyExc_TypeError, "Cannot delete the x attribute.");
+	if (size != 2) {
+		PyErr_SetString(PyExc_IndexError, "Number of arguments should be 2.");
+		return NULL;
+	}
+
+	EVector* lhs = (EVector*)args[0];
+	EVector* rhs = (EVector*)args[1];
+
+	if (!lhs) {
+		PyErr_SetString(PyExc_ValueError, "Arguments cannot be NULL.");
+		return NULL;
+	}
+	if (!PyObject_TypeCheck(lhs, &EVectorType)) {
+		PyErr_SetString(PyExc_TypeError, "First argument must be EVector type.");
+		return NULL;
+	}
+	if (!PyObject_TypeCheck(rhs, &EVectorType)) {
+		PyErr_SetString(PyExc_TypeError, "Second argument must be EVector type.");
+		return NULL;
+	}
+
+	return PyFloat_FromDouble(EVSpace_Vang(lhs, rhs));
+}
+
+static PyObject* EVector_Vxcl(PyObject* UNUSED, PyObject* const* args, Py_ssize_t size)
+{
+	if (size != 2) {
+		PyErr_SetString(PyExc_IndexError, "Number of arguments should be 2.");
+		return NULL;
+	}
+
+	EVector* lhs = args[0];
+	EVector* rhs = args[1];
+
+	if (!lhs) {
+		PyErr_SetString(PyExc_ValueError, "Arguments cannot be NULL.");
+		return NULL;
+	}
+	if (!PyObject_TypeCheck(lhs, &EVectorType)) {
+		PyErr_SetString(PyExc_TypeError, "First argument must be EVector type.");
+		return NULL;
+	}
+	if (!PyObject_TypeCheck(rhs, &EVectorType)) {
+		PyErr_SetString(PyExc_TypeError, "Second argument must be EVector type.");
+		return NULL;
+	}
+
+	return (PyObject*)(EVSpace_Vxcl(lhs, rhs));
+}
+
+static PyMethodDef EVector_ModuleMethods[] = {
+	{"dot", (PyCFunction)EVector_Dot, METH_FASTCALL, "Return the dot product of two EVectors."},
+	{"cross", (PyCFunction)EVector_Cross, METH_FASTCALL, "Return the cross product of two EVectors."},
+	{"norm", (PyCFunction)EVector_Norm, METH_FASTCALL, "Returns a normalized version of an EVector."},
+	{"vang", (PyCFunction)EVector_Vang, METH_FASTCALL, "Return the shortest angle between two EVector's."},
+	{"vxcl", (PyCFunction)EVector_Vxcl, METH_FASTCALL, "Returns a vector exculded from another."},
+	{NULL}
+};
+
+/****************************************************/
+/************* EVector Sequence Methods *************/
+/****************************************************/
+
+static Py_ssize_t EVector_length(EVector* self)
+{
+	return 3;
+}
+
+static PyObject* EVector_get(EVector* self, Py_ssize_t index)
+{
+	if (index < -2 || index > 2) {
+		PyErr_SetString(PyExc_ValueError, "Index out of bounds.");
+		return NULL;
+	}
+
+	return PyFloat_FromDouble(self->m_arr[index]);
+}
+
+static int EVector_set(EVector* self, Py_ssize_t index, PyObject* val)
+{
+	if (index < -2 || index > 2) {
+		PyErr_SetString(PyExc_ValueError, "Index out of bounds.");
 		return -1;
 	}
-	if (PyFloat_CheckExact(value)) {
-		self->m_arr[0] = PyFloat_AS_DOUBLE(value); // no need to error check
-		return 0;
-	}
-	else if (PyLong_CheckExact(value)) {
-		double rhs = PyLong_AsDouble(value); // can raise OverflowError
-		if (PyErr_Occurred())
-			return (int)rhs;
 
-		self->m_arr[0] = rhs;
-		return 0;
+	if (PyFloat_CheckExact(val))
+		self->m_arr[index] = PyFloat_AS_DOUBLE(val);
+	else if (PyLong_CheckExact(val)) {
+		double rhs = PyLong_AsDouble(val);
+		if (PyErr_Occurred())
+			return -1;
+		self->m_arr[index] = rhs;
 	}
 	else {
-		PyErr_SetString(PyExc_TypeError, "Value must be either Float or Int type.");
-		return -1;
+		PyErr_SetString(PyExc_TypeError, "Assignment value must be float or int type.");
 	}
+
+	return 0;
 }
 
-// todo: replace this with either mapping/sequence protocol method
-static PyObject* EVector_gety(EVector* self, void* closure)
-{
-	return PyFloat_FromDouble(self->m_arr[1]);
-}
+static PySequenceMethods EVector_sequence = {
+	.sq_length = (lenfunc)EVector_length,
+	.sq_item = (ssizeargfunc)EVector_get,
+	.sq_ass_item = (ssizeobjargproc)EVector_set,
+};
 
-// todo: replace this with either mapping/sequence protocol method
-static int EVector_sety(EVector* self, PyObject* value, void* closure)
-{
-	if (value == NULL) {
-		PyErr_SetString(PyExc_TypeError, "Cannot delete the y attribute.");
-		return -1;
-	}
-	if (PyFloat_CheckExact(value)) {
-		self->m_arr[1] = PyFloat_AS_DOUBLE(value); // no need to error check
-		return 0;
-	}
-	else if (PyLong_CheckExact(value)) {
-		double rhs = PyLong_AsDouble(value); // can raise OverflowError
-		if (PyErr_Occurred())
-			return (int)rhs;
+/****************************************************/
+/************** EVector Type Methods ****************/
+/****************************************************/
 
-		self->m_arr[1] = rhs;
-		return 0;
-	}
-	else {
-		PyErr_SetString(PyExc_TypeError, "Value must be either Float or Int type.");
-		return -1;
-	}
-}
-
-// todo: replace this with either mapping/sequence protocol method
-static PyObject* EVector_getz(EVector* self, void* closure)
-{
-	return PyFloat_FromDouble(self->m_arr[2]);
-}
-
-// todo: replace this with either mapping/sequence protocol method
-static int EVector_setz(EVector* self, PyObject* value, void* closure)
-{
-	if (value == NULL) {
-		PyErr_SetString(PyExc_TypeError, "Cannot delete the z attribute.");
-		return -1;
-	}
-	if (PyFloat_CheckExact(value)) {
-		self->m_arr[2] = PyFloat_AS_DOUBLE(value); // no need to error check
-		return 0;
-	}
-	else if (PyLong_CheckExact(value)) {
-		double rhs = PyLong_AsDouble(value); // can raise OverflowError
-		if (PyErr_Occurred())
-			return (int)rhs;
-
-		self->m_arr[2] = rhs;
-		return 0;
-	}
-	else {
-		PyErr_SetString(PyExc_TypeError, "Value must be either Float or Int type.");
-		return -1;
-	}
-}
-
-/*	Type Methods  */
 static int EVector_init(EVector* self, PyObject* args, PyObject* kwds)
 {
 	double x = 0, y = 0, z = 0;
@@ -746,7 +799,7 @@ static PyObject* EVector_str(const EVector* vec)
 		PyErr_SetString(PyExc_BufferError, "Buffer too small to create string.");
 		return NULL;
 	}
-
+	
 	return Py_BuildValue("s#", buffer, strlen(buffer));
 }
 
@@ -767,46 +820,28 @@ static PyObject* EVector_richcompare(PyObject* self, PyObject* other, int op)
 	}
 }
 
-static PyGetSetDef EVector_getsetters[] = {
-	{"x", (getter) EVector_getx, (setter) EVector_setx, "X-Component", NULL},
-	{"y", (getter) EVector_gety, (setter) EVector_sety, "Y-Component", NULL},
-	{"z", (getter) EVector_getz, (setter) EVector_setz, "Z-Component", NULL},
-	{NULL}
-};
-
-// todo: move some of these to module methods
-static PyMethodDef EVector_Methods[] = {
-	{"dot", (PyCFunction)EVector_Dot, METH_O, "Return the dot product of two EVectors."},
-	{"cross", (PyCFunction)EVector_Cross, METH_O, "Return the cross product of two EVectors."},
-	{"mag", (PyCFunction)EVector_Mag, METH_NOARGS, "Returns the magnitude of an EVector."},
-	{"mag2", (PyCFunction)EVector_Mag2, METH_NOARGS, "Returns the square of the magnitude of an EVector."},
-	{"norm", (PyCFunction)EVector_Norm, METH_NOARGS, "Returns a normalized version of an EVector."},
-	{"normalize", (PyCFunction)EVector_Normalize, METH_NOARGS, "Normalized an EVector."},
-	{"vang", (PyCFunction)EVector_Vang, METH_O, "Return the shortest angle between two EVector's."},
-	{"vxcl", (PyCFunction)EVector_Vxcl, METH_O, "Returns a vector exculded from another."},
-	{"ref", (PyCFunction)Ref_check, METH_O, "prints the reference count."},
-	{NULL}
-};
-
-// todo: add call method
 static PyTypeObject EVectorType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	.tp_name		= "pyevspace.EVector",
 	.tp_doc			= PyDoc_STR("Eulcidean Vector"),
 	.tp_basicsize	= sizeof(EVector),
 	.tp_itemsize	= 0,
-	.tp_flags		= Py_TPFLAGS_DEFAULT,
+	.tp_flags		= Py_TPFLAGS_DEFAULT, // todo: do we want to set Py_TPFLAGS_SEQUENCE flag?
 	.tp_new			= PyType_GenericNew,
 	.tp_init		= (initproc)EVector_init,
-	.tp_getset		= EVector_getsetters,
-	.tp_methods		= EVector_Methods,
+	.tp_methods		= &EVector_Methods,
 	.tp_str			= (reprfunc)EVector_str,
 	.tp_as_number	= &EVector_NBMethods,
 	.tp_richcompare	= (richcmpfunc)EVector_richcompare,
+	.tp_as_sequence = &EVector_sequence,
 };
 
 /****************************************************/
 /************** EMatrix implementation **************/
+/****************************************************/
+
+/****************************************************/
+/************* EMatrix Numeric Methods **************/
 /****************************************************/
 
 static PyObject* MOperator_Add(EMatrix* self, PyObject* args)
@@ -955,19 +990,10 @@ static PyNumberMethods EMatrix_NBMethods = {
 	.nb_inplace_true_divide = (binaryfunc)MOperator_Idiv,
 };
 
-// todo: make this a module method
-static PyObject* EMatrix_det(EMatrix* self, PyObject* UNUSED)
-{
-	return (PyObject*)PyFloat_FromDouble(EVSpace_Det(self));
-}
+/****************************************************/
+/************** EMatrix Class Methods ***************/
+/****************************************************/
 
-// todo: make this a module method
-static PyObject* EMatrix_trans(EMatrix* self, PyObject* UNUSED)
-{
-	return (PyObject*)EVSpace_Trans(self);
-}
-
-// todo: make this implement by __call__
 static PyObject* EMatrix_set(EMatrix* self, PyObject* args)
 {
 	int i, j;
@@ -989,7 +1015,6 @@ static PyObject* EMatrix_set(EMatrix* self, PyObject* args)
 	Py_RETURN_NONE;
 }
 
-// todo: make this implemented by __call__
 static PyObject* EMatrix_get(EMatrix* self, PyObject* args)
 {
 	int i, j;
@@ -1009,11 +1034,65 @@ static PyObject* EMatrix_get(EMatrix* self, PyObject* args)
 	return PyFloat_FromDouble(self->m_arr[i][j]);
 }
 
+// todo: can we manage these with a sequence like protocol?
+static PyMethodDef EMatrix_Methods[] = {
+	{"set", (PyCFunction)EMatrix_set, METH_VARARGS, "Sets a matrix comonent to a given value."},
+	{"get", (PyCFunction)EMatrix_get, METH_VARARGS, "Returns a matrix comonent."},
+	{NULL}
+};
+
+/****************************************************/
+/************* EMatrix Module Methods ***************/
+/****************************************************/
+
+static PyObject* EMatrix_det(PyObject* UNUSED, PyObject* const* args, Py_ssize_t size)
+{
+	if (size != 1) {
+		PyErr_SetString(PyExc_IndexError, "Number of arguments should be 1");
+		return NULL;
+	}
+
+	EMatrix* mat = (EMatrix*)args[0];
+
+	if (!PyObject_TypeCheck(mat, &EMatrixType)) {
+		PyErr_SetString(PyExc_TypeError, "Argument should be EMatrix type.");
+		return NULL;
+	}
+
+	return PyFloat_FromDouble(EVSpace_Det(mat));
+}
+
+static PyObject* EMatrix_trans(PyObject* UNUSED, PyObject* const* args, Py_ssize_t size)
+{
+	if (size != 1) {
+		PyErr_SetString(PyExc_IndexError, "Number of arguments should be 1");
+		return NULL;
+	}
+
+	EMatrix* mat = (EMatrix*)args[0];
+
+	if (!PyObject_TypeCheck(mat, &EMatrixType)) {
+		PyErr_SetString(PyExc_TypeError, "Argument should be EMatrix type.");
+		return NULL;
+	}
+
+	return (PyObject*)EVSpace_Trans(mat);
+}
+
+static PyMethodDef EMatrix_ModuleMethods[] = {
+	{"det", (PyCFunction)EMatrix_det, METH_FASTCALL, "Returns the determinate of a matrix."},
+	{"transpose", (PyCFunction)EMatrix_trans, METH_FASTCALL, "Returns the transpose of a matrix."},
+	{NULL}
+};
+
+/****************************************************/
+/************** EMatrix Type Methods ****************/
+/****************************************************/
+
 static int EMatrix_init(EMatrix* self, PyObject* args, PyObject* UNUSED)
 {
 	EVector* c0 = NULL, *c1 = NULL, *c2 = NULL;
 
-	// todo: does parsetuple increment these addresses?
 	if (!PyArg_ParseTuple(args, "|OOO", &c0, &c1, &c2)) // todo: allow this to be a list or evector
 		return -1;
 
@@ -1066,7 +1145,7 @@ static PyObject* EMatrix_str(const EMatrix* mat)
 		return NULL;
 	}
 
-	return Py_BuildValue("s#", buffer, strlen(buffer)); // todo: does this need incrementing
+	return Py_BuildValue("s#", buffer, strlen(buffer));
 }
 
 static PyObject* EMatrix_richcompare(EMatrix* self, PyObject* other, int op)
@@ -1086,16 +1165,6 @@ static PyObject* EMatrix_richcompare(EMatrix* self, PyObject* other, int op)
 	}
 }
 
-// todo: craete a get/set method for the hidden array attribute
-static PyMethodDef EMatrix_Methods[] = {
-	{"det", (PyCFunction)EMatrix_det, METH_NOARGS, "Returns the determinate of a matrix."},
-	{"transpose", (PyCFunction)EMatrix_trans, METH_NOARGS, "Returns the transpose of a matrix."},
-	{"set", (PyCFunction)EMatrix_set, METH_VARARGS, "Sets a matrix comonent to a given value."},
-	{"get", (PyCFunction)EMatrix_get, METH_VARARGS, "Returns a matrix comonent."},
-	{NULL}
-};
-
-// todo: add call method
 static PyTypeObject EMatrixType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	.tp_name = "pyevspace.EMatrix",
@@ -1105,13 +1174,12 @@ static PyTypeObject EMatrixType = {
 	.tp_flags = Py_TPFLAGS_DEFAULT,
 	.tp_new = PyType_GenericNew,
 	.tp_init = (initproc)EMatrix_init,
-	.tp_methods = EMatrix_Methods,
+	.tp_methods = &EMatrix_Methods,
 	.tp_str = (reprfunc)EMatrix_str,
 	.tp_as_number = &EMatrix_NBMethods,
 	.tp_richcompare = (richcmpfunc)EMatrix_richcompare,
 };
 
-// todo: anything else we need to do here?
 static PyModuleDef EVSpacemodule = {
 	PyModuleDef_HEAD_INIT,
 	.m_name = "pyevspace",
@@ -1169,6 +1237,11 @@ PyInit_pyevspace(void)
 	// create module
 	m = PyModule_Create(&EVSpacemodule);
 	if (!m)
+		goto error;
+
+	if (PyModule_AddFunctions(m, EMatrix_ModuleMethods) < 0)
+		goto error;
+	if (PyModule_AddFunctions(m, EVector_ModuleMethods) < 0)
 		goto error;
 
 	// EVector 
