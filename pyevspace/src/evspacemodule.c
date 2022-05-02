@@ -654,7 +654,7 @@ static PyObject* EVector_Vang(PyObject* UNUSED, PyObject* const* args, Py_ssize_
 	EVector* lhs = (EVector*)args[0];
 	EVector* rhs = (EVector*)args[1];
 
-	if (!lhs) {
+	if (!lhs && !rhs) {
 		PyErr_SetString(PyExc_ValueError, "Arguments cannot be NULL.");
 		return NULL;
 	}
@@ -680,7 +680,7 @@ static PyObject* EVector_Vxcl(PyObject* UNUSED, PyObject* const* args, Py_ssize_
 	EVector* lhs = (EVector*)args[0];
 	EVector* rhs = (EVector*)args[1];
 
-	if (!lhs) {
+	if (!lhs && !rhs) {
 		PyErr_SetString(PyExc_ValueError, "Arguments cannot be NULL.");
 		return NULL;
 	}
@@ -726,7 +726,7 @@ static PyObject* EVector_get(EVector* self, Py_ssize_t index)
 
 static int EVector_set(EVector* self, Py_ssize_t index, PyObject* val)
 {
-	if (index < -3 || index > 2) {
+	if (index < 0 || index > 2) {
 		PyErr_SetString(PyExc_ValueError, "Index out of bounds.");
 		return -1;
 	}
