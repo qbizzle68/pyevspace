@@ -905,33 +905,6 @@ static PyObject* EMatrix_imult(EMatrix* self, PyObject* args)
 	}
 	else
 		Py_RETURN_NOTIMPLEMENTED;
-
-	/*int option = -1;
-	if (PyObject_TypeCheck(args, self->ob_base.ob_type))
-		option = 0;
-	else if (PyFloat_CheckExact(args))
-		option = 1;
-	else if (PyLong_CheckExact(args))
-		option = 2;
-	else
-		Py_RETURN_NOTIMPLEMENTED;
-
-	double rhs;
-	switch (option) {
-	case 0:
-		EVSpace_Matrix_imultm(self, (EMatrix*)args);
-		return Py_NewRef(self);
-	case 1:
-		EVSpace_Matrix_imultd(self, PyFloat_AS_DOUBLE(args));
-		return Py_NewRef(self);
-	default: // todo: does this matter which is default?
-		rhs = PyLong_AsDouble(args);
-		if (PyErr_Occurred())
-			return NULL;
-
-		EVSpace_Matrix_imultd(self, rhs);
-		return Py_NewRef(self);
-	}*/
 }
 
 static PyObject* EMatrix_mimult(EMatrix* self, PyObject* args)
@@ -1004,11 +977,11 @@ static PyObject* EMatrix_set(EMatrix* self, PyObject* args)
 	if (!PyArg_ParseTuple(args, "lld", &i, &j, &val))
 		return NULL;
 
-	if (i < 0 || i > 3) {
+	if (i < 0 || i > 2) {
 		PyErr_SetString(PyExc_ValueError, "Row index out of bounds.");
 		return NULL;
 	}
-	if (j < 0 || j > 3) {
+	if (j < 0 || j > 2) {
 		PyErr_SetString(PyExc_ValueError, "Column index out of bounds.");
 		return NULL;
 	}
@@ -1024,11 +997,11 @@ static PyObject* EMatrix_get(EMatrix* self, PyObject* args)
 	if (!PyArg_ParseTuple(args, "ll", &i, &j))
 		return NULL;
 
-	if (i < 0 || i > 3) {
+	if (i < 0 || i > 2) {
 		PyErr_SetString(PyExc_ValueError, "Row index out of bounds.");
 		return NULL;
 	}
-	if (j < 0 || j > 3) {
+	if (j < 0 || j > 2) {
 		PyErr_SetString(PyExc_ValueError, "Column index out of bounds.");
 		return NULL;
 	}
