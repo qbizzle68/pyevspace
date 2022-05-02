@@ -6,37 +6,33 @@
 	include that file before this one */
 /* the api array must be declared before include of this file */
 
-#define EVSpace_Madd \
+#define EVSpace_Matrix_add \
 	(*(EVSpace_Madd_RETURN) (*)EVSpace_Madd_PROTO) EVSpace_API[EVSpace_Madd_NUM]
-#define EVSpace_Msub \
+#define EVSpace_Matrix_sub \
 	(*(EVSpace_Msub_RETURN) (*)EVSpace_Msub_PROTO) EVSpace_API[EVSpace_Msub_NUM]
 #define EVSpace_Mmult \
 	(*(EVSpace_Mmult_RETURN) (*)EVSpace_Mmult_PROTO) EVSpace_API[EVSpace_Mmult_NUM]
-#define EVSpace_Mneg \
+#define EVSpace_Matrix_neg \
 	(*(EVSpace_Mneg_RETURN) (*)EVSpace_Mneg_PROTO) EVSpace_API[EVSpace_Mneg_NUM]
 #define EVSpace_Mabs \
 	(*(EVSpace_Mabs_RETURN) (*)EVSpace_Mabs_PROTO) EVSpace_API[EVSpace_Mabs_NUM]
-#define EVSpace_Miadd \
+#define EVSpace_Matrix_iadd \
 	(*(EVSpace_Miadd_RETURN) (*)EVSpace_Miadd_PROTO) EVSpace_API[EVSpace_Miadd_NUM]
-#define EVSpace_Misub \
+#define EVSpace_Matrix_isub \
 	(*(EVSpace_Misub_RETURN) (*)EVSpace_Misub_PROTO) EVSpace_API[EVSpace_Misub_NUM]
 #define EVSpace_Mimult \
 	(*(EVSpace_Mimult_RETURN) (*)EVSpace_Mimult_PROTO) EVSpace_API[EVSpace_Mimult_NUM]
-#define EVSpace_Mdiv \
+#define EVSpace_Matrix_div \
 	(*(EVSpace_Mdiv_RETURN) (*)EVSpace_Mdiv_PROTO) EVSpace_API[EVSpace_Mdiv_NUM]
-#define EVSpace_Midiv \
+#define EVSpace_Matrix_idiv \
 	(*(EVSpace_Midiv_RETURN) (*)EVSpace_Midiv_PROTO) EVSpace_API[EVSpace_Midiv_NUM]
-#define EVSpace_Meq \
+#define EVSpace_Matrix_eq \
 	(*(EVSpace_Meq_RETURN) (*)EVSpace_Meq_PROTO) EVSpace_API[EVSpace_Meq_NUM]
-#define EVSpace_Mne \
+#define EVSpace_Matrix_ne \
 	(*(EVSpace_Mne_RETURN) (*)EVSpace_Mne_PROTO) EVSpace_API[EVSpace_Mne_NUM]
-#define EVSpace_Det \
+#define EVSpace_Matrix_det \
 	(*(EVSpace_Det_RETURN) (*)EVSpace_Det_PROTO) EVSpace_API[EVSpace_Det_NUM]
-#define EVSpace_Trans \
+#define EVSpace_Matrix_trans \
 	(*(EVSpace_Trans_RETURN) (*)EVSpace_Trans_PROTO) EVSpace_API[EVSpace_Trans_NUM]
-#define EVSpace_Mset \
-	(*(EVSpace_Mset_RETURN) (*)EVSpace_Mset_PROTO) EVSpace_API[EVSpace_Mset_NUM]
-#define EVSpace_Mget \
-	(*(EVSpace_Mget_RETURN) (*)EVSpace_Mget_PROTO) EVSpace_API[EVSpace_Mget_NUM]
 
 #endif // EVSPACE_MATRIX_API_DEFN_H

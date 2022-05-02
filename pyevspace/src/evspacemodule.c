@@ -29,7 +29,7 @@ static PyTypeObject EMatrixType;
 
 /************** EVector **************/
 
-static EVector* EVSpace_Vadd(const EVector* lhs, const EVector* rhs)
+static EVector* EVSpace_Vector_add(const EVector* lhs, const EVector* rhs)
 {
 	EVector* rtn = (EVector*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
 	if (!rtn)
@@ -42,7 +42,7 @@ static EVector* EVSpace_Vadd(const EVector* lhs, const EVector* rhs)
 	return rtn;
 }
 
-static EVector* EVSpace_Vsub(const EVector* lhs, const EVector* rhs)
+static EVector* EVSpace_Vector_sub(const EVector* lhs, const EVector* rhs)
 {
 	EVector* rtn = (EVector*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
 	if (!rtn)
@@ -55,7 +55,7 @@ static EVector* EVSpace_Vsub(const EVector* lhs, const EVector* rhs)
 	return rtn;
 }
 
-static EVector* EVSpace_Vmult(const EVector* lhs, double rhs)
+static EVector* EVSpace_Vector_mult(const EVector* lhs, double rhs)
 {
 	EVector* rtn = (EVector*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
 	if (!rtn)
@@ -68,7 +68,7 @@ static EVector* EVSpace_Vmult(const EVector* lhs, double rhs)
 	return rtn;
 }
 
-static EVector* EVSpace_Vneg(const EVector* lhs)
+static EVector* EVSpace_Vector_neg(const EVector* lhs)
 {
 	EVector* rtn = (EVector*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
 	if (!rtn)
@@ -81,35 +81,35 @@ static EVector* EVSpace_Vneg(const EVector* lhs)
 	return rtn;
 }
 
-static double EVSpace_Vabs(const EVector* vec)
+static double EVSpace_Vector_abs(const EVector* vec)
 {
 	return sqrt(vec->m_arr[0] * vec->m_arr[0]
 		+ vec->m_arr[1] * vec->m_arr[1]
 		+ vec->m_arr[2] * vec->m_arr[2]);
 }
 
-static void EVSpace_Viadd(EVector* lhs, const EVector* rhs)
+static void EVSpace_Vector_iadd(EVector* lhs, const EVector* rhs)
 {
 	lhs->m_arr[0] += rhs->m_arr[0];
 	lhs->m_arr[1] += rhs->m_arr[1];
 	lhs->m_arr[2] += rhs->m_arr[2];
 }
 
-static void EVSpace_Visub(EVector* lhs, const EVector* rhs)
+static void EVSpace_Vector_isub(EVector* lhs, const EVector* rhs)
 {
 	lhs->m_arr[0] -= rhs->m_arr[0];
 	lhs->m_arr[1] -= rhs->m_arr[1];
 	lhs->m_arr[2] -= rhs->m_arr[2];
 }
 
-static void EVSpace_Vimult(EVector* lhs, double rhs)
+static void EVSpace_Vector_imult(EVector* lhs, double rhs)
 {
 	lhs->m_arr[0] *= rhs;
 	lhs->m_arr[1] *= rhs;
 	lhs->m_arr[2] *= rhs;
 }
 
-static EVector* EVSpace_Vdiv(const EVector* lhs, double rhs)
+static EVector* EVSpace_Vector_div(const EVector* lhs, double rhs)
 {
 	EVector* rtn = (EVector*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
 	if (!rtn)
@@ -122,14 +122,14 @@ static EVector* EVSpace_Vdiv(const EVector* lhs, double rhs)
 	return rtn;
 }
 
-static void EVSpace_Vidiv(EVector* lhs, double rhs)
+static void EVSpace_Vector_idiv(EVector* lhs, double rhs)
 {
 	lhs->m_arr[0] /= rhs;
 	lhs->m_arr[1] /= rhs;
 	lhs->m_arr[2] /= rhs;
 }
 
-static int EVSpace_Veq(const EVector* lhs, const EVector* rhs)
+static int EVSpace_Vector_eq(const EVector* lhs, const EVector* rhs)
 {
 	static double epsilon = 1e-6;
 	if ((fabs(lhs->m_arr[0] - rhs->m_arr[0]) < epsilon) 
@@ -139,21 +139,21 @@ static int EVSpace_Veq(const EVector* lhs, const EVector* rhs)
 	return 0;
 }
 
-static int EVSpace_Vne(const EVector* lhs, const EVector* rhs)
+static int EVSpace_Vector_ne(const EVector* lhs, const EVector* rhs)
 {
-	if (EVSpace_Veq(lhs, rhs))
+	if (EVSpace_Vector_eq(lhs, rhs))
 		return 0;
 	return 1;
 }
 
-static double EVSpace_Dot(const EVector* lhs, const EVector* rhs)
+static double EVSpace_Vector_dot(const EVector* lhs, const EVector* rhs)
 {
 	return (lhs->m_arr[0] * rhs->m_arr[0])
 		+ (lhs->m_arr[1] * rhs->m_arr[1])
 		+ (lhs->m_arr[2] * rhs->m_arr[2]);
 }
 
-static EVector* EVSpace_Cross(const EVector* lhs, const EVector* rhs)
+static EVector* EVSpace_Vector_cross(const EVector* lhs, const EVector* rhs)
 {
 	EVector* rtn = (EVector*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
 	if (!rtn)
@@ -166,39 +166,39 @@ static EVector* EVSpace_Cross(const EVector* lhs, const EVector* rhs)
 	return rtn;
 }
 
-static double EVSpace_Mag(const EVector* vec)
+static double EVSpace_vector_mag(const EVector* vec)
 {
-	return sqrt(EVSpace_Dot(vec, vec));
+	return sqrt(EVSpace_Vector_dot(vec, vec));
 }
 
-static double EVSpace_Mag2(const EVector* vec)
+static double EVSpace_Vector_mag2(const EVector* vec)
 {
-	return EVSpace_Dot(vec, vec);
+	return EVSpace_Vector_dot(vec, vec);
 }
 
-static EVector* EVSpace_Norm(const EVector* vec)
+static EVector* EVSpace_Vector_norm(const EVector* vec)
 {
-	return EVSpace_Vdiv(vec, sqrt(EVSpace_Dot(vec, vec)));
+	return EVSpace_Vector_div(vec, sqrt(EVSpace_Vector_dot(vec, vec)));
 }
 
-static void EVSpace_Inorm(EVector* rtn)
+static void EVSpace_Vector_inorm(EVector* rtn)
 {
-	EVSpace_Vidiv(rtn, sqrt(EVSpace_Dot(rtn, rtn)));
+	EVSpace_Vector_idiv(rtn, sqrt(EVSpace_Vector_dot(rtn, rtn)));
 }
 
-static double EVSpace_Vang(const EVector* lhs, const EVector* rhs)
+static double EVSpace_Vector_vang(const EVector* lhs, const EVector* rhs)
 {
-	double theta = acos(EVSpace_Dot(lhs, rhs) / (EVSpace_Mag(lhs) * EVSpace_Mag(rhs)));
+	double theta = acos(EVSpace_Vector_dot(lhs, rhs) / (EVSpace_vector_mag(lhs) * EVSpace_vector_mag(rhs)));
 	return theta * EVSpace_RADIANS_TO_DEGREES;
 }
 
-static EVector* EVSpace_Vxcl(const EVector* vec, const EVector* xcl)
+static EVector* EVSpace_Vector_vxcl(const EVector* vec, const EVector* xcl)
 {
 	EVector* rtn = (EVector*)vec->ob_base.ob_type->tp_new(vec->ob_base.ob_type, NULL, NULL);
 	if (!rtn)
 		return NULL;
 
-	double scale = EVSpace_Dot(vec, xcl) / EVSpace_Mag2(xcl);
+	double scale = EVSpace_Vector_dot(vec, xcl) / EVSpace_Vector_mag2(xcl);
 	rtn->m_arr[0] = vec->m_arr[0] - (xcl->m_arr[0] * scale);
 	rtn->m_arr[1] = vec->m_arr[1] - (xcl->m_arr[1] * scale);
 	rtn->m_arr[2] = vec->m_arr[2] - (xcl->m_arr[2] * scale);
@@ -210,7 +210,7 @@ static EVector* EVSpace_Vxcl(const EVector* vec, const EVector* xcl)
 /***************** EMatrix *******************/
 /*********************************************/
 
-static EMatrix* EVSpace_Madd(const EMatrix* lhs, const EMatrix* rhs)
+static EMatrix* EVSpace_Matrix_add(const EMatrix* lhs, const EMatrix* rhs)
 {
 	EMatrix* rtn = (EMatrix*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
 	if (!rtn)
@@ -224,7 +224,7 @@ static EMatrix* EVSpace_Madd(const EMatrix* lhs, const EMatrix* rhs)
 	return rtn;
 }
 
-static EMatrix* EVSpace_Msub(const EMatrix* lhs, const EMatrix* rhs)
+static EMatrix* EVSpace_Matrix_sub(const EMatrix* lhs, const EMatrix* rhs)
 {
 	EMatrix* rtn = (EMatrix*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
 	if (!rtn)
@@ -238,7 +238,7 @@ static EMatrix* EVSpace_Msub(const EMatrix* lhs, const EMatrix* rhs)
 	return rtn;
 }
 
-static EMatrix* EVSpace_Mmultm(const EMatrix* lhs, const EMatrix* rhs)
+static EMatrix* EVSpace_Matrix_multm(const EMatrix* lhs, const EMatrix* rhs)
 {
 	EMatrix* rtn = (EMatrix*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
 	if (!rtn)
@@ -256,7 +256,7 @@ static EMatrix* EVSpace_Mmultm(const EMatrix* lhs, const EMatrix* rhs)
 	return rtn;
 }
 
-static EVector* EVSpace_Mmultv(const EMatrix* lhs, const EVector* rhs)
+static EVector* EVSpace_Matrix_multv(const EMatrix* lhs, const EVector* rhs)
 {
 	EVector* rtn = (EVector*)rhs->ob_base.ob_type->tp_new(rhs->ob_base.ob_type, NULL, NULL);
 	if (!rtn)
@@ -272,7 +272,7 @@ static EVector* EVSpace_Mmultv(const EMatrix* lhs, const EVector* rhs)
 	return rtn;
 }
 
-static EMatrix* EVSpace_Mmultd(const EMatrix* lhs, double rhs)
+static EMatrix* EVSpace_Matrix_multd(const EMatrix* lhs, double rhs)
 {
 	EMatrix* rtn = (EMatrix*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
 	if (!rtn)
@@ -286,7 +286,7 @@ static EMatrix* EVSpace_Mmultd(const EMatrix* lhs, double rhs)
 	return rtn;
 }
 
-static EMatrix* EVSpace_Mneg(const EMatrix* mat)
+static EMatrix* EVSpace_Matrix_neg(const EMatrix* mat)
 {
 	EMatrix* rtn = (EMatrix*)mat->ob_base.ob_type->tp_new(mat->ob_base.ob_type, NULL, NULL);
 	if (!rtn)
@@ -300,7 +300,7 @@ static EMatrix* EVSpace_Mneg(const EMatrix* mat)
 	return rtn;
 }
 
-static void EVSpace_Miadd(EMatrix* lhs, const EMatrix* rhs)
+static void EVSpace_Matrix_iadd(EMatrix* lhs, const EMatrix* rhs)
 {
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++)
@@ -308,7 +308,7 @@ static void EVSpace_Miadd(EMatrix* lhs, const EMatrix* rhs)
 	}
 }
 
-static void EVSpace_Misub(EMatrix* lhs, const EMatrix* rhs)
+static void EVSpace_Matrix_isub(EMatrix* lhs, const EMatrix* rhs)
 {
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++)
@@ -316,9 +316,9 @@ static void EVSpace_Misub(EMatrix* lhs, const EMatrix* rhs)
 	}
 }
 
-static void EVSpace_Mimultm(EMatrix* lhs, const EMatrix* rhs)
+static void EVSpace_Matrix_imultm(EMatrix* lhs, const EMatrix* rhs)
 {
-	EMatrix* tmp = EVSpace_Mmultm(lhs, rhs);
+	EMatrix* tmp = EVSpace_Matrix_multm(lhs, rhs);
 	if (!tmp) {
 		lhs = NULL;
 		return;
@@ -332,7 +332,7 @@ static void EVSpace_Mimultm(EMatrix* lhs, const EMatrix* rhs)
 	tmp->ob_base.ob_type->tp_dealloc((PyObject*)tmp);
 }
 
-static void EVSpace_Mimultd(EMatrix* lhs, double rhs)
+static void EVSpace_Matrix_imultd(EMatrix* lhs, double rhs)
 {
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++)
@@ -340,7 +340,7 @@ static void EVSpace_Mimultd(EMatrix* lhs, double rhs)
 	}
 }
 
-static EMatrix* EVSpace_Mdiv(const EMatrix* lhs, double rhs)
+static EMatrix* EVSpace_Matrix_div(const EMatrix* lhs, double rhs)
 {
 	EMatrix* rtn = (EMatrix*)lhs->ob_base.ob_type->tp_new(lhs->ob_base.ob_type, NULL, NULL);
 	if (!rtn)
@@ -354,7 +354,7 @@ static EMatrix* EVSpace_Mdiv(const EMatrix* lhs, double rhs)
 	return rtn;
 }
 
-static void EVSpace_Midiv(EMatrix* lhs, double rhs)
+static void EVSpace_Matrix_idiv(EMatrix* lhs, double rhs)
 {
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++)
@@ -362,7 +362,7 @@ static void EVSpace_Midiv(EMatrix* lhs, double rhs)
 	}
 }
 
-static int EVSpace_Meq(const EMatrix* lhs, const EMatrix* rhs)
+static int EVSpace_Matrix_eq(const EMatrix* lhs, const EMatrix* rhs)
 {
 	static double epsilon = 1e-6;
 	for (int i = 0; i < 3; i++) {
@@ -374,21 +374,21 @@ static int EVSpace_Meq(const EMatrix* lhs, const EMatrix* rhs)
 	return 1;
 }
 
-static int EVSpace_Mne(const EMatrix* lhs, const EMatrix* rhs)
+static int EVSpace_Matrix_ne(const EMatrix* lhs, const EMatrix* rhs)
 {
-	if (EVSpace_Meq(lhs, rhs) == 1)
+	if (EVSpace_Matrix_eq(lhs, rhs) == 1)
 		return 0;
 	return 1;
 }
 
-static double EVSpace_Det(const EMatrix* lhs)
+static double EVSpace_Matrix_det(const EMatrix* lhs)
 {
 	return lhs->m_arr[0][0] * ((lhs->m_arr[1][1] * lhs->m_arr[2][2]) - (lhs->m_arr[1][2] * lhs->m_arr[2][1]))
 		+ lhs->m_arr[0][1] * ((lhs->m_arr[1][2] * lhs->m_arr[2][0]) - (lhs->m_arr[1][0] * lhs->m_arr[2][2]))
 		+ lhs->m_arr[0][2] * ((lhs->m_arr[1][0] * lhs->m_arr[2][1]) - (lhs->m_arr[1][1] * lhs->m_arr[2][0]));
 }
 
-static EMatrix* EVSpace_Trans(const EMatrix* mat)
+static EMatrix* EVSpace_Matrix_trans(const EMatrix* mat)
 {
 	EMatrix* rtn = (EMatrix*)mat->ob_base.ob_type->tp_new(mat->ob_base.ob_type, NULL, NULL);
 	if (!rtn)
@@ -400,16 +400,6 @@ static EMatrix* EVSpace_Trans(const EMatrix* mat)
 	}
 
 	return rtn;
-}
-
-static void EVSpace_Mset(EMatrix* self, int i, int j, double val)
-{
-	self->m_arr[i][j] = val;
-}
-
-static double EVSpace_Mget(EMatrix* self, int i, int j)
-{
-	return self->m_arr[i][j];
 }
 
 /****************************************************/
@@ -429,7 +419,7 @@ static PyObject* VOperator_Add(EVector* self, PyObject* arg)
 	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type))
 		Py_RETURN_NOTIMPLEMENTED;
 
-	return (PyObject*)EVSpace_Vadd(self, (EVector*)arg);
+	return (PyObject*)EVSpace_Vector_add(self, (EVector*)arg);
 }
 
 static PyObject* VOperator_Sub(EVector* self, PyObject* arg)
@@ -437,7 +427,7 @@ static PyObject* VOperator_Sub(EVector* self, PyObject* arg)
 	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type))
 		Py_RETURN_NOTIMPLEMENTED;
 
-	return (PyObject*)EVSpace_Vsub(self, (EVector*)arg);
+	return (PyObject*)EVSpace_Vector_sub(self, (EVector*)arg);
 }
 
 static PyObject* VOperator_Mult(EVector* self, PyObject* arg)
@@ -454,17 +444,17 @@ static PyObject* VOperator_Mult(EVector* self, PyObject* arg)
 	else
 		Py_RETURN_NOTIMPLEMENTED;
 
-	return (PyObject*)EVSpace_Vmult(self, rhs);
+	return (PyObject*)EVSpace_Vector_mult(self, rhs);
 }
 
 static PyObject* VOperator_Neg(EVector* self)
 {
-	return (PyObject*)EVSpace_Vneg(self);
+	return (PyObject*)EVSpace_Vector_neg(self);
 }
 
 static PyObject* VOperator_Abs(EVector* self)
 {
-	return (PyObject*)PyFloat_FromDouble(EVSpace_Vabs(self));
+	return (PyObject*)PyFloat_FromDouble(EVSpace_Vector_abs(self));
 }
 
 static PyObject* VOperator_Iadd(EVector* self, PyObject* arg)
@@ -472,7 +462,7 @@ static PyObject* VOperator_Iadd(EVector* self, PyObject* arg)
 	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type))
 		Py_RETURN_NOTIMPLEMENTED;
 
-	EVSpace_Viadd(self, (EVector*)arg);
+	EVSpace_Vector_iadd(self, (EVector*)arg);
 	return Py_NewRef(self);
 }
 
@@ -481,7 +471,7 @@ static PyObject* VOperator_Isub(EVector* self, PyObject* arg)
 	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type))
 		Py_RETURN_NOTIMPLEMENTED;
 
-	EVSpace_Visub(self, (EVector*)arg);
+	EVSpace_Vector_isub(self, (EVector*)arg);
 	return Py_NewRef(self);
 }
 
@@ -498,7 +488,7 @@ static PyObject* VOperator_Imult(EVector* self, PyObject* arg)
 	else
 		Py_RETURN_NOTIMPLEMENTED;
 
-	EVSpace_Vimult(self, rhs);
+	EVSpace_Vector_imult(self, rhs);
 	return Py_NewRef(self);
 }
 
@@ -515,7 +505,7 @@ static PyObject* VOperator_Div(EVector* self, PyObject* arg)
 	else
 		Py_RETURN_NOTIMPLEMENTED;
 
-	return (PyObject*)EVSpace_Vdiv(self, rhs);
+	return (PyObject*)EVSpace_Vector_div(self, rhs);
 }
 
 static PyObject* VOperator_Idiv(EVector* self, PyObject* arg)
@@ -531,7 +521,7 @@ static PyObject* VOperator_Idiv(EVector* self, PyObject* arg)
 	else
 		Py_RETURN_NOTIMPLEMENTED;
 
-	EVSpace_Vidiv(self, rhs);
+	EVSpace_Vector_idiv(self, rhs);
 	return Py_NewRef(self);
 }
 
@@ -554,17 +544,17 @@ static PyNumberMethods EVector_NBMethods = {
 
 static PyObject* EVector_Mag(EVector* self, PyObject* UNUSED)
 {
-	return PyFloat_FromDouble(EVSpace_Mag(self));
+	return PyFloat_FromDouble(EVSpace_vector_mag(self));
 }
 
 static PyObject* EVector_Mag2(EVector* self, PyObject* UNUSED)
 {
-	return PyFloat_FromDouble(EVSpace_Mag2(self));
+	return PyFloat_FromDouble(EVSpace_Vector_mag2(self));
 }
 
 static PyObject* EVector_Normalize(EVector* self, PyObject* UNUSED)
 {
-	EVSpace_Inorm(self);
+	EVSpace_Vector_inorm(self);
 	Py_RETURN_NONE;
 }
 
@@ -611,7 +601,7 @@ static PyObject* EVector_Dot(PyObject* UNUSED, PyObject *const *args, Py_ssize_t
 		return NULL;
 	}
 
-	return PyFloat_FromDouble(EVSpace_Dot(lhs, rhs));
+	return PyFloat_FromDouble(EVSpace_Vector_dot(lhs, rhs));
 }
 
 static PyObject* EVector_Cross(PyObject* UNUSED, PyObject* const* args, Py_ssize_t size)
@@ -637,7 +627,7 @@ static PyObject* EVector_Cross(PyObject* UNUSED, PyObject* const* args, Py_ssize
 		return NULL;
 	}
 
-	EVector* rtn = EVSpace_Cross(lhs, rhs);
+	EVector* rtn = EVSpace_Vector_cross(lhs, rhs);
 
 	return (PyObject*)(rtn);
 }
@@ -660,7 +650,7 @@ static PyObject* EVector_Norm(PyObject* UNUSED, PyObject* const* args, Py_ssize_
 		return NULL;
 	}
 
-	return (PyObject*)EVSpace_Norm(lhs);
+	return (PyObject*)EVSpace_Vector_norm(lhs);
 }
 
 static PyObject* EVector_Vang(PyObject* UNUSED, PyObject* const* args, Py_ssize_t size)
@@ -686,7 +676,7 @@ static PyObject* EVector_Vang(PyObject* UNUSED, PyObject* const* args, Py_ssize_
 		return NULL;
 	}
 
-	return PyFloat_FromDouble(EVSpace_Vang(lhs, rhs));
+	return PyFloat_FromDouble(EVSpace_Vector_vang(lhs, rhs));
 }
 
 static PyObject* EVector_Vxcl(PyObject* UNUSED, PyObject* const* args, Py_ssize_t size)
@@ -712,7 +702,7 @@ static PyObject* EVector_Vxcl(PyObject* UNUSED, PyObject* const* args, Py_ssize_
 		return NULL;
 	}
 
-	return (PyObject*)(EVSpace_Vxcl(lhs, rhs));
+	return (PyObject*)(EVSpace_Vector_vxcl(lhs, rhs));
 }
 
 static PyMethodDef EVector_ModuleMethods[] = {
@@ -812,9 +802,9 @@ static PyObject* EVector_richcompare(PyObject* self, PyObject* other, int op)
 
 	switch (op) {
 	case Py_EQ:
-		return PyBool_FromLong(EVSpace_Veq((EVector*)self, (EVector*)other));
+		return PyBool_FromLong(EVSpace_Vector_eq((EVector*)self, (EVector*)other));
 	case Py_NE:
-		return PyBool_FromLong(EVSpace_Vne((EVector*)self, (EVector*)other));
+		return PyBool_FromLong(EVSpace_Vector_ne((EVector*)self, (EVector*)other));
 	default:
 		Py_RETURN_NOTIMPLEMENTED;
 	}
@@ -849,7 +839,7 @@ static PyObject* MOperator_Add(EMatrix* self, PyObject* args)
 	if (!PyObject_TypeCheck(args, self->ob_base.ob_type))
 		Py_RETURN_NOTIMPLEMENTED;
 
-	return (PyObject*)EVSpace_Madd(self, (EMatrix*)args);
+	return (PyObject*)EVSpace_Matrix_add(self, (EMatrix*)args);
 }
 
 static PyObject* MOperator_Sub(EMatrix* self, PyObject* args)
@@ -857,7 +847,7 @@ static PyObject* MOperator_Sub(EMatrix* self, PyObject* args)
 	if (!PyObject_TypeCheck(args, self->ob_base.ob_type))
 		Py_RETURN_NOTIMPLEMENTED;
 
-	return (PyObject*)EVSpace_Msub(self, (EMatrix*)args);
+	return (PyObject*)EVSpace_Matrix_sub(self, (EMatrix*)args);
 }
 
 static PyObject* MOperator_Mult(EMatrix* self, PyObject* args)
@@ -877,23 +867,23 @@ static PyObject* MOperator_Mult(EMatrix* self, PyObject* args)
 	double rhs;
 	switch (option) {
 	case 0:
-		return (PyObject*)EVSpace_Mmultd(self, PyFloat_AS_DOUBLE(args));
+		return (PyObject*)EVSpace_Matrix_multd(self, PyFloat_AS_DOUBLE(args));
 	case 1:
 		rhs = PyLong_AsDouble(args);
 		if (PyErr_Occurred())
 			return NULL;
 
-		return (PyObject*)EVSpace_Mmultd(self, rhs);
+		return (PyObject*)EVSpace_Matrix_multd(self, rhs);
 	case 2:
-		return (PyObject*)EVSpace_Mmultm(self, (EMatrix*)args);
+		return (PyObject*)EVSpace_Matrix_multm(self, (EMatrix*)args);
 	default:
-		return (PyObject*)EVSpace_Mmultv(self, (EVector*)args);
+		return (PyObject*)EVSpace_Matrix_multv(self, (EVector*)args);
 	}
 }
 
 static PyObject* MOperator_Neg(EMatrix* self, PyObject* UNUSED)
 {
-	return (PyObject*)EVSpace_Mneg(self);
+	return (PyObject*)EVSpace_Matrix_neg(self);
 }
 
 static PyObject* MOperator_Iadd(EMatrix* self, PyObject* args)
@@ -901,7 +891,7 @@ static PyObject* MOperator_Iadd(EMatrix* self, PyObject* args)
 	if (!PyObject_TypeCheck(args, self->ob_base.ob_type))
 		Py_RETURN_NOTIMPLEMENTED;
 
-	EVSpace_Miadd(self, (EMatrix*)args);
+	EVSpace_Matrix_iadd(self, (EMatrix*)args);
 	return Py_NewRef(self);
 }
 
@@ -910,7 +900,7 @@ static PyObject* MOperator_Isub(EMatrix* self, PyObject* args)
 	if (!PyObject_TypeCheck(args, self->ob_base.ob_type))
 		Py_RETURN_NOTIMPLEMENTED;
 
-	EVSpace_Misub(self, (EMatrix*)args);
+	EVSpace_Matrix_isub(self, (EMatrix*)args);
 	return Py_NewRef(self);
 }
 
@@ -929,17 +919,17 @@ static PyObject* MOperator_Imult(EMatrix* self, PyObject* args)
 	double rhs;
 	switch (option) {
 	case 0:
-		EVSpace_Mimultm(self, (EMatrix*)args);
+		EVSpace_Matrix_imultm(self, (EMatrix*)args);
 		return Py_NewRef(self);
 	case 1:
-		EVSpace_Mimultd(self, PyFloat_AS_DOUBLE(args));
+		EVSpace_Matrix_imultd(self, PyFloat_AS_DOUBLE(args));
 		return Py_NewRef(self);
 	default: // todo: does this matter which is default?
 		rhs = PyLong_AsDouble(args);
 		if (PyErr_Occurred())
 			return NULL;
 
-		EVSpace_Mimultd(self, rhs);
+		EVSpace_Matrix_imultd(self, rhs);
 		return Py_NewRef(self);
 	}
 }
@@ -957,7 +947,7 @@ static PyObject* MOperator_Div(EMatrix* self, PyObject* args)
 	else
 		Py_RETURN_NOTIMPLEMENTED;
 
-	return (PyObject*)EVSpace_Mdiv(self, rhs);
+	return (PyObject*)EVSpace_Matrix_div(self, rhs);
 }
 
 static PyObject* MOperator_Idiv(EMatrix* self, PyObject* args)
@@ -973,7 +963,7 @@ static PyObject* MOperator_Idiv(EMatrix* self, PyObject* args)
 	else
 		Py_RETURN_NOTIMPLEMENTED;
 
-	EVSpace_Midiv(self, rhs);
+	EVSpace_Matrix_idiv(self, rhs);
 	return Py_NewRef(self);
 }
 
@@ -1059,7 +1049,7 @@ static PyObject* EMatrix_det(PyObject* UNUSED, PyObject* const* args, Py_ssize_t
 		return NULL;
 	}
 
-	return PyFloat_FromDouble(EVSpace_Det(mat));
+	return PyFloat_FromDouble(EVSpace_Matrix_det(mat));
 }
 
 static PyObject* EMatrix_trans(PyObject* UNUSED, PyObject* const* args, Py_ssize_t size)
@@ -1076,7 +1066,7 @@ static PyObject* EMatrix_trans(PyObject* UNUSED, PyObject* const* args, Py_ssize
 		return NULL;
 	}
 
-	return (PyObject*)EVSpace_Trans(mat);
+	return (PyObject*)EVSpace_Matrix_trans(mat);
 }
 
 static PyMethodDef EMatrix_ModuleMethods[] = {
@@ -1157,9 +1147,9 @@ static PyObject* EMatrix_richcompare(EMatrix* self, PyObject* other, int op)
 
 	switch (op) {
 	case Py_EQ:
-		return PyBool_FromLong(EVSpace_Meq((EMatrix*)self, (EMatrix*)other));
+		return PyBool_FromLong(EVSpace_Matrix_eq((EMatrix*)self, (EMatrix*)other));
 	case Py_NE:
-		return PyBool_FromLong(EVSpace_Mne((EMatrix*)self, (EMatrix*)other));
+		return PyBool_FromLong(EVSpace_Matrix_ne((EMatrix*)self, (EMatrix*)other));
 	default:
 		Py_RETURN_NOTIMPLEMENTED;
 	}
@@ -1254,44 +1244,43 @@ PyInit_pyevspace(void)
 	}
 
 	// EVector 
-	EVSpace_API[EVSpace_Vadd_NUM]	= (void*)EVSpace_Vadd;
-	EVSpace_API[EVSpace_Vsub_NUM]	= (void*)EVSpace_Vsub;
-	EVSpace_API[EVSpace_Vmult_NUM]	= (void*)EVSpace_Vmult;
-	EVSpace_API[EVSpace_Vneg_NUM]	= (void*)EVSpace_Vneg;
-	EVSpace_API[EVSpace_Vabs_NUM]	= (void*)EVSpace_Vabs;
-	EVSpace_API[EVSpace_Viadd_NUM]	= (void*)EVSpace_Viadd;
-	EVSpace_API[EVSpace_Visub_NUM]	= (void*)EVSpace_Visub;
-	EVSpace_API[EVSpace_Vimult_NUM]	= (void*)EVSpace_Vimult;
-	EVSpace_API[EVSpace_Vdiv_NUM]	= (void*)EVSpace_Vdiv;
-	EVSpace_API[EVSpace_Vidiv_NUM]	= (void*)EVSpace_Vidiv;
-	EVSpace_API[EVSpace_Veq_NUM]	= (void*)EVSpace_Veq;
-	EVSpace_API[EVSpace_Vne_NUM]	= (void*)EVSpace_Vne;
-	EVSpace_API[EVSpace_Dot_NUM ]	= (void*)EVSpace_Dot;
-	EVSpace_API[EVSpace_Cross_NUM]	= (void*)EVSpace_Cross;
-	EVSpace_API[EVSpace_Mag_NUM]	= (void*)EVSpace_Mag;
-	EVSpace_API[EVSpace_Mag2_NUM]	= (void*)EVSpace_Mag2;
-	EVSpace_API[EVSpace_Norm_NUM]	= (void*)EVSpace_Norm;
-	EVSpace_API[EVSpace_Inorm_NUM]	= (void*)EVSpace_Inorm;
-	EVSpace_API[EVSpace_Vang_NUM]	= (void*)EVSpace_Vang;
-	EVSpace_API[EVSpace_Vxcl_NUM]	= (void*)EVSpace_Vxcl;
+	EVSpace_API[EVSpace_Vadd_NUM]	= (void*)EVSpace_Vector_add;
+	EVSpace_API[EVSpace_Vsub_NUM]	= (void*)EVSpace_Vector_sub;
+	EVSpace_API[EVSpace_Vmult_NUM]	= (void*)EVSpace_Vector_mult;
+	EVSpace_API[EVSpace_Vneg_NUM]	= (void*)EVSpace_Vector_neg;
+	EVSpace_API[EVSpace_Vabs_NUM]	= (void*)EVSpace_Vector_abs;
+	EVSpace_API[EVSpace_Viadd_NUM]	= (void*)EVSpace_Vector_iadd;
+	EVSpace_API[EVSpace_Visub_NUM]	= (void*)EVSpace_Vector_isub;
+	EVSpace_API[EVSpace_Vimult_NUM]	= (void*)EVSpace_Vector_imult;
+	EVSpace_API[EVSpace_Vdiv_NUM]	= (void*)EVSpace_Vector_div;
+	EVSpace_API[EVSpace_Vidiv_NUM]	= (void*)EVSpace_Vector_idiv;
+	EVSpace_API[EVSpace_Veq_NUM]	= (void*)EVSpace_Vector_eq;
+	EVSpace_API[EVSpace_Vne_NUM]	= (void*)EVSpace_Vector_ne;
+	EVSpace_API[EVSpace_Dot_NUM ]	= (void*)EVSpace_Vector_dot;
+	EVSpace_API[EVSpace_Cross_NUM]	= (void*)EVSpace_Vector_cross;
+	EVSpace_API[EVSpace_Mag_NUM]	= (void*)EVSpace_vector_mag;
+	EVSpace_API[EVSpace_Mag2_NUM]	= (void*)EVSpace_Vector_mag2;
+	EVSpace_API[EVSpace_Norm_NUM]	= (void*)EVSpace_Vector_norm;
+	EVSpace_API[EVSpace_Inorm_NUM]	= (void*)EVSpace_Vector_inorm;
+	EVSpace_API[EVSpace_Vang_NUM]	= (void*)EVSpace_Vector_vang;
+	EVSpace_API[EVSpace_Vxcl_NUM]	= (void*)EVSpace_Vector_vxcl;
 	// EMatrix
-	EVSpace_API[EVSpace_Madd_NUM]	= (void*)EVSpace_Madd;
-	EVSpace_API[EVSpace_Msub_NUM]	= (void*)EVSpace_Msub;
-	EVSpace_API[EVSpace_Mmultm_NUM] = (void*)EVSpace_Mmultm;
-	EVSpace_API[EVSpace_Mmultv_NUM] = (void*)EVSpace_Mmultv;
-	EVSpace_API[EVSpace_Mmultd_NUM] = (void*)EVSpace_Mmultd;
-	EVSpace_API[EVSpace_Mneg_NUM]	= (void*)EVSpace_Mneg;
-	EVSpace_API[EVSpace_Miadd_NUM]	= (void*)EVSpace_Miadd;
-	EVSpace_API[EVSpace_Misub_NUM]	= (void*)EVSpace_Misub;
-	EVSpace_API[EVSpace_Mimultm_NUM] = (void*)EVSpace_Mimultm;
-	EVSpace_API[EVSpace_Mimultd_NUM] = (void*)EVSpace_Mimultd;
-	EVSpace_API[EVSpace_Mdiv_NUM]	= (void*)EVSpace_Mdiv;
-	EVSpace_API[EVSpace_Midiv_NUM]	= (void*)EVSpace_Midiv;
-	EVSpace_API[EVSpace_Meq_NUM]	= (void*)EVSpace_Meq;
-	EVSpace_API[EVSpace_Mne_NUM]	= (void*)EVSpace_Mne;
-	EVSpace_API[EVSpace_Det_NUM]	= (void*)EVSpace_Det;
-	EVSpace_API[EVSpace_Trans_NUM]	= (void*)EVSpace_Trans;
-	EVSpace_API[EVSpace_Mset_NUM]	= (void*)EVSpace_Mset;
+	EVSpace_API[EVSpace_Madd_NUM]	= (void*)EVSpace_Matrix_add;
+	EVSpace_API[EVSpace_Msub_NUM]	= (void*)EVSpace_Matrix_sub;
+	EVSpace_API[EVSpace_Mmultm_NUM] = (void*)EVSpace_Matrix_multm;
+	EVSpace_API[EVSpace_Mmultv_NUM] = (void*)EVSpace_Matrix_multv;
+	EVSpace_API[EVSpace_Mmultd_NUM] = (void*)EVSpace_Matrix_multd;
+	EVSpace_API[EVSpace_Mneg_NUM]	= (void*)EVSpace_Matrix_neg;
+	EVSpace_API[EVSpace_Miadd_NUM]	= (void*)EVSpace_Matrix_iadd;
+	EVSpace_API[EVSpace_Misub_NUM]	= (void*)EVSpace_Matrix_isub;
+	EVSpace_API[EVSpace_Mimultm_NUM] = (void*)EVSpace_Matrix_imultm;
+	EVSpace_API[EVSpace_Mimultd_NUM] = (void*)EVSpace_Matrix_imultd;
+	EVSpace_API[EVSpace_Mdiv_NUM]	= (void*)EVSpace_Matrix_div;
+	EVSpace_API[EVSpace_Midiv_NUM]	= (void*)EVSpace_Matrix_idiv;
+	EVSpace_API[EVSpace_Meq_NUM]	= (void*)EVSpace_Matrix_eq;
+	EVSpace_API[EVSpace_Mne_NUM]	= (void*)EVSpace_Matrix_ne;
+	EVSpace_API[EVSpace_Det_NUM]	= (void*)EVSpace_Matrix_det;
+	EVSpace_API[EVSpace_Trans_NUM]	= (void*)EVSpace_Matrix_trans;
 
 	// create capsule
 	c_api_object = PyCapsule_New((void*)EVSpace_API, "evspace._C_API", NULL);
