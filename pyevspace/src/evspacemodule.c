@@ -843,33 +843,27 @@ static PyObject* EMatrix_sub(EMatrix* self, PyObject* args)
 
 static PyObject* EMatrix_mult(EMatrix* self, PyObject* args)
 {
-	int option = -1;
 	if (PyFloat_CheckExact(args))
-		option = 0;
-	else if (PyLong_CheckExact(args))
-		option = 1;
-	else if (PyObject_TypeCheck(args, self->ob_base.ob_type))
-		option = 2;
-	else if (PyObject_TypeCheck(args, &EVectorType))
-		option = 3;
-	else
-		Py_RETURN_NOTIMPLEMENTED;
-
-	double rhs;
-	switch (option) {
-	case 0:
 		return (PyObject*)EVSpace_Matrix_multd(self, PyFloat_AS_DOUBLE(args));
-	case 1:
-		rhs = PyLong_AsDouble(args);
+	else if (PyLong_CheckExact(args)) {
+		double rhs = PyLong_AsDouble(args);
 		if (PyErr_Occurred())
 			return NULL;
 
-		return (PyObject*)EVSpace_Matrix_multd(self, rhs);
-	case 2:
-		return (PyObject*)EVSpace_Matrix_multm(self, (EMatrix*)args);
-	default:
-		return (PyObject*)EVSpace_Matrix_multv(self, (EVector*)args);
+		return (PyObject*)EVSpace_Matrix_multd(self, PyLong_AsDouble(args));
 	}
+	else
+		Py_RETURN_NOTIMPLEMENTED;
+}
+
+static PyObject* EMatrix_mmult(EMatrix* self, PyObject* args)
+{
+	if (PyObject_TypeCheck(args, &EMatrixType))
+		return (PyObject*)EVSpace_Matrix_multm(self, (EMatrix*)args);
+	else if (PyObject_TypeCheck(args, &EVectorType))
+		return (PyObject*)EVSpace_Matrix_multv(self, (EVector*)args);
+	else
+		Py_RETURN_NOTIMPLEMENTED;
 }
 
 static PyObject* EMatrix_neg(EMatrix* self, PyObject* UNUSED)
@@ -897,7 +891,22 @@ static PyObject* EMatrix_isub(EMatrix* self, PyObject* args)
 
 static PyObject* EMatrix_imult(EMatrix* self, PyObject* args)
 {
-	int option = -1;
+	if (PyFloat_CheckExact(args)) {
+		EVSpace_Matrix_imultd(self, PyFloat_AS_DOUBLE(args));
+		return Py_NewRef(self);
+	}
+	else if (PyLong_CheckExact(args)) {
+		double rhs = PyLong_AsDouble(args);
+		if (PyErr_Occurred())
+			return NULL;
+
+		EVSpace_Matrix_imultd(self, rhs);
+		return Py_NewRef(self);
+	}
+	else
+		Py_RETURN_NOTIMPLEMENTED;
+
+	/*int option = -1;
 	if (PyObject_TypeCheck(args, self->ob_base.ob_type))
 		option = 0;
 	else if (PyFloat_CheckExact(args))
@@ -922,7 +931,17 @@ static PyObject* EMatrix_imult(EMatrix* self, PyObject* args)
 
 		EVSpace_Matrix_imultd(self, rhs);
 		return Py_NewRef(self);
+	}*/
+}
+
+static PyObject* EMatrix_mimult(EMatrix* self, PyObject* args)
+{
+	if (PyObject_TypeCheck(args, &EMatrixType)) {
+		EVSpace_Matrix_imultm(self, (EMatrix*)args);
+		return Py_NewRef(self);
 	}
+	else
+		Py_RETURN_NOTIMPLEMENTED;
 }
 
 static PyObject* EMatrix_div(EMatrix* self, PyObject* args)
@@ -969,6 +988,8 @@ static PyNumberMethods EMatrix_NBMethods = {
 	.nb_inplace_multiply = (binaryfunc)EMatrix_imult,
 	.nb_true_divide = (binaryfunc)EMatrix_div,
 	.nb_inplace_true_divide = (binaryfunc)EMatrix_idiv,
+	.nb_matrix_multiply = (binaryfunc)EMatrix_mmult,
+	.nb_inplace_matrix_multiply = (binaryfunc)EMatrix_mimult,
 };
 
 /****************************************************/
