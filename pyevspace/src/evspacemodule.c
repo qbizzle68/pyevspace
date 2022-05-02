@@ -595,8 +595,8 @@ static PyObject* EVector_Dot(PyObject* UNUSED, PyObject *const *args, Py_ssize_t
 		return NULL;
 	}
  
-	EVector* lhs = args[0];
-	EVector* rhs = args[1];
+	EVector* lhs = (EVector*)args[0];
+	EVector* rhs = (EVector*)args[1];
 
 	if (!lhs && !rhs) {
 		PyErr_SetString(PyExc_ValueError, "Arguments cannot be NULL.");
@@ -621,8 +621,8 @@ static PyObject* EVector_Cross(PyObject* UNUSED, PyObject* const* args, Py_ssize
 		return NULL;
 	}
 
-	EVector* lhs = args[0];
-	EVector* rhs = args[1];
+	EVector* lhs = (EVector*)args[0];
+	EVector* rhs = (EVector*)args[1];
 
 	if (!lhs && !rhs) {
 		PyErr_SetString(PyExc_ValueError, "Arguments cannot be NULL.");
@@ -649,7 +649,7 @@ static PyObject* EVector_Norm(PyObject* UNUSED, PyObject* const* args, Py_ssize_
 		return NULL;
 	}
 
-	EVector* lhs = args[0];
+	EVector* lhs = (EVector*)args[0];
 
 	if (!lhs) {
 		PyErr_SetString(PyExc_ValueError, "Arguments cannot be NULL.");
@@ -696,8 +696,8 @@ static PyObject* EVector_Vxcl(PyObject* UNUSED, PyObject* const* args, Py_ssize_
 		return NULL;
 	}
 
-	EVector* lhs = args[0];
-	EVector* rhs = args[1];
+	EVector* lhs = (EVector*)args[0];
+	EVector* rhs = (EVector*)args[1];
 
 	if (!lhs) {
 		PyErr_SetString(PyExc_ValueError, "Arguments cannot be NULL.");
@@ -829,7 +829,7 @@ static PyTypeObject EVectorType = {
 	.tp_flags		= Py_TPFLAGS_DEFAULT, // todo: do we want to set Py_TPFLAGS_SEQUENCE flag?
 	.tp_new			= PyType_GenericNew,
 	.tp_init		= (initproc)EVector_init,
-	.tp_methods		= &EVector_Methods,
+	.tp_methods		= EVector_Methods,
 	.tp_str			= (reprfunc)EVector_str,
 	.tp_as_number	= &EVector_NBMethods,
 	.tp_richcompare	= (richcmpfunc)EVector_richcompare,
@@ -1098,15 +1098,15 @@ static int EMatrix_init(EMatrix* self, PyObject* args, PyObject* UNUSED)
 
 	if (c0 && !PyObject_TypeCheck(c0, &EVectorType)) {
 		PyErr_SetString(PyExc_TypeError, "First argument must be EVector type.");
-		return NULL;
+		return -1;
 	}
 	else if (c1 && !PyObject_TypeCheck(c1, &EVectorType)) {
 		PyErr_SetString(PyExc_TypeError, "Second argument must be EVector type.");
-		return NULL;
+		return -1;
 	}
 	else if (c2 && !PyObject_TypeCheck(c2, &EVectorType)) {
 		PyErr_SetString(PyExc_TypeError, "Third argument must be EVector type.");
-		return NULL;
+		return -1;
 	}
 
 	// todo: can we do this more efficiently? we must be able to, too many loops here
@@ -1174,7 +1174,7 @@ static PyTypeObject EMatrixType = {
 	.tp_flags = Py_TPFLAGS_DEFAULT,
 	.tp_new = PyType_GenericNew,
 	.tp_init = (initproc)EMatrix_init,
-	.tp_methods = &EMatrix_Methods,
+	.tp_methods = EMatrix_Methods,
 	.tp_str = (reprfunc)EMatrix_str,
 	.tp_as_number = &EMatrix_NBMethods,
 	.tp_richcompare = (richcmpfunc)EMatrix_richcompare,
