@@ -572,7 +572,7 @@ static PyMethodDef EVector_Methods[] = {
 static PyObject* EVector_Dot(PyObject* UNUSED, PyObject *const *args, Py_ssize_t size)
 {
 	if (size != 2) {
-		PyErr_SetString(PyExc_IndexError, "Number of arguments should be 2.");
+		PyErr_SetString(PyExc_TypeError, "dot() takes exactly 2 arguments");
 		return NULL;
 	}
  
@@ -598,7 +598,7 @@ static PyObject* EVector_Dot(PyObject* UNUSED, PyObject *const *args, Py_ssize_t
 static PyObject* EVector_Cross(PyObject* UNUSED, PyObject* const* args, Py_ssize_t size)
 {
 	if (size != 2) {
-		PyErr_SetString(PyExc_IndexError, "Number of arguments should be 2.");
+		PyErr_SetString(PyExc_TypeError, "cross() takes exactly two arguments");
 		return NULL;
 	}
 
@@ -626,7 +626,7 @@ static PyObject* EVector_Cross(PyObject* UNUSED, PyObject* const* args, Py_ssize
 static PyObject* EVector_Norm(PyObject* UNUSED, PyObject* const* args, Py_ssize_t size)
 {
 	if (size != 1) {
-		PyErr_SetString(PyExc_IndexError, "Number of arguments should be 2.");
+		PyErr_SetString(PyExc_TypeError, "norm() takes exactly one argument");
 		return NULL;
 	}
 
@@ -647,7 +647,7 @@ static PyObject* EVector_Norm(PyObject* UNUSED, PyObject* const* args, Py_ssize_
 static PyObject* EVector_Vang(PyObject* UNUSED, PyObject* const* args, Py_ssize_t size)
 {
 	if (size != 2) {
-		PyErr_SetString(PyExc_IndexError, "Number of arguments should be 2.");
+		PyErr_SetString(PyExc_TypeError, "vang takes exactly two arguments");
 		return NULL;
 	}
 
@@ -673,7 +673,7 @@ static PyObject* EVector_Vang(PyObject* UNUSED, PyObject* const* args, Py_ssize_
 static PyObject* EVector_Vxcl(PyObject* UNUSED, PyObject* const* args, Py_ssize_t size)
 {
 	if (size != 2) {
-		PyErr_SetString(PyExc_IndexError, "Number of arguments should be 2.");
+		PyErr_SetString(PyExc_TypeError, "vxcl() takes exactly two arguments");
 		return NULL;
 	}
 
@@ -1050,7 +1050,7 @@ static PyMethodDef EMatrix_Methods[] = {
 static PyObject* EMatrix_det(PyObject* UNUSED, PyObject* const* args, Py_ssize_t size)
 {
 	if (size != 1) {
-		PyErr_SetString(PyExc_IndexError, "Number of arguments should be 1");
+		PyErr_SetString(PyExc_TypeError, "det takes exactly one argument");
 		return NULL;
 	}
 
@@ -1067,7 +1067,7 @@ static PyObject* EMatrix_det(PyObject* UNUSED, PyObject* const* args, Py_ssize_t
 static PyObject* EMatrix_trans(PyObject* UNUSED, PyObject* const* args, Py_ssize_t size)
 {
 	if (size != 1) {
-		PyErr_SetString(PyExc_IndexError, "Number of arguments should be 1");
+		PyErr_SetString(PyExc_TypeError, "transpose() takes exactly one argument");
 		return NULL;
 	}
 
