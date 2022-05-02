@@ -1205,44 +1205,53 @@ PyInit_pyevspace(void)
 	// create e1 vector
 	e1 = (EVector*)EVectorType.tp_new(&EVectorType, NULL, NULL);
 	if (!e1)
-		goto error;
+		return NULL;
 	e1->m_arr[0] = 1;
 	if (PyDict_SetItemString(EVectorType.tp_dict, "e1", (PyObject*)e1) < 0)
-		goto error;
+		return NULL;
+	Py_DECREF(e1);
 
 	// create e2 vector
 	e2 = (EVector*)EVectorType.tp_new(&EVectorType, NULL, NULL);
 	if (!e2)
-		goto error;
+		return NULL;
 	e2->m_arr[1] = 1;
 	if (PyDict_SetItemString(EVectorType.tp_dict, "e2", (PyObject*)e2) < 0)
-		goto error;
+		return NULL;
+	Py_DECREF(e2);
 
 	// craete e3 vector
 	e3 = (EVector*)EVectorType.tp_new(&EVectorType, NULL, NULL);
 	if (!e3)
-		goto error;
+		return NULL;
 	e3->m_arr[2] = 1;
 	if (PyDict_SetItemString(EVectorType.tp_dict, "e3", (PyObject*)e3) < 0)
-		goto error;
+		return NULL;
+	Py_DECREF(e3);
 
 	// create identity matrix
 	I = (EMatrix*)EMatrixType.tp_new(&EMatrixType, NULL, NULL);
 	if (!I)
-		goto error;
+		return NULL;
 	I->m_arr[0][0] = I->m_arr[1][1] = I->m_arr[2][2] = 1.0;
 	if (PyDict_SetItemString(EMatrixType.tp_dict, "I", (PyObject*)I) < 0)
-		goto error;
+		return NULL;
+	Py_DECREF(I);
 
 	// create module
 	m = PyModule_Create(&EVSpacemodule);
 	if (!m)
 		goto error;
 
-	if (PyModule_AddFunctions(m, EMatrix_ModuleMethods) < 0)
-		goto error;
-	if (PyModule_AddFunctions(m, EVector_ModuleMethods) < 0)
-		goto error;
+	// add module level class functions
+	if (PyModule_AddFunctions(m, EMatrix_ModuleMethods) < 0) {
+		Py_DECREF(m);
+		return NULL;
+	}
+	if (PyModule_AddFunctions(m, EVector_ModuleMethods) < 0) {
+		Py_DECREF(m);
+		return NULL;
+	}
 
 	// EVector 
 	EVSpace_API[EVSpace_Vadd_NUM]	= (void*)EVSpace_Vadd;
@@ -1286,9 +1295,10 @@ PyInit_pyevspace(void)
 
 	// create capsule
 	c_api_object = PyCapsule_New((void*)EVSpace_API, "evspace._C_API", NULL);
+	if (!c_api_object)
+		goto error;
 
 	// add capsule to module
-	Py_INCREF(c_api_object);
 	if (PyModule_AddObject(m, "_C_API", c_api_object) < 0)
 		goto error;
 
@@ -1306,12 +1316,10 @@ PyInit_pyevspace(void)
 
 error:
 
-	Py_XDECREF(m);
+	Py_DECREF(m);
 	Py_XDECREF(c_api_object);
-	Py_XDECREF(e1);
-	Py_XDECREF(e2);
-	Py_XDECREF(e3);
-	Py_XDECREF(I);
+	Py_DECREF(&EVectorType);
+	Py_DECREF(&EMatrixType);
 
 	return NULL;
 }
