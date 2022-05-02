@@ -414,7 +414,7 @@ static EMatrix* EVSpace_Matrix_trans(const EMatrix* mat)
 /************* EVector Numeric Methods **************/
 /****************************************************/
 
-static PyObject* VOperator_Add(EVector* self, PyObject* arg)
+static PyObject* EVector_add(EVector* self, PyObject* arg)
 {
 	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type))
 		Py_RETURN_NOTIMPLEMENTED;
@@ -422,7 +422,7 @@ static PyObject* VOperator_Add(EVector* self, PyObject* arg)
 	return (PyObject*)EVSpace_Vector_add(self, (EVector*)arg);
 }
 
-static PyObject* VOperator_Sub(EVector* self, PyObject* arg)
+static PyObject* EVector_sub(EVector* self, PyObject* arg)
 {
 	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type))
 		Py_RETURN_NOTIMPLEMENTED;
@@ -430,7 +430,7 @@ static PyObject* VOperator_Sub(EVector* self, PyObject* arg)
 	return (PyObject*)EVSpace_Vector_sub(self, (EVector*)arg);
 }
 
-static PyObject* VOperator_Mult(EVector* self, PyObject* arg)
+static PyObject* EVector_mult(EVector* self, PyObject* arg)
 {
 	double rhs;
 	
@@ -447,17 +447,17 @@ static PyObject* VOperator_Mult(EVector* self, PyObject* arg)
 	return (PyObject*)EVSpace_Vector_mult(self, rhs);
 }
 
-static PyObject* VOperator_Neg(EVector* self)
+static PyObject* EVector_neg(EVector* self)
 {
 	return (PyObject*)EVSpace_Vector_neg(self);
 }
 
-static PyObject* VOperator_Abs(EVector* self)
+static PyObject* EVector_abs(EVector* self)
 {
 	return (PyObject*)PyFloat_FromDouble(EVSpace_Vector_abs(self));
 }
 
-static PyObject* VOperator_Iadd(EVector* self, PyObject* arg)
+static PyObject* EVector_iadd(EVector* self, PyObject* arg)
 {
 	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type))
 		Py_RETURN_NOTIMPLEMENTED;
@@ -466,7 +466,7 @@ static PyObject* VOperator_Iadd(EVector* self, PyObject* arg)
 	return Py_NewRef(self);
 }
 
-static PyObject* VOperator_Isub(EVector* self, PyObject* arg)
+static PyObject* EVector_isub(EVector* self, PyObject* arg)
 {
 	if (!PyObject_TypeCheck(arg, self->ob_base.ob_type))
 		Py_RETURN_NOTIMPLEMENTED;
@@ -475,7 +475,7 @@ static PyObject* VOperator_Isub(EVector* self, PyObject* arg)
 	return Py_NewRef(self);
 }
 
-static PyObject* VOperator_Imult(EVector* self, PyObject* arg)
+static PyObject* EVector_imult(EVector* self, PyObject* arg)
 {
 	double rhs;
 	if (PyFloat_CheckExact(arg))
@@ -492,7 +492,7 @@ static PyObject* VOperator_Imult(EVector* self, PyObject* arg)
 	return Py_NewRef(self);
 }
 
-static PyObject* VOperator_Div(EVector* self, PyObject* arg)
+static PyObject* EVector_div(EVector* self, PyObject* arg)
 {
 	double rhs;
 	if (PyFloat_CheckExact(arg))
@@ -508,7 +508,7 @@ static PyObject* VOperator_Div(EVector* self, PyObject* arg)
 	return (PyObject*)EVSpace_Vector_div(self, rhs);
 }
 
-static PyObject* VOperator_Idiv(EVector* self, PyObject* arg)
+static PyObject* EVector_idiv(EVector* self, PyObject* arg)
 {
 	double rhs;
 	if (PyFloat_CheckExact(arg))
@@ -526,16 +526,16 @@ static PyObject* VOperator_Idiv(EVector* self, PyObject* arg)
 }
 
 static PyNumberMethods EVector_NBMethods = {
-	.nb_add = (binaryfunc)VOperator_Add,
-	.nb_subtract = (binaryfunc)VOperator_Sub,
-	.nb_multiply = (binaryfunc)VOperator_Mult,
-	.nb_negative = (unaryfunc)VOperator_Neg,
-	.nb_absolute = (unaryfunc)VOperator_Abs,
-	.nb_inplace_add = (binaryfunc)VOperator_Iadd,
-	.nb_inplace_subtract = (binaryfunc)VOperator_Isub,
-	.nb_inplace_multiply = (binaryfunc)VOperator_Imult,
-	.nb_true_divide = (binaryfunc)VOperator_Div,
-	.nb_inplace_true_divide = (binaryfunc)VOperator_Idiv,
+	.nb_add = (binaryfunc)EVector_add,
+	.nb_subtract = (binaryfunc)EVector_sub,
+	.nb_multiply = (binaryfunc)EVector_mult,
+	.nb_negative = (unaryfunc)EVector_neg,
+	.nb_absolute = (unaryfunc)EVector_abs,
+	.nb_inplace_add = (binaryfunc)EVector_iadd,
+	.nb_inplace_subtract = (binaryfunc)EVector_isub,
+	.nb_inplace_multiply = (binaryfunc)EVector_imult,
+	.nb_true_divide = (binaryfunc)EVector_div,
+	.nb_inplace_true_divide = (binaryfunc)EVector_idiv,
 };
 
 /****************************************************/
@@ -825,7 +825,7 @@ static PyTypeObject EVectorType = {
 /************* EMatrix Numeric Methods **************/
 /****************************************************/
 
-static PyObject* MOperator_Add(EMatrix* self, PyObject* args)
+static PyObject* EMatrix_add(EMatrix* self, PyObject* args)
 {
 	if (!PyObject_TypeCheck(args, self->ob_base.ob_type))
 		Py_RETURN_NOTIMPLEMENTED;
@@ -833,7 +833,7 @@ static PyObject* MOperator_Add(EMatrix* self, PyObject* args)
 	return (PyObject*)EVSpace_Matrix_add(self, (EMatrix*)args);
 }
 
-static PyObject* MOperator_Sub(EMatrix* self, PyObject* args)
+static PyObject* EMatrix_sub(EMatrix* self, PyObject* args)
 {
 	if (!PyObject_TypeCheck(args, self->ob_base.ob_type))
 		Py_RETURN_NOTIMPLEMENTED;
@@ -841,7 +841,7 @@ static PyObject* MOperator_Sub(EMatrix* self, PyObject* args)
 	return (PyObject*)EVSpace_Matrix_sub(self, (EMatrix*)args);
 }
 
-static PyObject* MOperator_Mult(EMatrix* self, PyObject* args)
+static PyObject* EMatrix_mult(EMatrix* self, PyObject* args)
 {
 	int option = -1;
 	if (PyFloat_CheckExact(args))
@@ -872,12 +872,12 @@ static PyObject* MOperator_Mult(EMatrix* self, PyObject* args)
 	}
 }
 
-static PyObject* MOperator_Neg(EMatrix* self, PyObject* UNUSED)
+static PyObject* EMatrix_neg(EMatrix* self, PyObject* UNUSED)
 {
 	return (PyObject*)EVSpace_Matrix_neg(self);
 }
 
-static PyObject* MOperator_Iadd(EMatrix* self, PyObject* args)
+static PyObject* EMatrix_iadd(EMatrix* self, PyObject* args)
 {
 	if (!PyObject_TypeCheck(args, self->ob_base.ob_type))
 		Py_RETURN_NOTIMPLEMENTED;
@@ -886,7 +886,7 @@ static PyObject* MOperator_Iadd(EMatrix* self, PyObject* args)
 	return Py_NewRef(self);
 }
 
-static PyObject* MOperator_Isub(EMatrix* self, PyObject* args)
+static PyObject* EMatrix_isub(EMatrix* self, PyObject* args)
 {
 	if (!PyObject_TypeCheck(args, self->ob_base.ob_type))
 		Py_RETURN_NOTIMPLEMENTED;
@@ -895,7 +895,7 @@ static PyObject* MOperator_Isub(EMatrix* self, PyObject* args)
 	return Py_NewRef(self);
 }
 
-static PyObject* MOperator_Imult(EMatrix* self, PyObject* args)
+static PyObject* EMatrix_imult(EMatrix* self, PyObject* args)
 {
 	int option = -1;
 	if (PyObject_TypeCheck(args, self->ob_base.ob_type))
@@ -925,7 +925,7 @@ static PyObject* MOperator_Imult(EMatrix* self, PyObject* args)
 	}
 }
 
-static PyObject* MOperator_Div(EMatrix* self, PyObject* args)
+static PyObject* EMatrix_div(EMatrix* self, PyObject* args)
 {
 	double rhs;
 	if (PyFloat_CheckExact(args))
@@ -941,7 +941,7 @@ static PyObject* MOperator_Div(EMatrix* self, PyObject* args)
 	return (PyObject*)EVSpace_Matrix_div(self, rhs);
 }
 
-static PyObject* MOperator_Idiv(EMatrix* self, PyObject* args)
+static PyObject* EMatrix_idiv(EMatrix* self, PyObject* args)
 {
 	double rhs;
 	if (PyFloat_CheckExact(args))
@@ -960,15 +960,15 @@ static PyObject* MOperator_Idiv(EMatrix* self, PyObject* args)
 
 // todo: split the multiply into multiply(float/int) and matrix multiply(vector/matrix)
 static PyNumberMethods EMatrix_NBMethods = {
-	.nb_add = (binaryfunc)MOperator_Add,
-	.nb_subtract = (binaryfunc)MOperator_Sub,
-	.nb_multiply = (binaryfunc)MOperator_Mult,
-	.nb_negative = (unaryfunc)MOperator_Neg,
-	.nb_inplace_add = (binaryfunc)MOperator_Iadd,
-	.nb_inplace_subtract = (binaryfunc)MOperator_Isub,
-	.nb_inplace_multiply = (binaryfunc)MOperator_Imult,
-	.nb_true_divide = (binaryfunc)MOperator_Div,
-	.nb_inplace_true_divide = (binaryfunc)MOperator_Idiv,
+	.nb_add = (binaryfunc)EMatrix_add,
+	.nb_subtract = (binaryfunc)EMatrix_sub,
+	.nb_multiply = (binaryfunc)EMatrix_mult,
+	.nb_negative = (unaryfunc)EMatrix_neg,
+	.nb_inplace_add = (binaryfunc)EMatrix_iadd,
+	.nb_inplace_subtract = (binaryfunc)EMatrix_isub,
+	.nb_inplace_multiply = (binaryfunc)EMatrix_imult,
+	.nb_true_divide = (binaryfunc)EMatrix_div,
+	.nb_inplace_true_divide = (binaryfunc)EMatrix_idiv,
 };
 
 /****************************************************/
