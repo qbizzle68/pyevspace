@@ -1235,42 +1235,42 @@ PyInit_pyevspace(void)
 	}
 
 	// EVector 
-	EVSpace_API[EVSpace_Vector_add_NUM]	= (void*)EVSpace_Vector_add;
-	EVSpace_API[EVSpace_Vector_sub_NUM]	= (void*)EVSpace_Vector_sub;
+	EVSpace_API[EVSpace_Vector_add_NUM]		= (void*)EVSpace_Vector_add;
+	EVSpace_API[EVSpace_Vector_sub_NUM]		= (void*)EVSpace_Vector_sub;
 	EVSpace_API[EVSpace_Vector_mult_NUM]	= (void*)EVSpace_Vector_mult;
-	EVSpace_API[EVSpace_Vector_neg_NUM]	= (void*)EVSpace_Vector_neg;
-	EVSpace_API[EVSpace_Vector_abs_NUM]	= (void*)EVSpace_Vector_abs;
+	EVSpace_API[EVSpace_Vector_neg_NUM]		= (void*)EVSpace_Vector_neg;
+	EVSpace_API[EVSpace_Vector_abs_NUM]		= (void*)EVSpace_Vector_abs;
 	EVSpace_API[EVSpace_Vector_iadd_NUM]	= (void*)EVSpace_Vector_iadd;
 	EVSpace_API[EVSpace_Vector_isub_NUM]	= (void*)EVSpace_Vector_isub;
 	EVSpace_API[EVSpace_Vector_imult_NUM]	= (void*)EVSpace_Vector_imult;
-	EVSpace_API[EVSpace_Vector_div_NUM]	= (void*)EVSpace_Vector_div;
+	EVSpace_API[EVSpace_Vector_div_NUM]		= (void*)EVSpace_Vector_div;
 	EVSpace_API[EVSpace_Vector_idiv_NUM]	= (void*)EVSpace_Vector_idiv;
-	EVSpace_API[EVSpace_Vector_eq_NUM]	= (void*)EVSpace_Vector_eq;
-	EVSpace_API[EVSpace_Vector_ne_NUM]	= (void*)EVSpace_Vector_ne;
+	EVSpace_API[EVSpace_Vector_eq_NUM]		= (void*)EVSpace_Vector_eq;
+	EVSpace_API[EVSpace_Vector_ne_NUM]		= (void*)EVSpace_Vector_ne;
 	EVSpace_API[EVSpace_Vector_dot_NUM ]	= (void*)EVSpace_Vector_dot;
 	EVSpace_API[EVSpace_Vector_cross_NUM]	= (void*)EVSpace_Vector_cross;
-	EVSpace_API[EVSpace_Vector_mag_NUM]	= (void*)EVSpace_vector_mag;
+	EVSpace_API[EVSpace_Vector_mag_NUM]		= (void*)EVSpace_vector_mag;
 	EVSpace_API[EVSpace_Vector_mag2_NUM]	= (void*)EVSpace_Vector_mag2;
 	EVSpace_API[EVSpace_Vector_norm_NUM]	= (void*)EVSpace_Vector_norm;
 	EVSpace_API[EVSpace_Vector_inorm_NUM]	= (void*)EVSpace_Vector_inorm;
 	EVSpace_API[EVSpace_Vector_vang_NUM]	= (void*)EVSpace_Vector_vang;
 	EVSpace_API[EVSpace_Vector_vxcl_NUM]	= (void*)EVSpace_Vector_vxcl;
 	// EMatrix
-	EVSpace_API[EVSpace_Matrix_add_NUM]	= (void*)EVSpace_Matrix_add;
-	EVSpace_API[EVSpace_Matrix_sub_NUM]	= (void*)EVSpace_Matrix_sub;
-	EVSpace_API[EVSpace_Matrix_multm_NUM] = (void*)EVSpace_Matrix_multm;
-	EVSpace_API[EVSpace_Matrix_multv_NUM] = (void*)EVSpace_Matrix_multv;
-	EVSpace_API[EVSpace_Matrix_multd_NUM] = (void*)EVSpace_Matrix_multd;
-	EVSpace_API[EVSpace_Matrix_neg_NUM]	= (void*)EVSpace_Matrix_neg;
+	EVSpace_API[EVSpace_Matrix_add_NUM]		= (void*)EVSpace_Matrix_add;
+	EVSpace_API[EVSpace_Matrix_sub_NUM]		= (void*)EVSpace_Matrix_sub;
+	EVSpace_API[EVSpace_Matrix_multm_NUM]	= (void*)EVSpace_Matrix_multm;
+	EVSpace_API[EVSpace_Matrix_multv_NUM]	= (void*)EVSpace_Matrix_multv;
+	EVSpace_API[EVSpace_Matrix_multd_NUM]	= (void*)EVSpace_Matrix_multd;
+	EVSpace_API[EVSpace_Matrix_neg_NUM]		= (void*)EVSpace_Matrix_neg;
 	EVSpace_API[EVSpace_Matrix_iadd_NUM]	= (void*)EVSpace_Matrix_iadd;
 	EVSpace_API[EVSpace_Matrix_isub_NUM]	= (void*)EVSpace_Matrix_isub;
-	EVSpace_API[EVSpace_Matrix_imultm_NUM] = (void*)EVSpace_Matrix_imultm;
-	EVSpace_API[EVSpace_Matrix_imultd_NUM] = (void*)EVSpace_Matrix_imultd;
-	EVSpace_API[EVSpace_Matrix_div_NUM]	= (void*)EVSpace_Matrix_div;
+	EVSpace_API[EVSpace_Matrix_imultm_NUM]	= (void*)EVSpace_Matrix_imultm;
+	EVSpace_API[EVSpace_Matrix_imultd_NUM]	= (void*)EVSpace_Matrix_imultd;
+	EVSpace_API[EVSpace_Matrix_div_NUM]		= (void*)EVSpace_Matrix_div;
 	EVSpace_API[EVSpace_Matrix_idiv_NUM]	= (void*)EVSpace_Matrix_idiv;
-	EVSpace_API[EVSpace_Matrix_eq_NUM]	= (void*)EVSpace_Matrix_eq;
-	EVSpace_API[EVSpace_Matrix_ne_NUM]	= (void*)EVSpace_Matrix_ne;
-	EVSpace_API[EVSpace_Matrix_det_NUM]	= (void*)EVSpace_Matrix_det;
+	EVSpace_API[EVSpace_Matrix_eq_NUM]		= (void*)EVSpace_Matrix_eq;
+	EVSpace_API[EVSpace_Matrix_ne_NUM]		= (void*)EVSpace_Matrix_ne;
+	EVSpace_API[EVSpace_Matrix_det_NUM]		= (void*)EVSpace_Matrix_det;
 	EVSpace_API[EVSpace_Matrix_trans_NUM]	= (void*)EVSpace_Matrix_trans;
 
 	// create capsule
