@@ -1,6 +1,10 @@
 # PyEVSpace
 
 PyEVSpace is a Python Euclidean Vector Space module containing Euclidean vector and matrix types. 
+The module is created by extending C code with the Python/C API to ensure the best performance and runs faster than
+the same code implemented directly in python.
+The python types are designed to be used to represent physical vectors and rotations between reference frames, 
+however they can be utilized in other ways if so desired.
 
 ## Usage
 
@@ -99,3 +103,4 @@ module level methods:
 - `transpose(EMatrix)` computes the transpose of a matrix
 
 ## License
+[MIT](https://choosealicense.com/licenses/mit/)
