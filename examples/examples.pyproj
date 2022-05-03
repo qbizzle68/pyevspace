@@ -25,6 +25,7 @@
     <Compile Include="creating.py" />
     <Compile Include="matrix_numeric.py" />
     <Compile Include="other_operators.py" />
+    <Compile Include="rotation_example.py" />
     <Compile Include="vector_numeric.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
