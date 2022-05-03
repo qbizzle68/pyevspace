@@ -22,8 +22,6 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="src\module-speed-test.py" />
-    <Compile Include="src\module1.py" />
     <Compile Include="src\test_evector.py">
       <SubType>Code</SubType>
     </Compile>
