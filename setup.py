@@ -8,7 +8,7 @@ setup(
     version = '0.0.1',
     author="Quinton Barnes",
     author_email="devqbizzle68@gmail.com",
-    description="A Euclidean vector space module."
+    description="A Euclidean vector space module.",
     package = find_packages(),
     long_description = long_description,
     long_description_content_type = 'text/markdown',
