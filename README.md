@@ -6,6 +6,23 @@ the same code implemented directly in python.
 The python types are designed to be used to represent physical vectors and rotations between reference frames, 
 however they can be utilized in other ways if so desired.
 
+## Install
+
+The python module can be installed with
+```python
+pip install pyevspace
+```
+
+Alternatively the repository can be downloaded or cloned using:
+```bash
+git clone https://github.com/qbizzle68/pyevspace.git
+```
+and built there using:
+```bash
+py setup.py build
+```
+This is only recommended if editing the source code and testing its functionality. Most users should install using `pip`.
+
 ## Usage
 
 To use the module simply import the pyevspace module into your project:
@@ -21,6 +38,8 @@ mat = EMatrix( EVector(1, 3, 2), EVector(7, 4, 3), EVector(8, 4, 2) )
 # rotate vector
 rotated = mat @ vec
 ```
+
+## Examples
 
 ### Examples of numeric operators
 ```python
