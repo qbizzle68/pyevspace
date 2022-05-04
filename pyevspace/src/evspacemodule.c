@@ -697,10 +697,10 @@ static PyObject* EVector_Vxcl(PyObject* UNUSED, PyObject* const* args, Py_ssize_
 }
 
 static PyMethodDef EVector_ModuleMethods[] = {
-	{"dot", (PyCFunction)EVector_Dot, METH_FASTCALL, "Return the dot product of two EVectors."},
-	{"cross", (PyCFunction)EVector_Cross, METH_FASTCALL, "Return the cross product of two EVectors."},
+	{"dot", (PyCFunction)EVector_Dot, METH_FASTCALL, "Returns the dot product or inner produce of two EVectors."},
+	{"cross", (PyCFunction)EVector_Cross, METH_FASTCALL, "Returns the cross product of two EVectors."},
 	{"norm", (PyCFunction)EVector_Norm, METH_FASTCALL, "Returns a normalized version of an EVector."},
-	{"vang", (PyCFunction)EVector_Vang, METH_FASTCALL, "Return the shortest angle between two EVector's."},
+	{"vang", (PyCFunction)EVector_Vang, METH_FASTCALL, "Returns the shortest angle between two EVector's."},
 	{"vxcl", (PyCFunction)EVector_Vxcl, METH_FASTCALL, "Returns a vector exculded from another."},
 	{NULL}
 };
@@ -801,10 +801,12 @@ static PyObject* EVector_richcompare(PyObject* self, PyObject* other, int op)
 	}
 }
 
+PyDoc_STRVAR(evector_doc, "Euclidean vector object to represent a spatial vector in three dimensional space.");
+
 static PyTypeObject EVectorType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	.tp_name		= "pyevspace.EVector",
-	.tp_doc			= PyDoc_STR("Eulcidean Vector"),
+	.tp_doc			= evector_doc,
 	.tp_basicsize	= sizeof(EVector),
 	.tp_itemsize	= 0,
 	.tp_flags		= Py_TPFLAGS_DEFAULT, // todo: do we want to set Py_TPFLAGS_SEQUENCE flag?
@@ -1140,10 +1142,12 @@ static PyObject* EMatrix_richcompare(EMatrix* self, PyObject* other, int op)
 	}
 }
 
+PyDoc_STRVAR(ematrix_doc, "Euclidean matrix object used to operate on or rotate a euclidean vector.");
+
 static PyTypeObject EMatrixType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	.tp_name = "pyevspace.EMatrix",
-	.tp_doc = PyDoc_STR("Eulcidean Matrix"),
+	.tp_doc = ematrix_doc,
 	.tp_basicsize = sizeof(EMatrix),
 	.tp_itemsize = 0,
 	.tp_flags = Py_TPFLAGS_DEFAULT,
@@ -1155,10 +1159,12 @@ static PyTypeObject EMatrixType = {
 	.tp_richcompare = (richcmpfunc)EMatrix_richcompare,
 };
 
+PyDoc_STRVAR(evspace_doc, "Module library for a Euclidean vector space with a vector and matrix type as well as necessary methods to use them.");
+
 static PyModuleDef EVSpacemodule = {
 	PyModuleDef_HEAD_INIT,
 	.m_name = "pyevspace",
-	.m_doc = "Module library for a Euclidean vector space with vector and matrix types.",
+	.m_doc = evspace_doc,
 	.m_size = -1,
 };
 

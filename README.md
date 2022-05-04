@@ -38,8 +38,8 @@ mat = EMatrix( EVector(1, 3, 2), EVector(7, 4, 3), EVector(8, 4, 2) )
 # rotate vector
 rotated = mat @ vec
 ```
-The module only contains two types and a handful of module level methods, so it is probably necessary to import everything.
-However if you don't wish to overpopulate the namespace you can import using an alias:
+The module only contains two types, and a handful of module level methods, so it is probably necessary to import everything.
+However, if you don't wish to overpopulate the namespace, you can import the module using an alias:
 ```python
 import pyevspace as evs
 
