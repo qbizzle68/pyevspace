@@ -19,7 +19,7 @@ static PyTypeObject EMatrixType;
 #define EVSPACE_MODULE
 #include <evspacemodule.h>
 
-#define EVSpace_RADIANS_TO_DEGREES 180.0 / 3.14159265358979323846
+#define PI 3.14159265358979323846
 
 /*************************************/
 /*	implimentation of C API methods  */
@@ -188,8 +188,12 @@ static void EVSpace_Vector_inorm(EVector* rtn)
 
 static double EVSpace_Vector_vang(const EVector* lhs, const EVector* rhs)
 {
-	double theta = acos(EVSpace_Vector_dot(lhs, rhs) / (EVSpace_vector_mag(lhs) * EVSpace_vector_mag(rhs)));
-	return theta * EVSpace_RADIANS_TO_DEGREES;
+	EVector* rhsNorm = EVSpace_Vector_norm(rhs);
+	if (EVSpace_Vector_norm(lhs) == rhsNorm)
+		return 0;
+	else if (EVSpace_Vector_norm(EVSpace_Vector_neg(lhs)) == rhsNorm)
+		return PI;
+	return acos(EVSpace_Vector_dot(lhs, rhs) / (EVSpace_vector_mag(lhs) * EVSpace_vector_mag(rhs)));
 }
 
 static EVector* EVSpace_Vector_vxcl(const EVector* vec, const EVector* xcl)
@@ -558,10 +562,22 @@ static PyObject* EVector_Normalize(EVector* self, PyObject* UNUSED)
 	Py_RETURN_NONE;
 }
 
+static PyObject* EVector_Copy(EVector* self, PyObject* UNUSED)
+{
+	EVector* rtn = (EVector*)self->ob_base.ob_type->tp_new(self->ob_base.ob_type, NULL, NULL);
+
+	rtn->m_arr[0] = self->m_arr[0];
+	rtn->m_arr[1] = self->m_arr[1];
+	rtn->m_arr[2] = self->m_arr[2];
+
+	return (PyObject*)rtn;
+}
+
 static PyMethodDef EVector_Methods[] = {
 	{"mag", (PyCFunction)EVector_Mag, METH_NOARGS, "Returns the magnitude of an EVector."},
 	{"mag2", (PyCFunction)EVector_Mag2, METH_NOARGS, "Returns the square of the magnitude of an EVector."},
-	{"normalize", (PyCFunction)EVector_Normalize, METH_NOARGS, "Normalized an EVector."},
+	{"normalize", (PyCFunction)EVector_Normalize, METH_NOARGS, "Normalizes an EVector."},
+	{"copy", (PyCFunction)EVector_Copy, METH_NOARGS, "Returns a deep copy of an EVector."},
 	{NULL}
 };
 
@@ -1011,10 +1027,23 @@ static PyObject* EMatrix_get(EMatrix* self, PyObject* args)
 	return PyFloat_FromDouble(self->m_arr[i][j]);
 }
 
+static PyObject* EMatrix_copy(EMatrix* self, PyObject* UNUSED)
+{
+	EMatrix* rtn = (EMatrix*)self->ob_base.ob_type->tp_new(self->ob_base.ob_type, NULL, NULL);
+
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++)
+			rtn->m_arr[i][j] = self->m_arr[i][j];
+	}
+
+	return (PyObject*)rtn;
+}
+
 // todo: can we manage these with a sequence like protocol?
 static PyMethodDef EMatrix_Methods[] = {
 	{"set", (PyCFunction)EMatrix_set, METH_VARARGS, "Sets a matrix comonent to a given value."},
 	{"get", (PyCFunction)EMatrix_get, METH_VARARGS, "Returns a matrix comonent."},
+	{"copy", (PyCFunction)EMatrix_copy, METH_NOARGS, "Returns a deep copy of an EMatrix."},
 	{NULL}
 };
 
@@ -1068,44 +1097,83 @@ static PyMethodDef EMatrix_ModuleMethods[] = {
 
 static int EMatrix_init(EMatrix* self, PyObject* args, PyObject* UNUSED)
 {
-	EVector* c0 = NULL, *c1 = NULL, *c2 = NULL;
+	PyObject* sqnce = NULL;
 
-	if (!PyArg_ParseTuple(args, "|OOO", &c0, &c1, &c2)) // todo: allow this to be a list or evector
+	if (!PyArg_ParseTuple(args, "|O", &sqnce))
 		return -1;
 
-	if (c0 && !PyObject_TypeCheck(c0, &EVectorType)) {
-		PyErr_SetString(PyExc_TypeError, "First argument must be EVector type.");
-		return -1;
+	// default constructor
+	if (!sqnce) {
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++)
+				self->m_arr[i][j] = 0.0;
+		}
+		return 0;
 	}
-	else if (c1 && !PyObject_TypeCheck(c1, &EVectorType)) {
-		PyErr_SetString(PyExc_TypeError, "Second argument must be EVector type.");
-		return -1;
-	}
-	else if (c2 && !PyObject_TypeCheck(c2, &EVectorType)) {
-		PyErr_SetString(PyExc_TypeError, "Third argument must be EVector type.");
+
+	if (!PySequence_Check(sqnce)) {
+		PyErr_SetString(PyExc_TypeError, "Initializing argument must be a sequence type.");
 		return -1;
 	}
 
-	// todo: can we do this more efficiently? we must be able to, too many loops here
-	for (int i = 0; i < 3; i++) {
-		for (int j = 0; j < 3; j++)
-			self->m_arr[i][j] = 0;
+	PyObject* c0 = NULL, * c1 = NULL, * c2 = NULL, * c3 = NULL;
+	c0 = PySequence_GetItem(sqnce, 0);
+	if (!c0) {
+		PyErr_SetString(PyExc_Exception, "Failed to get first column sequence.");
+		goto failed;
+	}
+	else if (!PySequence_Check(c0)) {
+		PyErr_SetString(PyExc_TypeError, "First element of initializing argument must be a sequence type.");
+		goto failed;
+	}
+	c1 = PySequence_GetItem(sqnce, 1);
+	if (!c1) {
+		PyErr_SetString(PyExc_Exception, "Failed to get second column sequence.");
+		goto failed;
+	}
+	else if (!PySequence_Check(c1)) {
+		PyErr_SetString(PyExc_TypeError, "Second element of initializing argument must be a sequence type.");
+		goto failed;
+	}
+	c2 = PySequence_GetItem(sqnce, 2);
+	if (!c1) {
+		PyErr_SetString(PyExc_Exception, "Failed to get third column sequence.");
+		goto failed;
+	}
+	else if (!PySequence_Check(c2)) {
+		PyErr_SetString(PyExc_TypeError, "Third element of initializing argument must be a sequence type.");
+		goto failed;
 	}
 
-	if (c0 != NULL) {
-		for (int i = 0; i < 3; i++)
-			self->m_arr[i][0] = c0->m_arr[i];
+	PyObject* columns[3] = {c0, c1, c2};
+	for (int i = 0; i < 3; i++) { // columns
+		for (int j = 0; j < 3; j++) { // rows
+			PyObject* pyVal = PySequence_GetItem(columns[i], j);
+			if (!pyVal) {
+				PyErr_SetString(PyExc_Exception, "Failed to get value from sequence.");
+				goto failed;
+			}
+
+			double val = PyFloat_AsDouble(pyVal);
+			Py_DECREF(pyVal);
+			if (val == -1.0 && PyErr_Occurred()) {
+				goto failed;
+			}
+			else self->m_arr[j][i] = val;
+		}
 	}
-	if (c1 != NULL) {
-		for (int i = 0; i < 3; i++)
-			self->m_arr[i][1] = c1->m_arr[i];
-	}
-	if (c2 != NULL) {
-		for (int i = 0; i < 3; i++)
-			self->m_arr[i][2] = c2->m_arr[i];
-	}
+
+	Py_DECREF(c0);
+	Py_DECREF(c1);
+	Py_DECREF(c2);
 
 	return 0;
+
+failed:
+	Py_XDECREF(c0);
+	Py_XDECREF(c1);
+	Py_XDECREF(c2);
+	return -1;
 }
 
 static PyObject* EMatrix_str(const EMatrix* mat)
