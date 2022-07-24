@@ -32,8 +32,8 @@ from pyevspace import *
 # create vector
 vec = EVector(1, 2, 3)
 
-# create matrix from column vectors
-mat = EMatrix( EVector(1, 3, 2), EVector(7, 4, 3), EVector(8, 4, 2) )
+# create matrix from sequences
+mat = EMatrix( ((1, 3, 2), (7, 4, 3), (8, 4, 2)) )
 
 # rotate vector
 rotated = mat @ vec
@@ -100,6 +100,7 @@ print( transpose(m1) )
 - `mag()` magnitude of a vector
 - `mag2()` square of the magnitude of a vector
 - `normalize()` normalizes a vector
+- `copy()` creates a deep copy of the vector
 - `[0]` gets the first comonent of a vector
 - `[1] = 4` sets the second comonent of a vector to 4
 
@@ -118,6 +119,7 @@ print( transpose(m1) )
 `EMatrix` methods:
 - `get(row, column)` gets a component of a matrix
 - `set(row, column, value)` sets a comonent of a matrix to a value
+- `copy()` creates a deep copy of the matrix
 
 module level methods:
 - `dot(EVector, EVector)` vector dot product
