@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name = 'pyevspace',
-    version = '0.0.4',
+    version = '0.0.7',
     author="Quinton Barnes",
     author_email="devqbizzle68@gmail.com",
     description="A Euclidean vector space module.",
