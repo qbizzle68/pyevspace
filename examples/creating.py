@@ -1,21 +1,24 @@
-import sys
-sys.path.append(r'..\pyevspace\bin\x64')
 from pyevspace import *
 
 # create a vector
 vec1 = EVector(1, 2, 3) # using ints
 vec2 = EVector(1.1, 2.2, 3.3) # using floats
 vec3 = EVector(1, 2.2, 3) # using both
-print("vec1\n", vec1)
-print("vec2\n", vec2)
-print("vec3\n", vec3)
+print("vec1: ", vec1)
+print("vec2: ", vec2)
+print("vec3: ", vec3)
+# print("vec1\n", vec1)
+# print("vec2\n", vec2)
+# print("vec3\n", vec3)
 
 # create a matrix
-mat1 = EMatrix(vec1, vec2, vec3) # with crated vectors
-mat2 = EMatrix(vec1, vec2, EVector(2, 4, 6)) # with EVector initializer
-print("mat1\n", mat1)
-print("mat2\n", mat2)
+mat1 = EMatrix([vec1, vec2, vec3]) # with crated vectors
+mat2 = EMatrix([vec1, vec2, EVector(2, 4, 6)]) # with EVector initializer
+print()
+print("mat1:\n", mat1)
+print("mat2:\n", mat2)
 
+print()
 # set components
 vec1[0] = 10 # set the x component
 print("new vec1\n", vec1)
@@ -26,6 +29,7 @@ print("new vec1\n", vec1)
 mat1.set(0, 0, 12) # set first row, first column to 12
 print("new mat1\n", mat1)
 
+print()
 # get components
 x = vec1[2] # get the z component
 print("vec1[2] =", x) # prints 23
