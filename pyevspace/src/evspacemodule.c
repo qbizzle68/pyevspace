@@ -412,52 +412,131 @@ static PyTypeObject EVSpace_VectorType = {
 };
 
 
+static PyObject* matrix_from_array(double array[3][3], PyTypeObject* type) {
+	EVSpace_Matrix* rtn = (EVSpace_Matrix*)type->tp_alloc(type, 0);
 
-#ifdef _NO_INCLUDE
+	if (array) {
+		Matrix_SET(rtn, 0, 0, array[0][0]);
+		Matrix_SET(rtn, 0, 1, array[0][1]);
+		Matrix_SET(rtn, 0, 2, array[0][2]);
+		Matrix_SET(rtn, 1, 0, array[1][0]);
+		Matrix_SET(rtn, 1, 1, array[1][1]);
+		Matrix_SET(rtn, 1, 2, array[1][2]);
+		Matrix_SET(rtn, 2, 0, array[2][0]);
+		Matrix_SET(rtn, 2, 1, array[2][1]);
+		Matrix_SET(rtn, 2, 2, array[2][2]);
+	}
+	else {
+		Matrix_SET(rtn, 0, 0, 0);
+		Matrix_SET(rtn, 0, 1, 0);
+		Matrix_SET(rtn, 0, 2, 0);
+		Matrix_SET(rtn, 1, 0, 0);
+		Matrix_SET(rtn, 1, 1, 0);
+		Matrix_SET(rtn, 1, 2, 0);
+		Matrix_SET(rtn, 2, 0, 0);
+		Matrix_SET(rtn, 2, 1, 0);
+		Matrix_SET(rtn, 2, 2, 0);
+	}
 
-static PyNumberMethods EMatrix_NBMethods = {
-	.nb_add = (binaryfunc)EMatrix_add,
-	.nb_subtract = (binaryfunc)EMatrix_sub,
-	.nb_multiply = (binaryfunc)EMatrix_mult,
-	.nb_negative = (unaryfunc)EMatrix_neg,
-	.nb_inplace_add = (binaryfunc)EMatrix_iadd,
-	.nb_inplace_subtract = (binaryfunc)EMatrix_isub,
-	.nb_inplace_multiply = (binaryfunc)EMatrix_imult,
-	.nb_true_divide = (binaryfunc)EMatrix_div,
-	.nb_inplace_true_divide = (binaryfunc)EMatrix_idiv,
-	.nb_matrix_multiply = (binaryfunc)EMatrix_mmult,
-	.nb_inplace_matrix_multiply = (binaryfunc)EMatrix_mimult,
+	return (PyObject*)rtn;
+}
+
+/* macros for simplifying new_matrix call */
+#define new_matrix(a) matrix_from_array(a, &EVSpace_MatrixType);
+#define new_matrix_empty new_matrix(NULL)
+
+static PyObject* matrix_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED) {
+	PyObject* parameters[3] = {Py_None, Py_None, Py_None};
+
+	if (!PyArg_ParseTuple(args, "|OOO", &parameters[0], &parameters[1], &parameters[2]))
+		return NULL;
+
+	if (Py_IsNone(parameters[0]) && Py_IsNone(parameters[1]) && Py_IsNone(parameters[2]))
+		return new_matrix_empty;
+
+	double array[3][3];
+	PyObject* results[3] = {
+		get_state_sequence(parameters[0], &array[0][0], &array[0][1], &array[0][2]),
+		get_state_sequence(parameters[1], &array[1][0], &array[1][1], &array[1][2]),
+		get_state_sequence(parameters[2], &array[2][0], &array[2][1], &array[2][2])
+	};
+
+	if (!results[0] || !results[1] || !results[2])
+		return NULL;
+	
+	return new_matrix((double**)array);
+}
+
+
+
+static PyNumberMethods matrix_as_number = {
+	NULL,
+	//.nb_add = (binaryfunc)EMatrix_add,
+	//.nb_subtract = (binaryfunc)EMatrix_sub,
+	//.nb_multiply = (binaryfunc)EMatrix_mult,
+	//.nb_negative = (unaryfunc)EMatrix_neg,
+	//.nb_inplace_add = (binaryfunc)EMatrix_iadd,
+	//.nb_inplace_subtract = (binaryfunc)EMatrix_isub,
+	//.nb_inplace_multiply = (binaryfunc)EMatrix_imult,
+	//.nb_true_divide = (binaryfunc)EMatrix_div,
+	//.nb_inplace_true_divide = (binaryfunc)EMatrix_idiv,
+	//.nb_matrix_multiply = (binaryfunc)EMatrix_mmult,
+	//.nb_inplace_matrix_multiply = (binaryfunc)EMatrix_mimult,
 };
 
-static PyMethodDef EMatrix_ModuleMethods[] = {
-	{"det", (PyCFunction)EMatrix_det, METH_FASTCALL, "Returns the determinate of a matrix."},
-	{"transpose", (PyCFunction)EMatrix_trans, METH_FASTCALL, "Returns the transpose of a matrix."},
-	{NULL}
+static PyObject* matrix_get(PyObject* self, PyObject* args) {
+	int row = -1, col = -1;
+	if (!PyArg_ParseTuple(args, "ii", &row, &col))
+		return NULL;
+
+	if (row < 0 || row > 2 || col < 0 || col > 2) {
+		PyErr_SetString(PyExc_IndexError, "row and column index must be in [0-2]");
+		return NULL;
+	}
+
+	return PyFloat_FromDouble(Matrix_GET(self, row, col));
+}
+
+static int matrix_set(PyObject* self, PyObject* args, PyObject* value) {
+	int row = -1, col = -1;
+	if (!PyArg_ParseTuple(args, "ii", &row, &col))
+		return -1;
+
+	if (row < 0 || row > 2 || col < 0 || col > 2) {
+		PyErr_SetString(PyExc_IndexError, "row and column index must be in [0-2]");
+		return -1;
+	}
+
+	double value_double = get_double(value);
+	if (value_double == -1 && PyErr_Occurred())
+		return -1;
+
+	Matrix_SET(self, row, col, value_double);
+	return 0;
+}
+
+static PyMappingMethods matrix_as_mapping = {
+	.mp_subscript = matrix_get,
+	.mp_ass_subscript = matrix_set,
 };
 
-// todo: can we manage these with a sequence like protocol?
-static PyMethodDef EMatrix_Methods[] = {
-	{"set", (PyCFunction)EMatrix_set, METH_VARARGS, "Sets a matrix comonent to a given value."},
-	{"get", (PyCFunction)EMatrix_get, METH_VARARGS, "Returns a matrix comonent."},
-	{"copy", (PyCFunction)EMatrix_copy, METH_NOARGS, "Returns a deep copy of an EMatrix."},
-	{NULL}
-};
+PyDoc_STRVAR(matrix_doc, "");
 
-static PyTypeObject EMatrixType = {
+static PyTypeObject EVSpace_MatrixType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	.tp_name = "pyevspace.EMatrix",
-	.tp_doc = ematrix_doc,
-	.tp_basicsize = sizeof(EMatrix),
+	.tp_basicsize = sizeof(EVSpace_Matrix),
 	.tp_itemsize = 0,
-	.tp_flags = Py_TPFLAGS_DEFAULT,
-	.tp_new = PyType_GenericNew,
-	.tp_init = (initproc)EMatrix_init,
-	.tp_methods = EMatrix_Methods,
-	.tp_str = (reprfunc)EMatrix_str,
-	.tp_as_number = &EMatrix_NBMethods,
-	.tp_richcompare = (richcmpfunc)EMatrix_richcompare,
+	.tp_as_number = &matrix_as_number,
+	//.tp_as_sequence = &matrix_as_sequence,
+	.tp_as_mapping = &matrix_as_mapping,
+	//.tp_str = (reprfunc)EMatrix_str,
+	.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_MAPPING,
+	.tp_doc = matrix_doc,
+	//.tp_richcompare = (richcmpfunc)EMatrix_richcompare,
+	.tp_new = matrix_new,
 };
-#endif
+
 
 /* C API capsule methods */
 static PyObject* evspace_vadd(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs) {
@@ -529,7 +608,10 @@ static inline EVSpace_CAPI* get_evspace_capi(void) {
 		return NULL;
 	}
 	capi->VectorType = &EVSpace_VectorType;
-	capi->MatrixType = NULL;
+	capi->MatrixType = &EVSpace_MatrixType;
+
+	capi->Vector_FromValues = new_vector_ex;
+	capi->Matrix_FromArray = matrix_from_array;
 
 	capi->EVSpace_Vector_add = evspace_vadd;
 	capi->EVSpace_Vector_subtract = evspace_vsub;
@@ -657,6 +739,12 @@ static PyMethodDef evspace_methods[] = {
 	{NULL}
 };
 
+static PyMethodDef EMatrix_ModuleMethods[] = {
+	//{"det", (PyCFunction)EMatrix_det, METH_FASTCALL, "Returns the determinate of a matrix."},
+	//{"transpose", (PyCFunction)EMatrix_trans, METH_FASTCALL, "Returns the transpose of a matrix."},
+	{NULL}
+};
+
 PyDoc_STRVAR(evspace_doc, "Module for a 3-dimensional Euclidean vector space with a vector and matrix type as well as necessary methods to use them.");
 
 static PyModuleDef EVSpacemodule = {
@@ -675,6 +763,8 @@ PyInit_pyevspace(void)
 
 	if (PyType_Ready(&EVSpace_VectorType) < 0)
 		return NULL;
+	if (PyType_Ready(&EVSpace_MatrixType) < 0)
+		return NULL;
 
 	// create module
 	m = PyModule_Create(&EVSpacemodule);
@@ -685,6 +775,13 @@ PyInit_pyevspace(void)
 	Py_INCREF(&EVSpace_VectorType);
 	if (PyModule_AddType(m, &EVSpace_VectorType) < 0)
 		goto error;
+
+	// add EMatrix to module
+	Py_INCREF(&EVSpace_MatrixType);
+	if (PyModule_AddType(m, &EVSpace_MatrixType) < 0) {
+		Py_DECREF(&EVSpace_MatrixType);
+		goto error;
+	}
 
 	// create capsule
 	capi = get_evspace_capi();
