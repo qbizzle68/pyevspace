@@ -68,11 +68,13 @@ typedef struct {
 	PyObject* (*EVSpace_Matrix_negative)(const EVSpace_Matrix*);
 
 	/* vector class methods */
-	double (*EVSpace_Mag)(const EVSpace_Vector*);
-	double (*EVSpace_Mag_Squared)(const EVSpace_Vector*);
-	void (*EVSpace_Normalize)(EVSpace_Vector*);
+	double (*EVSpace_mag)(const EVSpace_Vector*);
+	double (*EVSpace_mag_squared)(const EVSpace_Vector*);
+	void (*EVSpace_normalize)(EVSpace_Vector*);
 
 	/* matrix class methods */
+	double (*EVSpace_det)(const EVSpace_Matrix*, const EVSpace_Matrix*);
+	PyObject* (*EVSpace_transpose)(const EVSpace_Matrix*);
 
 	/* module methods */
 	double (*EVSpace_dot)(const EVSpace_Vector*, const EVSpace_Vector*);

@@ -554,9 +554,9 @@ static inline EVSpace_CAPI* get_evspace_capi(void) {
 	capi->EVSpace_Matrix_idivide = NULL;
 	capi->EVSpace_Matrix_negative = NULL;
 
-	capi->EVSpace_Mag = evspace_mag;
-	capi->EVSpace_Mag_Squared = evspace_mag2;
-	capi->EVSpace_Normalize = evspace_normalize;
+	capi->EVSpace_mag = evspace_mag;
+	capi->EVSpace_mag_squared = evspace_mag2;
+	capi->EVSpace_normalize = evspace_normalize;
 
 	capi->EVSpace_dot = evspace_dot;
 	capi->EVSpace_cross = evspace_cross;
