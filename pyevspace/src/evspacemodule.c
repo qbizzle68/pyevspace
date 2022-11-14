@@ -102,7 +102,61 @@ static PyObject* vector_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNU
 	return (PyObject*)self;
 }
 
+/* EVector type methdos */
+#define VECTOR_STR_BUFFER_SIZE 100
+static PyObject* vector_str(const EVSpace_Vector* self) {
+	char buffer[VECTOR_STR_BUFFER_SIZE];
+	int ok = snprintf(
+		buffer,
+		VECTOR_STR_BUFFER_SIZE,
+		"[%f, %f, %f]", Vector_GETX(self), Vector_GETY(self), Vector_GETZ(self)
+	);
 
+	if (ok < 0 || ok > VECTOR_STR_BUFFER_SIZE) {
+		PyErr_SetString(PyExc_MemoryError, "buffer too small for print data");
+		return NULL;
+	}
+
+	// can we guarantee buffer is utf-8 encoded?
+	return PyUnicode_FromString(buffer);
+}
+
+static PyObject* vector_iter(PyObject* self) {
+	Py_INCREF(self);
+	((EVSpace_Vector*)self)->itr_number = 0;
+	return self;
+}
+
+static PyObject* vector_next(PyObject* self) {
+	EVSpace_Vector* itr = (EVSpace_Vector*)self;
+	if (itr->itr_number < 3) {
+		PyObject* value = PyFloat_FromDouble(itr->data[itr->itr_number]);
+		if (value)
+			(itr->itr_number)++;
+		return value;
+	}
+	else {
+		PyErr_SetNone(PyExc_StopIteration);
+		return NULL;
+	}
+}
+
+/* macro for simplifying equality expression */
+#define Vector_EQ(s, o) (Vector_GETX(s) == Vector_GETX(o) \
+					  && Vector_GETY(s) == Vector_GETY(o) \
+					  && Vector_GETZ(s) == Vector_GETZ(o))
+
+static PyObject* vector_richcompare(PyObject* self, PyObject* other, int op) {
+	if (Vector_Check(other)) {
+		if (op == Py_EQ)
+			return Vector_EQ(self, other) ? Py_NewRef(Py_True) : Py_NewRef(Py_False);
+		else if (op == Py_NE)
+			return (!Vector_EQ(self, other)) ? Py_NewRef(Py_True) : Py_NewRef(Py_False);
+	}
+	Py_RETURN_NOTIMPLEMENTED;
+}
+
+/* number methods */
 // factor should be 1 for addition, -1 for subtration
 static PyObject* add_vector_vector(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs, int factor) {
 	assert(factor == 1 || factor == -1);
@@ -229,7 +283,7 @@ static PyObject* neg_vector(const EVSpace_Vector* self) {
 	);
 }
 
-static PyObject* vector_negative(PyObject* self, PyObject* Py_UNUSED) {
+static PyObject* vector_negative(PyObject* self) {
 	if (!Vector_Check(self))
 		return NULL;
 	return neg_vector((EVSpace_Vector*)self);
@@ -275,64 +329,20 @@ static PyObject* vector_reduce(EVSpace_Vector* self, PyObject* Py_UNUSED) {
 	return rtn;
 }
 
-/* macro for simplifying equality expression */
-#define Vector_EQ(s, o) (Vector_GETX(s) == Vector_GETX(o) \
-					  && Vector_GETY(s) == Vector_GETY(o) \
-					  && Vector_GETZ(s) == Vector_GETZ(o))
-
-static PyObject* vector_richcompare(PyObject* self, PyObject* other, int op) {
-	if (!Vector_CheckExact(other)) {
-		PyErr_SetString(PyExc_TypeError, "parameter must be EVector type");
-		return NULL;
-	}
-
-	if (op == Py_EQ)
-		return Vector_EQ(self, other);
-	else if (op == Py_NE)
-		return !Vector_EQ(self, other);
-	else
-		return Py_NotImplemented;
-}
-
 #endif
 
-#define VECTOR_STR_BUFFER_SIZE 100
-static PyObject* vector_str(const EVSpace_Vector* self) {
-	const char buffer[VECTOR_STR_BUFFER_SIZE];
-	int ok = snprintf(
-		buffer, 
-		VECTOR_STR_BUFFER_SIZE, 
-		"[ %f, %f, %f ]", Vector_GETX(self), Vector_GETY(self), Vector_GETZ(self)
-	);
+static PyNumberMethods vector_as_number = {
+	.nb_add = (binaryfunc)vector_add,
+	.nb_subtract = (binaryfunc)vector_subtract,
+	.nb_multiply = (binaryfunc)vector_multiply,
+	.nb_true_divide = (binaryfunc)vector_divide,
+	.nb_negative = (unaryfunc)vector_negative,
+	.nb_inplace_add = (binaryfunc)vector_iadd,
+	.nb_inplace_subtract = (binaryfunc)vector_isubtract,
+	.nb_inplace_multiply = (binaryfunc)vector_imultiply,
+	.nb_inplace_true_divide = (binaryfunc)vector_idivide,
+};
 
-	if (ok < 0 || ok > VECTOR_STR_BUFFER_SIZE) {
-		PyErr_SetString(PyExc_MemoryError, "buffer too small for print data");
-		return NULL;
-	}
-
-	// can we guarantee buffer is utf-8 encoded?
-	return PyUnicode_FromString(buffer);
-}
-
-static PyObject* vector_iter(PyObject* self) {
-	Py_INCREF(self);
-	((EVSpace_Vector*)self)->itr_number = 0;
-	return self;
-}
-
-static PyObject* vector_next(PyObject* self) {
-	EVSpace_Vector* itr = (EVSpace_Vector*)self;
-	if (itr->itr_number < 3) {
-		PyObject* value = PyFloat_FromDouble(itr->data[itr->itr_number]);
-		if (value)
-			(itr->itr_number)++;
-		return value;
-	}
-	else {
-		PyErr_SetNone(PyExc_StopIteration);
-		return NULL;
-	}
-}
 
 /* vector sequence methods */
 static Py_ssize_t vector_length(EVSpace_Vector* self) {
@@ -347,7 +357,7 @@ static PyObject* vector_get(EVSpace_Vector* self, Py_ssize_t index) {
 	return PyFloat_FromDouble(self->data[index]);
 }
 
-static int vector_set(EVSpace_Vector * self, Py_ssize_t index, PyObject *arg) {
+static int vector_set(EVSpace_Vector* self, Py_ssize_t index, PyObject* arg) {
 	if (index < 0 || index > 2) {
 		PyErr_SetString(PyExc_IndexError, "index must be in [0-2]");
 		return -1;
@@ -361,23 +371,61 @@ static int vector_set(EVSpace_Vector * self, Py_ssize_t index, PyObject *arg) {
 	return 0;
 }
 
-
-static PyNumberMethods vector_as_number = {
-	.nb_add = (binaryfunc)vector_add,
-	.nb_subtract = (binaryfunc)vector_subtract,
-	.nb_multiply = (binaryfunc)vector_multiply,
-	.nb_true_divide = (binaryfunc)vector_divide,
-	.nb_negative = (binaryfunc)vector_negative,
-	.nb_inplace_add = (binaryfunc)vector_iadd,
-	.nb_inplace_subtract = (binaryfunc)vector_isubtract,
-	.nb_inplace_multiply = (binaryfunc)vector_imultiply,
-	.nb_inplace_true_divide = (binaryfunc)vector_idivide,
-};
-
 static PySequenceMethods vector_as_sequence = {
 	.sq_length = (lenfunc)vector_length,
 	.sq_item = (ssizeargfunc)vector_get,
 	.sq_ass_item = (ssizeobjargproc)vector_set,
+};
+
+#define VECTOR_MAG2(o)	(Vector_GETX(o)*Vector_GETX(o) \
+						+ Vector_GETY(o)*Vector_GETY(o) \
+						+ Vector_GETZ(o)*Vector_GETZ(o))
+#define VECTOR_MAG(o) (sqrt(VECTOR_MAG2(o)))
+
+static PyObject* vector_magnitude(PyObject* self, PyObject* Py_UNUSED) {
+	if (!Vector_Check(self)) {
+		PyErr_SetString(PyExc_TypeError, "calling object must be EVector type");
+		return NULL;
+	}
+
+	double mag = VECTOR_MAG((EVSpace_Vector*)self);
+	return PyFloat_FromDouble(mag);
+}
+
+static PyObject* vector_magnitude_square(PyObject* self, PyObject* Py_UNUSED) {
+	if (!Vector_Check(self)) {
+		PyErr_SetString(PyExc_TypeError, "calling object must be EVector type");
+		return NULL;
+	}
+
+	double mag2 = VECTOR_MAG2((EVSpace_Vector*)self);
+	return PyFloat_FromDouble(mag2);	
+}
+
+static PyObject* vector_normalize(PyObject* self, PyObject* Py_UNUSED) {
+	if (!Vector_Check(self)) {
+		PyErr_SetString(PyExc_TypeError, "calling object must be EVector type");
+		return NULL;
+	}
+
+	EVSpace_Vector* vector_self = (EVSpace_Vector*)self;
+	double mag = VECTOR_MAG(vector_self);
+	idiv_vector_scalar(vector_self, mag);
+	Py_RETURN_NONE;
+}
+
+static PyObject* vector_reduce(PyObject* self, PyObject* Py_UNUSED) {
+	EVSpace_Vector* self_vector = (EVSpace_Vector*)self;
+	/* need the extra tuple here to please the EVector constructor */
+	return Py_BuildValue("(O((ddd)))", Py_TYPE(self), Vector_GETX(self_vector), Vector_GETY(self_vector), Vector_GETZ(self_vector));
+}
+
+static PyMethodDef vector_methods[] = {
+	{"mag", (PyCFunction)vector_magnitude, METH_NOARGS, PyDoc_STR("Compute the magnitude of a vector.")},
+	{"mag2", (PyCFunction)vector_magnitude_square, METH_NOARGS, PyDoc_STR("Compute the square of the maginitude of a vector.")},
+	{"normalize", (PyCFunction)vector_normalize, METH_NOARGS, PyDoc_STR("Normalize a vector in place.")},
+	{"__reduce__", (PyCFunction)vector_reduce, METH_NOARGS, PyDoc_STR("__reduce__() -> (cls, state")},
+	{NULL}
 };
 
 PyDoc_STRVAR(vector_doc, "");
@@ -392,20 +440,12 @@ static PyTypeObject EVSpace_VectorType = {
 	.tp_str = (reprfunc)vector_str,
 	.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE,
 	.tp_doc = vector_doc,
-	//.tp_richcompare = (richcmpfunc)vector_richcompare,
+	.tp_richcompare = (richcmpfunc)vector_richcompare,
 	.tp_iter = vector_iter,
 	.tp_iternext = vector_next,
-	//.tp_methods = vector_methods,
+	.tp_methods = vector_methods,
 	.tp_new = vector_new,
 };
-
-//static PyMethodDef vector_methods[] = {
-//	{"mag", (PyCFunction)vector_mag, METH_NOARGS, PyDoc_STR("Return the magnitidue of a vector.")},
-//	{"mag2", (PyCFunction)vector_mag_square, METH_NOARGS, PyDoc_STR("Return the square of the maginitude of a vector.")},
-//	{"normalize", (PyCFunction)vector_normalize, METH_NOARGS, PyDoc_STR("Normalizes a vector in place.")},
-//	{"__reduce__", (PyCFunction)vector_reduce, METH_NOARGS, PyDoc_STR("Provides support for Pickle.")},
-//	{NULL}
-//};
 
 static PyObject* evspace_vadd(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs) {
 	return add_vector_vector(lhs, rhs, 1);
@@ -415,11 +455,11 @@ static PyObject* evspace_vsub(const EVSpace_Vector* lhs, const EVSpace_Vector* r
 	return add_vector_vector(lhs, rhs, -1);
 }
 
-static void evspace_vadd_inplace(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs) {
+static void evspace_vadd_inplace(EVSpace_Vector* lhs, const EVSpace_Vector* rhs) {
 	iadd_vector_vector(lhs, rhs, 1);
 }
 
-static void evspace_vsub_inplace(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs) {
+static void evspace_vsub_inplace(EVSpace_Vector* lhs, const EVSpace_Vector* rhs) {
 	iadd_vector_vector(lhs, rhs, -1);
 }
 
