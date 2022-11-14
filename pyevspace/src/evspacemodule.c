@@ -58,7 +58,6 @@ static PyObject* get_state_sequence(PyObject* arg, double* x, double* y, double*
 	char* err = "";
 	// what do we do with err?
 	PyObject* fast_sequence = PySequence_Fast(arg, err);
-	printf("got fast sequence\n");
 	if (!fast_sequence)
 		return NULL;
 	
@@ -295,48 +294,6 @@ static PyObject* vector_negative(PyObject* self) {
 	return neg_vector((EVSpace_Vector*)self);
 }
 
-
-
-#ifdef _NO_INCLUDE
-
-static double vector_mag_2(double x, double y, double z) {
-	return x * x + y * y + z * z;
-}
-
-static double evspace_mag(double x, double y, double z) {
-	return sqrt(x * x + y * y + z * z);
-}
-
-#define Vector_MAG2(o) (vector_mag_2(Vector_GETX(o), Vector_GETY(o), Vector_GETZ(o)))
-#define Vector_MAG(o) (evspace_mag(Vector_GETX(o), Vector_GETY(o), Vector_GETZ(o)))
-
-static PyObject* vector_mag(EVSpace_Vector* self, PyObject* Py_UNUSED) {
-	double vecMag = Vector_MAG(self);
-	return PyFloat_FromDouble(vecMag);
-}
-
-static PyObject* vector_mag_square(EVSpace_Vector* self, PyObject* Py_UNUSED) {
-	double vecMag2 = Vector_MAG2(self);
-	return PyFloat_FromDouble(vecMag2);
-}
-
-static PyObject* vector_normalize(EVSpace_Vector* self, PyObject* Py_UNUSED) {
-	double vecMag = Vector_MAG(self);
-	evspace_vdiv_inplace(self, vecMag);
-	return self;
-}
-
-static PyObject* vector_reduce(EVSpace_Vector* self, PyObject* Py_UNUSED) {
-	PyObject* args = Py_BuildValue("(ddd)", Vector_GETX(self), Vector_GETY(self), Vector_GETZ(self));
-	if (!args)
-		return NULL;
-	PyObject* rtn = Py_BuildValues("(OO)", Py_TYPE(self), args);
-	Py_DECREF(args);
-	return rtn;
-}
-
-#endif
-
 static PyNumberMethods vector_as_number = {
 	.nb_add = (binaryfunc)vector_add,
 	.nb_subtract = (binaryfunc)vector_subtract,
@@ -469,6 +426,19 @@ static void evspace_vsub_inplace(EVSpace_Vector* lhs, const EVSpace_Vector* rhs)
 	iadd_vector_vector(lhs, rhs, -1);
 }
 
+static inline double evspace_mag(const EVSpace_Vector* self) {
+	return VECTOR_MAG(self);
+}
+
+static inline double evspace_mag2(const EVSpace_Vector* self) {
+	return VECTOR_MAG2(self);
+}
+
+static void evspace_normalize(EVSpace_Vector* self) {
+	double mag = VECTOR_MAG(self);
+	idiv_vector_scalar(self, mag);
+}
+
 
 static inline EVSpace_CAPI* get_evspace_capi(void) {
 	EVSpace_CAPI* capi = PyMem_Malloc(sizeof(EVSpace_CAPI));
@@ -502,9 +472,9 @@ static inline EVSpace_CAPI* get_evspace_capi(void) {
 	capi->EVSpace_Matrix_idivide = NULL;
 	capi->EVSpace_Matrix_negative = NULL;
 
-	capi->EVSpace_Mag = NULL;
-	capi->EVSpace_Mag_Squared = NULL;
-	capi->EVSpace_Normalize = NULL;
+	capi->EVSpace_Mag = evspace_mag;
+	capi->EVSpace_Mag_Squared = evspace_mag2;
+	capi->EVSpace_Normalize = evspace_normalize;
 
 	return capi;
 }
