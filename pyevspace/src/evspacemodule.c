@@ -505,6 +505,23 @@ static PyObject* evspace_norm(const EVSpace_Vector* self) {
 	return div_vector_scalar(self, mag);
 }
 
+static double evspace_vang(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs) {
+	double dot = VECTOR_DOT(lhs, rhs);
+	double lhs_mag = VECTOR_MAG(lhs);
+	double rhs_mag = VECTOR_MAG(rhs);
+	// this can't be out of range since lhs or rhs don't change between dot and mag calls and they're both in R^3
+	return acos(dot / (lhs_mag * rhs_mag));
+}
+
+/* removes exclude from vector */
+static PyObject* evspace_vxcl(const EVSpace_Vector* vector, const EVSpace_Vector* exclude) {
+	double scale = VECTOR_DOT(vector, exclude) / VECTOR_MAG2(exclude);
+	double x = Vector_GETX(vector) - Vector_GETX(exclude) * scale;
+	double y = Vector_GETY(vector) - Vector_GETY(exclude) * scale;
+	double z = Vector_GETZ(vector) - Vector_GETZ(exclude) * scale;
+	return new_vector(x, y, z);
+}
+
 static inline EVSpace_CAPI* get_evspace_capi(void) {
 	EVSpace_CAPI* capi = PyMem_Malloc(sizeof(EVSpace_CAPI));
 	if (!capi) {
@@ -544,6 +561,8 @@ static inline EVSpace_CAPI* get_evspace_capi(void) {
 	capi->EVSpace_dot = evspace_dot;
 	capi->EVSpace_cross = evspace_cross;
 	capi->EVSpace_norm = evspace_norm;
+	capi->EVSpace_vang = evspace_vang;
+	capi->EVSpace_vxcl = evspace_vxcl;
 
 	return capi;
 }
@@ -590,15 +609,51 @@ static PyObject* vector_norm(PyObject* Py_UNUSED, PyObject* const* args, Py_ssiz
 		return NULL;
 	}
 
-	return evspace_norm((EVSpace_Vector*)args[0]);
+	EVSpace_Vector* self = (EVSpace_Vector*)args[0];
+	if (!Vector_Check(self)) {
+		PyErr_SetString(PyExc_TypeError, "arguments must be EVector type");
+		return NULL;
+	}
+	return evspace_norm(self);
+}
+
+static PyObject* vector_vang(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size) {
+	if (size != 2) {
+		PyErr_SetString(PyExc_TypeError, "vang() takes exactly one argument");
+		return NULL;
+	}
+
+	EVSpace_Vector* lhs = (EVSpace_Vector*)args[0];
+	EVSpace_Vector* rhs = (EVSpace_Vector*)args[1];
+	if (!Vector_Check(lhs) || !Vector_Check(rhs)) {
+		PyErr_SetString(PyExc_TypeError, "arguments must be EVector type");
+		return NULL;
+	}
+	double angle = evspace_vang(lhs, rhs);
+	return PyFloat_FromDouble(angle);
+}
+
+static PyObject* vector_vxcl(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size) {
+	if (size != 2) {
+		PyErr_SetString(PyExc_TypeError, "vxcl() takes exactly one argument");
+		return NULL;
+	}
+
+	EVSpace_Vector* lhs = (EVSpace_Vector*)args[0];
+	EVSpace_Vector* rhs = (EVSpace_Vector*)args[1];
+	if (!Vector_Check(lhs) || !Vector_Check(rhs)) {
+		PyErr_SetString(PyExc_TypeError, "arguments must be EVector type");
+		return NULL;
+	}
+	return evspace_vxcl(lhs, rhs);
 }
 
 static PyMethodDef evspace_methods[] = {
 	{"dot", (PyCFunction)vector_dot, METH_FASTCALL, "Returns the dot product of two EVectors."},
 	{"cross", (PyCFunction)vector_cross, METH_FASTCALL, "Returns the cross product of two EVectors."},
 	{"norm", (PyCFunction)vector_norm, METH_FASTCALL, "Returns a normalized version of an EVector."},
-	//{"vang", (PyCFunction)EVector_Vang, METH_FASTCALL, "Returns the shortest angle between two EVector's."},
-	//{"vxcl", (PyCFunction)EVector_Vxcl, METH_FASTCALL, "Returns a vector exculded from another."},
+	{"vang", (PyCFunction)vector_vang, METH_FASTCALL, "Returns the shortest angle between two EVector's."},
+	{"vxcl", (PyCFunction)vector_vxcl, METH_FASTCALL, "vxcl(vector, exclude) -> vector with exclude excluded from it"},
 	{NULL}
 };
 

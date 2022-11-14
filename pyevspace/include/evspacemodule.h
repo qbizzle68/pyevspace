@@ -78,6 +78,8 @@ typedef struct {
 	double (*EVSpace_dot)(const EVSpace_Vector*, const EVSpace_Vector*);
 	PyObject* (*EVSpace_cross)(const EVSpace_Vector*, const EVSpace_Vector*);
 	PyObject* (*EVSpace_norm)(const EVSpace_Vector*);
+	double (*EVSpace_vang)(const EVSpace_Vector*, const EVSpace_Vector*);
+	PyObject* (*EVSpace_vxcl)(const EVSpace_Vector*, const EVSpace_Vector*);
 
 } EVSpace_CAPI;
 
