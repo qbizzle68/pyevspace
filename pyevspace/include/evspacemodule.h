@@ -54,23 +54,25 @@ typedef struct {
 	PyObject* (*EVSpace_Vector_negative)(const EVSpace_Vector*);
 
 	/* matrix number methods */
-	PyObject* (*EVSpace_Matrix_add)(const PyObject*, const PyObject*);
-	PyObject* (*EVSpace_Matrix_subtract)(const PyObject*, const PyObject*);
-	PyObject* (*EVSpace_Matrix_multiply_vector)(const PyObject*, const PyObject*);
-	PyObject* (*EVSpace_Matrix_multiply_matrix)(const PyObject*, const PyObject*);
-	PyObject* (*EVSpace_Matrix_multiply_scalar)(const PyObject*, double);
-	PyObject* (*EVSpace_Matrix_divide)(const PyObject*, double);
-	void (*EVSpace_Matrix_iadd)(PyObject*, const PyObject*);
-	void (*EVSpace_Matrix_isubtract)(PyObject*, const PyObject*);
-	void (*EVSpace_Matrix_imultiply_matrix)(PyObject*, const PyObject*);
-	void (*EVSpace_Matrix_imultiply_scalar)(PyObject*, const PyObject*);
-	void (*EVSpace_Matrix_idivide)(PyObject*, const PyObject*);
-	PyObject* (*EVSpace_Matrix_negative)(const PyObject*);
+	PyObject* (*EVSpace_Matrix_add)(const EVSpace_Matrix*, const EVSpace_Matrix*);
+	PyObject* (*EVSpace_Matrix_subtract)(const EVSpace_Matrix*, const EVSpace_Matrix*);
+	PyObject* (*EVSpace_Matrix_multiply_vector)(const EVSpace_Matrix*, const EVSpace_Vector*);
+	PyObject* (*EVSpace_Matrix_multiply_matrix)(const EVSpace_Matrix*, const EVSpace_Matrix*);
+	PyObject* (*EVSpace_Matrix_multiply_scalar)(const EVSpace_Matrix*, double);
+	PyObject* (*EVSpace_Matrix_divide)(const EVSpace_Matrix*, double);
+	void (*EVSpace_Matrix_iadd)(EVSpace_Matrix*, const EVSpace_Matrix*);
+	void (*EVSpace_Matrix_isubtract)(EVSpace_Matrix*, const EVSpace_Matrix*);
+	void (*EVSpace_Matrix_imultiply_matrix)(EVSpace_Matrix*, const EVSpace_Matrix*);
+	void (*EVSpace_Matrix_imultiply_scalar)(EVSpace_Matrix*, double);
+	void (*EVSpace_Matrix_idivide)(EVSpace_Matrix*, double);
+	PyObject* (*EVSpace_Matrix_negative)(const EVSpace_Matrix*);
 
 	/* vector class methods */
-	double (*EVSpace_Mag)(double, double, double);
-	double (*EVSpace_Mag_Squared)(double, double, double);
-	PyObject* (*EVSpace_Normalize)(PyObject*, PyObject*); // ???
+	double (*EVSpace_Mag)(const EVSpace_Vector*);
+	double (*EVSpace_Mag_Squared)(const EVSpace_Vector*);
+	void (*EVSpace_Normalize)(EVSpace_Vector*);
+
+	/* matrix class methods */
 
 } EVSpace_CAPI;
 
