@@ -58,6 +58,9 @@ static PyObject* get_state_sequence(PyObject* arg, double* x, double* y, double*
 	char* err = "";
 	// what do we do with err?
 	PyObject* fast_sequence = PySequence_Fast(arg, err);
+	printf("got fast sequence\n");
+	if (!fast_sequence)
+		return NULL;
 	
 	double xVal = 0, yVal = 0, zVal = 0;
 	if (PySequence_Fast_GET_SIZE(fast_sequence) == 3) {
@@ -88,18 +91,21 @@ error:
 }
 
 static PyObject* vector_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED) {
-	PyObject* parameter;
+	PyObject* parameter = Py_None;
 
-	if (!PyArg_ParseTuple(args, "O", &parameter))
+	if (!PyArg_ParseTuple(args, "|O", &parameter))
 		return NULL;
-
+	
+	if (Py_IsNone(parameter)) {
+		return new_vector_ex(0.0, 0.0, 0.0, type);
+	}
+	
 	double x, y, z;
 	PyObject* result = get_state_sequence(parameter, &x, &y, &z);
 	if (!result)
 		return NULL;
 
-	EVSpace_Vector* self = (EVSpace_Vector*)new_vector_ex(x, y, z, type);
-	return (PyObject*)self;
+	return new_vector_ex(x, y, z, type);
 }
 
 /* EVector type methdos */
