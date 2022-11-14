@@ -340,9 +340,10 @@ static PySequenceMethods vector_as_sequence = {
 	.sq_ass_item = (ssizeobjargproc)vector_set,
 };
 
-#define VECTOR_MAG2(o)	(Vector_GETX(o)*Vector_GETX(o) \
-						+ Vector_GETY(o)*Vector_GETY(o) \
-						+ Vector_GETZ(o)*Vector_GETZ(o))
+#define VECTOR_DOT(l, r)	(Vector_GETX(l)*Vector_GETX(r) \
+							+ Vector_GETY(l)*Vector_GETY(r) \
+							+ Vector_GETZ(l)*Vector_GETZ(r))
+#define VECTOR_MAG2(o)	(VECTOR_DOT(o, o))
 #define VECTOR_MAG(o) (sqrt(VECTOR_MAG2(o)))
 
 static PyObject* vector_magnitude(PyObject* self, PyObject* Py_UNUSED) {
@@ -410,6 +411,55 @@ static PyTypeObject EVSpace_VectorType = {
 	.tp_new = vector_new,
 };
 
+
+
+#ifdef _NO_INCLUDE
+
+static PyNumberMethods EMatrix_NBMethods = {
+	.nb_add = (binaryfunc)EMatrix_add,
+	.nb_subtract = (binaryfunc)EMatrix_sub,
+	.nb_multiply = (binaryfunc)EMatrix_mult,
+	.nb_negative = (unaryfunc)EMatrix_neg,
+	.nb_inplace_add = (binaryfunc)EMatrix_iadd,
+	.nb_inplace_subtract = (binaryfunc)EMatrix_isub,
+	.nb_inplace_multiply = (binaryfunc)EMatrix_imult,
+	.nb_true_divide = (binaryfunc)EMatrix_div,
+	.nb_inplace_true_divide = (binaryfunc)EMatrix_idiv,
+	.nb_matrix_multiply = (binaryfunc)EMatrix_mmult,
+	.nb_inplace_matrix_multiply = (binaryfunc)EMatrix_mimult,
+};
+
+static PyMethodDef EMatrix_ModuleMethods[] = {
+	{"det", (PyCFunction)EMatrix_det, METH_FASTCALL, "Returns the determinate of a matrix."},
+	{"transpose", (PyCFunction)EMatrix_trans, METH_FASTCALL, "Returns the transpose of a matrix."},
+	{NULL}
+};
+
+// todo: can we manage these with a sequence like protocol?
+static PyMethodDef EMatrix_Methods[] = {
+	{"set", (PyCFunction)EMatrix_set, METH_VARARGS, "Sets a matrix comonent to a given value."},
+	{"get", (PyCFunction)EMatrix_get, METH_VARARGS, "Returns a matrix comonent."},
+	{"copy", (PyCFunction)EMatrix_copy, METH_NOARGS, "Returns a deep copy of an EMatrix."},
+	{NULL}
+};
+
+static PyTypeObject EMatrixType = {
+	PyVarObject_HEAD_INIT(NULL, 0)
+	.tp_name = "pyevspace.EMatrix",
+	.tp_doc = ematrix_doc,
+	.tp_basicsize = sizeof(EMatrix),
+	.tp_itemsize = 0,
+	.tp_flags = Py_TPFLAGS_DEFAULT,
+	.tp_new = PyType_GenericNew,
+	.tp_init = (initproc)EMatrix_init,
+	.tp_methods = EMatrix_Methods,
+	.tp_str = (reprfunc)EMatrix_str,
+	.tp_as_number = &EMatrix_NBMethods,
+	.tp_richcompare = (richcmpfunc)EMatrix_richcompare,
+};
+#endif
+
+/* C API capsule methods */
 static PyObject* evspace_vadd(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs) {
 	return add_vector_vector(lhs, rhs, 1);
 }
@@ -439,6 +489,21 @@ static void evspace_normalize(EVSpace_Vector* self) {
 	idiv_vector_scalar(self, mag);
 }
 
+static inline double evspace_dot(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs) {
+	return VECTOR_DOT(lhs, rhs);
+}
+
+static PyObject* evspace_cross(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs) {
+	double x = Vector_GETY(lhs) * Vector_GETZ(rhs) - Vector_GETZ(lhs) * Vector_GETY(rhs);
+	double y = Vector_GETZ(lhs) * Vector_GETX(rhs) - Vector_GETX(lhs) * Vector_GETZ(rhs);
+	double z = Vector_GETX(lhs) * Vector_GETY(rhs) - Vector_GETY(lhs) * Vector_GETX(rhs);
+	return new_vector(x, y, z);
+}
+
+static PyObject* evspace_norm(const EVSpace_Vector* self) {
+	double mag = VECTOR_MAG(self);
+	return div_vector_scalar(self, mag);
+}
 
 static inline EVSpace_CAPI* get_evspace_capi(void) {
 	EVSpace_CAPI* capi = PyMem_Malloc(sizeof(EVSpace_CAPI));
@@ -476,6 +541,10 @@ static inline EVSpace_CAPI* get_evspace_capi(void) {
 	capi->EVSpace_Mag_Squared = evspace_mag2;
 	capi->EVSpace_Normalize = evspace_normalize;
 
+	capi->EVSpace_dot = evspace_dot;
+	capi->EVSpace_cross = evspace_cross;
+	capi->EVSpace_norm = evspace_norm;
+
 	return capi;
 }
 
@@ -484,13 +553,63 @@ static void evspace_destructor(PyObject* capi) {
 	PyMem_Free(ptr);
 }
 
-PyDoc_STRVAR(evspace_doc, "Module library for a Euclidean vector space with a vector and matrix type as well as necessary methods to use them.");
+static PyObject* vector_dot(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size) {
+	if (size != 2) {
+		PyErr_SetString(PyExc_TypeError, "dot() takes exactly 2 arguments");
+		return NULL;
+	}
+
+	EVSpace_Vector* lhs = (EVSpace_Vector*)args[0];
+	EVSpace_Vector* rhs = (EVSpace_Vector*)args[1];
+	if (!Vector_Check(lhs) || !Vector_Check(rhs)) {
+		PyErr_SetString(PyExc_TypeError, "arguments must be EVector type");
+		return NULL;
+	}
+	double dot = VECTOR_DOT(lhs, rhs);
+	return PyFloat_FromDouble(dot);
+}
+
+static PyObject* vector_cross(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size) {
+	if (size != 2) {
+		PyErr_SetString(PyExc_TypeError, "cross() takes exactly two arguments");
+		return NULL;
+	}
+
+	EVSpace_Vector* lhs = (EVSpace_Vector*)args[0];
+	EVSpace_Vector* rhs = (EVSpace_Vector*)args[1];
+	if (!Vector_Check(lhs) || !Vector_Check(rhs)) {
+		PyErr_SetString(PyExc_TypeError, "arguments must be EVector type");
+		return NULL;
+	}
+	return evspace_cross(lhs, rhs);
+}
+
+static PyObject* vector_norm(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size) {
+	if (size != 1) {
+		PyErr_SetString(PyExc_TypeError, "norm() takes exactly one argument");
+		return NULL;
+	}
+
+	return evspace_norm((EVSpace_Vector*)args[0]);
+}
+
+static PyMethodDef evspace_methods[] = {
+	{"dot", (PyCFunction)vector_dot, METH_FASTCALL, "Returns the dot product of two EVectors."},
+	{"cross", (PyCFunction)vector_cross, METH_FASTCALL, "Returns the cross product of two EVectors."},
+	{"norm", (PyCFunction)vector_norm, METH_FASTCALL, "Returns a normalized version of an EVector."},
+	//{"vang", (PyCFunction)EVector_Vang, METH_FASTCALL, "Returns the shortest angle between two EVector's."},
+	//{"vxcl", (PyCFunction)EVector_Vxcl, METH_FASTCALL, "Returns a vector exculded from another."},
+	{NULL}
+};
+
+PyDoc_STRVAR(evspace_doc, "Module for a 3-dimensional Euclidean vector space with a vector and matrix type as well as necessary methods to use them.");
 
 static PyModuleDef EVSpacemodule = {
 	PyModuleDef_HEAD_INIT,
 	.m_name = "pyevspace",
 	.m_doc = evspace_doc,
 	.m_size = -1,
+	.m_methods = &evspace_methods,
 };
 
 PyMODINIT_FUNC

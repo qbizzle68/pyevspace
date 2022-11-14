@@ -74,6 +74,11 @@ typedef struct {
 
 	/* matrix class methods */
 
+	/* module methods */
+	double (*EVSpace_dot)(const EVSpace_Vector*, const EVSpace_Vector*);
+	PyObject* (*EVSpace_cross)(const EVSpace_Vector*, const EVSpace_Vector*);
+	PyObject* (*EVSpace_norm)(const EVSpace_Vector*);
+
 } EVSpace_CAPI;
 
 #define EVSpace_CAPSULE_NAME "pyevspace.evspace_CAPI"
