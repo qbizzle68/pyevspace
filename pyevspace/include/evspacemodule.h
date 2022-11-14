@@ -3,41 +3,143 @@
 
 #ifdef __cplusplus
 extern "C" {
-#else
-
 #endif
 
-// EVector method definitions
-#include "evspace_vector_defn.h"
-#include "evspace_matrix_defn.h"
+// C types for EVector and EMatrix
+typedef struct {
+	PyObject_HEAD
+	double data[3];			/* x, y, z component of vectors */
+	int itr_number;
+} EVSpace_Vector;
 
-/**************************** EMatrix methods ****************************/
+typedef struct {
+	PyObject_HEAD
+	double data[3][3];		/* row by column ordering */
+} EVSpace_Matrix;
 
-#define EVSpace_API_pointers \
-			EVSpace_EVector_API_COUNT + EVSpace_EMatrix_API_COUNT
 
-#ifdef EVSPACE_MODULE
+/* define macros for accessing EVSpace_Vector array values */
+#define EVSpace_VECTOR_GETX(o)		(((EVSpace_Vector*)o)->data[0])
+#define EVSpace_VECTOR_GETY(o)		(((EVSpace_Vector*)o)->data[1])
+#define EVSpace_VECTOR_GETZ(o)		(((EVSpace_Vector*)o)->data[2])
+#define EVSpace_VECTOR_SETX(o, v)	(EVSpace_VECTOR_GETX(o) = (v))
+#define EVSpace_VECTOR_SETY(o, v)	(EVSpace_VECTOR_GETY(o) = (v))
+#define EVSpace_VECTOR_SETZ(o, v)	(EVSpace_VECTOR_GETZ(o) = (v))
+/* define macros for accessing EVSpace_Matrix values */
+#define EVSpace_MATRIX_GET(o, r, c)		(((EVSpace_Matrix*)o)->data[r][c])
+#define EVSpace_MATRIX_SET(o, r, c, v)	(EVSpace_MATRIX_GET(o, r, c) = (v))
 
-// EVector method declarations
-#include "evspace_vector_decl.h"
-#include "evspace_matrix_decl.h"
+/* macro for vector vector number method prototype */
+#define Vector_VECTOR_PROTO(name) (*name)(EVSpace_Vector*, EVSpace_Vector*)
 
-#else
-	static void** EVSpace_API;
-	
-// EVector method api definitions
-#include "evspace_vector_api_defn.h"
-#include "evspace_matrix_api_defn.h"
+/* Define structure for C API */
+typedef struct {
+	/* type objects */
+	PyTypeObject* VectorType;
+	PyTypeObject* MatrixType;
 
-	static int import_evspace(void) 
-	{
-		EVSpace_API = (void**)PyCapsule_Import("evspace._C_API", 0);
-	}
+	/* constructors */
+	PyObject* (*Vector_FromValues)(double, double, double, PyTypeObject*);
+	PyObject* (*Matrix_FromArray)(double**, PyTypeObject*);
 
-#endif // EVSPACE_MODULE
+	/* vector number methods */
+	PyObject* (*EVSpace_Vector_add)(const EVSpace_Vector*, const EVSpace_Vector*);
+	PyObject* (*EVSpace_Vector_subtract)(const EVSpace_Vector*, const EVSpace_Vector*);
+	PyObject* (*EVSpace_Vector_multiply)(const EVSpace_Vector*, double);
+	PyObject* (*EVSpace_Vector_divide)(const EVSpace_Vector*, double);
+	void (*EVSpace_Vector_iadd)(EVSpace_Vector*, const EVSpace_Vector*);
+	void (*EVSpace_Vector_isubtract)(EVSpace_Vector*, const EVSpace_Vector*);
+	void (*EVSpace_Vector_imultiply)(EVSpace_Vector*, double);
+	void (*EVSpace_Vector_idivide)(EVSpace_Vector*, double);
+	PyObject* (*EVSpace_Vector_negative)(const EVSpace_Vector*);
+
+	/* matrix number methods */
+	PyObject* (*EVSpace_Matrix_add)(const PyObject*, const PyObject*);
+	PyObject* (*EVSpace_Matrix_subtract)(const PyObject*, const PyObject*);
+	PyObject* (*EVSpace_Matrix_multiply_vector)(const PyObject*, const PyObject*);
+	PyObject* (*EVSpace_Matrix_multiply_matrix)(const PyObject*, const PyObject*);
+	PyObject* (*EVSpace_Matrix_multiply_scalar)(const PyObject*, double);
+	PyObject* (*EVSpace_Matrix_divide)(const PyObject*, double);
+	void (*EVSpace_Matrix_iadd)(PyObject*, const PyObject*);
+	void (*EVSpace_Matrix_isubtract)(PyObject*, const PyObject*);
+	void (*EVSpace_Matrix_imultiply_matrix)(PyObject*, const PyObject*);
+	void (*EVSpace_Matrix_imultiply_scalar)(PyObject*, const PyObject*);
+	void (*EVSpace_Matrix_idivide)(PyObject*, const PyObject*);
+	PyObject* (*EVSpace_Matrix_negative)(const PyObject*);
+
+	/* vector class methods */
+	double (*EVSpace_Mag)(double, double, double);
+	double (*EVSpace_Mag_Squared)(double, double, double);
+	PyObject* (*EVSpace_Normalize)(PyObject*, PyObject*); // ???
+
+} EVSpace_CAPI;
+
+#define EVSpace_CAPSULE_NAME "pyevspace.evspace_CAPI"
+
+
+/* This is only used by the API and should not be included in
+ * evspacemodule.c since it doesn't use the capsule.
+ */
+#ifndef _EVSPACE_IMPL
+/* Define global variable for the C API and a macro for setting it. */
+static EVSpace_CAPI* EVSpaceAPI = NULL;
+
+#define EVSpace_IMPORT EVSpaceAPI = (EVSpace_CAPI *)PyCapsule_Import(EVSpace_CAPSULE_NAME, 0)
+
+/* macros for simplified constructor calls */
+#define Vector_FromValues(x, y, z) EVSpace_CAPI->Vector_FromValues(x, y, z, EVSpace_CAPI->VectorType)
+#define Matrix_FromArray(arr) EVSpace_CAPI->Matrix_FromArray(arr, EVSpace_CAPI->MatrixType)
+
+/* macros for C API */
+#define EVSpace_Vector_add(rhs, lhs, ans)		EVSpaceAPI->EVSpace_Vector_add(rhs, lhs, ans)
+#define EVSpace_Vector_subtract(rhs, lhs, ans)	EVSpaceAPI->EVSpace_Vector_subtract(rhs, lhs, ans)
+#define EVSpace_Vector_multiply(rhs, lhs, ans)	EVSpaceAPI->EVSpace_Vector_multiply(rhs, lhs, ans)
+#define EVSpace_Vector_divide(rhs, lhs, ans)	EVSpaceAPI->EVSpace_Vector_divide(rhs, lhs, ans)
+#define EVSpace_Vector_iadd(self, other)		EVSpaceAPI->EVSpace_Vector_iadd(self, other)
+#define EVSpace_Vector_isubtract(self, other)	EVSpaceAPI->EVSpace_Vector_isubtract(self, other)
+#define EVSpace_Vector_imultilpy(self, other)	EVSpaceAPI->EVSpace_Vector_imultiply(self, other)
+#define EVSpace_Vector_idivide(self, other)		EVSpaceAPI->EVSpace_Vector_idivide(self, other)
+#define EVSpace_Vector_negative(self)			EVSpaceAPI->EVspace_Vector_negative(self)
+
+#endif // !defined(_EVSPACE_IMPL)
+
+
+
+
+
+
+
+//// EVector method definitions
+//#include "evspace_vector_defn.h"
+//#include "evspace_matrix_defn.h"
+//
+///**************************** EMatrix methods ****************************/
+//
+//#define EVSpace_API_pointers \
+//			EVSpace_EVector_API_COUNT + EVSpace_EMatrix_API_COUNT
+//
+//#ifdef EVSPACE_MODULE
+//
+//// EVector method declarations
+//#include "evspace_vector_decl.h"
+//#include "evspace_matrix_decl.h"
+//
+//#else
+//	static void** EVSpace_API;
+//	
+//// EVector method api definitions
+//#include "evspace_vector_api_defn.h"
+//#include "evspace_matrix_api_defn.h"
+//
+//	static int import_evspace(void) 
+//	{
+//		EVSpace_API = (void**)PyCapsule_Import("evspace._C_API", 0);
+//	}
+//
+//#endif // EVSPACE_MODULE
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // EVSPACE_MODULE_H
+#endif // !defined(EVSPACE_MODULE_H)
