@@ -14,7 +14,7 @@ typedef struct {
 
 typedef struct {
 	PyObject_HEAD
-	double **data;		/* row by column ordering */
+	double *data;		/* row by column ordering */
 } EVSpace_Matrix;
 
 
@@ -26,7 +26,10 @@ typedef struct {
 #define EVSpace_VECTOR_SETY(o, v)	(EVSpace_VECTOR_GETY(o) = (v))
 #define EVSpace_VECTOR_SETZ(o, v)	(EVSpace_VECTOR_GETZ(o) = (v))
 /* define macros for accessing EVSpace_Matrix values */
-#define EVSpace_MATRIX_GET(o, r, c)		(((EVSpace_Matrix*)o)->data[r][c])
+//#define EVSpace_MATRIX_GET(o, r, c)		(((EVSpace_Matrix*)o)->data[r][c])
+#define ROWCOL_TOINDEX(r, c)	(((r)<<1) + (r) + (c))
+#define EVSpace_MATRIX_GET(o, r, c)		(((EVSpace_Matrix*)o)->data[ROWCOL_TOINDEX(r, c)])
+//#define EVSpace_MATRIX_SET(o, r, c, v)	(EVSpace_MATRIX_GET(o, r, c) = (v))
 #define EVSpace_MATRIX_SET(o, r, c, v)	(EVSpace_MATRIX_GET(o, r, c) = (v))
 
 /* macro for vector vector number method prototype */
@@ -40,7 +43,7 @@ typedef struct {
 
 	/* constructors */
 	PyObject* (*Vector_FromValues)(double, double, double, PyTypeObject*);
-	PyObject* (*Matrix_FromArray)(double**, PyTypeObject*);
+	PyObject* (*Matrix_FromArray)(double*, PyTypeObject*);
 
 	/* vector number methods */
 	PyObject* (*EVSpace_Vector_add)(const EVSpace_Vector*, const EVSpace_Vector*);

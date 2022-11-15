@@ -46,7 +46,6 @@ static PyObject* new_vector_ex(double x, double y, double z, PyTypeObject* type)
 
 static void* vector_free(void* self) {
 	PyMem_Free(((EVSpace_Vector*)self)->data);
-	//free(((EVSpace_Vector*)self)->data);
 }
 
 /* macros to simplify the constructor calls */
@@ -426,7 +425,11 @@ static PyTypeObject EVSpace_VectorType = {
 
 #define FREE_ARRAY(a) PyMem_Free(a[0]), PyMem_Free(a[1]), PyMem_Free(a[2]); PyMem_Free(a)
 
-static inline double** allocate_state_array(void) {
+/*static inline double** allocate_state_array(void) {
+	double* array = (double*)PyMem_Malloc(9 * sizeof(double));
+	return NULL;
+
+
 	double** array = (double**)PyMem_Malloc(3 * sizeof(double*));
 	if (!array)
 		goto error;
@@ -440,30 +443,33 @@ static inline double** allocate_state_array(void) {
 error:
 	FREE_ARRAY(array);
 	return NULL;
-}
+}*/
 
 /* copy memory from one state to another */
 #define copy_state_array(d, s) memcpy(d[0], s[0], 3 * sizeof(double)), \
 							   memcpy(d[1], s[1], 3 * sizeof(double)), \
 							   memcpy(d[2], s[2], 3 * sizeof(double))
 
-static PyObject* matrix_from_array(double** array, PyTypeObject* type) {
+static PyObject* matrix_from_array(double* array, PyTypeObject* type) {
 	EVSpace_Matrix* rtn = (EVSpace_Matrix*)type->tp_alloc(type, 0);
-	
-	rtn->data = allocate_state_array();
+
+	rtn->data = PyMem_Malloc(9 * sizeof(double));	
+	//rtn->data = allocate_state_array();
 	if (!rtn->data)
 		return PyErr_NoMemory();
 
 	if (array)
-		copy_state_array(rtn->data, array);
+		memcpy(rtn->data, array, 9 * sizeof(double));
+		//copy_state_array(rtn->data, array);
 
 	return (PyObject*)rtn;
 }
 
 static void matrix_free(void* self) {
-	EVSpace_Matrix* mat = (EVSpace_Matrix*)self;
-	PyMem_Free(mat->data[0]), PyMem_Free(mat->data[1]), PyMem_Free(mat->data[2]);
-	PyMem_Free(mat->data);
+	//EVSpace_Matrix* mat = (EVSpace_Matrix*)self;
+	//PyMem_Free(mat->data[0]), PyMem_Free(mat->data[1]), PyMem_Free(mat->data[2]);
+	//PyMem_Free(mat->data);
+	PyMem_Free((EVSpace_Matrix*)self);
 }
 
 /* macros for simplifying new_matrix call */
@@ -479,20 +485,28 @@ static PyObject* matrix_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNU
 	if (Py_IsNone(parameters[0]) && Py_IsNone(parameters[1]) && Py_IsNone(parameters[2]))
 		return new_matrix_empty;
 
-	double** array = allocate_state_array();
+	double* array = PyMem_Malloc(9 * sizeof(double));
+	if (!array)
+		return PyErr_NoMemory();
+	//double** array = allocate_state_array();
 	PyObject* results[3] = {
-		get_state_sequence(parameters[0], &array[0][0], &array[0][1], &array[0][2]),
+		/*get_state_sequence(parameters[0], &array[0][0], &array[0][1], &array[0][2]),
 		get_state_sequence(parameters[1], &array[1][0], &array[1][1], &array[1][2]),
-		get_state_sequence(parameters[2], &array[2][0], &array[2][1], &array[2][2])
+		get_state_sequence(parameters[2], &array[2][0], &array[2][1], &array[2][2])*/
+		get_state_sequence(parameters[0], array, array+1, array+2),
+		get_state_sequence(parameters[1], array+3, array+4, array+5),
+		get_state_sequence(parameters[2], array+6, array+7, array+8)
 	};
 
 	if (!results[0] || !results[1] || !results[2]) {
-		FREE_ARRAY(array);
+		//FREE_ARRAY(array);
+		PyMem_Free(array);
 		return NULL;
 	}
 	
 	PyObject* rtn = new_matrix(array);
-	FREE_ARRAY(array);
+	//FREE_ARRAY(array);
+	PyMem_Free(array);
 	return rtn;
 }
 
@@ -519,11 +533,13 @@ static PyObject* matrix_str(PyObject* self) {
 }
 
 static double** get_matrix_state(const EVSpace_Matrix* mat) {
-	double** array = allocate_state_array();
+	//double** array = allocate_state_array();
+	double* array = PyMem_Malloc(9 * sizeof(double));
 
 	if (!array)
 		return PyErr_NoMemory();
-	copy_state_array(array, mat->data);
+	//copy_state_array(array, mat->data);
+	memcpy(array, mat->data, 9 * sizeof(double));
 
 	return array;
 }
@@ -532,28 +548,38 @@ static double** get_matrix_state(const EVSpace_Matrix* mat) {
 static PyObject* add_matrix_matrix(EVSpace_Matrix* lhs, EVSpace_Matrix* rhs, int factor) {
 	assert(factor == 1 || factor == -1);
 
-	double** lhs_state = get_matrix_state(lhs);
+	double* lhs_state = get_matrix_state(lhs);
+	if (!lhs_state)
+		return NULL;
+	const double* rhs_state = get_matrix_state(rhs);
+	if (!rhs_state) {
+		PyMem_Free(lhs_state);
+		return NULL;
+	}
+	/*double** lhs_state = get_matrix_state(lhs);
 	if (!lhs_state)
 		return NULL;
 	const double** rhs_state = get_matrix_state(rhs);
 	if (!rhs_state) {
 		FREE_ARRAY(lhs_state);
 		return NULL;
-	}
+	}*/
 
-	lhs_state[0][0] += rhs_state[0][0] * factor;
-	lhs_state[0][1] += rhs_state[0][1] * factor;
-	lhs_state[0][2] += rhs_state[0][2] * factor;
-	lhs_state[1][0] += rhs_state[1][0] * factor;
-	lhs_state[1][1] += rhs_state[1][1] * factor;
-	lhs_state[1][2] += rhs_state[1][2] * factor;
-	lhs_state[2][0] += rhs_state[2][0] * factor;
-	lhs_state[2][1] += rhs_state[2][1] * factor;
-	lhs_state[2][2] += rhs_state[2][2] * factor;
+	lhs_state[0] += rhs_state[0] * factor;
+	lhs_state[1] += rhs_state[1] * factor;
+	lhs_state[2] += rhs_state[2] * factor;
+	lhs_state[3] += rhs_state[3] * factor;
+	lhs_state[4] += rhs_state[4] * factor;
+	lhs_state[5] += rhs_state[5] * factor;
+	lhs_state[6] += rhs_state[6] * factor;
+	lhs_state[7] += rhs_state[7] * factor;
+	lhs_state[8] += rhs_state[8] * factor;
 
 	PyObject* rtn = new_matrix(lhs_state);
-	FREE_ARRAY(lhs_state);
-	FREE_ARRAY(rhs_state);
+	PyMem_Free(lhs_state);
+	PyMem_Free(rhs_state);
+	//FREE_ARRAY(lhs_state);
+	//FREE_ARRAY(rhs_state);
 	return rtn;
 }
 
@@ -576,6 +602,9 @@ static PyObject* matrix_subtract(PyObject* lhs, PyObject* rhs) {
 }
 
 static double* mult_mat_vec_states(double** mat, double* vec) {
+
+
+
 	assert(row >= 0 && row <= 2);
 	double* ans = malloc(3 * sizeof(double));
 
