@@ -44,6 +44,7 @@ typedef struct {
 	/* constructors */
 	PyObject* (*Vector_FromValues)(double, double, double, PyTypeObject*);
 	PyObject* (*Matrix_FromArray)(double*, PyTypeObject*);
+	PyObject* (*Matrix_StealArray)(double*, PyTypeObject*);
 
 	/* vector number methods */
 	PyObject* (*EVSpace_Vector_add)(const EVSpace_Vector*, const EVSpace_Vector*);

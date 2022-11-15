@@ -439,13 +439,20 @@ static PyObject* matrix_from_array(double* array, PyTypeObject* type) {
 	return (PyObject*)rtn;
 }
 
-static void matrix_free(void* self) {
-	PyMem_Free((EVSpace_Matrix*)self);
+static PyObject* matrix_steal_array(double* array, PyTypeObject* type) {
+	assert(array != NULL);
+
+	EVSpace_Matrix* rtn = (EVSpace_Matrix*)type->tp_alloc(type, 0);
+	rtn->data = array;
+	array = NULL;
+
+	return (PyObject*)rtn;
 }
 
 /* macros for simplifying new_matrix call */
 #define new_matrix(a) matrix_from_array(a, &EVSpace_MatrixType);
 #define new_matrix_empty new_matrix(NULL)
+#define new_matrix_steal(a) matrix_steal_array(a, &EVSpace_MatrixType);
 
 static PyObject* matrix_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED) {
 	PyObject* parameters[3] = { Py_None, Py_None, Py_None };
@@ -470,9 +477,13 @@ static PyObject* matrix_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNU
 		return NULL;
 	}
 	
-	PyObject* rtn = new_matrix(array);
-	PyMem_Free(array);
+	PyObject* rtn = new_matrix_steal(array);
+	//PyMem_Free(array);
 	return rtn;
+}
+
+static void matrix_free(void* self) {
+	PyMem_Free((EVSpace_Matrix*)self);
 }
 
 // make this 3 times the vector buffer size
@@ -497,11 +508,12 @@ static PyObject* matrix_str(PyObject* self) {
 	return PyUnicode_FromString(buffer);
 }
 
-static double** get_matrix_state(const EVSpace_Matrix* mat) {
+/* get a copy of the matrix data array. caller must free memory when done with PyMem_Free() */
+static double* get_matrix_state(EVSpace_Matrix* const mat) {
 	double* array = PyMem_Malloc(9 * sizeof(double));
 
 	if (!array)
-		return PyErr_NoMemory();
+		return (double*)PyErr_NoMemory();
 	memcpy(array, mat->data, 9 * sizeof(double));
 
 	return array;
@@ -514,11 +526,7 @@ static PyObject* add_matrix_matrix(EVSpace_Matrix* lhs, EVSpace_Matrix* rhs, int
 	double* lhs_state = get_matrix_state(lhs);
 	if (!lhs_state)
 		return NULL;
-	const double* rhs_state = get_matrix_state(rhs);
-	if (!rhs_state) {
-		PyMem_Free(lhs_state);
-		return NULL;
-	}
+	double const* rhs_state = rhs->data;
 
 	lhs_state[0] += rhs_state[0] * factor;
 	lhs_state[1] += rhs_state[1] * factor;
@@ -530,60 +538,133 @@ static PyObject* add_matrix_matrix(EVSpace_Matrix* lhs, EVSpace_Matrix* rhs, int
 	lhs_state[7] += rhs_state[7] * factor;
 	lhs_state[8] += rhs_state[8] * factor;
 
-	PyObject* rtn = new_matrix(lhs_state);
-	PyMem_Free(lhs_state);
-	PyMem_Free(rhs_state);
+	PyObject* rtn = new_matrix_steal(lhs_state);
 	return rtn;
 }
 
 static PyObject* matrix_add(PyObject* lhs, PyObject* rhs) {
-	if (!Matrix_Check(lhs) || !Matrix_Check(rhs)) {
-		PyErr_SetString(PyExc_TypeError, "parameters must be EMatrix type");
-		return NULL;
-	}
-	
-	return add_matrix_matrix((EVSpace_Matrix*)lhs, (EVSpace_Matrix*)rhs, 1);
+	if (Matrix_Check(lhs) && Matrix_Check(rhs))
+		return add_matrix_matrix((EVSpace_Matrix*)lhs, (EVSpace_Matrix*)rhs, 1);
+
+	Py_RETURN_NOTIMPLEMENTED;
 }
 
 static PyObject* matrix_subtract(PyObject* lhs, PyObject* rhs) {
-	if (!Matrix_Check(lhs) || !Matrix_Check(rhs)) {
-		PyErr_SetString(PyExc_TypeError, "parameters must be EMatrix type");
-		return NULL;
-	}
+	if (Matrix_Check(lhs) && Matrix_Check(rhs))
+		return add_matrix_matrix((EVSpace_Matrix*)lhs, (EVSpace_Matrix*)rhs, -1);
 
-	return add_matrix_matrix((EVSpace_Matrix*)lhs, (EVSpace_Matrix*)rhs, -1);
+	Py_RETURN_NOTIMPLEMENTED;
 }
 
-static double* mult_mat_vec_states(double* mat, double* vec) {
+static double* mult_mat_vec_states(const double* const mat, const double* const vec) {
+	double* ans = PyMem_Malloc(3 * sizeof(double));
 	
+	ans[0] = mat[0] * vec[0] + mat[1] * vec[1] + mat[2] * vec[2];
+	ans[1] = mat[3] * vec[0] + mat[4] * vec[1] + mat[5] * vec[2];
+	ans[2] = mat[6] * vec[0] + mat[7] * vec[1] + mat[8] * vec[2];
 
-
-	assert(row >= 0 && row <= 2);
-	double* ans = malloc(3 * sizeof(double));
-
-	ans[0] = mat[0][0] * vec[0] + mat[0][1] * vec[0] + mat[0][2] * vec[0];
-	ans[1] = mat[1][0] * vec[0] + mat[1][1] * vec[0] + mat[1][2] * vec[0];
-	ans[2] = mat[2][0] * vec[0] + mat[2][1] * vec[0] + mat[2][2] * vec[0];
 	return ans;
 }
 
 static PyObject* multiply_matrix_scalar(const EVSpace_Matrix* lhs, double rhs) {
-	
+	double* lhs_state = get_matrix_state(lhs);
+
+	if (!lhs_state)
+		return NULL;
+
+	lhs_state[0] *= rhs;
+	lhs_state[1] *= rhs;
+	lhs_state[2] *= rhs;
+	lhs_state[3] *= rhs;
+	lhs_state[4] *= rhs;
+	lhs_state[5] *= rhs;
+	lhs_state[6] *= rhs;
+	lhs_state[7] *= rhs;
+	lhs_state[8] *= rhs;
+
+	PyObject* rtn = new_matrix(lhs_state);
+	PyMem_Free(lhs_state);
+	return rtn;
 }
 
 static PyObject* multiply_matrix_vector(const EVSpace_Matrix* lhs, const EVSpace_Vector* rhs) {
+	double* ans = mult_mat_vec_states(lhs->data, rhs->data);
 
+	PyObject* rtn = new_vector(ans[0], ans[1], ans[2]);
+	PyMem_Free(ans);
+
+	return rtn;
+}
+
+static PyObject* multiply_matrix_matrix(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs) {
+	/* this is shoddy at best. what to do? */
+	double col0[3] = { rhs->data[0], rhs->data[3], rhs->data[6] };
+	double col1[3] = { rhs->data[1], rhs->data[4], rhs->data[7] };
+	double col2[3] = { rhs->data[2], rhs->data[5], rhs->data[8] };
+
+	double* ans_col0 = mult_mat_vec_states(lhs->data, col0);
+	double* ans_col1 = mult_mat_vec_states(lhs->data, col1);
+	double* ans_col2 = mult_mat_vec_states(lhs->data, col2);
+
+	double state[3][3] = {
+		{ans_col0[0], ans_col1[0], ans_col2[0]},
+		{ans_col0[1], ans_col1[1], ans_col2[1]},
+		{ans_col0[2], ans_col1[2], ans_col2[2]},
+	};
+	PyMem_Free(ans_col0);
+	PyMem_Free(ans_col1);
+	PyMem_Free(ans_col2);
+
+	return new_matrix(state);
+}
+
+static PyObject* matrix_multiply(PyObject* lhs, PyObject* rhs) {
+	if (!Matrix_Check(lhs)) {
+		PyErr_SetString(PyExc_TypeError, "parameters must be EMatrix type");
+		return NULL;
+	}
+
+	if (Matrix_Check(rhs))
+		return multiply_matrix_matrix((EVSpace_Matrix*)lhs, (EVSpace_Matrix*)rhs);
+
+	if (Vector_Check(rhs))
+		return multiply_matrix_vector((EVSpace_Matrix*)lhs, (EVSpace_Vector*)rhs);
+
+	if (PyNumber_Check(rhs)) {
+		double scalar = get_double(rhs);
+		if (scalar == -1.0 && PyErr_Occurred())
+			return NULL;
+		return multiply_matrix_scalar((EVSpace_Matrix*)lhs, scalar);
+	}
+
+	Py_RETURN_NOTIMPLEMENTED;
+}
+
+static PyObject* matrix_divide(PyObject* lhs, PyObject* rhs) {
+	if (!Matrix_Check(lhs)) {
+		PyErr_SetString(PyExc_TypeError, "parameters must be EMatrix type");
+		return NULL;
+	}
+
+	if (PyNumber_Check(rhs)) {
+		double scalar = get_double(rhs);
+		if (scalar == -1.0 && PyErr_Occurred())
+			return NULL;
+		return multiply_matrix_scalar((EVSpace_Matrix*)lhs, 1.0 / scalar);
+	}
+
+	Py_RETURN_NOTIMPLEMENTED;
 }
 
 static PyNumberMethods matrix_as_number = {
 	.nb_add = (binaryfunc)matrix_add,
 	.nb_subtract = (binaryfunc)matrix_subtract,
-	//.nb_multiply = (binaryfunc)EMatrix_mult,
+	.nb_multiply = (binaryfunc)matrix_multiply,
 	//.nb_negative = (unaryfunc)EMatrix_neg,
 	//.nb_inplace_add = (binaryfunc)EMatrix_iadd,
 	//.nb_inplace_subtract = (binaryfunc)EMatrix_isub,
 	//.nb_inplace_multiply = (binaryfunc)EMatrix_imult,
-	//.nb_true_divide = (binaryfunc)EMatrix_div,
+	.nb_true_divide = (binaryfunc)matrix_divide,
 	//.nb_inplace_true_divide = (binaryfunc)EMatrix_idiv,
 	//.nb_matrix_multiply = (binaryfunc)EMatrix_mmult,
 	//.nb_inplace_matrix_multiply = (binaryfunc)EMatrix_mimult,
