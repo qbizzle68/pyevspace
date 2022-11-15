@@ -30,12 +30,23 @@ static PyTypeObject EVSpace_MatrixType;
 /* vector constructor for C API */
 static PyObject* new_vector_ex(double x, double y, double z, PyTypeObject* type) {
 	EVSpace_Vector* self = (EVSpace_Vector*)(type->tp_alloc(type, 0));
-	if (self) {
-		Vector_SETX(self, x);
-		Vector_SETY(self, y);
-		Vector_SETZ(self, z);
-	}
+	if (!self)
+		return NULL;
+
+	self->data = PyMem_Malloc(3 * sizeof(double));
+	if (!self->data)
+		return PyErr_NoMemory();
+
+	Vector_SETX(self, x);
+	Vector_SETY(self, y);
+	Vector_SETZ(self, z);
+
 	return (PyObject*)self;
+}
+
+static void* vector_free(void* self) {
+	PyMem_Free(((EVSpace_Vector*)self)->data);
+	//free(((EVSpace_Vector*)self)->data);
 }
 
 /* macros to simplify the constructor calls */
@@ -409,36 +420,50 @@ static PyTypeObject EVSpace_VectorType = {
 	.tp_iternext = vector_next,
 	.tp_methods = vector_methods,
 	.tp_new = vector_new,
+	.tp_free = vector_free,
 };
 
 
-static PyObject* matrix_from_array(double array[3][3], PyTypeObject* type) {
-	EVSpace_Matrix* rtn = (EVSpace_Matrix*)type->tp_alloc(type, 0);
+#define FREE_ARRAY(a) PyMem_Free(a[0]), PyMem_Free(a[1]), PyMem_Free(a[2]); PyMem_Free(a)
 
-	if (array) {
-		Matrix_SET(rtn, 0, 0, array[0][0]);
-		Matrix_SET(rtn, 0, 1, array[0][1]);
-		Matrix_SET(rtn, 0, 2, array[0][2]);
-		Matrix_SET(rtn, 1, 0, array[1][0]);
-		Matrix_SET(rtn, 1, 1, array[1][1]);
-		Matrix_SET(rtn, 1, 2, array[1][2]);
-		Matrix_SET(rtn, 2, 0, array[2][0]);
-		Matrix_SET(rtn, 2, 1, array[2][1]);
-		Matrix_SET(rtn, 2, 2, array[2][2]);
-	}
-	else {
-		Matrix_SET(rtn, 0, 0, 0);
-		Matrix_SET(rtn, 0, 1, 0);
-		Matrix_SET(rtn, 0, 2, 0);
-		Matrix_SET(rtn, 1, 0, 0);
-		Matrix_SET(rtn, 1, 1, 0);
-		Matrix_SET(rtn, 1, 2, 0);
-		Matrix_SET(rtn, 2, 0, 0);
-		Matrix_SET(rtn, 2, 1, 0);
-		Matrix_SET(rtn, 2, 2, 0);
-	}
+static inline double** allocate_state_array(void) {
+	double** array = (double**)PyMem_Malloc(3 * sizeof(double*));
+	if (!array)
+		goto error;
+
+	array[0] = (double*)PyMem_Malloc(3 * sizeof(double));
+	array[1] = (double*)PyMem_Malloc(3 * sizeof(double));
+	array[2] = (double*)PyMem_Malloc(3 * sizeof(double));
+
+	return array;
+
+error:
+	FREE_ARRAY(array);
+	return NULL;
+}
+
+/* copy memory from one state to another */
+#define copy_state_array(d, s) memcpy(d[0], s[0], 3 * sizeof(double)), \
+							   memcpy(d[1], s[1], 3 * sizeof(double)), \
+							   memcpy(d[2], s[2], 3 * sizeof(double))
+
+static PyObject* matrix_from_array(double** array, PyTypeObject* type) {
+	EVSpace_Matrix* rtn = (EVSpace_Matrix*)type->tp_alloc(type, 0);
+	
+	rtn->data = allocate_state_array();
+	if (!rtn->data)
+		return PyErr_NoMemory();
+
+	if (array)
+		copy_state_array(rtn->data, array);
 
 	return (PyObject*)rtn;
+}
+
+static void matrix_free(void* self) {
+	EVSpace_Matrix* mat = (EVSpace_Matrix*)self;
+	PyMem_Free(mat->data[0]), PyMem_Free(mat->data[1]), PyMem_Free(mat->data[2]);
+	PyMem_Free(mat->data);
 }
 
 /* macros for simplifying new_matrix call */
@@ -446,7 +471,7 @@ static PyObject* matrix_from_array(double array[3][3], PyTypeObject* type) {
 #define new_matrix_empty new_matrix(NULL)
 
 static PyObject* matrix_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED) {
-	PyObject* parameters[3] = {Py_None, Py_None, Py_None};
+	PyObject* parameters[3] = { Py_None, Py_None, Py_None };
 
 	if (!PyArg_ParseTuple(args, "|OOO", &parameters[0], &parameters[1], &parameters[2]))
 		return NULL;
@@ -454,25 +479,123 @@ static PyObject* matrix_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNU
 	if (Py_IsNone(parameters[0]) && Py_IsNone(parameters[1]) && Py_IsNone(parameters[2]))
 		return new_matrix_empty;
 
-	double array[3][3];
+	double** array = allocate_state_array();
 	PyObject* results[3] = {
 		get_state_sequence(parameters[0], &array[0][0], &array[0][1], &array[0][2]),
 		get_state_sequence(parameters[1], &array[1][0], &array[1][1], &array[1][2]),
 		get_state_sequence(parameters[2], &array[2][0], &array[2][1], &array[2][2])
 	};
 
-	if (!results[0] || !results[1] || !results[2])
+	if (!results[0] || !results[1] || !results[2]) {
+		FREE_ARRAY(array);
 		return NULL;
+	}
 	
-	return new_matrix((double**)array);
+	PyObject* rtn = new_matrix(array);
+	FREE_ARRAY(array);
+	return rtn;
 }
 
+// make this 3 times the vector buffer size
+#define MATRIX_STR_BUFFER_SIZE VECTOR_STR_BUFFER_SIZE * 3
+static PyObject* matrix_str(PyObject* self) {
+	char buffer[MATRIX_STR_BUFFER_SIZE];
+	int ok = snprintf(
+		buffer,
+		MATRIX_STR_BUFFER_SIZE,
+		"([%f, %f, %f]\n[%f, %f, %f]\n[%f, %f, %f])",
+		Matrix_GET(self, 0, 0), Matrix_GET(self, 0, 1), Matrix_GET(self, 0, 2),
+		Matrix_GET(self, 1, 0), Matrix_GET(self, 1, 1), Matrix_GET(self, 1, 2),
+		Matrix_GET(self, 2, 0), Matrix_GET(self, 2, 1), Matrix_GET(self, 2, 2)
+	);
 
+	if (ok < 0 || ok > MATRIX_STR_BUFFER_SIZE) {
+		PyErr_SetString(PyExc_BufferError, "Buffer too small to create string.");
+		return NULL;
+	}
+
+	// can we guarantee buffer is utf-8 encoded?
+	return PyUnicode_FromString(buffer);
+}
+
+static double** get_matrix_state(const EVSpace_Matrix* mat) {
+	double** array = allocate_state_array();
+
+	if (!array)
+		return PyErr_NoMemory();
+	copy_state_array(array, mat->data);
+
+	return array;
+}
+
+/* factor is 1 for addition, -1 for subtraction */
+static PyObject* add_matrix_matrix(EVSpace_Matrix* lhs, EVSpace_Matrix* rhs, int factor) {
+	assert(factor == 1 || factor == -1);
+
+	double** lhs_state = get_matrix_state(lhs);
+	if (!lhs_state)
+		return NULL;
+	const double** rhs_state = get_matrix_state(rhs);
+	if (!rhs_state) {
+		FREE_ARRAY(lhs_state);
+		return NULL;
+	}
+
+	lhs_state[0][0] += rhs_state[0][0] * factor;
+	lhs_state[0][1] += rhs_state[0][1] * factor;
+	lhs_state[0][2] += rhs_state[0][2] * factor;
+	lhs_state[1][0] += rhs_state[1][0] * factor;
+	lhs_state[1][1] += rhs_state[1][1] * factor;
+	lhs_state[1][2] += rhs_state[1][2] * factor;
+	lhs_state[2][0] += rhs_state[2][0] * factor;
+	lhs_state[2][1] += rhs_state[2][1] * factor;
+	lhs_state[2][2] += rhs_state[2][2] * factor;
+
+	PyObject* rtn = new_matrix(lhs_state);
+	FREE_ARRAY(lhs_state);
+	FREE_ARRAY(rhs_state);
+	return rtn;
+}
+
+static PyObject* matrix_add(PyObject* lhs, PyObject* rhs) {
+	if (!Matrix_Check(lhs) || !Matrix_Check(rhs)) {
+		PyErr_SetString(PyExc_TypeError, "parameters must be EMatrix type");
+		return NULL;
+	}
+	
+	return add_matrix_matrix((EVSpace_Matrix*)lhs, (EVSpace_Matrix*)rhs, 1);
+}
+
+static PyObject* matrix_subtract(PyObject* lhs, PyObject* rhs) {
+	if (!Matrix_Check(lhs) || !Matrix_Check(rhs)) {
+		PyErr_SetString(PyExc_TypeError, "parameters must be EMatrix type");
+		return NULL;
+	}
+
+	return add_matrix_matrix((EVSpace_Matrix*)lhs, (EVSpace_Matrix*)rhs, -1);
+}
+
+static double* mult_mat_vec_states(double** mat, double* vec) {
+	assert(row >= 0 && row <= 2);
+	double* ans = malloc(3 * sizeof(double));
+
+	ans[0] = mat[0][0] * vec[0] + mat[0][1] * vec[0] + mat[0][2] * vec[0];
+	ans[1] = mat[1][0] * vec[0] + mat[1][1] * vec[0] + mat[1][2] * vec[0];
+	ans[2] = mat[2][0] * vec[0] + mat[2][1] * vec[0] + mat[2][2] * vec[0];
+	return ans;
+}
+
+static PyObject* multiply_matrix_scalar(const EVSpace_Matrix* lhs, double rhs) {
+	
+}
+
+static PyObject* multiply_matrix_vector(const EVSpace_Matrix* lhs, const EVSpace_Vector* rhs) {
+
+}
 
 static PyNumberMethods matrix_as_number = {
-	NULL,
-	//.nb_add = (binaryfunc)EMatrix_add,
-	//.nb_subtract = (binaryfunc)EMatrix_sub,
+	.nb_add = (binaryfunc)matrix_add,
+	.nb_subtract = (binaryfunc)matrix_subtract,
 	//.nb_multiply = (binaryfunc)EMatrix_mult,
 	//.nb_negative = (unaryfunc)EMatrix_neg,
 	//.nb_inplace_add = (binaryfunc)EMatrix_iadd,
@@ -525,16 +648,17 @@ PyDoc_STRVAR(matrix_doc, "");
 static PyTypeObject EVSpace_MatrixType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	.tp_name = "pyevspace.EMatrix",
-	.tp_basicsize = sizeof(EVSpace_Matrix),
+	.tp_basicsize = sizeof(EVSpace_Matrix) + 9 * sizeof(double),
 	.tp_itemsize = 0,
 	.tp_as_number = &matrix_as_number,
 	//.tp_as_sequence = &matrix_as_sequence,
 	.tp_as_mapping = &matrix_as_mapping,
-	//.tp_str = (reprfunc)EMatrix_str,
+	.tp_str = matrix_str,
 	.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_MAPPING,
 	.tp_doc = matrix_doc,
 	//.tp_richcompare = (richcmpfunc)EMatrix_richcompare,
 	.tp_new = matrix_new,
+	.tp_free = matrix_free,
 };
 
 
@@ -601,6 +725,14 @@ static PyObject* evspace_vxcl(const EVSpace_Vector* vector, const EVSpace_Vector
 	return new_vector(x, y, z);
 }
 
+static PyObject* evspace_madd(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs) {
+	return add_matrix_matrix(lhs, rhs, 1);
+}
+
+static PyObject* evspace_msub(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs) {
+	return add_matrix_matrix(lhs, rhs, -1);
+}
+
 static inline EVSpace_CAPI* get_evspace_capi(void) {
 	EVSpace_CAPI* capi = PyMem_Malloc(sizeof(EVSpace_CAPI));
 	if (!capi) {
@@ -623,8 +755,8 @@ static inline EVSpace_CAPI* get_evspace_capi(void) {
 	capi->EVSpace_Vector_idivide = idiv_vector_scalar;
 	capi->EVSpace_Vector_negative = neg_vector;
 
-	capi->EVSpace_Matrix_add = NULL;
-	capi->EVSpace_Matrix_subtract = NULL;
+	capi->EVSpace_Matrix_add = evspace_madd;
+	capi->EVSpace_Matrix_subtract = evspace_msub;
 	capi->EVSpace_Matrix_multiply_vector = NULL;
 	capi->EVSpace_Matrix_multiply_matrix = NULL;
 	capi->EVSpace_Matrix_multiply_scalar = NULL;
@@ -757,7 +889,7 @@ static PyModuleDef EVSpacemodule = {
 
 PyMODINIT_FUNC
 PyInit_pyevspace(void)
-{
+{	
 	PyObject* m = NULL;
 	EVSpace_CAPI* capi = NULL;
 

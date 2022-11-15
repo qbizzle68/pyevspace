@@ -8,13 +8,13 @@ extern "C" {
 // C types for EVector and EMatrix
 typedef struct {
 	PyObject_HEAD
-	double data[3];			/* x, y, z component of vectors */
+	double *data;			/* x, y, z component of vectors */
 	int itr_number;
 } EVSpace_Vector;
 
 typedef struct {
 	PyObject_HEAD
-	double data[3][3];		/* row by column ordering */
+	double **data;		/* row by column ordering */
 } EVSpace_Matrix;
 
 
@@ -40,7 +40,7 @@ typedef struct {
 
 	/* constructors */
 	PyObject* (*Vector_FromValues)(double, double, double, PyTypeObject*);
-	PyObject* (*Matrix_FromArray)(double[3][3], PyTypeObject*);
+	PyObject* (*Matrix_FromArray)(double**, PyTypeObject*);
 
 	/* vector number methods */
 	PyObject* (*EVSpace_Vector_add)(const EVSpace_Vector*, const EVSpace_Vector*);
