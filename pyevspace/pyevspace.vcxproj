@@ -178,9 +178,6 @@
     <ClInclude Include="include\evspace_vector_decl.h" />
     <ClInclude Include="include\evspace_vector_defn.h" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="examples\src\creating.py" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
