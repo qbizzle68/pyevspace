@@ -1,10 +1,11 @@
 import unittest
 from vector_test import Test_evector
 from matrix_test import Test_ematrix
+from module_test import Test_evspace
 
 def execute_tests():
 
-    testClasses = [Test_evector, Test_ematrix]
+    testClasses = [Test_evector, Test_ematrix, Test_evspace]
 
     loader = unittest.TestLoader()
 
