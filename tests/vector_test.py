@@ -206,6 +206,13 @@ class Test_evector(unittest.TestCase):
             self.v111[0] = 'a'
         self.assertEqual(TypeError, type(cm.exception))
 
+    def test_compare(self):
+        v = EVector((1, 2, 3))
+        self.assertEqual(v, self.v123)
+        self.assertNotEqual(v, self.v111)
+        self.assertTrue(v != self.v111)
+        self.assertFalse(v == self.v111)
+
 
 if __name__ == '__main__':
     unittest.main()
