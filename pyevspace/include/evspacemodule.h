@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-// C types for EVector and EMatrix
+/* C types for EVectorand EMatrix */
 typedef struct {
 	PyObject_HEAD
 	double *data;			/* x, y, z component of vectors */
@@ -25,15 +25,18 @@ typedef struct {
 #define EVSpace_VECTOR_SETX(o, v)	(EVSpace_VECTOR_GETX(o) = (v))
 #define EVSpace_VECTOR_SETY(o, v)	(EVSpace_VECTOR_GETY(o) = (v))
 #define EVSpace_VECTOR_SETZ(o, v)	(EVSpace_VECTOR_GETZ(o) = (v))
+
+
 /* define macros for accessing EVSpace_Matrix values */
-//#define EVSpace_MATRIX_GET(o, r, c)		(((EVSpace_Matrix*)o)->data[r][c])
+/**
+ * Mapping from row, column indices: (3 * row) + column.
+ * Bitwise achieved by (3 * r) + c => ((2 + 1) * r) + c
+ *	=> (2 * r) + r + c => (r << 1) + r + c
+ */
 #define ROWCOL_TOINDEX(r, c)	(((r)<<1) + (r) + (c))
 #define EVSpace_MATRIX_GET(o, r, c)		(((EVSpace_Matrix*)o)->data[ROWCOL_TOINDEX(r, c)])
-//#define EVSpace_MATRIX_SET(o, r, c, v)	(EVSpace_MATRIX_GET(o, r, c) = (v))
 #define EVSpace_MATRIX_SET(o, r, c, v)	(EVSpace_MATRIX_GET(o, r, c) = (v))
 
-/* macro for vector vector number method prototype */
-#define Vector_VECTOR_PROTO(name) (*name)(EVSpace_Vector*, EVSpace_Vector*)
 
 /* Define structure for C API */
 typedef struct {
