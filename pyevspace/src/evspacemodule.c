@@ -966,7 +966,7 @@ static PyObject* evspace_transpose(const EVSpace_Matrix* self) {
 	state[ROWCOL_TOINDEX(1, 1)] = self->data[ROWCOL_TOINDEX(1, 1)];
 	state[ROWCOL_TOINDEX(1, 2)] = self->data[ROWCOL_TOINDEX(2, 1)];
 	state[ROWCOL_TOINDEX(2, 0)] = self->data[ROWCOL_TOINDEX(0, 2)];
-	state[ROWCOL_TOINDEX(2, 1)] = self->data[ROWCOL_TOINDEX(2, 2)];
+	state[ROWCOL_TOINDEX(2, 1)] = self->data[ROWCOL_TOINDEX(1, 2)];
 	state[ROWCOL_TOINDEX(2, 2)] = self->data[ROWCOL_TOINDEX(2, 2)];
 
 	return new_matrix_steal(state);
