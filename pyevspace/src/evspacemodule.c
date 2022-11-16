@@ -804,6 +804,33 @@ static PyMappingMethods matrix_as_mapping = {
 	.mp_ass_subscript = matrix_set,
 };
 
+static int matrix_equal(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs) {
+	return Matrix_GET(lhs, 0, 0) == Matrix_GET(rhs, 0, 0)
+		&& Matrix_GET(lhs, 0, 1) == Matrix_GET(rhs, 0, 1)
+		&& Matrix_GET(lhs, 0, 2) == Matrix_GET(rhs, 0, 2)
+		&& Matrix_GET(lhs, 1, 0) == Matrix_GET(rhs, 1, 0)
+		&& Matrix_GET(lhs, 1, 1) == Matrix_GET(rhs, 1, 1)
+		&& Matrix_GET(lhs, 1, 2) == Matrix_GET(rhs, 1, 2)
+		&& Matrix_GET(lhs, 2, 0) == Matrix_GET(rhs, 2, 0)
+		&& Matrix_GET(lhs, 2, 1) == Matrix_GET(rhs, 2, 1)
+		&& Matrix_GET(lhs, 2, 2) == Matrix_GET(rhs, 2, 2);
+}
+
+static PyObject* matrix_richcompare(PyObject* self, PyObject* other, int op) {
+	if (Matrix_Check(other)) {
+		if (op == Py_EQ) {
+			int result = matrix_equal((EVSpace_Matrix*)self, (EVSpace_Matrix*)other);
+			return result ? Py_NewRef(Py_True) : Py_NewRef(Py_False);
+		}
+		else if (op == Py_NE) {
+			int result = !matrix_equal((EVSpace_Matrix*)self, (EVSpace_Matrix*)other);
+			return result ? Py_NewRef(Py_True) : Py_NewRef(Py_False);
+		}
+	}
+
+	Py_RETURN_NOTIMPLEMENTED;
+}
+
 PyDoc_STRVAR(matrix_doc, "");
 
 static PyTypeObject EVSpace_MatrixType = {
@@ -817,7 +844,7 @@ static PyTypeObject EVSpace_MatrixType = {
 	.tp_str = matrix_str,
 	.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_MAPPING,
 	.tp_doc = matrix_doc,
-	//.tp_richcompare = (richcmpfunc)EMatrix_richcompare,
+	.tp_richcompare = (richcmpfunc)matrix_richcompare,
 	.tp_new = matrix_new,
 	.tp_free = matrix_free,
 };
