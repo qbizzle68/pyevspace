@@ -29,6 +29,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\tests.py" />
+    <Compile Include="tests.py" />
+    <Compile Include="test_ematrix.py" />
+    <Compile Include="test_evector.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="src\" />
