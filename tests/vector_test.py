@@ -213,6 +213,10 @@ class Test_evector(unittest.TestCase):
         self.assertTrue(v != self.v111)
         self.assertFalse(v == self.v111)
 
+    def test_iterable(self):
+        self.assertIn(1, self.v123)
+        self.assertNotIn(0, self.v123)
+
 
 if __name__ == '__main__':
     unittest.main()
