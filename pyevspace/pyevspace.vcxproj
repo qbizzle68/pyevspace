@@ -171,12 +171,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\evspacemodule.h" />
-    <ClInclude Include="include\evspace_matrix_api_defn.h" />
-    <ClInclude Include="include\evspace_matrix_decl.h" />
-    <ClInclude Include="include\evspace_matrix_defn.h" />
-    <ClInclude Include="include\evspace_vector_api_defn.h" />
-    <ClInclude Include="include\evspace_vector_decl.h" />
-    <ClInclude Include="include\evspace_vector_defn.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -4,7 +4,8 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>83b26cdc-f962-4be0-ba87-748d908ea2bb</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>src\tests.py</StartupFile>
+    <StartupFile>
+    </StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -22,19 +23,11 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="src\test_evector.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="src\test_ematrix.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="src\tests.py" />
+    <Compile Include="pyevspace_tests.py" />
     <Compile Include="tests.py" />
     <Compile Include="test_ematrix.py" />
     <Compile Include="test_evector.py" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="src\" />
+    <Compile Include="vector_test.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
