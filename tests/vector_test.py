@@ -210,8 +210,10 @@ class Test_evector(unittest.TestCase):
         v = EVector((1, 2, 3))
         self.assertEqual(v, self.v123)
         self.assertNotEqual(v, self.v111)
+        self.assertTrue(v == self.v123)
         self.assertTrue(v != self.v111)
         self.assertFalse(v == self.v111)
+        self.assertFalse(v != self.v123)
 
     def test_iterable(self):
         self.assertIn(1, self.v123)
