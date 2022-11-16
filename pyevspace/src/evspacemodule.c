@@ -69,8 +69,11 @@ static PyObject* get_state_sequence(PyObject* arg, double* x, double* y, double*
 	char* err = "";
 	// what do we do with err?
 	PyObject* fast_sequence = PySequence_Fast(arg, err);
-	if (!fast_sequence)
+	if (!fast_sequence) {
+		if (PyErr_Occurred() == PyExc_TypeError)
+			PyErr_SetString(PyExc_TypeError, "parameter must be a sequence");
 		return NULL;
+	}
 	
 	double xVal = 0, yVal = 0, zVal = 0;
 	if (PySequence_Fast_GET_SIZE(fast_sequence) == 3) {
@@ -430,7 +433,7 @@ static PyTypeObject EVSpace_VectorType = {
 static PyObject* matrix_from_array(double* array, PyTypeObject* type) {
 	EVSpace_Matrix* rtn = (EVSpace_Matrix*)type->tp_alloc(type, 0);
 
-	rtn->data = PyMem_Malloc(9 * sizeof(double));	
+	rtn->data = PyMem_Calloc(9, sizeof(double));
 	if (!rtn->data)
 		return PyErr_NoMemory();
 
@@ -461,8 +464,14 @@ static PyObject* matrix_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNU
 	if (!PyArg_ParseTuple(args, "|OOO", &parameters[0], &parameters[1], &parameters[2]))
 		return NULL;
 
-	if (Py_IsNone(parameters[0]) && Py_IsNone(parameters[1]) && Py_IsNone(parameters[2]))
+	int none_count = Py_IsNone(parameters[0]) + Py_IsNone(parameters[1]) + Py_IsNone(parameters[2]);
+	if (none_count == 3) {
 		return new_matrix_empty;
+	}
+	else if (none_count != 0) {
+		PyErr_SetString(PyExc_TypeError, "function takes exactly 3 arguments");
+		return NULL;
+	}
 
 	double* array = PyMem_Malloc(9 * sizeof(double));
 	if (!array)
@@ -479,7 +488,6 @@ static PyObject* matrix_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNU
 	}
 	
 	PyObject* rtn = new_matrix_steal(array);
-	//PyMem_Free(array);
 	return rtn;
 }
 
