@@ -1159,14 +1159,14 @@ PyDoc_STRVAR(evspace_doc, "Module for a 3-dimensional Euclidean vector space wit
 
 static PyModuleDef EVSpace_Module = {
 	PyModuleDef_HEAD_INIT,
-	.m_name = "pyevspace",
+	.m_name = "_pyevspace",
 	.m_doc = evspace_doc,
 	.m_size = -1,
 	.m_methods = &evspace_methods,
 };
 
 PyMODINIT_FUNC
-PyInit_pyevspace(void)
+PyInit__pyevspace(void)
 {	
 	PyObject* m = NULL;
 	EVSpace_CAPI* capi = NULL;
