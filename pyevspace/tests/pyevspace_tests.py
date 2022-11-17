@@ -3,7 +3,8 @@ from vector_test import Test_evector
 from matrix_test import Test_ematrix
 from module_test import Test_evspace
 
-def execute_tests():
+
+def get_suite():
 
     testClasses = [Test_evector, Test_ematrix, Test_evspace]
 
@@ -18,8 +19,15 @@ def execute_tests():
     print('suites loaded')
     bigSuite = unittest.TestSuite(suitesList)
 
+    return bigSuite
+
+
+def execute_tests():
+
+    bigSuite = get_suite()
+
     runner = unittest.TextTestRunner()
-    results = runner.run(bigSuite)
+    runner.run(bigSuite)
 
 
 if __name__ == '__main__':
