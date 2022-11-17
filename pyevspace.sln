@@ -5,15 +5,11 @@ VisualStudioVersion = 17.1.32414.318
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pyevspace", "pyevspace\pyevspace.vcxproj", "{1AC08E59-21FB-421F-8CE2-FD216EDB7C82}"
 EndProject
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "tests", "tests\tests.pyproj", "{83B26CDC-F962-4BE0-BA87-748D908EA2BB}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{99F93E6C-B4FF-46A9-A563-9AE89CBF9CD2}"
 	ProjectSection(SolutionItems) = preProject
 		LICENSE.txt = LICENSE.txt
 		README.md = README.md
 	EndProjectSection
-EndProject
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "examples", "examples\examples.pyproj", "{CCCC7FD5-855A-40D0-8367-B0171FB6995D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,18 +31,6 @@ Global
 		{1AC08E59-21FB-421F-8CE2-FD216EDB7C82}.Release|x64.Build.0 = Release|x64
 		{1AC08E59-21FB-421F-8CE2-FD216EDB7C82}.Release|x86.ActiveCfg = Release|Win32
 		{1AC08E59-21FB-421F-8CE2-FD216EDB7C82}.Release|x86.Build.0 = Release|Win32
-		{83B26CDC-F962-4BE0-BA87-748D908EA2BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{83B26CDC-F962-4BE0-BA87-748D908EA2BB}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{83B26CDC-F962-4BE0-BA87-748D908EA2BB}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{83B26CDC-F962-4BE0-BA87-748D908EA2BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{83B26CDC-F962-4BE0-BA87-748D908EA2BB}.Release|x64.ActiveCfg = Release|Any CPU
-		{83B26CDC-F962-4BE0-BA87-748D908EA2BB}.Release|x86.ActiveCfg = Release|Any CPU
-		{CCCC7FD5-855A-40D0-8367-B0171FB6995D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CCCC7FD5-855A-40D0-8367-B0171FB6995D}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{CCCC7FD5-855A-40D0-8367-B0171FB6995D}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{CCCC7FD5-855A-40D0-8367-B0171FB6995D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CCCC7FD5-855A-40D0-8367-B0171FB6995D}.Release|x64.ActiveCfg = Release|Any CPU
-		{CCCC7FD5-855A-40D0-8367-B0171FB6995D}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

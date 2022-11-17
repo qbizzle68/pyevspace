@@ -172,6 +172,18 @@
   <ItemGroup>
     <ClInclude Include="include\evspacemodule.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="examples\arithmetic.py" />
+    <None Include="examples\creating.py" />
+    <None Include="examples\methods.py" />
+    <None Include="examples\__init__.py" />
+    <None Include="tests\matrix_test.py" />
+    <None Include="tests\module_test.py" />
+    <None Include="tests\pyevspace_tests.py" />
+    <None Include="tests\vector_test.py" />
+    <None Include="tests\__init__.py" />
+    <None Include="__init__.py" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
