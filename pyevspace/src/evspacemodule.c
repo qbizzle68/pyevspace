@@ -1170,6 +1170,7 @@ PyInit_pyevspace(void)
 {	
 	PyObject* m = NULL;
 	EVSpace_CAPI* capi = NULL;
+	PyObject* constant;
 
 	if (PyType_Ready(&EVSpace_VectorType) < 0)
 		return NULL;
@@ -1182,6 +1183,39 @@ PyInit_pyevspace(void)
 
 	Py_INCREF(&EVSpace_VectorType);
 	Py_INCREF(&EVSpace_MatrixType);
+
+
+	constant = new_vector(1, 0, 0);
+	if (!constant)
+		goto error;
+	if (PyDict_SetItemString(EVSpace_VectorType.tp_dict, "e1", constant) < 0)
+		return NULL;
+	Py_DECREF(constant);
+	
+	constant = new_vector(0, 1, 0);
+	if (!constant)
+		goto error;
+	if (PyDict_SetItemString(EVSpace_VectorType.tp_dict, "e2", constant) < 0)
+		return NULL;
+	Py_DECREF(constant);
+
+	constant = new_vector(0, 0, 1);
+	if (!constant)
+		goto error;
+	if (PyDict_SetItemString(EVSpace_VectorType.tp_dict, "e3", constant) < 0)
+		return NULL;
+	Py_DECREF(constant);
+
+	constant = new_matrix_empty;
+	if (!constant)
+		return NULL;
+	Matrix_SET(constant, 0, 0, 1.0);
+	Matrix_SET(constant, 1, 1, 1.0);
+	Matrix_SET(constant, 2, 2, 1.0);
+	if (PyDict_SetItemString(EVSpace_MatrixType.tp_dict, "I", constant) < 0)
+		return NULL;
+	Py_DECREF(constant);
+	constant = NULL;
 
 	if (PyModule_AddType(m, &EVSpace_VectorType) < 0)
 		goto error;
@@ -1197,7 +1231,6 @@ PyInit_pyevspace(void)
 		goto error;
 	if (PyModule_AddObject(m, "evspace_CAPI", capsule) < 0)
 		goto error;
-
 	return m;
 
 error:
@@ -1205,6 +1238,7 @@ error:
 	Py_DECREF(m);
 	Py_DECREF(&EVSpace_VectorType);
 	Py_DECREF(&EVSpace_MatrixType);
+	Py_XDECREF(constant);
 	if (capi) {
 		PyMem_Free(capi);
 		Py_DECREF(capi);
