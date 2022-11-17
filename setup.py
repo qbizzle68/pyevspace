@@ -10,7 +10,7 @@ ext_modules = [Extension(
 )]
 
 setup(name='pyevspace',
-      version='0.0.8',
+      version='0.0.9',
       author='Quinton Barnes',
       author_email='devqbizzle68@gmail.com',
       description='A Euclidean vector space module.',
@@ -19,7 +19,7 @@ setup(name='pyevspace',
       license='MIT',
       url='https://github.com/qbizzle68/pyevspace',
       classifiers=[
-          'Development Status :: 2 - Pre-Alpha',
+          'Development Status :: 3 - Alpha',
           'Intended Audience :: Science/Research',
           'Intended Audience :: Developers',
           'License :: OSI Approved :: MIT License',
