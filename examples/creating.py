@@ -1,3 +1,5 @@
+from copy import copy
+
 from pyevspace import EVector, EMatrix
 
 '''Here is some example code for creating EVector and EMatrix instances. Running
@@ -50,7 +52,13 @@ def example():
     # the in operator can also be used to find if an element is in a vector
     result = 5 in vector  # result will be true if 5 is an element of the vector
 
-    ignore = [vector3, vector4, matrix2, a, b, c, result]
+    # copying
+    # both types provide Pickle support by implementing __reduce__(). This allows
+    # objects to be copied with the copy module.
+    vectorCopy = copy(vector)
+    matrixCopy = copy(matrix)
+
+    ignore = [vector3, vector4, matrix2, a, b, c, result, vectorCopy, matrixCopy]
 
 
 if __name__ == '__main__':
@@ -99,6 +107,12 @@ if __name__ == '__main__':
 >>>     sumValue += v
 # sum is now equal to vector[0] + vector[1] + vector[2]
 # the in operator can also be used to find if an element is in a vector
->>> result = 5 in vector  # result will be true if 5 is an element of the vector"""
+>>> result = 5 in vector  # result will be true if 5 is an element of the vector
+
+# copying
+# both types provide Pickle support by implementing __reduce__(). This allows
+# objects to be copied with the copy module.
+>>> vectorCopy = copy(vector)
+>>> matrixCopy = copy(matrix)"""
 
     print(string)
