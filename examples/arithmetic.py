@@ -53,6 +53,9 @@ def example():
     matEq = matrix1 == matrix2
     matNe = matrix1 != matrix2
 
+    ignore = [vectorAdd, matrixAdd, vectorSub, matrixSub, badVectorAdd, badMatrixAdd, vectorNeg, vectorMult,
+              matrixMult, vectorDiv, newMatrix, newVector, badVector, vecEq, vecNe, matEq, matNe]
+
 
 if __name__ == '__main__':
     string = """
@@ -103,5 +106,5 @@ if __name__ == '__main__':
 >>> vecNe = vector1 != vector2
 >>> matEq = matrix1 == matrix2
 >>> matNe = matrix1 != matrix2"""
-    
+
     print(string)
