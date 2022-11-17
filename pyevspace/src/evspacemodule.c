@@ -831,6 +831,18 @@ static PyObject* matrix_richcompare(PyObject* self, PyObject* other, int op) {
 	Py_RETURN_NOTIMPLEMENTED;
 }
 
+static PyObject* matrix_reduce(PyObject* self, PyObject* Py_UNUSED) {
+	return Py_BuildValue("(O((ddd)(ddd)(ddd)))", Py_TYPE(self), 
+		Matrix_GET(self, 0, 0), Matrix_GET(self, 0, 1), Matrix_GET(self, 0, 2),
+		Matrix_GET(self, 1, 0), Matrix_GET(self, 1, 1), Matrix_GET(self, 1, 2),
+		Matrix_GET(self, 2, 0), Matrix_GET(self, 2, 1), Matrix_GET(self, 2, 2));
+}
+
+static PyMethodDef matrix_methods[] = {
+	{"__reduce__", (PyCFunction)matrix_reduce, METH_NOARGS, PyDoc_STR("__reduce__() -> (cls, state")},
+	{NULL}
+};
+
 PyDoc_STRVAR(matrix_doc, "");
 
 static PyTypeObject EVSpace_MatrixType = {
@@ -845,10 +857,10 @@ static PyTypeObject EVSpace_MatrixType = {
 	.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_MAPPING,
 	.tp_doc = matrix_doc,
 	.tp_richcompare = (richcmpfunc)matrix_richcompare,
+	.tp_methods = &matrix_methods,
 	.tp_new = matrix_new,
 	.tp_free = matrix_free,
 };
-
 
 /* C API capsule methods */
 static PyObject* evspace_vadd(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs) {
