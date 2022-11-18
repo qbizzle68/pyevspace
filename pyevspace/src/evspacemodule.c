@@ -1,8 +1,10 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+#include <float.h> // DBL_EPSILON
+#include <stdint.h> // int32_t, int64_t
 
 /* don't need the extra's for the C API */
-//#define _EVSPACE_IMPL
+#define _EVSPACE_IMPL
 #include <evspacemodule.h>
 
 #define PI 3.14159265358979323846
@@ -56,11 +58,10 @@ static void vector_free(void* self) {
 /* get double from PyObject */
 static double get_double(PyObject* arg) {
 	double value = PyFloat_AsDouble(arg);
-	if (value == -1.0 && PyErr_Occurred()) {
-		value = PyLong_AsDouble(arg);
-		if (value == -1.0 && PyErr_Occurred())
-			PyErr_SetString(PyExc_TypeError, "a numeric value is required");
-	}
+
+	if (value == -1.0 && PyErr_Occurred()) 
+		PyErr_SetString(PyExc_TypeError, "a numeric value is required");
+
 	return value;
 }
 
@@ -160,10 +161,28 @@ static PyObject* vector_next(PyObject* self) {
 	}
 }
 
+#define ULP_MAXIMUM	10 // this is a guess, 1 seems too stringent 
+
+static int double_almost_eq(double a, double b ) {
+	// check for really close values near zero
+	if (fabs(a - b) < DBL_EPSILON)
+		return 1;
+
+	// signs dont match 
+	if ((a < 0) != (b < 0)) // this could be done bitwise if we are certain of the size of double
+		return 0;
+
+	int64_t aInt = *(int64_t*)&a;	// bit magic
+	int64_t bInt = *(int64_t*)&b;
+	if (llabs(aInt - bInt) <= ULP_MAXIMUM)
+		return 1;
+	return 0;
+}
+
 /* macro for simplifying equality expression */
-#define Vector_EQ(s, o) (Vector_GETX(s) == Vector_GETX(o) \
-					  && Vector_GETY(s) == Vector_GETY(o) \
-					  && Vector_GETZ(s) == Vector_GETZ(o))
+#define Vector_EQ(l, r) (double_almost_eq(Vector_GETX(l), Vector_GETX(r)) \
+						&& double_almost_eq(Vector_GETY(l), Vector_GETY(r)) \
+						&& double_almost_eq(Vector_GETZ(l), Vector_GETZ(r)))
 
 static PyObject* vector_richcompare(PyObject* self, PyObject* other, int op) {
 	if (Vector_Check(other)) {
@@ -805,7 +824,17 @@ static PyMappingMethods matrix_as_mapping = {
 };
 
 static int matrix_equal(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs) {
-	return Matrix_GET(lhs, 0, 0) == Matrix_GET(rhs, 0, 0)
+	return double_almost_eq(Matrix_GET(lhs, 0, 0), Matrix_GET(rhs, 0, 0))
+		&& double_almost_eq(Matrix_GET(lhs, 0, 1), Matrix_GET(rhs, 0, 1))
+		&& double_almost_eq(Matrix_GET(lhs, 0, 2), Matrix_GET(rhs, 0, 2))
+		&& double_almost_eq(Matrix_GET(lhs, 1, 0), Matrix_GET(rhs, 1, 0))
+		&& double_almost_eq(Matrix_GET(lhs, 1, 1), Matrix_GET(rhs, 1, 1))
+		&& double_almost_eq(Matrix_GET(lhs, 1, 2), Matrix_GET(rhs, 1, 2))
+		&& double_almost_eq(Matrix_GET(lhs, 2, 0), Matrix_GET(rhs, 2, 0))
+		&& double_almost_eq(Matrix_GET(lhs, 2, 1), Matrix_GET(rhs, 2, 1))
+		&& double_almost_eq(Matrix_GET(lhs, 2, 2), Matrix_GET(rhs, 2, 2));
+
+	/*return Matrix_GET(lhs, 0, 0) == Matrix_GET(rhs, 0, 0)
 		&& Matrix_GET(lhs, 0, 1) == Matrix_GET(rhs, 0, 1)
 		&& Matrix_GET(lhs, 0, 2) == Matrix_GET(rhs, 0, 2)
 		&& Matrix_GET(lhs, 1, 0) == Matrix_GET(rhs, 1, 0)
@@ -813,7 +842,7 @@ static int matrix_equal(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs) {
 		&& Matrix_GET(lhs, 1, 2) == Matrix_GET(rhs, 1, 2)
 		&& Matrix_GET(lhs, 2, 0) == Matrix_GET(rhs, 2, 0)
 		&& Matrix_GET(lhs, 2, 1) == Matrix_GET(rhs, 2, 1)
-		&& Matrix_GET(lhs, 2, 2) == Matrix_GET(rhs, 2, 2);
+		&& Matrix_GET(lhs, 2, 2) == Matrix_GET(rhs, 2, 2);*/
 }
 
 static PyObject* matrix_richcompare(PyObject* self, PyObject* other, int op) {
