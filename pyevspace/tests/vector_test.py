@@ -215,6 +215,13 @@ class Test_evector(unittest.TestCase):
         self.assertFalse(v == self.v111)
         self.assertFalse(v != self.v123)
 
+        # very small values test
+        x = 0.1
+        sumValue = 0
+        for i in range(10):
+            sumValue += x
+        self.assertEqual(EVector((sumValue, 0, 0)), EVector((1, 0, 0)))
+
     def test_iterable(self):
         self.assertIn(1, self.v123)
         self.assertNotIn(0, self.v123)
