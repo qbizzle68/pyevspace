@@ -14,7 +14,7 @@ typedef struct {
 
 typedef struct {
 	PyObject_HEAD
-	double *data;		/* row by column ordering */
+	double (*data)[3];		/* row by column ordering */
 } EVSpace_Matrix;
 
 
@@ -33,8 +33,10 @@ typedef struct {
  * Bitwise achieved by (3 * r) + c => ((2 + 1) * r) + c
  *	=> (2 * r) + r + c => (r << 1) + r + c
  */
-#define ROWCOL_TOINDEX(r, c)	(((r)<<1) + (r) + (c))
+/*#define ROWCOL_TOINDEX(r, c)	(((r)<<1) + (r) + (c))
 #define EVSpace_MATRIX_GET(o, r, c)		(((EVSpace_Matrix*)o)->data[ROWCOL_TOINDEX(r, c)])
+#define EVSpace_MATRIX_SET(o, r, c, v)	(EVSpace_MATRIX_GET(o, r, c) = (v))*/
+#define EVSpace_MATRIX_GET(o, r, c)		(((EVSpace_Matrix*)o)->data[r][c])
 #define EVSpace_MATRIX_SET(o, r, c, v)	(EVSpace_MATRIX_GET(o, r, c) = (v))
 
 
@@ -47,8 +49,8 @@ typedef struct {
 	/* constructors */
 	PyObject* (*Vector_FromValues)(double, double, double, PyTypeObject*);
 	//PyObject* (*Vector_StealArray)(double*, PyTypeObject*);
-	PyObject* (*Matrix_FromArray)(double*, PyTypeObject*);
-	PyObject* (*Matrix_StealArray)(double*, PyTypeObject*);
+	PyObject* (*Matrix_FromArray)(double(*)[3], PyTypeObject*);
+	PyObject* (*Matrix_StealArray)(double(*)[3], PyTypeObject*);
 
 	/* vector number methods */
 	PyObject* (*EVSpace_Vector_add)(const EVSpace_Vector*, const EVSpace_Vector*);
