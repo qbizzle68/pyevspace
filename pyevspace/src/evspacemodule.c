@@ -122,23 +122,20 @@ static PyObject* vector_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNU
 	return new_vector_ex(x, y, z, type);
 }
 
-/* EVector type methdos */
-#define VECTOR_STR_BUFFER_SIZE 100
-static PyObject* vector_str(const EVSpace_Vector* self) {
-	char buffer[VECTOR_STR_BUFFER_SIZE];
-	int ok = snprintf(
-		buffer,
-		VECTOR_STR_BUFFER_SIZE,
-		"[%f, %f, %f]", Vector_GETX(self), Vector_GETY(self), Vector_GETZ(self)
-	);
-
-	if (ok < 0 || ok > VECTOR_STR_BUFFER_SIZE) {
-		PyErr_SetString(PyExc_MemoryError, "buffer too small for print data");
-		return NULL;
-	}
+/* EVector type methods */
+static PyObject* 
+vector_str(const EVSpace_Vector* self) 
+{
+	int buffer_size = snprintf(NULL, 0, "[%g, %g, %g]", Vector_GETX(self), Vector_GETY(self), Vector_GETZ(self));
+	char* buffer = malloc(buffer_size + 1);
+	if (!buffer)
+		return PyErr_NoMemory();
+	sprintf(buffer, "[%g, %g, %g]", Vector_GETX(self), Vector_GETY(self), Vector_GETZ(self));
 
 	// can we guarantee buffer is utf-8 encoded?
-	return PyUnicode_FromString(buffer);
+	PyObject* rtn = PyUnicode_FromString(buffer);
+	free(buffer);
+	return rtn;
 }
 
 static PyObject* vector_iter(PyObject* self) {
@@ -515,25 +512,32 @@ static void matrix_free(void* self) {
 }
 
 // make this 3 times the vector buffer size
-#define MATRIX_STR_BUFFER_SIZE VECTOR_STR_BUFFER_SIZE * 3
-static PyObject* matrix_str(PyObject* self) {
-	char buffer[MATRIX_STR_BUFFER_SIZE];
-	int ok = snprintf(
-		buffer,
-		MATRIX_STR_BUFFER_SIZE,
-		"([%f, %f, %f]\n[%f, %f, %f]\n[%f, %f, %f])",
+static PyObject* 
+matrix_str(PyObject* self) 
+{
+	const char* format = "([%g, %g, %g]\n[%g, %g, %g]\n[%g, %g, %g])";
+	printf("here\n");
+	const int buffer_size = snprintf(NULL, 0, format,
 		Matrix_GET(self, 0, 0), Matrix_GET(self, 0, 1), Matrix_GET(self, 0, 2),
 		Matrix_GET(self, 1, 0), Matrix_GET(self, 1, 1), Matrix_GET(self, 1, 2),
 		Matrix_GET(self, 2, 0), Matrix_GET(self, 2, 1), Matrix_GET(self, 2, 2)
 	);
+	printf("got buffer size\n");
+	char* buffer = malloc(buffer_size + 1);
+	if (!buffer)
+		return PyErr_NoMemory();
+	printf("allocated memory\n");
 
-	if (ok < 0 || ok > MATRIX_STR_BUFFER_SIZE) {
-		PyErr_SetString(PyExc_BufferError, "Buffer too small to create string.");
-		return NULL;
-	}
-
-	// can we guarantee buffer is utf-8 encoded?
-	return PyUnicode_FromString(buffer);
+	sprintf(buffer, format,
+		Matrix_GET(self, 0, 0), Matrix_GET(self, 0, 1), Matrix_GET(self, 0, 2),
+		Matrix_GET(self, 1, 0), Matrix_GET(self, 1, 1), Matrix_GET(self, 1, 2),
+		Matrix_GET(self, 2, 0), Matrix_GET(self, 2, 1), Matrix_GET(self, 2, 2)
+	);
+	printf("filled buffer\n");
+	
+	PyObject* rtn = PyUnicode_FromString(buffer);
+	free(buffer);
+	return rtn;
 }
 
 /* get a copy of the matrix data array. caller must free memory when done with PyMem_Free() */
