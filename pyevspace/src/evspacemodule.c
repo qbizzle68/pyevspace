@@ -511,7 +511,6 @@ static void matrix_free(void* self) {
 	PyMem_Free((EVSpace_Matrix*)self);
 }
 
-// make this 3 times the vector buffer size
 static PyObject* 
 matrix_str(PyObject* self) 
 {
