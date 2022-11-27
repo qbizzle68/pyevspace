@@ -39,7 +39,6 @@ vector_from_array(const double* arr, PyTypeObject* type)
 		return NULL;
 
 	self->data = malloc(3 * sizeof(double));
-	self->length = 3;
 	if (!self->data)
 		return PyErr_NoMemory();
 
@@ -57,7 +56,6 @@ vector_steal_array(double* arr, PyTypeObject* type)
 	EVSpace_Vector* self = (EVSpace_Vector*)(type->tp_alloc(type, 0));
 	if (!self)
 		return NULL;
-	self->length = 3;
 	self->data = arr;
 	arr = NULL;
 
@@ -456,6 +454,8 @@ static PySequenceMethods vector_as_sequence = {
 	.sq_ass_item = (ssizeobjargproc)vector_set,
 };
 
+#define BUFFER_RELEASE_SHAPE	1
+
 static int 
 vector_buffer_get(PyObject* obj, Py_buffer* view, int flags)
 {
@@ -463,6 +463,20 @@ vector_buffer_get(PyObject* obj, Py_buffer* view, int flags)
 		PyErr_SetString(PyExc_ValueError, "NULL view in getbuffer");
 		return -1;
 	}
+
+	Py_ssize_t* shape = malloc(sizeof(Py_ssize_t));
+	if (!shape) {
+		PyErr_NoMemory();
+		return -1;
+	}
+	*shape = 3;
+	
+	int* internal = malloc(sizeof(int));
+	if (!internal) {
+		PyErr_NoMemory();
+		return -1;
+	}
+	*internal = BUFFER_RELEASE_SHAPE;
 
 	EVSpace_Vector* self = (EVSpace_Vector*)obj;
 	view->obj = obj;
@@ -472,18 +486,27 @@ vector_buffer_get(PyObject* obj, Py_buffer* view, int flags)
 	view->itemsize = sizeof(double);
 	view->format = "d";
 	view->ndim = 1;
-	view->shape = &self->length;
+	view->shape = shape;
 	view->strides = NULL;
 	view->suboffsets = NULL;
-	view->internal = NULL;
+	view->internal = (void*)internal;
 
 	Py_INCREF(self);
 	return 0;
 }
 
+void buffer_release(PyObject* obj, Py_buffer* view)
+{
+	if (view->internal != NULL) {
+		if (*((int*)view->internal) | BUFFER_RELEASE_SHAPE)
+			free(view->shape);
+		free(view->internal);
+	}
+}
+
 static PyBufferProcs vector_buffer = {
 	(getbufferproc)vector_buffer_get,
-	(releasebufferproc)0
+	(releasebufferproc)buffer_release
 };
 
 /* macros for dot and magnitude expressions */
@@ -552,21 +575,21 @@ PyDoc_STRVAR(vector_doc, "");
 
 static PyTypeObject EVSpace_VectorType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	.tp_name = "pyevspace.EVector",
-	.tp_basicsize = sizeof(EVSpace_Vector),
-	.tp_itemsize = 0,
-	.tp_as_number = &vector_as_number,
+	.tp_name		= "pyevspace.EVector",
+	.tp_basicsize	= sizeof(EVSpace_Vector),
+	.tp_itemsize	= 0,
+	.tp_as_number	= &vector_as_number,
 	.tp_as_sequence = &vector_as_sequence,
-	.tp_str = (reprfunc)vector_str,
-	.tp_as_buffer = &vector_buffer,
-	.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE,
-	.tp_doc = vector_doc,
-	.tp_richcompare = (richcmpfunc)vector_richcompare,
-	.tp_iter = vector_iter,
-	.tp_iternext = vector_next,
-	.tp_methods = vector_methods,
-	.tp_new = vector_new,
-	.tp_free = vector_free,
+	.tp_str			= (reprfunc)vector_str,
+	.tp_as_buffer	= &vector_buffer,
+	.tp_flags		= Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE,
+	.tp_doc			= vector_doc,
+	.tp_richcompare	= (richcmpfunc)vector_richcompare,
+	.tp_iter		= vector_iter,
+	.tp_iternext	= vector_next,
+	.tp_methods		= vector_methods,
+	.tp_new			= vector_new,
+	.tp_free		= vector_free,
 };
 
 
@@ -996,6 +1019,49 @@ static PyMappingMethods matrix_as_mapping = {
 	.mp_ass_subscript = matrix_set,
 };
 
+static int
+matrix_buffer_get(PyObject* obj, Py_buffer* view, int flags)
+{
+	if (!view) {
+		PyErr_SetString(PyExc_ValueError, "NULL view in getbuffer");
+		return -1;
+	}
+
+	Py_ssize_t* shape = malloc(2 * sizeof(Py_ssize_t));
+	if (!shape) {
+		PyErr_NoMemory();
+		return -1;
+	}
+	shape[0] = shape[1] = 3;
+	int* internal = malloc(sizeof(int));
+	if (!internal) {
+		PyErr_NoMemory();
+		return -1;
+	}
+	*internal = BUFFER_RELEASE_SHAPE;
+
+	EVSpace_Matrix* self = (EVSpace_Matrix*)obj;
+	view->obj = obj;
+	view->buf = self->data;
+	view->len = 9 * sizeof(double);
+	view->readonly = 0;
+	view->itemsize = sizeof(double);
+	view->format = "d";
+	view->ndim = 2;
+	view->shape = shape;
+	view->strides = NULL;
+	view->suboffsets = NULL;
+	view->internal = (void*)internal;
+
+	Py_INCREF(self);
+	return 0;
+}
+
+static PyBufferProcs matrix_buffer = {
+	(getbufferproc)matrix_buffer_get,
+	(releasebufferproc)buffer_release
+};
+
 static int 
 matrix_equal(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs) 
 {
@@ -1049,6 +1115,7 @@ static PyTypeObject EVSpace_MatrixType = {
 	.tp_as_number	= &matrix_as_number,
 	.tp_as_mapping	= &matrix_as_mapping,
 	.tp_str			= matrix_str,
+	.tp_as_buffer	= &matrix_buffer,
 	.tp_flags		= Py_TPFLAGS_DEFAULT | Py_TPFLAGS_MAPPING,
 	.tp_doc			= matrix_doc,
 	.tp_richcompare	= (richcmpfunc)matrix_richcompare,

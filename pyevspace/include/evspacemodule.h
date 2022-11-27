@@ -10,7 +10,6 @@ typedef struct {
 	PyObject_HEAD
 	double *data;			/* x, y, z component of vectors */
 	int itr_number;
-	Py_ssize_t length;
 } EVSpace_Vector;
 
 typedef struct {
