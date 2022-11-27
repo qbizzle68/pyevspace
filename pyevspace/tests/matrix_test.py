@@ -175,6 +175,34 @@ class Test_ematrix(unittest.TestCase):
         self.assertTrue(m != self.m147)
         self.assertFalse(m != self.m123)
 
+    def equality(self, matrix, array):
+        return (matrix[0, 0] == array[0, 0]
+                and matrix[0, 1] == array[0, 1]
+                and matrix[0, 2] == array[0, 2]
+                and matrix[1, 0] == array[1, 0]
+                and matrix[1, 1] == array[1, 1]
+                and matrix[1, 2] == array[1, 2]
+                and matrix[2, 0] == array[2, 0]
+                and matrix[2, 1] == array[2, 1]
+                and matrix[2, 2] == array[2, 2])
+
+        for m, a in zip(matrix, array):
+            if m != a:
+                return False
+        return True
+
+    def test_buffer(self):
+        try:
+            import numpy as np
+            m = EMatrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+            mat = np.ndarray((3, 3), buffer=m)
+            m[1, 1] = 10
+            self.assertTrue(self.equality(m, mat))
+            mat[1, 1] = 68
+            self.assertTrue(self.equality(m, mat))
+        except ImportError:
+            print("could not import numpy, unable to test buffer procs")
+
 
 if __name__ == '__main__':
     unittest.main()

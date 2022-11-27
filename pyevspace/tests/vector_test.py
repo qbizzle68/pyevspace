@@ -226,6 +226,24 @@ class Test_evector(unittest.TestCase):
         self.assertIn(1, self.v123)
         self.assertNotIn(0, self.v123)
 
+    def equality(self, vector, array):
+        return (vector[0] == array[0] and 
+                vector[1] == array[1] and 
+                vector[2] == array[2])
+
+    def test_buffer(self):
+        try:
+            import numpy as np
+            v = EVector((1, 2, 3))
+            arr = np.asarray(v)
+            v[2] = 5
+            self.assertTrue(self.equality(v, arr))
+            arr[2] = 68
+            self.assertTrue(self.equality(v, arr))
+        except ImportError:
+            print("could not import numpy, unable to test buffer procs")
+
+
 
 if __name__ == '__main__':
     unittest.main()
