@@ -39,6 +39,7 @@ vector_from_array(const double* arr, PyTypeObject* type)
 		return NULL;
 
 	self->data = malloc(3 * sizeof(double));
+	self->length = 3;
 	if (!self->data)
 		return PyErr_NoMemory();
 
@@ -56,6 +57,7 @@ vector_steal_array(double* arr, PyTypeObject* type)
 	EVSpace_Vector* self = (EVSpace_Vector*)(type->tp_alloc(type, 0));
 	if (!self)
 		return NULL;
+	self->length = 3;
 	self->data = arr;
 	arr = NULL;
 
@@ -454,6 +456,35 @@ static PySequenceMethods vector_as_sequence = {
 	.sq_ass_item = (ssizeobjargproc)vector_set,
 };
 
+static int 
+vector_buffer_get(PyObject* obj, Py_buffer* view, int flags)
+{
+	if (!view) {
+		PyErr_SetString(PyExc_ValueError, "NULL view in getbuffer");
+		return -1;
+	}
+
+	EVSpace_Vector* self = (EVSpace_Vector*)obj;
+	view->obj = obj;
+	view->buf = self->data;
+	view->len = 3 * sizeof(double);
+	view->readonly = 0;
+	view->itemsize = sizeof(double);
+	view->format = "d";
+	view->ndim = 1;
+	view->shape = &self->length;
+	view->strides = NULL;
+	view->suboffsets = NULL;
+	view->internal = NULL;
+
+	Py_INCREF(self);
+	return 0;
+}
+
+static PyBufferProcs vector_buffer = {
+	(getbufferproc)vector_buffer_get,
+	(releasebufferproc)0
+};
 
 /* macros for dot and magnitude expressions */
 #define VECTOR_DOT(l, r)	(Vector_GETX(l)*Vector_GETX(r) \
@@ -527,6 +558,7 @@ static PyTypeObject EVSpace_VectorType = {
 	.tp_as_number = &vector_as_number,
 	.tp_as_sequence = &vector_as_sequence,
 	.tp_str = (reprfunc)vector_str,
+	.tp_as_buffer = &vector_buffer,
 	.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE,
 	.tp_doc = vector_doc,
 	.tp_richcompare = (richcmpfunc)vector_richcompare,
