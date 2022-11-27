@@ -1,7 +1,7 @@
 from setuptools import setup, Extension
 
-with open("README.md", "r", encoding="utf-8") as fh:
-    long_description = fh.read()
+import pyevspace
+description, long_description = pyevspace.__doc__.split('\n', 1)
 
 ext_modules = [Extension(
     '_pyevspace',
