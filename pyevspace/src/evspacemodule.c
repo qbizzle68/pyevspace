@@ -31,7 +31,9 @@ static PyTypeObject EVSpace_MatrixType;
 
 
 /* vector constructor for C API */
-static PyObject* new_vector_ex(double x, double y, double z, PyTypeObject* type) {
+static PyObject* 
+vector_from_array(const double* arr, PyTypeObject* type)
+{
 	EVSpace_Vector* self = (EVSpace_Vector*)(type->tp_alloc(type, 0));
 	if (!self)
 		return NULL;
@@ -40,23 +42,41 @@ static PyObject* new_vector_ex(double x, double y, double z, PyTypeObject* type)
 	if (!self->data)
 		return PyErr_NoMemory();
 
-	Vector_SETX(self, x);
-	Vector_SETY(self, y);
-	Vector_SETZ(self, z);
+	if (arr)
+		memcpy(self->data, arr, 3 * sizeof(double));
 
 	return (PyObject*)self;
 }
 
-static void vector_free(void* self) {
+static PyObject*
+vector_steal_array(double* arr, PyTypeObject* type)
+{
+	assert(arr != NULL);
+
+	EVSpace_Vector* self = (EVSpace_Vector*)(type->tp_alloc(type, 0));
+	if (!self)
+		return NULL;
+	self->data = arr;
+	arr = NULL;
+
+	return (PyObject*)self;
+}
+
+static void 
+vector_free(void* self) 
+{
 	free(((EVSpace_Vector*)self)->data);
 }
 
 /* macros to simplify the constructor calls */
-#define new_vector(x, y, z)	new_vector_ex(x, y, z, &EVSpace_VectorType)
-#define new_vector_empty new_vector_ex(0, 0, 0, &EVSpace_VectorType)
+#define new_vector(a)	vector_from_array(a, &EVSpace_VectorType)
+#define new_vector_empty vector_from_array(NULL, &EVSpace_VectorType)
+#define new_vector_steal(a) vector_steal_array(a, &EVSpace_VectorType)
 
 /* get double from PyObject */
-static double get_double(PyObject* arg) {
+static double 
+get_double(PyObject* arg) 
+{
 	double value = PyFloat_AsDouble(arg);
 
 	if (value == -1.0 && PyErr_Occurred()) 
@@ -66,7 +86,11 @@ static double get_double(PyObject* arg) {
 }
 
 /* extract floats from sequence */
-static PyObject* get_state_sequence(PyObject* arg, double* x, double* y, double* z) {
+static PyObject* 
+get_state_sequence(PyObject* arg, double* arr)
+{
+	// todo: get data from buffer first if able
+
 	char* err = "";
 	// what do we do with err?
 	PyObject* fast_sequence = PySequence_Fast(arg, err);
@@ -76,22 +100,18 @@ static PyObject* get_state_sequence(PyObject* arg, double* x, double* y, double*
 		return NULL;
 	}
 	
-	double xVal = 0, yVal = 0, zVal = 0;
 	if (PySequence_Fast_GET_SIZE(fast_sequence) == 3) {
 		PyObject** items = PySequence_Fast_ITEMS(fast_sequence);
-		xVal = get_double(items[0]);
-		if (xVal == -1.0 && PyErr_Occurred())
+		arr[0] = get_double(items[0]);
+		if (arr[0] == -1.0 && PyErr_Occurred())
 			goto error;
-		yVal = get_double(items[1]);
-		if (yVal == -1.0 && PyErr_Occurred())
+		arr[1] = get_double(items[1]);
+		if (arr[1] == -1.0 && PyErr_Occurred())
 			goto error;
-		zVal = get_double(items[2]);
-		if (zVal == -1.0 && PyErr_Occurred())
+		arr[2] = get_double(items[2]);
+		if (arr[2] == -1.0 && PyErr_Occurred())
 			goto error;
 
-		*x = xVal;
-		*y = yVal;
-		*z = zVal;
 		return arg;
 	}
 	else {
@@ -104,22 +124,25 @@ error:
 	return NULL;
 }
 
-static PyObject* vector_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED) {
+static PyObject* 
+vector_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED) 
+{
 	PyObject* parameter = Py_None;
 
 	if (!PyArg_ParseTuple(args, "|O", &parameter))
 		return NULL;
 	
-	if (Py_IsNone(parameter)) {
-		return new_vector_ex(0.0, 0.0, 0.0, type);
-	}
+	if (Py_IsNone(parameter))
+		return new_vector_empty;
 	
-	double x, y, z;
-	PyObject* result = get_state_sequence(parameter, &x, &y, &z);
+	double* arr = malloc(3 * sizeof(double));
+	if (!arr)
+		return PyErr_NoMemory();
+	PyObject* result = get_state_sequence(parameter, arr);
 	if (!result)
 		return NULL;
 
-	return new_vector_ex(x, y, z, type);
+	return vector_steal_array(arr, type);
 }
 
 /* EVector type methods */
@@ -127,26 +150,27 @@ static PyObject*
 vector_str(const EVSpace_Vector* self) 
 {
 	int buffer_size = snprintf(NULL, 0, "[%g, %g, %g]", Vector_GETX(self), Vector_GETY(self), Vector_GETZ(self));
-	printf("creating vector string buffer\n");
 	char* buffer = malloc(buffer_size + 1);
 	if (!buffer)
 		return PyErr_NoMemory();
-	printf("created vector string buffer\n");
 	sprintf(buffer, "[%g, %g, %g]", Vector_GETX(self), Vector_GETY(self), Vector_GETZ(self));
 
-	// can we guarantee buffer is utf-8 encoded?
 	PyObject* rtn = PyUnicode_FromString(buffer);
 	free(buffer);
 	return rtn;
 }
 
-static PyObject* vector_iter(PyObject* self) {
+static PyObject* 
+vector_iter(PyObject* self) 
+{
 	Py_INCREF(self);
 	((EVSpace_Vector*)self)->itr_number = 0;
 	return self;
 }
 
-static PyObject* vector_next(PyObject* self) {
+static PyObject* 
+vector_next(PyObject* self) 
+{
 	EVSpace_Vector* itr = (EVSpace_Vector*)self;
 	if (itr->itr_number < 3) {
 		PyObject* value = PyFloat_FromDouble(itr->data[itr->itr_number]);
@@ -162,7 +186,9 @@ static PyObject* vector_next(PyObject* self) {
 
 #define ULP_MAXIMUM	10 // this is a guess, 1 seems too stringent 
 
-static int double_almost_eq(double a, double b ) {
+static int 
+double_almost_eq(double a, double b ) 
+{
 	// check for really close values near zero
 	if (fabs(a - b) < DBL_EPSILON)
 		return 1;
@@ -183,7 +209,9 @@ static int double_almost_eq(double a, double b ) {
 						&& double_almost_eq(Vector_GETY(l), Vector_GETY(r)) \
 						&& double_almost_eq(Vector_GETZ(l), Vector_GETZ(r)))
 
-static PyObject* vector_richcompare(PyObject* self, PyObject* other, int op) {
+static PyObject* 
+vector_richcompare(PyObject* self, PyObject* other, int op) 
+{
 	if (Vector_Check(other)) {
 		if (op == Py_EQ)
 			return Vector_EQ(self, other) ? Py_NewRef(Py_True) : Py_NewRef(Py_False);
@@ -195,40 +223,58 @@ static PyObject* vector_richcompare(PyObject* self, PyObject* other, int op) {
 
 /* number methods */
 // factor should be 1 for addition, -1 for subtration
-static PyObject* add_vector_vector(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs, int factor) {
+static PyObject* 
+add_vector_vector(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs, int factor) 
+{
 	assert(factor == 1 || factor == -1);
-	return new_vector(
-		Vector_GETX(lhs) + Vector_GETX(rhs) * factor,
-		Vector_GETY(lhs) + Vector_GETY(rhs) * factor,
-		Vector_GETZ(lhs) + Vector_GETZ(rhs) * factor
-	);
+
+	double* arr = malloc(3 * sizeof(double));
+	if (!arr)
+		return PyErr_NoMemory();
+
+	arr[0] = Vector_GETX(lhs) + Vector_GETX(rhs) * factor;
+	arr[1] = Vector_GETY(lhs) + Vector_GETY(rhs) * factor;
+	arr[2] = Vector_GETZ(lhs) + Vector_GETZ(rhs) * factor;
+
+	return new_vector_steal(arr);
 }
 
-static PyObject* vector_add(PyObject* lhs, PyObject* rhs) {
+static PyObject* 
+vector_add(PyObject* lhs, PyObject* rhs) 
+{
 	if (Vector_Check(lhs) && Vector_Check(rhs)) {
 		return add_vector_vector((EVSpace_Vector*)lhs, (EVSpace_Vector*)rhs, 1);
 	}
 	Py_RETURN_NOTIMPLEMENTED;
 }
 
-static PyObject* vector_subtract(PyObject* lhs, PyObject* rhs) {
+static PyObject* 
+vector_subtract(PyObject* lhs, PyObject* rhs) 
+{
 	if (Vector_Check(lhs) && Vector_Check(rhs)) {
 		return add_vector_vector((EVSpace_Vector*)lhs, (EVSpace_Vector*)rhs, -1);
 	}
 	Py_RETURN_NOTIMPLEMENTED;
 }
 
-static PyObject* mult_vector_scalar(const EVSpace_Vector* lhs, double rhs) {
-	return new_vector(
-		Vector_GETX(lhs) * rhs,
-		Vector_GETY(lhs) * rhs,
-		Vector_GETZ(lhs) * rhs
-	);
+static PyObject* 
+mult_vector_scalar(const EVSpace_Vector* lhs, double rhs) 
+{
+	double* arr = malloc(3 * sizeof(double));
+	if (!arr)
+		return PyErr_NoMemory();
+
+	arr[0] = Vector_GETX(lhs) * rhs;
+	arr[1] = Vector_GETY(lhs) * rhs;
+	arr[2] = Vector_GETZ(lhs) * rhs;
+	return new_vector_steal(arr);
 }
 
-static PyObject* vector_multiply(PyObject* lhs, PyObject* rhs) {
+static PyObject* 
+vector_multiply(PyObject* lhs, PyObject* rhs) 
+{
 	if (Vector_Check(lhs)) {
-		double scalar = get_double(rhs);
+		double scalar = PyFloat_AsDouble(rhs);
 		if (scalar == -1.0 && PyErr_Occurred())
 			return NULL;
 		return mult_vector_scalar((EVSpace_Vector*)lhs, scalar);
@@ -236,17 +282,25 @@ static PyObject* vector_multiply(PyObject* lhs, PyObject* rhs) {
 	Py_RETURN_NOTIMPLEMENTED;
 }
 
-static PyObject* div_vector_scalar(const EVSpace_Vector* lhs, double rhs) {
-	return new_vector(
-		Vector_GETX(lhs) / rhs,
-		Vector_GETY(lhs) / rhs,
-		Vector_GETZ(lhs) / rhs
-	);
+static PyObject* 
+div_vector_scalar(const EVSpace_Vector* lhs, double rhs) 
+{
+	double* arr = malloc(3 * sizeof(double));
+	if (!arr)
+		return NULL;
+
+	arr[0] = Vector_GETX(lhs) / rhs;
+	arr[1] = Vector_GETY(lhs) / rhs;
+	arr[2] = Vector_GETZ(lhs) / rhs;
+
+	return new_vector_steal(arr);
 }
 
-static PyObject* vector_divide(PyObject* lhs, PyObject* rhs) {
+static PyObject* 
+vector_divide(PyObject* lhs, PyObject* rhs) 
+{
 	if (Vector_Check(lhs)) {
-		double scalar = get_double(rhs);
+		double scalar = PyFloat_AsDouble(rhs);
 		if (scalar == -1.0 && PyErr_Occurred())
 			return NULL;
 		return div_vector_scalar((EVSpace_Vector*)lhs, scalar);
@@ -255,14 +309,18 @@ static PyObject* vector_divide(PyObject* lhs, PyObject* rhs) {
 }
 
 /* factor is 1 for addition and -1 for subtraction */
-static void iadd_vector_vector(EVSpace_Vector* lhs, const EVSpace_Vector* rhs, int factor) {
+static void 
+iadd_vector_vector(EVSpace_Vector* lhs, const EVSpace_Vector* rhs, int factor) 
+{
 	assert(factor == 1 || factor == -1);
 	Vector_SETX(lhs, Vector_GETX(lhs) + Vector_GETX(rhs) * factor);
 	Vector_SETY(lhs, Vector_GETY(lhs) + Vector_GETY(rhs) * factor);
 	Vector_SETZ(lhs, Vector_GETZ(lhs) + Vector_GETZ(rhs) * factor);
 }
 
-static PyObject* vector_iadd(PyObject* lhs, PyObject* rhs) {
+static PyObject* 
+vector_iadd(PyObject* lhs, PyObject* rhs) 
+{
 	if (Vector_Check(lhs) && Vector_Check(rhs)) {
 		iadd_vector_vector((EVSpace_Vector*)lhs, (EVSpace_Vector*)rhs, 1);
 		return Py_NewRef(lhs);
@@ -270,7 +328,9 @@ static PyObject* vector_iadd(PyObject* lhs, PyObject* rhs) {
 	Py_RETURN_NOTIMPLEMENTED;
 }
 
-static PyObject* vector_isubtract(PyObject* lhs, PyObject* rhs) {
+static PyObject* 
+vector_isubtract(PyObject* lhs, PyObject* rhs) 
+{
 	if (Vector_Check(lhs) && Vector_Check(rhs)) {
 		iadd_vector_vector((EVSpace_Vector*)lhs, (EVSpace_Vector*)rhs, -1);
 		return Py_NewRef(lhs);
@@ -278,15 +338,19 @@ static PyObject* vector_isubtract(PyObject* lhs, PyObject* rhs) {
 	Py_RETURN_NOTIMPLEMENTED;
 }
 
-static void imult_vector_scalar(EVSpace_Vector* lhs, double rhs) {
+static void 
+imult_vector_scalar(EVSpace_Vector* lhs, double rhs) 
+{
 	Vector_SETX(lhs, Vector_GETX(lhs) * rhs);
 	Vector_SETY(lhs, Vector_GETY(lhs) * rhs);
 	Vector_SETZ(lhs, Vector_GETZ(lhs) * rhs);
 }
 
-static PyObject* vector_imultiply(PyObject* lhs, PyObject* rhs) {
+static PyObject* 
+vector_imultiply(PyObject* lhs, PyObject* rhs) 
+{
 	if (Vector_Check(lhs)) {
-		double scalar = get_double(rhs);
+		double scalar = PyFloat_AsDouble(rhs);
 		if (scalar == -1.0 && PyErr_Occurred())
 			return NULL;
 		imult_vector_scalar((EVSpace_Vector*)lhs, scalar);
@@ -295,15 +359,19 @@ static PyObject* vector_imultiply(PyObject* lhs, PyObject* rhs) {
 	Py_RETURN_NOTIMPLEMENTED;
 }
 
-static void idiv_vector_scalar(EVSpace_Vector* lhs, double rhs) {
+static void 
+idiv_vector_scalar(EVSpace_Vector* lhs, double rhs) 
+{
 	Vector_SETX(lhs, Vector_GETX(lhs) / rhs);
 	Vector_SETY(lhs, Vector_GETY(lhs) / rhs);
 	Vector_SETZ(lhs, Vector_GETZ(lhs) / rhs);
 }
 
-static PyObject* vector_idivide(PyObject* lhs, PyObject* rhs) {
+static PyObject* 
+vector_idivide(PyObject* lhs, PyObject* rhs) 
+{
 	if (Vector_Check(lhs)) {
-		double scalar = get_double(rhs);
+		double scalar = PyFloat_AsDouble(rhs);
 		if (scalar == -1.0 && PyErr_Occurred())
 			return NULL;
 		idiv_vector_scalar((EVSpace_Vector*)lhs, scalar);
@@ -312,15 +380,23 @@ static PyObject* vector_idivide(PyObject* lhs, PyObject* rhs) {
 	Py_RETURN_NOTIMPLEMENTED;
 }
 
-static PyObject* neg_vector(const EVSpace_Vector* self) {
-	return new_vector(
-		-Vector_GETX(self),
-		-Vector_GETY(self),
-		-Vector_GETZ(self)
-	);
+static PyObject* 
+neg_vector(const EVSpace_Vector* self) 
+{
+	double* arr = malloc(3 * sizeof(double));
+	if (!arr)
+		return NULL;
+
+	arr[0] = -Vector_GETX(self);
+	arr[1] = -Vector_GETY(self);
+	arr[2] = -Vector_GETZ(self);
+
+	return new_vector_steal(arr);
 }
 
-static PyObject* vector_negative(PyObject* self) {
+static PyObject* 
+vector_negative(PyObject* self) 
+{
 	if (!Vector_Check(self))
 		return NULL;
 	return neg_vector((EVSpace_Vector*)self);
@@ -340,11 +416,15 @@ static PyNumberMethods vector_as_number = {
 
 
 /* vector sequence methods */
-static Py_ssize_t vector_length(EVSpace_Vector* self) {
+static Py_ssize_t 
+vector_length(EVSpace_Vector* self) 
+{
 	return 3;
 }
 
-static PyObject* vector_get(EVSpace_Vector* self, Py_ssize_t index) {
+static PyObject* 
+vector_get(EVSpace_Vector* self, Py_ssize_t index) 
+{
 	if (index < 0 || index > 2) {
 		PyErr_SetString(PyExc_IndexError, "index must be in [0-2]");
 		return NULL;
@@ -352,13 +432,15 @@ static PyObject* vector_get(EVSpace_Vector* self, Py_ssize_t index) {
 	return PyFloat_FromDouble(self->data[index]);
 }
 
-static int vector_set(EVSpace_Vector* self, Py_ssize_t index, PyObject* arg) {
+static int 
+vector_set(EVSpace_Vector* self, Py_ssize_t index, PyObject* arg) 
+{
 	if (index < 0 || index > 2) {
 		PyErr_SetString(PyExc_IndexError, "index must be in [0-2]");
 		return -1;
 	}
 
-	double value = get_double(arg);
+	double value = PyFloat_AsDouble(arg);
 	if (value == -1.0 && PyErr_Occurred())
 		return -1;
 
@@ -381,7 +463,9 @@ static PySequenceMethods vector_as_sequence = {
 #define VECTOR_MAG(o) (sqrt(VECTOR_MAG2(o)))
 
 
-static PyObject* vector_magnitude(PyObject* self, PyObject* Py_UNUSED) {
+static PyObject* 
+vector_magnitude(PyObject* self, PyObject* Py_UNUSED) 
+{
 	if (!Vector_Check(self)) {
 		PyErr_SetString(PyExc_TypeError, "calling object must be EVector type");
 		return NULL;
@@ -391,7 +475,9 @@ static PyObject* vector_magnitude(PyObject* self, PyObject* Py_UNUSED) {
 	return PyFloat_FromDouble(mag);
 }
 
-static PyObject* vector_magnitude_square(PyObject* self, PyObject* Py_UNUSED) {
+static PyObject* 
+vector_magnitude_square(PyObject* self, PyObject* Py_UNUSED) 
+{
 	if (!Vector_Check(self)) {
 		PyErr_SetString(PyExc_TypeError, "calling object must be EVector type");
 		return NULL;
@@ -401,7 +487,9 @@ static PyObject* vector_magnitude_square(PyObject* self, PyObject* Py_UNUSED) {
 	return PyFloat_FromDouble(mag2);	
 }
 
-static PyObject* vector_normalize(PyObject* self, PyObject* Py_UNUSED) {
+static PyObject* 
+vector_normalize(PyObject* self, PyObject* Py_UNUSED) 
+{
 	if (!Vector_Check(self)) {
 		PyErr_SetString(PyExc_TypeError, "calling object must be EVector type");
 		return NULL;
@@ -413,7 +501,9 @@ static PyObject* vector_normalize(PyObject* self, PyObject* Py_UNUSED) {
 	Py_RETURN_NONE;
 }
 
-static PyObject* vector_reduce(PyObject* self, PyObject* Py_UNUSED) {
+static PyObject* 
+vector_reduce(PyObject* self, PyObject* Py_UNUSED) 
+{
 	EVSpace_Vector* self_vector = (EVSpace_Vector*)self;
 	// need the extra tuple here to please the EVector constructor
 	return Py_BuildValue("(O((ddd)))", Py_TYPE(self), Vector_GETX(self_vector), Vector_GETY(self_vector), Vector_GETZ(self_vector));
@@ -470,6 +560,8 @@ matrix_steal_array(double (*array)[3], PyTypeObject* type)
 	assert(array != NULL);
 
 	EVSpace_Matrix* rtn = (EVSpace_Matrix*)type->tp_alloc(type, 0);
+	if (!rtn)
+		return NULL;
 	rtn->data = array;
 	array = NULL;
 
@@ -503,9 +595,9 @@ matrix_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED)
 	if (!array)
 		return PyErr_NoMemory();
 	PyObject* results[3] = {
-		get_state_sequence(parameters[0], &array[0][0], &array[0][1], &array[0][2]),
-		get_state_sequence(parameters[1], &array[1][0], &array[1][1], &array[1][2]),
-		get_state_sequence(parameters[2], &array[2][0], &array[2][1], &array[2][2])
+		get_state_sequence(parameters[0], array[0]),
+		get_state_sequence(parameters[1], array[1]),
+		get_state_sequence(parameters[2], array[2])
 	};
 
 	if (!results[0] || !results[1] || !results[2]) {
@@ -633,17 +725,16 @@ static PyObject* multiply_matrix_scalar(const EVSpace_Matrix* lhs, double rhs) {
 	return new_matrix_steal(lhs_state);
 }
 
-static PyObject* multiply_matrix_vector(const EVSpace_Matrix* lhs, const EVSpace_Vector* rhs) {
+static PyObject* 
+multiply_matrix_vector(const EVSpace_Matrix* lhs, const EVSpace_Vector* rhs) 
+{
 	double* ans = malloc(3 * sizeof(double));
 	if (!ans)
 		return PyErr_NoMemory();
 
-	ans[0] = lhs->data[0][0] * rhs->data[0] + lhs->data[0][1] * rhs->data[1] + lhs->data[0][2] * rhs->data[2];
-	ans[1] = lhs->data[1][0] * rhs->data[0] + lhs->data[1][1] * rhs->data[1] + lhs->data[1][2] * rhs->data[2];
-	ans[2] = lhs->data[2][0] * rhs->data[0] + lhs->data[2][1] * rhs->data[1] + lhs->data[2][2] * rhs->data[2];
+	mult_mat_vec_states(lhs->data, rhs->data, ans);
 
-	// todo: replace this if we implement stealing the pointer for vectors
-	return new_vector(ans[0], ans[1], ans[2]);
+	return new_vector_steal(ans);
 }
 
 static PyObject* 
@@ -969,10 +1060,15 @@ static inline double evspace_dot(const EVSpace_Vector* lhs, const EVSpace_Vector
 }
 
 static PyObject* evspace_cross(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs) {
-	double x = Vector_GETY(lhs) * Vector_GETZ(rhs) - Vector_GETZ(lhs) * Vector_GETY(rhs);
-	double y = Vector_GETZ(lhs) * Vector_GETX(rhs) - Vector_GETX(lhs) * Vector_GETZ(rhs);
-	double z = Vector_GETX(lhs) * Vector_GETY(rhs) - Vector_GETY(lhs) * Vector_GETX(rhs);
-	return new_vector(x, y, z);
+	double* arr = malloc(3 * sizeof(double));
+	if (!arr)
+		return PyErr_NoMemory();
+
+	arr[0] = Vector_GETY(lhs) * Vector_GETZ(rhs) - Vector_GETZ(lhs) * Vector_GETY(rhs);
+	arr[1] = Vector_GETZ(lhs) * Vector_GETX(rhs) - Vector_GETX(lhs) * Vector_GETZ(rhs);
+	arr[2] = Vector_GETX(lhs) * Vector_GETY(rhs) - Vector_GETY(lhs) * Vector_GETX(rhs);
+
+	return new_vector_steal(arr);
 }
 
 static PyObject* evspace_norm(const EVSpace_Vector* self) {
@@ -991,10 +1087,15 @@ static double evspace_vang(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs)
 /* removes exclude from vector */
 static PyObject* evspace_vxcl(const EVSpace_Vector* vector, const EVSpace_Vector* exclude) {
 	double scale = VECTOR_DOT(vector, exclude) / VECTOR_MAG2(exclude);
-	double x = Vector_GETX(vector) - Vector_GETX(exclude) * scale;
-	double y = Vector_GETY(vector) - Vector_GETY(exclude) * scale;
-	double z = Vector_GETZ(vector) - Vector_GETZ(exclude) * scale;
-	return new_vector(x, y, z);
+	double* arr = malloc(3 * sizeof(double));
+	if (!arr)
+		return PyErr_NoMemory();
+
+	arr[0] = Vector_GETX(vector) - Vector_GETX(exclude) * scale;
+	arr[1] = Vector_GETY(vector) - Vector_GETY(exclude) * scale;
+	arr[2] = Vector_GETZ(vector) - Vector_GETZ(exclude) * scale;
+
+	return new_vector_steal(arr);
 }
 
 static PyObject* evspace_madd(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs) {
@@ -1067,7 +1168,7 @@ static inline EVSpace_CAPI* get_evspace_capi(void) {
 	capi->VectorType = &EVSpace_VectorType;
 	capi->MatrixType = &EVSpace_MatrixType;
 
-	capi->Vector_FromValues = new_vector_ex;
+	capi->Vector_FromArray = vector_from_array;
 	capi->Matrix_FromArray = matrix_from_array;
 
 	capi->EVSpace_Vector_add = evspace_vadd;
@@ -1257,22 +1358,33 @@ PyInit__pyevspace(void)
 	Py_INCREF(&EVSpace_VectorType);
 	Py_INCREF(&EVSpace_MatrixType);
 
+	double* buffer = calloc(3, sizeof(double));
+	if (!buffer) {
+		Py_DECREF(m);
+		Py_DECREF(&EVSpace_VectorType);
+		Py_DECREF(&EVSpace_MatrixType);
+		return NULL;
+	}
 
-	constant = new_vector(1, 0, 0);
+	buffer[0] = 1.0;
+	constant = new_vector(buffer);
 	if (!constant)
 		goto error;
 	if (PyDict_SetItemString(EVSpace_VectorType.tp_dict, "e1", constant) < 0)
 		return NULL;
 	Py_DECREF(constant);
 	
-	constant = new_vector(0, 1, 0);
+	buffer[0] = 0.0, buffer[1] = 1.0;
+	constant = new_vector(buffer);
 	if (!constant)
 		goto error;
 	if (PyDict_SetItemString(EVSpace_VectorType.tp_dict, "e2", constant) < 0)
 		goto error;
 	Py_DECREF(constant);
 
-	constant = new_vector(0, 0, 1);
+	buffer[1] = 0.0, buffer[2] = 1.0;
+	constant = new_vector(buffer);
+	free(buffer);
 	if (!constant)
 		goto error;
 	if (PyDict_SetItemString(EVSpace_VectorType.tp_dict, "e3", constant) < 0)

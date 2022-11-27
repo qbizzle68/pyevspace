@@ -47,8 +47,8 @@ typedef struct {
 	PyTypeObject* MatrixType;
 
 	/* constructors */
-	PyObject* (*Vector_FromValues)(double, double, double, PyTypeObject*);
-	//PyObject* (*Vector_StealArray)(double*, PyTypeObject*);
+	PyObject* (*Vector_FromArray)(double*, PyTypeObject*);
+	PyObject* (*Vector_StealArray)(double*, PyTypeObject*);
 	PyObject* (*Matrix_FromArray)(double(*)[3], PyTypeObject*);
 	PyObject* (*Matrix_StealArray)(double(*)[3], PyTypeObject*);
 
