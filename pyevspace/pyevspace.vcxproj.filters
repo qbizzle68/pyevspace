@@ -35,5 +35,6 @@
     <None Include="examples\arithmetic.py" />
     <None Include="examples\creating.py" />
     <None Include="examples\methods.py" />
+    <None Include="..\setup.py" />
   </ItemGroup>
 </Project>
