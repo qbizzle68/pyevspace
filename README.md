@@ -1,10 +1,10 @@
 # PyEVSpace
 
-PyEVSpace is a Python Euclidean Vector Space module containing Euclidean vector and matrix types. 
-The module is created by extending C code with the Python/C API to ensure the best performance and runs faster than
-the same code implemented directly in python.
-The python types are designed to be used to represent physical vectors and rotations between reference frames, 
-however they can be utilized in other ways if so desired.
+PyEVSpace is a Python Euclidean Vector Space package containing Euclidean vector and matrix types. The types
+are desigend to be used to represent physical vectors and rotations between reference frames, which means they 
+are all 3-dimensional. This means that operations don't require size checking at runtime, which allows for 
+optimum performance. The package only allows 3-dimensional vectors and matrices, so if you need something 
+different, you should use a package more suited to your needs, such as [numpy](https://numpy.org/).
 
 ## Install
 
@@ -17,11 +17,7 @@ Alternatively the repository can be downloaded or cloned using:
 ```bash
 git clone https://github.com/qbizzle68/pyevspace.git
 ```
-and built there using:
-```bash
-py setup.py build
-```
-This is only recommended if editing the source code and testing its functionality. Most users should install using `pip`.
+It can be used as is within Visual Studio, or built using setup.py if needed.
 
 ## Usage
 
@@ -30,13 +26,13 @@ To use the module simply import the pyevspace module into your project:
 from pyevspace import *
 
 # create vector
-vec = EVector(1, 2, 3)
+vec = EVector((1, 2, 3))
 
 # create matrix from sequences
-mat = EMatrix( ((1, 3, 2), (7, 4, 3), (8, 4, 2)) )
+mat = EMatrix((1, 3, 2), (7, 4, 3), (8, 4, 2))
 
 # rotate vector
-rotated = mat @ vec
+rotated = mat * vec
 ```
 The module only contains two types, and a handful of module level methods, so it is probably necessary to import everything.
 However, if you don't wish to overpopulate the namespace, you can import the module using an alias:
@@ -50,39 +46,39 @@ vec = evs.EVector()
 
 ### Examples of numeric operators
 ```python
-v1 = EVector(1, 2, 3)
-v2 = EVector(4, 5, 6)
+v1 = EVector((1, 2, 3))
+v2 = EVector((4, 5, 6))
 
 print(v1 * 2)
-# prints [ 2.00000, 4.00000, 6.00000 ]
+# prints [2, 4, 6]
 
 print(v1 + v2)
-# prints [ 5.00000, 7.00000, 9.00000 ]
+# prints [5, 7, 9]
 
 print(v1 - v2)
-# prints [-3.00000, -3.00000, -3.00000 ]
+# prints [-3, -3, -3]
 ```
 
 ### Examples of vector and matrix operators
 ```python
-v1 = EVector(1, 2, 3)
-v2 = EVector(4, 5, 6)
+v1 = EVector((1, 2, 3))
+v2 = EVector((4, 5, 6))
 m1 = EMatrix( EVector(4, 2, 3), EVector(8, 5, 2), EVector(4, 2, 1) )
 
-print( dot(v1, v2) )
+print(dot(v1, v2))
 # prints 32.0
 
-print( cross(v1, v2) )
+print(cross(v1, v2))
 # prints [ -3.00000, 6.00000, -3.00000 ]
 
-print( det(m1) )
+print(det(m1))
 # prints -8.0
 
-print( transpose(m1) )
+print(transpose(m1))
 # prints 
-# [ 4.00000, 2.00000, 3.00000 ]
-# [ 8.00000, 5.00000, 2.00000 ]
-# [ 4.00000, 2.00000, 1.00000 ]
+# ([4, 2, 3],
+# [8, 5, 2],
+# [4, 2, 1])
 ```
 
 ## Methods and operators
@@ -109,17 +105,14 @@ print( transpose(m1) )
 - `+=` inplace addition (other `EMatrix`)
 - `-` subtraction (other `EMatrix`)
 - `-=` inplace subtraction (other `EMatrix`)
-- `*` multiplication (floats or ints)
+- `*` multiplication (floats or ints or other `EVector` or other `EMatrix`)
 - `*=` inplace multiplication (floats or ints)
-- `@` matrix multiplication (other `EMatrix` or `EVector`)
-- `@=` inplace matrix multiplication (other `EMatrix` or `EVector`)
 - `/` division (floats or ints)
 - `/=` inplace division (floats or ints)
 
 `EMatrix` methods:
-- `get(row, column)` gets a component of a matrix
-- `set(row, column, value)` sets a comonent of a matrix to a value
-- `copy()` creates a deep copy of the matrix
+- `[1, 1]` gets a component of a matrix
+- `[0, 2] = 4` sets a component of a matrix to a value
 
 module level methods:
 - `dot(EVector, EVector)` vector dot product
