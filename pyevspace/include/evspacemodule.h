@@ -28,14 +28,6 @@ typedef struct {
 
 
 /* define macros for accessing EVSpace_Matrix values */
-/**
- * Mapping from row, column indices: (3 * row) + column.
- * Bitwise achieved by (3 * r) + c => ((2 + 1) * r) + c
- *	=> (2 * r) + r + c => (r << 1) + r + c
- */
-/*#define ROWCOL_TOINDEX(r, c)	(((r)<<1) + (r) + (c))
-#define EVSpace_MATRIX_GET(o, r, c)		(((EVSpace_Matrix*)o)->data[ROWCOL_TOINDEX(r, c)])
-#define EVSpace_MATRIX_SET(o, r, c, v)	(EVSpace_MATRIX_GET(o, r, c) = (v))*/
 #define EVSpace_MATRIX_GET(o, r, c)		(((EVSpace_Matrix*)o)->data[r][c])
 #define EVSpace_MATRIX_SET(o, r, c, v)	(EVSpace_MATRIX_GET(o, r, c) = (v))
 
@@ -72,7 +64,6 @@ typedef struct {
 	PyObject* (*EVSpace_Matrix_divide)(const EVSpace_Matrix*, double);
 	void (*EVSpace_Matrix_iadd)(EVSpace_Matrix*, const EVSpace_Matrix*);
 	void (*EVSpace_Matrix_isubtract)(EVSpace_Matrix*, const EVSpace_Matrix*);
-	//void (*EVSpace_Matrix_imultiply_matrix)(EVSpace_Matrix*, const EVSpace_Matrix*);
 	void (*EVSpace_Matrix_imultiply_scalar)(EVSpace_Matrix*, double);
 	void (*EVSpace_Matrix_idivide)(EVSpace_Matrix*, double);
 	PyObject* (*EVSpace_Matrix_negative)(const EVSpace_Matrix*);
@@ -106,9 +97,10 @@ static EVSpace_CAPI* EVSpaceAPI = NULL;
 #define EVSpace_IMPORT EVSpaceAPI = (EVSpace_CAPI *)PyCapsule_Import(EVSpace_CAPSULE_NAME, 0)
 
 /* macros for simplified constructor calls */
-#define Vector_FromValues(x, y, z)		EVSpaceAPI->Vector_FromValues(x, y, z, EVSpace_CAPI->VectorType)
-#define Matrix_FromArray(arr)			EVSpaceAPI->Matrix_FromArray(arr, EVSpace_CAPI->MatrixType)
-#define Matrix_StealArray(arr)			EVSpaceAPI->Matrix_StealArray(arr, EVSpace_CAPI->MatrixType)
+#define Vector_FromArray(arr)		EVSpaceAPI->Vector_FromValues(arr, EVSpace_CAPI->VectorType)
+#define Vector_StealArray(arr)		EVSpaceAPI->Vector_StealArray(arr, EVSpace_CAPI->VectorType)
+#define Matrix_FromArray(arr)		EVSpaceAPI->Matrix_FromArray(arr, EVSpace_CAPI->MatrixType)
+#define Matrix_StealArray(arr)		EVSpaceAPI->Matrix_StealArray(arr, EVSpace_CAPI->MatrixType)
 
 /* macros for C API */
 #define EVSpace_Vector_add(rhs, lhs, ans)			EVSpaceAPI->EVSpace_Vector_add(rhs, lhs, ans)
