@@ -7,13 +7,11 @@
 #define _EVSPACE_IMPL
 #include <evspacemodule.h>
 
-#define PI 3.14159265358979323846
-
 /* define macros for type checking EVSpace types */
 #define Vector_Check(o)			PyObject_TypeCheck(o, &EVSpace_VectorType)
-#define Vector_CheckExact(o)	Py_IS_TYPE(o, &EVSpace_VectorType)
+//#define Vector_CheckExact(o)	Py_IS_TYPE(o, &EVSpace_VectorType)
 #define Matrix_Check(o)			PyObject_TypeCheck(o, &EVSpace_MatrixType)
-#define Matrix_CheckExact(o)	Py_IS_TYPE(o, &EVSpace_MatrixType)
+//#define Matrix_CheckExact(o)	Py_IS_TYPE(o, &EVSpace_MatrixType)
 
 /* shorten macros for readability */
 #define Vector_GETX(o)			EVSpace_VECTOR_GETX(o)
@@ -22,6 +20,7 @@
 #define Vector_SETX(o, v)		EVSpace_VECTOR_SETX(o, v)
 #define Vector_SETY(o, v)		EVSpace_VECTOR_SETY(o, v)
 #define Vector_SETZ(o, v)		EVSpace_VECTOR_SETZ(o, v)
+#define Vector_INDEX(v, i)		(v->data[i])
 #define Matrix_GET(o, r, c)		EVSpace_MATRIX_GET(o, r, c)
 #define Matrix_SET(o, r, c, v)	EVSpace_MATRIX_SET(o, r, c, v)
 
@@ -29,8 +28,18 @@
 static PyTypeObject EVSpace_VectorType;
 static PyTypeObject EVSpace_MatrixType;
 
+/**
+ *	\\ constructors \\
+ * 
+ * Two constructors for the vector exist, one which copies the contents of
+ * an array into the newly allocated vector, and another that trades pointers
+ * to a data array. Functions that call the constructor are responsible for
+ * allocating and freeing memory of the state arrays with the exception of
+ * course being when the array is 'stolen'. If the state array is NULL the
+ * vector values will be initialized to 0. Macros also exist to simplify 
+ * the calls to these constructors.
+ */
 
-/* vector constructor for C API */
 static PyObject* 
 vector_from_array(const double* arr, PyTypeObject* type)
 {
@@ -38,12 +47,24 @@ vector_from_array(const double* arr, PyTypeObject* type)
 	if (!self)
 		return NULL;
 
-	self->data = malloc(3 * sizeof(double));
+	if (arr) {
+		self->data = malloc(3 * sizeof(double));
+		if (!self->data)
+			return PyErr_NoMemory();
+		memcpy(self->data, arr, 3 * sizeof(double));
+	}
+	else {
+		self->data = calloc(3, sizeof(double));
+		if (!self->data)
+			return PyErr_NoMemory();
+	}
+
+	/*self->data = malloc(3 * sizeof(double));
 	if (!self->data)
 		return PyErr_NoMemory();
 
 	if (arr)
-		memcpy(self->data, arr, 3 * sizeof(double));
+		memcpy(self->data, arr, 3 * sizeof(double));*/
 
 	return (PyObject*)self;
 }
@@ -56,25 +77,26 @@ vector_steal_array(double* arr, PyTypeObject* type)
 	EVSpace_Vector* self = (EVSpace_Vector*)(type->tp_alloc(type, 0));
 	if (!self)
 		return NULL;
+
 	self->data = arr;
 	arr = NULL;
 
 	return (PyObject*)self;
 }
 
-static void 
-vector_free(void* self) 
+/* macros to simplify the constructor calls */
+#define new_vector(a)		vector_from_array(a, &EVSpace_VectorType)
+#define new_vector_empty	vector_from_array(NULL, &EVSpace_VectorType)
+#define new_vector_steal(a) vector_steal_array(a, &EVSpace_VectorType)
+
+static void
+vector_free(void* self)
 {
 	free(((EVSpace_Vector*)self)->data);
 }
 
-/* macros to simplify the constructor calls */
-#define new_vector(a)	vector_from_array(a, &EVSpace_VectorType)
-#define new_vector_empty vector_from_array(NULL, &EVSpace_VectorType)
-#define new_vector_steal(a) vector_steal_array(a, &EVSpace_VectorType)
-
 /* get double from PyObject */
-static double 
+static inline double 
 get_double(PyObject* arg) 
 {
 	double value = PyFloat_AsDouble(arg);
@@ -89,7 +111,7 @@ get_double(PyObject* arg)
 static PyObject* 
 get_state_sequence(PyObject* arg, double* arr)
 {
-	// todo: get data from buffer first if able
+	assert(arr != NULL);
 
 	char* err = "";
 	// what do we do with err?
@@ -102,15 +124,40 @@ get_state_sequence(PyObject* arg, double* arr)
 	
 	if (PySequence_Fast_GET_SIZE(fast_sequence) == 3) {
 		PyObject** items = PySequence_Fast_ITEMS(fast_sequence);
-		arr[0] = get_double(items[0]);
-		if (arr[0] == -1.0 && PyErr_Occurred())
-			goto error;
+
+		arr[0] = PyFloat_AsDouble(items[0]);
+		if (arr[0] == -1.0 && PyErr_Occurred()) {
+			PyErr_SetString(PyExc_TypeError, "value must be a numeric type");
+			Py_DECREF(fast_sequence);
+			return NULL;
+		}
+
+		arr[1] = PyFloat_AsDouble(items[1]);
+		if (arr[1] == -1.0 && PyErr_Occurred()) {
+			PyErr_SetString(PyExc_TypeError, "value must be a numeric type");
+			Py_DECREF(fast_sequence);
+			return NULL;
+		}
+
+		arr[2] = PyFloat_AsDouble(items[2]);
+		if (arr[2] == -1.0 && PyErr_Occurred()) {
+			PyErr_SetString(PyExc_TypeError, "value must be a numeric type");
+			Py_DECREF(fast_sequence);
+			return NULL;
+		}
+
+		/*arr[0] = get_double(items[0]);
+		if (arr[0] == -1.0 && PyErr_Occurred()) {
+			Py_DECREF(fast_sequence);
+			return NULL;
+		}
+
 		arr[1] = get_double(items[1]);
 		if (arr[1] == -1.0 && PyErr_Occurred())
 			goto error;
 		arr[2] = get_double(items[2]);
 		if (arr[2] == -1.0 && PyErr_Occurred())
-			goto error;
+			goto error;*/
 
 		return arg;
 	}
@@ -118,10 +165,6 @@ get_state_sequence(PyObject* arg, double* arr)
 		PyErr_SetString(PyExc_ValueError, "a sequence or iterable must have exactly 3 elements");
 		return NULL;
 	}
-
-error:
-	Py_DECREF(fast_sequence);
-	return NULL;
 }
 
 static PyObject* 
@@ -129,6 +172,7 @@ vector_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED)
 {
 	PyObject* parameter = Py_None;
 
+	// constuctor argument is optional sequence (allows default constructor)
 	if (!PyArg_ParseTuple(args, "|O", &parameter))
 		return NULL;
 	
@@ -138,6 +182,7 @@ vector_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED)
 	double* arr = malloc(3 * sizeof(double));
 	if (!arr)
 		return PyErr_NoMemory();
+
 	PyObject* result = get_state_sequence(parameter, arr);
 	if (!result)
 		return NULL;
@@ -149,14 +194,19 @@ vector_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED)
 static PyObject* 
 vector_str(const EVSpace_Vector* self) 
 {
-	int buffer_size = snprintf(NULL, 0, "[%g, %g, %g]", Vector_GETX(self), Vector_GETY(self), Vector_GETZ(self));
+	// see how many bytes snprintf would write, then allocate that memory
+	int buffer_size = snprintf(NULL, 0, "[%g, %g, %g]", 
+							   Vector_GETX(self), Vector_GETY(self), Vector_GETZ(self));
+
 	char* buffer = malloc(buffer_size + 1);
 	if (!buffer)
 		return PyErr_NoMemory();
-	sprintf(buffer, "[%g, %g, %g]", Vector_GETX(self), Vector_GETY(self), Vector_GETZ(self));
 
+	// don't need snprintf because we now how many bytes will be written
+	sprintf(buffer, "[%g, %g, %g]", Vector_GETX(self), Vector_GETY(self), Vector_GETZ(self));
 	PyObject* rtn = PyUnicode_FromString(buffer);
 	free(buffer);
+
 	return rtn;
 }
 
@@ -169,10 +219,24 @@ vector_iter(PyObject* self)
 }
 
 static PyObject* 
-vector_next(PyObject* self) 
+vector_next(PyObject* self)
 {
 	EVSpace_Vector* itr = (EVSpace_Vector*)self;
-	if (itr->itr_number < 3) {
+	int index = itr->itr_number;
+	PyObject* rtn = NULL;
+
+	if (index < 3) {
+		rtn = PyFloat_FromDouble(Vector_INDEX(itr, index));
+		//rtn = PyFloat_FromDouble(itr->data[itr->itr_number]);
+		if (rtn)
+			(itr->itr_number)++;
+	}
+	else
+		PyErr_SetNone(PyExc_StopIteration);
+
+	return rtn;
+
+	/*if (itr->itr_number < 3) {
 		PyObject* value = PyFloat_FromDouble(itr->data[itr->itr_number]);
 		if (value)
 			(itr->itr_number)++;
@@ -181,7 +245,7 @@ vector_next(PyObject* self)
 	else {
 		PyErr_SetNone(PyExc_StopIteration);
 		return NULL;
-	}
+	}*/
 }
 
 #define ULP_MAXIMUM	10 // this is a guess, 1 seems too stringent 
@@ -221,7 +285,6 @@ vector_richcompare(PyObject* self, PyObject* other, int op)
 	Py_RETURN_NOTIMPLEMENTED;
 }
 
-/* number methods */
 // factor should be 1 for addition, -1 for subtration
 static PyObject* 
 add_vector_vector(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs, int factor) 
@@ -267,6 +330,7 @@ mult_vector_scalar(const EVSpace_Vector* lhs, double rhs)
 	arr[0] = Vector_GETX(lhs) * rhs;
 	arr[1] = Vector_GETY(lhs) * rhs;
 	arr[2] = Vector_GETZ(lhs) * rhs;
+
 	return new_vector_steal(arr);
 }
 
@@ -279,6 +343,7 @@ vector_multiply(PyObject* lhs, PyObject* rhs)
 			return NULL;
 		return mult_vector_scalar((EVSpace_Vector*)lhs, scalar);
 	}
+
 	Py_RETURN_NOTIMPLEMENTED;
 }
 
@@ -305,6 +370,7 @@ vector_divide(PyObject* lhs, PyObject* rhs)
 			return NULL;
 		return div_vector_scalar((EVSpace_Vector*)lhs, scalar);
 	}
+
 	Py_RETURN_NOTIMPLEMENTED;
 }
 
@@ -325,6 +391,7 @@ vector_iadd(PyObject* lhs, PyObject* rhs)
 		iadd_vector_vector((EVSpace_Vector*)lhs, (EVSpace_Vector*)rhs, 1);
 		return Py_NewRef(lhs);
 	}
+
 	Py_RETURN_NOTIMPLEMENTED;
 }
 
@@ -335,6 +402,7 @@ vector_isubtract(PyObject* lhs, PyObject* rhs)
 		iadd_vector_vector((EVSpace_Vector*)lhs, (EVSpace_Vector*)rhs, -1);
 		return Py_NewRef(lhs);
 	}
+
 	Py_RETURN_NOTIMPLEMENTED;
 }
 
@@ -353,9 +421,12 @@ vector_imultiply(PyObject* lhs, PyObject* rhs)
 		double scalar = PyFloat_AsDouble(rhs);
 		if (scalar == -1.0 && PyErr_Occurred())
 			return NULL;
+
 		imult_vector_scalar((EVSpace_Vector*)lhs, scalar);
+
 		return Py_NewRef(lhs);
 	}
+
 	Py_RETURN_NOTIMPLEMENTED;
 }
 
@@ -374,9 +445,12 @@ vector_idivide(PyObject* lhs, PyObject* rhs)
 		double scalar = PyFloat_AsDouble(rhs);
 		if (scalar == -1.0 && PyErr_Occurred())
 			return NULL;
+
 		idiv_vector_scalar((EVSpace_Vector*)lhs, scalar);
+
 		return Py_NewRef(lhs);
 	}
+
 	Py_RETURN_NOTIMPLEMENTED;
 }
 
@@ -399,23 +473,22 @@ vector_negative(PyObject* self)
 {
 	if (!Vector_Check(self))
 		return NULL;
+
 	return neg_vector((EVSpace_Vector*)self);
 }
 
 static PyNumberMethods vector_as_number = {
-	.nb_add = (binaryfunc)vector_add,
-	.nb_subtract = (binaryfunc)vector_subtract,
-	.nb_multiply = (binaryfunc)vector_multiply,
-	.nb_true_divide = (binaryfunc)vector_divide,
-	.nb_negative = (unaryfunc)vector_negative,
-	.nb_inplace_add = (binaryfunc)vector_iadd,
-	.nb_inplace_subtract = (binaryfunc)vector_isubtract,
-	.nb_inplace_multiply = (binaryfunc)vector_imultiply,
+	.nb_add					= (binaryfunc)vector_add,
+	.nb_subtract			= (binaryfunc)vector_subtract,
+	.nb_multiply			= (binaryfunc)vector_multiply,
+	.nb_true_divide			= (binaryfunc)vector_divide,
+	.nb_negative			= (unaryfunc)vector_negative,
+	.nb_inplace_add			= (binaryfunc)vector_iadd,
+	.nb_inplace_subtract	= (binaryfunc)vector_isubtract,
+	.nb_inplace_multiply	= (binaryfunc)vector_imultiply,
 	.nb_inplace_true_divide = (binaryfunc)vector_idivide,
 };
 
-
-/* vector sequence methods */
 static Py_ssize_t 
 vector_length(EVSpace_Vector* self) 
 {
@@ -426,17 +499,21 @@ static PyObject*
 vector_get(EVSpace_Vector* self, Py_ssize_t index) 
 {
 	if (index < 0 || index > 2) {
-		PyErr_SetString(PyExc_IndexError, "index must be in [0-2]");
+		PyErr_Format(PyExc_IndexError, "index (%i) must be in [0-2]", index);
+		//PyErr_SetString(PyExc_IndexError, "index must be in [0-2]");
 		return NULL;
 	}
-	return PyFloat_FromDouble(self->data[index]);
+
+	//return PyFloat_FromDouble(self->data[index]);
+	return PyFloat_FromDouble(Vector_INDEX(self, index));
 }
 
 static int 
 vector_set(EVSpace_Vector* self, Py_ssize_t index, PyObject* arg) 
 {
 	if (index < 0 || index > 2) {
-		PyErr_SetString(PyExc_IndexError, "index must be in [0-2]");
+		//PyErr_SetString(PyExc_IndexError, "index must be in [0-2]");
+		PyErr_Format(PyExc_IndexError, "index (%i) must be in [0-2]", index);
 		return -1;
 	}
 
@@ -444,17 +521,18 @@ vector_set(EVSpace_Vector* self, Py_ssize_t index, PyObject* arg)
 	if (value == -1.0 && PyErr_Occurred())
 		return -1;
 
-	self->data[index] = value;
+	Vector_INDEX(self, index) = value;
+	//self->data[index] = value;
 	return 0;
 }
 
 static PySequenceMethods vector_as_sequence = {
-	.sq_length = (lenfunc)vector_length,
-	.sq_item = (ssizeargfunc)vector_get,
-	.sq_ass_item = (ssizeobjargproc)vector_set,
+	.sq_length		= (lenfunc)vector_length,
+	.sq_item		= (ssizeargfunc)vector_get,
+	.sq_ass_item	= (ssizeobjargproc)vector_set,
 };
 
-#define BUFFER_RELEASE_SHAPE	1
+#define BUFFER_RELEASE_SHAPE	0x1
 
 static int 
 vector_buffer_get(PyObject* obj, Py_buffer* view, int flags)
@@ -495,7 +573,8 @@ vector_buffer_get(PyObject* obj, Py_buffer* view, int flags)
 	return 0;
 }
 
-void buffer_release(PyObject* obj, Py_buffer* view)
+void 
+buffer_release(PyObject* obj, Py_buffer* view)
 {
 	if (view->internal != NULL) {
 		if (*((int*)view->internal) | BUFFER_RELEASE_SHAPE)
@@ -550,8 +629,10 @@ vector_normalize(PyObject* self, PyObject* Py_UNUSED)
 	}
 
 	EVSpace_Vector* vector_self = (EVSpace_Vector*)self;
+
 	double mag = VECTOR_MAG(vector_self);
 	idiv_vector_scalar(vector_self, mag);
+
 	Py_RETURN_NONE;
 }
 
@@ -571,7 +652,7 @@ static PyMethodDef vector_methods[] = {
 	{NULL}
 };
 
-PyDoc_STRVAR(vector_doc, "");
+PyDoc_STRVAR(vector_doc, "Data type representing a 3 dimensional vector in a Euclidean vector space.");
 
 static PyTypeObject EVSpace_VectorType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
