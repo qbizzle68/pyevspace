@@ -173,7 +173,6 @@
     <ClInclude Include="include\evspacemodule.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\setup.py" />
     <None Include="examples\arithmetic.py" />
     <None Include="examples\creating.py" />
     <None Include="examples\methods.py" />
