@@ -1,5 +1,15 @@
 """Module for a 3-dimensional Euclidean vector space with a vector and matrix type as well as necessary methods to use 
-them."""
+them.
+
+"""
+
+try:
+    with open('README.md', 'r') as f:
+        readme = f.read()
+
+    __doc__ += readme
+except Exception:
+    pass
 
 try:
     from _pyevspace import *
