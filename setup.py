@@ -10,7 +10,7 @@ ext_modules = [Extension(
 )]
 
 setup(name='pyevspace',
-      version='0.0.11',
+      version='0.0.11.1',
       author='Quinton Barnes',
       author_email='devqbizzle68@gmail.com',
       description='A Euclidean vector space module.',
