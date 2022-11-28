@@ -61,13 +61,6 @@ vector_from_array(const double* arr, PyTypeObject* type)
 			return PyErr_NoMemory();
 	}
 
-	/*self->data = malloc(3 * sizeof(double));
-	if (!self->data)
-		return PyErr_NoMemory();
-
-	if (arr)
-		memcpy(self->data, arr, 3 * sizeof(double));*/
-
 	return (PyObject*)self;
 }
 
@@ -95,7 +88,6 @@ static void
 vector_free(void* self)
 {
 	free(Vector_DATA(self));
-	//free(((EVSpace_Vector*)self)->data);
 }
 
 /* get double from PyObject */
@@ -148,19 +140,6 @@ get_state_sequence(PyObject* arg, double* arr)
 			Py_DECREF(fast_sequence);
 			return NULL;
 		}
-
-		/*arr[0] = get_double(items[0]);
-		if (arr[0] == -1.0 && PyErr_Occurred()) {
-			Py_DECREF(fast_sequence);
-			return NULL;
-		}
-
-		arr[1] = get_double(items[1]);
-		if (arr[1] == -1.0 && PyErr_Occurred())
-			goto error;
-		arr[2] = get_double(items[2]);
-		if (arr[2] == -1.0 && PyErr_Occurred())
-			goto error;*/
 
 		return arg;
 	}
@@ -230,7 +209,6 @@ vector_next(PyObject* self)
 
 	if (index < 3) {
 		rtn = PyFloat_FromDouble(Vector_INDEX(itr, index));
-		//rtn = PyFloat_FromDouble(itr->data[itr->itr_number]);
 		if (rtn)
 			(itr->itr_number)++;
 	}
@@ -238,17 +216,6 @@ vector_next(PyObject* self)
 		PyErr_SetNone(PyExc_StopIteration);
 
 	return rtn;
-
-	/*if (itr->itr_number < 3) {
-		PyObject* value = PyFloat_FromDouble(itr->data[itr->itr_number]);
-		if (value)
-			(itr->itr_number)++;
-		return value;
-	}
-	else {
-		PyErr_SetNone(PyExc_StopIteration);
-		return NULL;
-	}*/
 }
 
 #define ULP_MAXIMUM	10 // this is a guess, 1 seems too stringent 
@@ -514,11 +481,9 @@ vector_get(EVSpace_Vector* self, Py_ssize_t index)
 {
 	if (index < 0 || index > 2) {
 		PyErr_Format(PyExc_IndexError, "index (%i) must be in [0-2]", index);
-		//PyErr_SetString(PyExc_IndexError, "index must be in [0-2]");
 		return NULL;
 	}
 
-	//return PyFloat_FromDouble(self->data[index]);
 	return PyFloat_FromDouble(Vector_INDEX(self, index));
 }
 
@@ -526,7 +491,6 @@ static int
 vector_set(EVSpace_Vector* self, Py_ssize_t index, PyObject* arg) 
 {
 	if (index < 0 || index > 2) {
-		//PyErr_SetString(PyExc_IndexError, "index must be in [0-2]");
 		PyErr_Format(PyExc_IndexError, "index (%i) must be in [0-2]", index);
 		return -1;
 	}
@@ -536,7 +500,7 @@ vector_set(EVSpace_Vector* self, Py_ssize_t index, PyObject* arg)
 		return -1;
 
 	Vector_INDEX(self, index) = value;
-	//self->data[index] = value;
+
 	return 0;
 }
 
@@ -570,9 +534,7 @@ vector_buffer_get(PyObject* obj, Py_buffer* view, int flags)
 	}
 	*internal = BUFFER_RELEASE_SHAPE;
 
-	//EVSpace_Vector* self = (EVSpace_Vector*)obj;
 	view->obj = obj;
-	//view->buf = self->data;
 	view->buf = Vector_DATA(obj);
 	view->len = 3 * sizeof(double);
 	view->readonly = 0;
@@ -766,7 +728,6 @@ matrix_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED)
 
 static void matrix_free(void* self) {
 	free(Matrix_DATA(self));
-	//free(((EVSpace_Matrix*)self)->data);
 }
 
 static PyObject* 
@@ -824,19 +785,6 @@ add_matrix_matrix(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs, int fact
 	lhs_state[2][1] = Matrix_GET(lhs, 2, 1) + rhs_state[2][1] * factor;
 	lhs_state[2][2] = Matrix_GET(lhs, 2, 2) + rhs_state[2][2] * factor;
 
-	/*get_matrix_state(lhs, lhs_state);
-	const double(*rhs_state)[3] = rhs->data;
-
-	lhs_state[0][0] += rhs_state[0][0] * factor;
-	lhs_state[0][1] += rhs_state[0][1] * factor;
-	lhs_state[0][2] += rhs_state[0][2] * factor;
-	lhs_state[1][0] += rhs_state[1][0] * factor;
-	lhs_state[1][1] += rhs_state[1][1] * factor;
-	lhs_state[1][2] += rhs_state[1][2] * factor;
-	lhs_state[2][0] += rhs_state[2][0] * factor;
-	lhs_state[2][1] += rhs_state[2][1] * factor;
-	lhs_state[2][2] += rhs_state[2][2] * factor;*/
-
 	PyObject* rtn = new_matrix_steal(lhs_state);
 	if (!rtn)
 		free(lhs_state);
@@ -886,20 +834,6 @@ multiply_matrix_scalar_states(const double(* const mat)[3], double rhs, double(*
 	ans[2][2] = mat[2][2] * rhs;
 }
 
-/*static inline void
-imultiply_matrix_scalar_states(double (* const mat)[3], double rhs) 
-{
-	mat[0][0] *= rhs;
-	mat[0][1] *= rhs;
-	mat[0][2] *= rhs;
-	mat[1][0] *= rhs;
-	mat[1][1] *= rhs;
-	mat[1][2] *= rhs;
-	mat[2][0] *= rhs;
-	mat[2][1] *= rhs;
-	mat[2][2] *= rhs;
-}*/
-
 static PyObject* 
 multiply_matrix_scalar(const EVSpace_Matrix* lhs, double rhs) 
 {
@@ -914,11 +848,6 @@ multiply_matrix_scalar(const EVSpace_Matrix* lhs, double rhs)
 		free(ans);
 
 	return rtn;
-
-	/*get_matrix_state(lhs, ans);
-	
-	imultiply_matrix_scalar_states(ans, rhs);
-	return new_matrix_steal(ans);*/
 }
 
 static PyObject* 
@@ -976,9 +905,6 @@ matrix_multiply(PyObject* lhs, PyObject* rhs)
 			if (scalar == -1.0 && PyErr_Occurred())
 				return NULL;
 
-			/*double scalar = get_double(rhs);
-			if (scalar == -1.0 && PyErr_Occurred())
-				return NULL;*/
 			return multiply_matrix_scalar((EVSpace_Matrix*)lhs, scalar);
 		}
 	}
@@ -990,10 +916,8 @@ static PyObject*
 matrix_divide(PyObject* lhs, PyObject* rhs) 
 {
 	if (Matrix_Check(lhs)) {
-		// todo: just call PyFloat_AsDouble here
 		if (PyNumber_Check(rhs)) {
 			double scalar = PyFloat_AsDouble(rhs);
-			//double scalar = get_double(rhs);
 			if (scalar == -1.0 && PyErr_Occurred())
 				return NULL;
 
@@ -1066,11 +990,9 @@ matrix_imultiply(PyObject* lhs, PyObject* rhs)
 	if (Matrix_Check(lhs)) {
 		if (PyNumber_Check(rhs)) {
 			double scalar = PyFloat_AsDouble(rhs);
-			//double scalar = get_double(rhs);
 			if (scalar == -1.0 && PyErr_Occurred())
 				return NULL;
 
-			//imultiply_matrix_scalar_states(((EVSpace_Matrix*)lhs)->data, scalar);
 			imultiply_matrix_scalar_states(Matrix_DATA(lhs), scalar);
 
 			return Py_NewRef(lhs);
@@ -1085,11 +1007,9 @@ matrix_idivide(PyObject* lhs, PyObject* rhs)
 {
 	if (Matrix_Check(lhs) && PyNumber_Check(rhs)) {
 		double scalar = PyFloat_AsDouble(rhs);
-		//double scalar = get_double(rhs);
 		if (scalar == -1.0 && PyErr_Occurred())
 			return NULL;
 		
-		//imultiply_matrix_scalar_states(((EVSpace_Matrix*)lhs)->data, 1.0 / scalar);
 		imultiply_matrix_scalar_states(Matrix_DATA(lhs), 1.0 / scalar);
 
 		return Py_NewRef(lhs);
@@ -1114,18 +1034,6 @@ neg_matrix(const EVSpace_Matrix* self)
 	state[2][0] = -Matrix_GET(self, 2, 0);
 	state[2][1] = -Matrix_GET(self, 2, 1);
 	state[2][2] = -Matrix_GET(self, 2, 2);
-
-	/*get_matrix_state(self, state);
-
-	state[0][0] = -state[0][0];
-	state[0][1] = -state[0][1];
-	state[0][2] = -state[0][2];
-	state[1][0] = -state[1][0];
-	state[1][1] = -state[1][1];
-	state[1][2] = -state[1][2];
-	state[2][0] = -state[2][0];
-	state[2][1] = -state[2][1];
-	state[2][2] = -state[2][2];*/
 
 	PyObject* rtn = new_matrix_steal(state);
 	if (!rtn)
@@ -1171,11 +1079,6 @@ matrix_get(PyObject* self, PyObject* args)
 		return NULL;
 	}
 
-	/*if (row < 0 || row > 2 || col < 0 || col > 2) {
-		PyErr_SetString(PyExc_IndexError, "row and column index must be in [0-2]");
-		return NULL;
-	}*/
-
 	return PyFloat_FromDouble(Matrix_GET(self, row, col));
 }
 
@@ -1195,13 +1098,7 @@ matrix_set(PyObject* self, PyObject* args, PyObject* value)
 		return -1;
 	}
 
-	/*if (row < 0 || row > 2 || col < 0 || col > 2) {
-		PyErr_SetString(PyExc_IndexError, "row and column index must be in [0-2]");
-		return -1;
-	}*/
-
 	double value_double = PyFloat_AsDouble(value);
-	//double value_double = get_double(value);
 	if (value_double == -1 && PyErr_Occurred())
 		return -1;
 
@@ -1236,9 +1133,7 @@ matrix_buffer_get(PyObject* obj, Py_buffer* view, int flags)
 	}
 	*internal = BUFFER_RELEASE_SHAPE;
 
-	//EVSpace_Matrix* self = (EVSpace_Matrix*)obj;
 	view->obj = obj;
-	//view->buf = self->data;
 	view->buf = Matrix_DATA(obj);
 	view->len = 9 * sizeof(double);
 	view->readonly = 0;
@@ -1454,11 +1349,6 @@ evspace_mdiv(const EVSpace_Matrix* lhs, double rhs)
 		free(ans);
 
 	return rtn;
-
-	/*get_matrix_state(lhs, ans);
-
-	imultiply_matrix_scalar_states(ans, 1.0 / rhs);
-	return new_matrix_steal(ans);*/
 }
 
 static void 
@@ -1635,7 +1525,6 @@ vector_norm(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size)
 		return NULL;
 	}
 
-	//EVSpace_Vector* self = (EVSpace_Vector*)args[0];
 	return evspace_norm((EVSpace_Vector*)args[0]);
 }
 
