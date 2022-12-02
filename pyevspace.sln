@@ -8,11 +8,46 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{99F93E6C-B4FF-46A9-A563-9AE89CBF9CD2}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
+		docs\source\conf.py = docs\source\conf.py
 		LICENSE.txt = LICENSE.txt
 		MANIFEST.in = MANIFEST.in
 		pypi_build_upload.bat = pypi_build_upload.bat
 		README.md = README.md
 		setup.py = setup.py
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{A4204D87-0FF2-4065-BA6B-0DD092521C4E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "source", "source", "{66821A6A-C0BC-4017-B144-4BCD7814C53D}"
+	ProjectSection(SolutionItems) = preProject
+		docs\source\conf.py = docs\source\conf.py
+		docs\source\index.rst = docs\source\index.rst
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "reference", "reference", "{4B35BEF0-9B99-464A-BE8E-C1D2123F69D7}"
+	ProjectSection(SolutionItems) = preProject
+		docs\source\reference\index.rst = docs\source\reference\index.rst
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "user", "user", "{BCDDE53B-5C3F-4E0C-91D3-76AE98EDA4D0}"
+	ProjectSection(SolutionItems) = preProject
+		docs\source\user\desc.rst = docs\source\user\desc.rst
+		docs\source\user\examples.rst = docs\source\user\examples.rst
+		docs\source\user\index.rst = docs\source\user\index.rst
+		docs\source\user\install.rst = docs\source\user\install.rst
+		docs\source\user\usage.rst = docs\source\user\usage.rst
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "api", "api", "{9C9921A2-239B-4F57-8216-0E7753EB7829}"
+	ProjectSection(SolutionItems) = preProject
+		docs\source\reference\api\ematrix.rst = docs\source\reference\api\ematrix.rst
+		docs\source\reference\api\evector.rst = docs\source\reference\api\evector.rst
+		docs\source\reference\api\index.rst = docs\source\reference\api\index.rst
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "c-api", "c-api", "{F0A423DB-B9B8-4D49-A2AD-A15C388AFBA0}"
+	ProjectSection(SolutionItems) = preProject
+		docs\source\reference\c-api\index.rst = docs\source\reference\c-api\index.rst
 	EndProjectSection
 EndProject
 Global
@@ -38,6 +73,14 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A4204D87-0FF2-4065-BA6B-0DD092521C4E} = {99F93E6C-B4FF-46A9-A563-9AE89CBF9CD2}
+		{66821A6A-C0BC-4017-B144-4BCD7814C53D} = {A4204D87-0FF2-4065-BA6B-0DD092521C4E}
+		{4B35BEF0-9B99-464A-BE8E-C1D2123F69D7} = {66821A6A-C0BC-4017-B144-4BCD7814C53D}
+		{BCDDE53B-5C3F-4E0C-91D3-76AE98EDA4D0} = {66821A6A-C0BC-4017-B144-4BCD7814C53D}
+		{9C9921A2-239B-4F57-8216-0E7753EB7829} = {4B35BEF0-9B99-464A-BE8E-C1D2123F69D7}
+		{F0A423DB-B9B8-4D49-A2AD-A15C388AFBA0} = {4B35BEF0-9B99-464A-BE8E-C1D2123F69D7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0E06E956-6574-4527-9E7C-B4AE15CBA8EC}
