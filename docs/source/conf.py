@@ -6,9 +6,10 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'pyevspace'
+project = 'PyEVSpace'
 copyright = '2022, Quinton Barnes'
 author = 'Quinton Barnes'
+version = '0.0.11'
 release = '0.0.11'
 
 # -- General configuration ---------------------------------------------------
@@ -24,5 +25,5 @@ exclude_patterns = []
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'alabaster'
+html_theme = 'pydata_sphinx_theme'
 html_static_path = ['_static']
