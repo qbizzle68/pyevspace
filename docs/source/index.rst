@@ -3,14 +3,24 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to pyevspace's documentation!
+PyEVSpace documentation
 =====================================
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :hidden:
 
+   Install <install>
+   EVector <evector>
 
+**Version**: |version| 
+
+**Links**: 
+:doc:`Install <install>` |
+`Source Code <https://github.com/qbizzle68/pyevspace>`_ |
+`Issues <https://github.com/qbizzle68/pyevspace/issues>`_
+
+:doc:`EVector <evector>`
 
 Indices and tables
 ==================
