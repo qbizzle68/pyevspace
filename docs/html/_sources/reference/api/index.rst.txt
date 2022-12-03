@@ -5,7 +5,7 @@ Euclidean Vector Spaces
 -----------------------
 
 .. toctree::
-	:maxdepth: 2
+	:maxdepth: 3
 	
-	EVector <evector>
+	evector
 	EMatrix <ematrix>
