@@ -1,3 +1,5 @@
+.. include:: /global.rst
+
 =====================
 EVector API Reference
 =====================
@@ -5,11 +7,8 @@ EVector API Reference
 .. contents:: Table of Contents
 	:local:
 
-A Euclidean vector (:class:`pyevspace.EVector`)
-===============================================
-
-.. role:: python(code)
-	:language: python
+A Euclidean vector
+==================
 
 A three-dimensional array object meant to represent a physical vector in 
 a Euclidean vector space. The internal data buffer is a C type double, 
@@ -22,12 +21,11 @@ the :func:`__float__` and then :func:`__index__` methods if implemented.
 	Create an :class:`EVector` object with initial values from 
 	initializer, or initialize to zero if omitted.
 
-	:param iterable initializer: An iterable object of length three with
+	:param iterable initializer: an iterable object of length three with
 		numeric values
-	:raises TypeError: if the initializer is not an iterable
+	:raises TypeError: if initializer is not an iterable
 	:raises TypeError: if a value of initializer is not a numeric type
-
-	.. _attributes-label:
+	:raises ValueError: if initializer is not exactly length three
 
 Attributes:
 -----------
@@ -56,8 +54,8 @@ Attributes:
 	:value: :python:`EVector((0, 0, 1))`
 	:type: EVector
 
-Methods
--------
+Methods:
+--------
 
 Arithmetic
 ^^^^^^^^^^
@@ -80,26 +78,26 @@ Arithmetic
 	:rtype: EVector
 	:raises TypeError: if other is not an :class:`EVector` type
 
-.. py:method:: EVector.__mul__(other)
+.. py:method:: EVector.__mul__(scalar)
 
 	Standard scalar multiplication.
 
-	:param other: the scalar to multiply each element of self by
-	:type other: float or int
+	:param scalar: the scalar to multiply each element of self by
+	:type scalar: float or int
 	:return: the scalar product
 	:rtype: EVector
-	:raises TypeError: if other is not a float or int or cannot be
+	:raises TypeError: if scalar is not a float or int or cannot be
 		converted to a float or int
 
-.. py:method:: EVector.__truediv__(other)
+.. py:method:: EVector.__truediv__(scalar)
 
 	Standard scalar division.
 
-	:param other: the scalar to divide each element of self by
-	:type other: float or int
+	:param scalar: the scalar to divide each element of self by
+	:type scalar: float or int
 	:return: the scalar quotient
 	:rtype: EVector
-	:raises TypeError: if other is not a float or int or cannot be
+	:raises TypeError: if scalar is not a float or int or cannot be
 		converted to a float or int
 
 .. py:method:: EVector.__neg__()
@@ -127,7 +125,7 @@ Arithmetic
 
 	Inplace standard scalar multiplication.
 
-	:param scalr: the scalar to multiply each element of self by
+	:param scalar: the scalar to multiply each element of self by
 	:type scalar: float or int
 	:raises TypeError: if scalar is not a float or int or cannot be 
 		converted to a float or int

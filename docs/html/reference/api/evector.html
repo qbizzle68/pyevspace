@@ -41,7 +41,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'reference/api/evector';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="A Euclidean matrix (EMatrix)" href="ematrix.html" />
+    <link rel="next" title="EMatrix API Reference" href="ematrix.html" />
     <link rel="prev" title="PyEVSpace API" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="docsearch:language" content="en">
@@ -249,7 +249,7 @@
     <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">PyEVSpace API</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">EVector API Reference</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ematrix.html">EMatrix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ematrix.html">EMatrix API Reference</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../c-api/index.html">C API</a></li>
@@ -289,10 +289,10 @@
 <nav class="contents local" id="table-of-contents">
 <p class="topic-title">Table of Contents</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#a-euclidean-vector-pyevspace-evector" id="id1">A Euclidean vector (<code class="xref py py-class docutils literal notranslate"><span class="pre">pyevspace.EVector</span></code>)</a></p>
+<li><p><a class="reference internal" href="#a-euclidean-vector" id="id1">A Euclidean vector</a></p>
 <ul>
 <li><p><a class="reference internal" href="#attributes" id="id2">Attributes:</a></p></li>
-<li><p><a class="reference internal" href="#methods" id="id3">Methods</a></p>
+<li><p><a class="reference internal" href="#methods" id="id3">Methods:</a></p>
 <ul>
 <li><p><a class="reference internal" href="#arithmetic" id="id4">Arithmetic</a></p></li>
 <li><p><a class="reference internal" href="#logical-operators" id="id5">Logical Operators</a></p></li>
@@ -306,8 +306,8 @@
 </li>
 </ul>
 </nav>
-<section id="a-euclidean-vector-pyevspace-evector">
-<h2><a class="toc-backref" href="#id1" role="doc-backlink">A Euclidean vector (<code class="xref py py-class docutils literal notranslate"><span class="pre">pyevspace.EVector</span></code>)</a><a class="headerlink" href="#a-euclidean-vector-pyevspace-evector" title="Permalink to this heading">#</a></h2>
+<section id="a-euclidean-vector">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">A Euclidean vector</a><a class="headerlink" href="#a-euclidean-vector" title="Permalink to this heading">#</a></h2>
 <p>A three-dimensional array object meant to represent a physical vector in
 a Euclidean vector space. The internal data buffer is a C type double,
 which supports Python <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code> and <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> types. If the data
@@ -320,20 +320,21 @@ the <code class="xref py py-func docutils literal notranslate"><span class="pre"
 initializer, or initialize to zero if omitted.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>initializer</strong> (<em>iterable</em>) – An iterable object of length three with
+<dd class="field-odd"><p><strong>initializer</strong> (<em>iterable</em>) – an iterable object of length three with
 numeric values</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>TypeError</strong> – if the initializer is not an iterable</p></li>
+<li><p><strong>TypeError</strong> – if initializer is not an iterable</p></li>
 <li><p><strong>TypeError</strong> – if a value of initializer is not a numeric type</p></li>
+<li><p><strong>ValueError</strong> – if initializer is not exactly length three</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
 <section id="attributes">
-<span id="attributes-label"></span><h3><a class="toc-backref" href="#id2" role="doc-backlink">Attributes:</a><a class="headerlink" href="#attributes" title="Permalink to this heading">#</a></h3>
+<h3><a class="toc-backref" href="#id2" role="doc-backlink">Attributes:</a><a class="headerlink" href="#attributes" title="Permalink to this heading">#</a></h3>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="EVector.e1">
 <span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">e1</span></span><a class="headerlink" href="#EVector.e1" title="Permalink to this definition">#</a></dt>
@@ -381,7 +382,7 @@ basis. This value should not be edited.</p>
 
 </section>
 <section id="methods">
-<h3><a class="toc-backref" href="#id3" role="doc-backlink">Methods</a><a class="headerlink" href="#methods" title="Permalink to this heading">#</a></h3>
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">Methods:</a><a class="headerlink" href="#methods" title="Permalink to this heading">#</a></h3>
 <section id="arithmetic">
 <h4><a class="toc-backref" href="#id4" role="doc-backlink">Arithmetic</a><a class="headerlink" href="#arithmetic" title="Permalink to this heading">#</a></h4>
 <dl class="py method">
@@ -426,11 +427,11 @@ basis. This value should not be edited.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="EVector.__mul__">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__mul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EVector.__mul__" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__mul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scalar</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EVector.__mul__" title="Permalink to this definition">#</a></dt>
 <dd><p>Standard scalar multiplication.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>other</strong> (<em>float</em><em> or </em><em>int</em>) – the scalar to multiply each element of self by</p>
+<dd class="field-odd"><p><strong>scalar</strong> (<em>float</em><em> or </em><em>int</em>) – the scalar to multiply each element of self by</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>the scalar product</p>
@@ -439,7 +440,7 @@ basis. This value should not be edited.</p>
 <dd class="field-odd"><p><a class="reference internal" href="#EVector" title="EVector">EVector</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if other is not a float or int or cannot be
+<dd class="field-even"><p><strong>TypeError</strong> – if scalar is not a float or int or cannot be
 converted to a float or int</p>
 </dd>
 </dl>
@@ -447,11 +448,11 @@ converted to a float or int</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="EVector.__truediv__">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__truediv__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EVector.__truediv__" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__truediv__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scalar</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EVector.__truediv__" title="Permalink to this definition">#</a></dt>
 <dd><p>Standard scalar division.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>other</strong> (<em>float</em><em> or </em><em>int</em>) – the scalar to divide each element of self by</p>
+<dd class="field-odd"><p><strong>scalar</strong> (<em>float</em><em> or </em><em>int</em>) – the scalar to divide each element of self by</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>the scalar quotient</p>
@@ -460,7 +461,7 @@ converted to a float or int</p>
 <dd class="field-odd"><p><a class="reference internal" href="#EVector" title="EVector">EVector</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if other is not a float or int or cannot be
+<dd class="field-even"><p><strong>TypeError</strong> – if scalar is not a float or int or cannot be
 converted to a float or int</p>
 </dd>
 </dl>
@@ -514,7 +515,7 @@ converted to a float or int</p>
 <dd><p>Inplace standard scalar multiplication.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>scalr</strong> – the scalar to multiply each element of self by</p>
+<dd class="field-odd"><p><strong>scalar</strong> (<em>float</em><em> or </em><em>int</em>) – the scalar to multiply each element of self by</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>TypeError</strong> – if scalar is not a float or int or cannot be
@@ -795,7 +796,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
   <a class='right-next' id="next-link" href="ematrix.html" title="next page">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">A Euclidean matrix (<code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code>)</p>
+      <p class="prev-next-title">EMatrix API Reference</p>
   </div>
   <i class="fa-solid fa-angle-right"></i>
   </a>
@@ -816,14 +817,8 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
 <nav id="bd-toc-nav" class="page-toc">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#a-euclidean-vector-pyevspace-evector">
-   A Euclidean vector (
-   <code class="xref py py-class docutils literal notranslate">
-    <span class="pre">
-     pyevspace.EVector
-    </span>
-   </code>
-   )
+  <a class="reference internal nav-link" href="#a-euclidean-vector">
+   A Euclidean vector
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
@@ -871,7 +866,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
    </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#methods">
-     Methods
+     Methods:
     </a>
     <ul class="nav section-nav flex-column">
      <li class="toc-h4 nav-item toc-entry">

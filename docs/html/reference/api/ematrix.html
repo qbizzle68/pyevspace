@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>A Euclidean matrix (EMatrix) &#8212; PyEVSpace 0.0.11 documentation</title>
+    <title>EMatrix API Reference &#8212; PyEVSpace 0.0.11 documentation</title>
   
   
   
@@ -42,7 +42,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="C API" href="../c-api/index.html" />
-    <link rel="prev" title="A Euclidean vector (EVector)" href="evector.html" />
+    <link rel="prev" title="EVector API Reference" href="evector.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="docsearch:language" content="en">
   </head>
@@ -248,8 +248,8 @@
   <div class="bd-toc-item navbar-nav">
     <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">PyEVSpace API</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="evector.html">EVector</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">EMatrix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evector.html">EVector API Reference</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">EMatrix API Reference</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../c-api/index.html">C API</a></li>
@@ -284,8 +284,380 @@
             
             <article class="bd-article" role="main">
               
-  <section id="a-euclidean-matrix-ematrix">
-<h1>A Euclidean matrix (<code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code>)<a class="headerlink" href="#a-euclidean-matrix-ematrix" title="Permalink to this heading">#</a></h1>
+  <section id="ematrix-api-reference">
+<h1>EMatrix API Reference<a class="headerlink" href="#ematrix-api-reference" title="Permalink to this heading">#</a></h1>
+<nav class="contents local" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#a-euclidean-matrix" id="id1">A Euclidean matrix</a></p>
+<ul>
+<li><p><a class="reference internal" href="#attributes" id="id2">Attributes:</a></p></li>
+<li><p><a class="reference internal" href="#methods" id="id3">Methods:</a></p>
+<ul>
+<li><p><a class="reference internal" href="#arithmetic" id="id4">Arithmetic</a></p></li>
+<li><p><a class="reference internal" href="#logical-operators" id="id5">Logical Operators</a></p></li>
+<li><p><a class="reference internal" href="#mapping-protocol" id="id6">Mapping Protocol</a></p></li>
+<li><p><a class="reference internal" href="#buffer-protocol" id="id7">Buffer Protocol</a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+<section id="a-euclidean-matrix">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">A Euclidean matrix</a><a class="headerlink" href="#a-euclidean-matrix" title="Permalink to this heading">#</a></h2>
+<p>A three by three-dimensional array object mean to represent a linear
+transformation of physical vectors in a Euclidean vector space. The
+internal data buffer is a C type <code class="code highlight c docutils literal highlight-c"><span class="kt">double</span><span class="w"></span></code>, which supports numeric types.</p>
+<div class="admonition note" id="numeric-def">
+<p class="admonition-title">Note</p>
+<p>The underlying data type of the internal array is a C type
+<code class="code highlight c docutils literal highlight-c"><span class="kt">double</span><span class="w"></span></code>. This obviously supports any type that can be
+represented as a Python <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, which also includes Python
+<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> types. The way this works is as follows:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>s are converted to a C <code class="code highlight c docutils literal highlight-c"><span class="kt">double</span><span class="w"></span></code></p></li>
+<li><dl class="simple">
+<dt>A conversion is attempted with the type’s <code class="code highlight python docutils literal highlight-python"><span class="fm">__float__</span><span class="p">()</span></code></dt><dd><p>method</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>A conversion is attempted with the type’s <code class="code highlight python docutils literal highlight-python"><span class="fm">__index__</span><span class="p">()</span></code></dt><dd><p>method</p>
+</dd>
+</dl>
+</li>
+<li><p>No suitable conversion can be made and a TypeError is raised</p></li>
+</ol>
+</div></blockquote>
+<p>Therefore in this documentation a numeric type is any type that is
+either a <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> or can be converted to a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>.</p>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="EMatrix">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">EMatrix</span></span><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param"><span class="n"><span class="pre">initializer</span></span></em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix" title="Permalink to this definition">#</a></dt>
+<dd><p>Create an <a class="reference internal" href="#EMatrix" title="EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> object with initial values from
+initializer, or initialize to zero if omitted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>initializer</strong> (<em>iterable</em>) – an iterable object of length three
+whose values are iterable objects of length three with numeric
+values</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>TypeError</strong> – if initializer or any value of initializer is
+not an iterable</p></li>
+<li><p><strong>TypeError</strong> – if any value of a subiterable is not a numeric
+type</p></li>
+<li><p><strong>ValueError</strong> – if initializer or any of the subiterables of
+initializer are not exactly length three</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<section id="attributes">
+<h3><a class="toc-backref" href="#id2" role="doc-backlink">Attributes:</a><a class="headerlink" href="#attributes" title="Permalink to this heading">#</a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="EMatrix.I">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">I</span></span><a class="headerlink" href="#EMatrix.I" title="Permalink to this definition">#</a></dt>
+<dd><p>Identity matrix. This value should not be edited.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Value<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="code highlight python docutils literal highlight-python"><span class="n">EMatrix</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span></code></p>
+</dd>
+<dt class="field-even">Type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#EMatrix" title="EMatrix">EMatrix</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="methods">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">Methods:</a><a class="headerlink" href="#methods" title="Permalink to this heading">#</a></h3>
+<section id="arithmetic">
+<h4><a class="toc-backref" href="#id4" role="doc-backlink">Arithmetic</a><a class="headerlink" href="#arithmetic" title="Permalink to this heading">#</a></h4>
+<dl class="py method">
+<dt class="sig sig-object py" id="EMatrix.__add__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__add__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__add__" title="Permalink to this definition">#</a></dt>
+<dd><p>Standard matrix addition of two <a class="reference internal" href="#EMatrix" title="EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a>s.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#EMatrix" title="EMatrix"><em>EMatrix</em></a>) – the matrix to be added to self</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the matrix sum of self and other</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#EMatrix" title="EMatrix">EMatrix</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – if other is not an <a class="reference internal" href="#EMatrix" title="EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> type</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="EMatrix.__sub__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__sub__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__sub__" title="Permalink to this definition">#</a></dt>
+<dd><p>Standard matrix subtraction of two <a class="reference internal" href="#EMatrix" title="EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a>s.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#EMatrix" title="EMatrix"><em>EMatrix</em></a>) – the matrix to be subtracted from self</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the matrix difference of self and other</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#EMatrix" title="EMatrix">EMatrix</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – if other is not an <a class="reference internal" href="#EMatrix" title="EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> type</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="EMatrix.__mul__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__mul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__mul__" title="Permalink to this definition">#</a></dt>
+<dd><p>Standard multiplication depending on the type of <cite>other</cite>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a>: standard scalar multiplication</p></li>
+<li><p><a class="reference internal" href="evector.html#EVector" title="EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a>: vector multiplication</p></li>
+<li><p><a class="reference internal" href="#EMatrix" title="EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a>: matrix multiplication</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a> or EVector or EMatrix) – the object to multiply self by</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the product of self and other</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="evector.html#EVector" title="EVector">EVector</a> or <a class="reference internal" href="#EMatrix" title="EMatrix">EMatrix</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – if other is not a <a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a>,
+<a class="reference internal" href="evector.html#EVector" title="EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a> or <a class="reference internal" href="#EMatrix" title="EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> type</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="EMatrix.__truediv__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__truediv__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scalar</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__truediv__" title="Permalink to this definition">#</a></dt>
+<dd><p>Standard scalar division.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to divide each
+component of self by</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the scalar quotient</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#EMatrix" title="EMatrix">EMatrix</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – if scalar is not a <a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a>
+type</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="EMatrix.__neg__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__neg__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__neg__" title="Permalink to this definition">#</a></dt>
+<dd><p>Negates each component of self.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the negative of self</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#EMatrix" title="EMatrix">EMatrix</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="EMatrix.__iadd__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__iadd__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__iadd__" title="Permalink to this definition">#</a></dt>
+<dd><p>Inplace standard vector addition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#EMatrix" title="EMatrix"><em>EMatrix</em></a>) – the matrix to add to self</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – if other is not an <a class="reference internal" href="#EMatrix" title="EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> type</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="EMatrix.__isub__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__isub__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__isub__" title="Permalink to this definition">#</a></dt>
+<dd><p>Inplace standard vector subtraction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#EMatrix" title="EMatrix"><em>EMatrix</em></a>) – the matrix to subtract from self</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – if other is not an <a class="reference internal" href="#EMatrix" title="EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> type</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="EMatrix.__imul__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__imul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scalar</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__imul__" title="Permalink to this definition">#</a></dt>
+<dd><p>Inplace standard scalar multiplication.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to multilpy each element of self by</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – if scalar is not a <a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a>
+type</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="EMatrix.__itruediv__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__itruediv__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scalar</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__itruediv__" title="Permalink to this definition">#</a></dt>
+<dd><p>Inplace standard scalar division.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to divide each component of self by</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – if scalar is not a <a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a>
+type</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="EMatrix.__str__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__str__" title="Permalink to this definition">#</a></dt>
+<dd><p>Returns a string representation of self, formatted similarly to a
+list of lists.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a string representation of self</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="EMatrix.__reduce__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__reduce__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__reduce__" title="Permalink to this definition">#</a></dt>
+<dd><p>Allows support for pickling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a tuple used for reconstructing self’s state</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="logical-operators">
+<h4><a class="toc-backref" href="#id5" role="doc-backlink">Logical Operators</a><a class="headerlink" href="#logical-operators" title="Permalink to this heading">#</a></h4>
+<dl class="py method">
+<dt class="sig sig-object py" id="EMatrix.__eq__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__eq__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__eq__" title="Permalink to this definition">#</a></dt>
+<dd><p>Compares each component of two matrices for equality.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#EMatrix" title="EMatrix"><em>EMatrix</em></a>) – The matrix to compare to self</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if each component of other and self are equivalent</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – if other is not an <a class="reference internal" href="#EMatrix" title="EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> type</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="EMatrix.__ne__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__ne__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__ne__" title="Permalink to this definition">#</a></dt>
+<dd><p>Compares each component of two matrices for an inequality.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if any component of other and self are not equivalent</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>TypeError</strong> – if other is not an <a class="reference internal" href="#EMatrix" title="EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> type</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>All other logic operators are not implemented and will raise a
+<code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code>.</p>
+</section>
+<section id="mapping-protocol">
+<h4><a class="toc-backref" href="#id6" role="doc-backlink">Mapping Protocol</a><a class="headerlink" href="#mapping-protocol" title="Permalink to this heading">#</a></h4>
+<p>The mapping protocol allows for accessing and mutating components of the
+matrix. This allows for the square bracket notation, similar to the
+sequence protocol. The indeces are the row and column of the component
+you wish to access. A py:exc:<cite>TypeError</cite> is raised if either index is
+not an integer, and a py:exc:<cite>IndexError</cite> is raised if either index is
+not in the interval [0, 2].</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">EMatrix</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="go">5.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">11</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
+<span class="go">[[1, 2, 11]</span>
+<span class="go">[4, 5, 6]</span>
+<span class="go">[7, 8, 9]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+<span class="gt">Traceback (most recent call last):</span>
+  File <span class="nb">&quot;&lt;stdin&gt;&quot;</span>, line <span class="m">1</span>, in <span class="n">&lt;module&gt;</span>
+<span class="gr">IndexError</span>: <span class="n">col index (3) must be in [0-2]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>
+<span class="gt">Traceback (most recent call last):</span>
+  File <span class="nb">&quot;&lt;stdin&gt;&quot;</span>, line <span class="m">1</span>, in <span class="n">&lt;module&gt;</span>
+<span class="gr">TypeError</span>: <span class="n">&#39;float&#39; object cannot be interpreted as an integer</span>
+</pre></div>
+</div>
+</section>
+<section id="buffer-protocol">
+<h4><a class="toc-backref" href="#id7" role="doc-backlink">Buffer Protocol</a><a class="headerlink" href="#buffer-protocol" title="Permalink to this heading">#</a></h4>
+<p>The <a class="reference internal" href="#EMatrix" title="EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> class supports the buffer protocol and can be used
+by other objects which also support the buffer interface. For example
+it can be used to instantiate a <code class="xref py py-class docutils literal notranslate"><span class="pre">memoryview</span></code> object</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">EMatrix</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">view</span> <span class="o">=</span> <span class="nb">memoryview</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">view</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.69</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
+<span class="go">[[1, 2, 3]</span>
+<span class="go">[4, 1.69, 6]</span>
+<span class="go">[7, 8, 9]]</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
 </section>
 
 
@@ -300,7 +672,7 @@
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
           <p class="prev-next-subtitle">previous</p>
-          <p class="prev-next-title">A Euclidean vector (<code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code>)</p>
+          <p class="prev-next-title">EVector API Reference</p>
       </div>
   </a>
   <a class='right-next' id="next-link" href="../c-api/index.html" title="next page">
@@ -319,6 +691,198 @@
           
             <div class="bd-sidebar-secondary bd-toc">
               
+<div class="toc-item">
+  
+<div class="tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+</div>
+<nav id="bd-toc-nav" class="page-toc">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#a-euclidean-matrix">
+   A Euclidean matrix
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#EMatrix">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       EMatrix
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#attributes">
+     Attributes:
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#EMatrix.I">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         EMatrix.I
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#methods">
+     Methods:
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#arithmetic">
+       Arithmetic
+      </a>
+      <ul class="nav section-nav flex-column">
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#EMatrix.__add__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           EMatrix.__add__()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#EMatrix.__sub__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           EMatrix.__sub__()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#EMatrix.__mul__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           EMatrix.__mul__()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#EMatrix.__truediv__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           EMatrix.__truediv__()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#EMatrix.__neg__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           EMatrix.__neg__()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#EMatrix.__iadd__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           EMatrix.__iadd__()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#EMatrix.__isub__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           EMatrix.__isub__()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#EMatrix.__imul__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           EMatrix.__imul__()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#EMatrix.__itruediv__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           EMatrix.__itruediv__()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#EMatrix.__str__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           EMatrix.__str__()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#EMatrix.__reduce__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           EMatrix.__reduce__()
+          </span>
+         </code>
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#logical-operators">
+       Logical Operators
+      </a>
+      <ul class="nav section-nav flex-column">
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#EMatrix.__eq__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           EMatrix.__eq__()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#EMatrix.__ne__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           EMatrix.__ne__()
+          </span>
+         </code>
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#mapping-protocol">
+       Mapping Protocol
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#buffer-protocol">
+       Buffer Protocol
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+</div>
+
 <div class="toc-item">
   
 <div id="searchbox"></div>
