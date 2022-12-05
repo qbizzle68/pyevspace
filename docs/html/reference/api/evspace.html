@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>PyEVSpace API &#8212; PyEVSpace 0.0.11 documentation</title>
+    <title>Euclidean Vector Spaces &#8212; PyEVSpace 0.0.11 documentation</title>
   
   
   
@@ -38,11 +38,11 @@
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/sphinx_highlight.js"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'reference/api/index';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'reference/api/evspace';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Euclidean Vector Spaces" href="evspace.html" />
-    <link rel="prev" title="API Reference" href="../index.html" />
+    <link rel="next" title="EVector API Reference" href="evector.html" />
+    <link rel="prev" title="PyEVSpace API" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="docsearch:language" content="en">
   </head>
@@ -247,8 +247,8 @@
   </p>
   <div class="bd-toc-item navbar-nav">
     <ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">PyEVSpace API</a><input checked class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="evspace.html">Euclidean Vector Spaces</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">PyEVSpace API</a><input checked class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Euclidean Vector Spaces</a></li>
 <li class="toctree-l2"><a class="reference internal" href="evector.html">EVector API Reference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ematrix.html">EMatrix API Reference</a></li>
 </ul>
@@ -285,95 +285,9 @@
             
             <article class="bd-article" role="main">
               
-  <section id="pyevspace-api">
-<h1>PyEVSpace API<a class="headerlink" href="#pyevspace-api" title="Permalink to this heading">#</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="evspace.html">Euclidean Vector Spaces</a></li>
-<li class="toctree-l1"><a class="reference internal" href="evector.html">EVector API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="evector.html#a-euclidean-vector">A Euclidean vector</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector"><code class="docutils literal notranslate"><span class="pre">EVector</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="evector.html#attributes">Attributes</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.e1"><code class="docutils literal notranslate"><span class="pre">EVector.e1</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.e2"><code class="docutils literal notranslate"><span class="pre">EVector.e2</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.e3"><code class="docutils literal notranslate"><span class="pre">EVector.e3</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="evector.html#arithmetic-operators">Arithmetic Operators</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.__add__"><code class="docutils literal notranslate"><span class="pre">EVector.__add__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.__sub__"><code class="docutils literal notranslate"><span class="pre">EVector.__sub__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.__mul__"><code class="docutils literal notranslate"><span class="pre">EVector.__mul__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.__truediv__"><code class="docutils literal notranslate"><span class="pre">EVector.__truediv__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.__neg__"><code class="docutils literal notranslate"><span class="pre">EVector.__neg__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.__iadd__"><code class="docutils literal notranslate"><span class="pre">EVector.__iadd__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.__isub__"><code class="docutils literal notranslate"><span class="pre">EVector.__isub__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.__imul__"><code class="docutils literal notranslate"><span class="pre">EVector.__imul__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.__itruediv__"><code class="docutils literal notranslate"><span class="pre">EVector.__itruediv__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.__str__"><code class="docutils literal notranslate"><span class="pre">EVector.__str__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.__reduce__"><code class="docutils literal notranslate"><span class="pre">EVector.__reduce__()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="evector.html#logical-operators">Logical Operators</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.__eq__"><code class="docutils literal notranslate"><span class="pre">EVector.__eq__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.__ne__"><code class="docutils literal notranslate"><span class="pre">EVector.__ne__()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="evector.html#vector-operators">Vector Operators</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.mag"><code class="docutils literal notranslate"><span class="pre">EVector.mag()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.mag2"><code class="docutils literal notranslate"><span class="pre">EVector.mag2()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.normalize"><code class="docutils literal notranslate"><span class="pre">EVector.normalize()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="evector.html#sequence-protocol">Sequence Protocol</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.__len__"><code class="docutils literal notranslate"><span class="pre">EVector.__len__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.__getitem__"><code class="docutils literal notranslate"><span class="pre">EVector.__getitem__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.__setitem__"><code class="docutils literal notranslate"><span class="pre">EVector.__setitem__()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="evector.html#iterator-protocol">Iterator Protocol</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.__iter__"><code class="docutils literal notranslate"><span class="pre">EVector.__iter__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="evector.html#EVector.__next__"><code class="docutils literal notranslate"><span class="pre">EVector.__next__()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="evector.html#buffer-protocol">Buffer Protocol</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="ematrix.html">EMatrix API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="ematrix.html#a-euclidean-matrix">A Euclidean matrix</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="ematrix.html#EMatrix"><code class="docutils literal notranslate"><span class="pre">EMatrix</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="ematrix.html#attributes">Attributes</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="ematrix.html#EMatrix.I"><code class="docutils literal notranslate"><span class="pre">EMatrix.I</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="ematrix.html#arithmetic-operators">Arithmetic Operators</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="ematrix.html#EMatrix.__add__"><code class="docutils literal notranslate"><span class="pre">EMatrix.__add__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="ematrix.html#EMatrix.__sub__"><code class="docutils literal notranslate"><span class="pre">EMatrix.__sub__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="ematrix.html#EMatrix.__mul__"><code class="docutils literal notranslate"><span class="pre">EMatrix.__mul__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="ematrix.html#EMatrix.__truediv__"><code class="docutils literal notranslate"><span class="pre">EMatrix.__truediv__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="ematrix.html#EMatrix.__neg__"><code class="docutils literal notranslate"><span class="pre">EMatrix.__neg__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="ematrix.html#EMatrix.__iadd__"><code class="docutils literal notranslate"><span class="pre">EMatrix.__iadd__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="ematrix.html#EMatrix.__isub__"><code class="docutils literal notranslate"><span class="pre">EMatrix.__isub__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="ematrix.html#EMatrix.__imul__"><code class="docutils literal notranslate"><span class="pre">EMatrix.__imul__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="ematrix.html#EMatrix.__itruediv__"><code class="docutils literal notranslate"><span class="pre">EMatrix.__itruediv__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="ematrix.html#EMatrix.__str__"><code class="docutils literal notranslate"><span class="pre">EMatrix.__str__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="ematrix.html#EMatrix.__reduce__"><code class="docutils literal notranslate"><span class="pre">EMatrix.__reduce__()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="ematrix.html#logical-operators">Logical Operators</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="ematrix.html#EMatrix.__eq__"><code class="docutils literal notranslate"><span class="pre">EMatrix.__eq__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="ematrix.html#EMatrix.__ne__"><code class="docutils literal notranslate"><span class="pre">EMatrix.__ne__()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="ematrix.html#mapping-protocol">Mapping Protocol</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ematrix.html#buffer-protocol">Buffer Protocol</a></li>
-</ul>
-</li>
-</ul>
-</div>
+  <section id="euclidean-vector-spaces">
+<h1>Euclidean Vector Spaces<a class="headerlink" href="#euclidean-vector-spaces" title="Permalink to this heading">#</a></h1>
+<p>info about vector spaces here</p>
 </section>
 
 
@@ -384,17 +298,17 @@
             <footer class="bd-footer-article">
                 <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-  <a class='left-prev' id="prev-link" href="../index.html" title="previous page">
+  <a class='left-prev' id="prev-link" href="index.html" title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
           <p class="prev-next-subtitle">previous</p>
-          <p class="prev-next-title">API Reference</p>
+          <p class="prev-next-title">PyEVSpace API</p>
       </div>
   </a>
-  <a class='right-next' id="next-link" href="evspace.html" title="next page">
+  <a class='right-next' id="next-link" href="evector.html" title="next page">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">Euclidean Vector Spaces</p>
+      <p class="prev-next-title">EVector API Reference</p>
   </div>
   <i class="fa-solid fa-angle-right"></i>
   </a>
@@ -419,7 +333,7 @@
 <div class="toc-item">
   
 <div class="tocsection sourcelink">
-    <a href="../../_sources/reference/api/index.rst.txt">
+    <a href="../../_sources/reference/api/evspace.rst.txt">
         <i class="fa-solid fa-file-lines"></i> Show Source
     </a>
 </div>
