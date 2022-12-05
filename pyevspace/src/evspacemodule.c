@@ -477,7 +477,7 @@ vector_length(EVSpace_Vector* self)
 }
 
 static PyObject* 
-vector_get(EVSpace_Vector* self, Py_ssize_t index) 
+vector_get_item(EVSpace_Vector* self, Py_ssize_t index) 
 {
 	if (index < 0 || index > 2) {
 		PyErr_Format(PyExc_IndexError, "index (%i) must be in [0-2]", index);
@@ -488,7 +488,7 @@ vector_get(EVSpace_Vector* self, Py_ssize_t index)
 }
 
 static int 
-vector_set(EVSpace_Vector* self, Py_ssize_t index, PyObject* arg) 
+vector_set_item(EVSpace_Vector* self, Py_ssize_t index, PyObject* arg) 
 {
 	if (index < 0 || index > 2) {
 		PyErr_Format(PyExc_IndexError, "index (%i) must be in [0-2]", index);
@@ -506,8 +506,8 @@ vector_set(EVSpace_Vector* self, Py_ssize_t index, PyObject* arg)
 
 static PySequenceMethods vector_as_sequence = {
 	.sq_length		= (lenfunc)vector_length,
-	.sq_item		= (ssizeargfunc)vector_get,
-	.sq_ass_item	= (ssizeobjargproc)vector_set,
+	.sq_item		= (ssizeargfunc)vector_get_item,
+	.sq_ass_item	= (ssizeobjargproc)vector_set_item,
 };
 
 #define BUFFER_RELEASE_SHAPE	0x1
