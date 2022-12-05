@@ -4,36 +4,13 @@
 EMatrix API Reference
 =====================
 
+.. currentmodule:: pyevspace
+
 .. contents:: Table of Contents
 	:backlinks: none
 
-A Euclidean matrix
-------------------
-
-A three by three-dimensional array object mean to represent a linear
-transformation of physical vectors in a Euclidean vector space. The
-internal data buffer is a C type :c:`double`, which supports 
-:ref:`numeric <numeric-def>` types.
-
-.. _numeric-def:
-
-.. note::
-
-	The underlying data type of the internal array is a C type
-	:c:`double`. This obviously supports any type that can be represented
-	as a Python :class:`float`, which includes Python :class:`int` types.
-	Therefore numeric types are interpreted in the following order:
-
-		1. :class:`float`\ s are converted to a C :c:`double`
-		2. A conversion is attempted with the type's :python:`__float__()` 
-			method
-		3. A conversion is attempted with the type's :python:`__index__()` 
-			method
-		4. No suitable conversion can be made and a TypeError is raised
-
-	Therefore in this documentation a numeric type is any type that is
-	either a :class:`float` or :class:`int` or can be converted to a
-	:class:`float` or :class:`int`.
+Constructor
+-----------
 
 .. py:class:: EMatrix([initializer])
 

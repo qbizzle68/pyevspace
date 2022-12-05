@@ -248,6 +248,7 @@
   <div class="bd-toc-item navbar-nav">
     <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">PyEVSpace API</a><input checked class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pyevspace.html">PyEVSpace Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="evspace.html">Euclidean Vector Spaces</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">EVector API Reference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ematrix.html">EMatrix API Reference</a></li>
@@ -292,7 +293,7 @@
 <ul class="simple">
 <li><p><a class="reference internal" href="#evector-api-reference" id="id1">EVector API Reference</a></p>
 <ul>
-<li><p><a class="reference internal" href="#a-euclidean-vector" id="id2">A Euclidean vector</a></p></li>
+<li><p><a class="reference internal" href="#constructor" id="id2">Constructor</a></p></li>
 <li><p><a class="reference internal" href="#attributes" id="id3">Attributes</a></p></li>
 <li><p><a class="reference internal" href="#arithmetic-operators" id="id4">Arithmetic Operators</a></p></li>
 <li><p><a class="reference internal" href="#logical-operators" id="id5">Logical Operators</a></p></li>
@@ -304,52 +305,23 @@
 </li>
 </ul>
 </nav>
-<section id="a-euclidean-vector">
-<h2>A Euclidean vector<a class="headerlink" href="#a-euclidean-vector" title="Permalink to this heading">#</a></h2>
-<p>A three-dimensional array object meant to represent a physical vector in
-a Euclidean vector space. The internal data buffer is a C type double,
-which supports <a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a> types.</p>
-<div class="admonition note" id="numeric-def">
-<p class="admonition-title">Note</p>
-<p>The underlying data type of the internal array is a C type
-<code class="code highlight c docutils literal highlight-c"><span class="kt">double</span><span class="w"></span></code>. This obviously supports any type that can be represented
-as a Python <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, which includes Python <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> types.
-Therefore numeric types are interpreted in the following order:</p>
-<blockquote>
-<div><ol class="arabic simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>s are converted to a C <code class="code highlight c docutils literal highlight-c"><span class="kt">double</span><span class="w"></span></code></p></li>
-<li><dl class="simple">
-<dt>A conversion is attempted with the type’s <code class="code highlight python docutils literal highlight-python"><span class="fm">__float__</span><span class="p">()</span></code></dt><dd><p>method</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>A conversion is attempted with the type’s <code class="code highlight python docutils literal highlight-python"><span class="fm">__index__</span><span class="p">()</span></code></dt><dd><p>method</p>
-</dd>
-</dl>
-</li>
-<li><p>No suitable conversion can be made and a TypeError is raised</p></li>
-</ol>
-</div></blockquote>
-<p>Therefore in this documentation a numeric type is any type that is
-either a <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> or can be converted to a
-<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>.</p>
-</div>
+<section id="constructor">
+<h2>Constructor<a class="headerlink" href="#constructor" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="EVector">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">EVector</span></span><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param"><span class="n"><span class="pre">initializer</span></span></em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#EVector" title="Permalink to this definition">#</a></dt>
-<dd><p>Create an <a class="reference internal" href="#EVector" title="EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a> object with initial values from
+<dt class="sig sig-object py" id="pyevspace.EVector">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">EVector</span></span><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param"><span class="n"><span class="pre">initializer</span></span></em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EVector" title="Permalink to this definition">#</a></dt>
+<dd><p>Create an <a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a> object with initial values from
 <cite>initializer</cite>, or zero if <cite>initializer</cite> is omitted.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>initializer</strong> (<em>iterable</em>) – an iterable object of length three with
-<a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a> values</p>
+<a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a> values</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>TypeError</strong> – if <cite>initializer</cite> is not an iterable</p></li>
 <li><p><strong>TypeError</strong> – if a value of <cite>initializer</cite> is not a
-<a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a> type</p></li>
+<a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a> type</p></li>
 <li><p><strong>ValueError</strong> – if <cite>initializer</cite> does not have a length of
 exactly three</p></li>
 </ul>
@@ -361,8 +333,8 @@ exactly three</p></li>
 <section id="attributes">
 <h2>Attributes<a class="headerlink" href="#attributes" title="Permalink to this heading">#</a></h2>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="EVector.e1">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">e1</span></span><a class="headerlink" href="#EVector.e1" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EVector.e1">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">e1</span></span><a class="headerlink" href="#pyevspace.EVector.e1" title="Permalink to this definition">#</a></dt>
 <dd><p>Elementary vector that represents the x-axis of the standard
 basis. <strong>This value should not be edited.</strong></p>
 <dl class="field-list simple">
@@ -370,14 +342,14 @@ basis. <strong>This value should not be edited.</strong></p>
 <dd class="field-odd"><p><code class="code highlight python docutils literal highlight-python"><span class="n">EVector</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span></code></p>
 </dd>
 <dt class="field-even">Type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="#EVector" title="EVector">EVector</a></p>
+<dd class="field-even"><p><a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector">EVector</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="EVector.e2">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">e2</span></span><a class="headerlink" href="#EVector.e2" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EVector.e2">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">e2</span></span><a class="headerlink" href="#pyevspace.EVector.e2" title="Permalink to this definition">#</a></dt>
 <dd><p>Elementary vector that represents the y-axis of the standard
 basis. <strong>This value should not be edited.</strong></p>
 <dl class="field-list simple">
@@ -385,14 +357,14 @@ basis. <strong>This value should not be edited.</strong></p>
 <dd class="field-odd"><p><code class="code highlight python docutils literal highlight-python"><span class="n">EVector</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span></code></p>
 </dd>
 <dt class="field-even">Type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="#EVector" title="EVector">EVector</a></p>
+<dd class="field-even"><p><a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector">EVector</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="EVector.e3">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">e3</span></span><a class="headerlink" href="#EVector.e3" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EVector.e3">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">e3</span></span><a class="headerlink" href="#pyevspace.EVector.e3" title="Permalink to this definition">#</a></dt>
 <dd><p>Elementary vector that represents the z-axis of the standard
 basis. <strong>This value should not be edited.</strong></p>
 <dl class="field-list simple">
@@ -400,7 +372,7 @@ basis. <strong>This value should not be edited.</strong></p>
 <dd class="field-odd"><p><code class="code highlight python docutils literal highlight-python"><span class="n">EVector</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span></code></p>
 </dd>
 <dt class="field-even">Type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="#EVector" title="EVector">EVector</a></p>
+<dd class="field-even"><p><a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector">EVector</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -409,160 +381,160 @@ basis. <strong>This value should not be edited.</strong></p>
 <section id="arithmetic-operators">
 <h2>Arithmetic Operators<a class="headerlink" href="#arithmetic-operators" title="Permalink to this heading">#</a></h2>
 <dl class="py method">
-<dt class="sig sig-object py" id="EVector.__add__">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__add__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EVector.__add__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EVector.__add__">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__add__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EVector.__add__" title="Permalink to this definition">#</a></dt>
 <dd><p>Standard vector addition.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#EVector" title="EVector"><em>EVector</em></a>) – the vector to be added to self</p>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector"><em>EVector</em></a>) – the vector to be added to self</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>the vector sum of self and <cite>other</cite></p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#EVector" title="EVector">EVector</a></p>
+<dd class="field-odd"><p><a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector">EVector</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#EVector" title="EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a> type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a> type</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EVector.__sub__">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__sub__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EVector.__sub__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EVector.__sub__">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__sub__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EVector.__sub__" title="Permalink to this definition">#</a></dt>
 <dd><p>Standard vector subtraction.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#EVector" title="EVector"><em>EVector</em></a>) – the vector to be subtracted from self</p>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector"><em>EVector</em></a>) – the vector to be subtracted from self</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>the vector subtraction of self and <cite>other</cite></p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#EVector" title="EVector">EVector</a></p>
+<dd class="field-odd"><p><a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector">EVector</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#EVector" title="EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a> type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a> type</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EVector.__mul__">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__mul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scalar</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EVector.__mul__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EVector.__mul__">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__mul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scalar</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EVector.__mul__" title="Permalink to this definition">#</a></dt>
 <dd><p>Standard scalar multiplication.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to multiply each element of self by</p>
+<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to multiply each element of self by</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>the scalar product</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#EVector" title="EVector">EVector</a></p>
+<dd class="field-odd"><p><a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector">EVector</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a> type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a> type</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EVector.__truediv__">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__truediv__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scalar</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EVector.__truediv__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EVector.__truediv__">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__truediv__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scalar</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EVector.__truediv__" title="Permalink to this definition">#</a></dt>
 <dd><p>Standard scalar division.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to divide each element of self by</p>
+<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to divide each element of self by</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>the scalar quotient</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#EVector" title="EVector">EVector</a></p>
+<dd class="field-odd"><p><a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector">EVector</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a> type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a> type</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EVector.__neg__">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__neg__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EVector.__neg__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EVector.__neg__">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__neg__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EVector.__neg__" title="Permalink to this definition">#</a></dt>
 <dd><p>Negates each component of self.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>the negative of self</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="#EVector" title="EVector">EVector</a></p>
+<dd class="field-even"><p><a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector">EVector</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EVector.__iadd__">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__iadd__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EVector.__iadd__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EVector.__iadd__">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__iadd__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EVector.__iadd__" title="Permalink to this definition">#</a></dt>
 <dd><p>Inplace standard vector addition.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#EVector" title="EVector"><em>EVector</em></a>) – the vector to add to self</p>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector"><em>EVector</em></a>) – the vector to add to self</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#EVector" title="EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a> type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a> type</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EVector.__isub__">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__isub__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EVector.__isub__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EVector.__isub__">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__isub__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EVector.__isub__" title="Permalink to this definition">#</a></dt>
 <dd><p>Inplace standard vector subtraction.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#EVector" title="EVector"><em>EVector</em></a>) – the vector to subtract from self</p>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector"><em>EVector</em></a>) – the vector to subtract from self</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#EVector" title="EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a> type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a> type</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EVector.__imul__">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__imul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scalar</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EVector.__imul__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EVector.__imul__">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__imul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scalar</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EVector.__imul__" title="Permalink to this definition">#</a></dt>
 <dd><p>Inplace standard scalar multiplication.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to multiply each element of self by</p>
+<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to multiply each element of self by</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>
 type</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EVector.__itruediv__">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__itruediv__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scalar</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EVector.__itruediv__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EVector.__itruediv__">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__itruediv__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scalar</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EVector.__itruediv__" title="Permalink to this definition">#</a></dt>
 <dd><p>Inplace standard scalar division.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to divide each element of self by</p>
+<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to divide each element of self by</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>
 type</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EVector.__str__">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EVector.__str__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EVector.__str__">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EVector.__str__" title="Permalink to this definition">#</a></dt>
 <dd><p>Returns a string representation of self. The format of the output
 string is similar to a <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>, the components enclosed by
 square brackets. The format of the components are either decimal
@@ -579,8 +551,8 @@ their string representations.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EVector.__reduce__">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__reduce__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EVector.__reduce__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EVector.__reduce__">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__reduce__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EVector.__reduce__" title="Permalink to this definition">#</a></dt>
 <dd><p>Allows support for pickling.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -596,12 +568,12 @@ their string representations.</p>
 <section id="logical-operators">
 <h2>Logical Operators<a class="headerlink" href="#logical-operators" title="Permalink to this heading">#</a></h2>
 <dl class="py method">
-<dt class="sig sig-object py" id="EVector.__eq__">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__eq__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EVector.__eq__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EVector.__eq__">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__eq__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EVector.__eq__" title="Permalink to this definition">#</a></dt>
 <dd><p>Compares each element of two vectors for equality.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#EVector" title="EVector"><em>EVector</em></a>) – the vector to compare to self</p>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector"><em>EVector</em></a>) – the vector to compare to self</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if each component of self and <cite>other</cite> are equivalent</p>
@@ -610,19 +582,19 @@ their string representations.</p>
 <dd class="field-odd"><p>bool</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#EVector" title="EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a> type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a> type</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EVector.__ne__">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__ne__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EVector.__ne__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EVector.__ne__">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__ne__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EVector.__ne__" title="Permalink to this definition">#</a></dt>
 <dd><p>Compares each element of two vectors for an
 inequality.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#EVector" title="EVector"><em>EVector</em></a>) – the vector to compare to self</p>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector"><em>EVector</em></a>) – the vector to compare to self</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if any component of self and <cite>other</cite> are not equivalent</p>
@@ -631,7 +603,7 @@ inequality.</p>
 <dd class="field-odd"><p>bool</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#EVector" title="EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a> type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a> type</p>
 </dd>
 </dl>
 </dd></dl>
@@ -642,8 +614,8 @@ inequality.</p>
 <section id="vector-operators">
 <h2>Vector Operators<a class="headerlink" href="#vector-operators" title="Permalink to this heading">#</a></h2>
 <dl class="py method">
-<dt class="sig sig-object py" id="EVector.mag">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">mag</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EVector.mag" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EVector.mag">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">mag</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EVector.mag" title="Permalink to this definition">#</a></dt>
 <dd><p>Computes the geometric length of the vector.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -656,10 +628,10 @@ inequality.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EVector.mag2">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">mag2</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EVector.mag2" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EVector.mag2">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">mag2</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EVector.mag2" title="Permalink to this definition">#</a></dt>
 <dd><p>Computes the square of the magnitude of the vector. Use this
-instead of squaring the result of <a class="reference internal" href="#EVector.mag" title="EVector.mag"><code class="xref py py-meth docutils literal notranslate"><span class="pre">EVector.mag()</span></code></a> to
+instead of squaring the result of <a class="reference internal" href="#pyevspace.EVector.mag" title="pyevspace.EVector.mag"><code class="xref py py-meth docutils literal notranslate"><span class="pre">EVector.mag()</span></code></a> to
 avoid rounding errors.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">vector</span> <span class="o">=</span> <span class="n">EVector</span><span class="p">((</span><span class="mf">0.619286</span><span class="p">,</span> <span class="mf">0.581799</span><span class="p">,</span> <span class="mf">0.913961</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mag</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">mag</span><span class="p">()</span>
@@ -681,8 +653,8 @@ avoid rounding errors.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EVector.normalize">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">normalize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EVector.normalize" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EVector.normalize">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">normalize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EVector.normalize" title="Permalink to this definition">#</a></dt>
 <dd><p>Normalizes the vector by dividing each element by the magnitude
 of the vector. This results in a vector with lengh equal to one.</p>
 <dl class="field-list simple">
@@ -696,9 +668,9 @@ of the vector. This results in a vector with lengh equal to one.</p>
 <section id="sequence-protocol">
 <h2>Sequence Protocol<a class="headerlink" href="#sequence-protocol" title="Permalink to this heading">#</a></h2>
 <dl class="py method">
-<dt class="sig sig-object py" id="EVector.__len__">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EVector.__len__" title="Permalink to this definition">#</a></dt>
-<dd><p>Returns the length of the <a class="reference internal" href="#EVector" title="EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a>. This always returns
+<dt class="sig sig-object py" id="pyevspace.EVector.__len__">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EVector.__len__" title="Permalink to this definition">#</a></dt>
+<dd><p>Returns the length of the <a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a>. This always returns
 three.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -711,8 +683,8 @@ three.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EVector.__getitem__">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EVector.__getitem__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EVector.__getitem__">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EVector.__getitem__" title="Permalink to this definition">#</a></dt>
 <dd><p>Retrieves the indexed value of the underlying array.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -735,8 +707,8 @@ int</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EVector.__setitem__">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__setitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EVector.__setitem__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EVector.__setitem__">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__setitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EVector.__setitem__" title="Permalink to this definition">#</a></dt>
 <dd><p>Sets the indexed value of the underlying array.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -749,7 +721,7 @@ int</p></li>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>TypeError</strong> – if <cite>index</cite> is not or cannot be converted to an
 int</p></li>
-<li><p><strong>TypeError</strong> – if <cite>value</cite> is not a <a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a>
+<li><p><strong>TypeError</strong> – if <cite>value</cite> is not a <a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>
 type</p></li>
 <li><p><strong>ValueError</strong> – if <cite>index</cite> is not in the interval [0, 2]</p></li>
 </ul>
@@ -770,11 +742,11 @@ type</p></li>
 </section>
 <section id="iterator-protocol">
 <h2>Iterator Protocol<a class="headerlink" href="#iterator-protocol" title="Permalink to this heading">#</a></h2>
-<p>The iterator protocol for the <a class="reference internal" href="#EVector" title="EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a> type is not managed
+<p>The iterator protocol for the <a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a> type is not managed
 through a separate iterator type but within the class itself.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="EVector.__iter__">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__iter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EVector.__iter__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EVector.__iter__">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__iter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EVector.__iter__" title="Permalink to this definition">#</a></dt>
 <dd><p>Returns a reference to self and sets an internal counter to
 zero.</p>
 <dl class="field-list simple">
@@ -782,19 +754,19 @@ zero.</p>
 <dd class="field-odd"><p>a reference to self</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="#EVector" title="EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a></p>
+<dd class="field-even"><p><a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EVector.__next__">
-<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__next__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EVector.__next__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EVector.__next__">
+<span class="sig-prename descclassname"><span class="pre">EVector.</span></span><span class="sig-name descname"><span class="pre">__next__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EVector.__next__" title="Permalink to this definition">#</a></dt>
 <dd><p>Returns the index of the internal counter before incrementing
 the counter.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>the next component of the <a class="reference internal" href="#EVector" title="EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a></p>
+<dd class="field-odd"><p>the next component of the <a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a></p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>float</p>
@@ -808,7 +780,7 @@ the counter.</p>
 </section>
 <section id="buffer-protocol">
 <h2>Buffer Protocol<a class="headerlink" href="#buffer-protocol" title="Permalink to this heading">#</a></h2>
-<p>The <a class="reference internal" href="#EVector" title="EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a> class supports the buffer protocol and can be
+<p>The <a class="reference internal" href="#pyevspace.EVector" title="pyevspace.EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a> class supports the buffer protocol and can be
 used by other object which also support the buffer interface. For
 example it can be used to instantiate a <code class="xref py py-class docutils literal notranslate"><span class="pre">memoryview</span></code> object</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">vector</span> <span class="o">=</span> <span class="n">EVector</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
@@ -860,12 +832,12 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
 <nav id="bd-toc-nav" class="page-toc">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#a-euclidean-vector">
-   A Euclidean vector
+  <a class="reference internal nav-link" href="#constructor">
+   Constructor
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector">
+    <a class="reference internal nav-link" href="#pyevspace.EVector">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector
@@ -881,7 +853,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.e1">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.e1">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.e1
@@ -890,7 +862,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.e2">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.e2">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.e2
@@ -899,7 +871,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.e3">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.e3">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.e3
@@ -915,7 +887,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.__add__">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.__add__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.__add__()
@@ -924,7 +896,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.__sub__">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.__sub__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.__sub__()
@@ -933,7 +905,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.__mul__">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.__mul__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.__mul__()
@@ -942,7 +914,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.__truediv__">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.__truediv__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.__truediv__()
@@ -951,7 +923,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.__neg__">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.__neg__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.__neg__()
@@ -960,7 +932,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.__iadd__">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.__iadd__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.__iadd__()
@@ -969,7 +941,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.__isub__">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.__isub__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.__isub__()
@@ -978,7 +950,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.__imul__">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.__imul__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.__imul__()
@@ -987,7 +959,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.__itruediv__">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.__itruediv__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.__itruediv__()
@@ -996,7 +968,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.__str__">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.__str__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.__str__()
@@ -1005,7 +977,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.__reduce__">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.__reduce__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.__reduce__()
@@ -1021,7 +993,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.__eq__">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.__eq__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.__eq__()
@@ -1030,7 +1002,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.__ne__">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.__ne__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.__ne__()
@@ -1046,7 +1018,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.mag">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.mag">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.mag()
@@ -1055,7 +1027,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.mag2">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.mag2">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.mag2()
@@ -1064,7 +1036,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.normalize">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.normalize">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.normalize()
@@ -1080,7 +1052,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.__len__">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.__len__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.__len__()
@@ -1089,7 +1061,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.__getitem__">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.__getitem__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.__getitem__()
@@ -1098,7 +1070,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.__setitem__">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.__setitem__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.__setitem__()
@@ -1114,7 +1086,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.__iter__">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.__iter__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.__iter__()
@@ -1123,7 +1095,7 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EVector.__next__">
+    <a class="reference internal nav-link" href="#pyevspace.EVector.__next__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EVector.__next__()

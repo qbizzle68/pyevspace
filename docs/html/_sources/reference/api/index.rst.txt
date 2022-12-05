@@ -5,6 +5,6 @@ PyEVSpace API
 .. toctree::
 	:maxdepth: 3
 	
-	evspace
+	pyevspace
 	evector
 	ematrix

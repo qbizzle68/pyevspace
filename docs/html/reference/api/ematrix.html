@@ -248,6 +248,7 @@
   <div class="bd-toc-item navbar-nav">
     <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">PyEVSpace API</a><input checked class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pyevspace.html">PyEVSpace Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="evspace.html">Euclidean Vector Spaces</a></li>
 <li class="toctree-l2"><a class="reference internal" href="evector.html">EVector API Reference</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">EMatrix API Reference</a></li>
@@ -292,7 +293,7 @@
 <ul class="simple">
 <li><p><a class="reference internal" href="#ematrix-api-reference" id="id1">EMatrix API Reference</a></p>
 <ul>
-<li><p><a class="reference internal" href="#a-euclidean-matrix" id="id2">A Euclidean matrix</a></p></li>
+<li><p><a class="reference internal" href="#constructor" id="id2">Constructor</a></p></li>
 <li><p><a class="reference internal" href="#attributes" id="id3">Attributes</a></p></li>
 <li><p><a class="reference internal" href="#arithmetic-operators" id="id4">Arithmetic Operators</a></p></li>
 <li><p><a class="reference internal" href="#logical-operators" id="id5">Logical Operators</a></p></li>
@@ -302,48 +303,18 @@
 </li>
 </ul>
 </nav>
-<section id="a-euclidean-matrix">
-<h2>A Euclidean matrix<a class="headerlink" href="#a-euclidean-matrix" title="Permalink to this heading">#</a></h2>
-<p>A three by three-dimensional array object mean to represent a linear
-transformation of physical vectors in a Euclidean vector space. The
-internal data buffer is a C type <code class="code highlight c docutils literal highlight-c"><span class="kt">double</span><span class="w"></span></code>, which supports
-<a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a> types.</p>
-<div class="admonition note" id="numeric-def">
-<p class="admonition-title">Note</p>
-<p>The underlying data type of the internal array is a C type
-<code class="code highlight c docutils literal highlight-c"><span class="kt">double</span><span class="w"></span></code>. This obviously supports any type that can be represented
-as a Python <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, which includes Python <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> types.
-Therefore numeric types are interpreted in the following order:</p>
-<blockquote>
-<div><ol class="arabic simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>s are converted to a C <code class="code highlight c docutils literal highlight-c"><span class="kt">double</span><span class="w"></span></code></p></li>
-<li><dl class="simple">
-<dt>A conversion is attempted with the type’s <code class="code highlight python docutils literal highlight-python"><span class="fm">__float__</span><span class="p">()</span></code></dt><dd><p>method</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>A conversion is attempted with the type’s <code class="code highlight python docutils literal highlight-python"><span class="fm">__index__</span><span class="p">()</span></code></dt><dd><p>method</p>
-</dd>
-</dl>
-</li>
-<li><p>No suitable conversion can be made and a TypeError is raised</p></li>
-</ol>
-</div></blockquote>
-<p>Therefore in this documentation a numeric type is any type that is
-either a <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> or can be converted to a
-<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>.</p>
-</div>
+<section id="constructor">
+<h2>Constructor<a class="headerlink" href="#constructor" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="EMatrix">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">EMatrix</span></span><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param"><span class="n"><span class="pre">initializer</span></span></em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix" title="Permalink to this definition">#</a></dt>
-<dd><p>Create an <a class="reference internal" href="#EMatrix" title="EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> object with initial values from
+<dt class="sig sig-object py" id="pyevspace.EMatrix">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">EMatrix</span></span><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param"><span class="n"><span class="pre">initializer</span></span></em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EMatrix" title="Permalink to this definition">#</a></dt>
+<dd><p>Create an <a class="reference internal" href="#pyevspace.EMatrix" title="pyevspace.EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> object with initial values from
 <cite>initializer</cite>, or zero if <cite>initializer</cite> is omitted.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>initializer</strong> (<em>iterable</em>) – <p>an iterable object of length three
 whose values are iterable objects of length three with
-<a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a> values</p>
+<a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a> values</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">initializer</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">EMatrix</span><span class="p">(</span><span class="n">initializer</span><span class="p">)</span>
 </pre></div>
@@ -355,7 +326,7 @@ whose values are iterable objects of length three with
 <li><p><strong>TypeError</strong> – if <cite>initializer</cite> or any value of <cite>initializer</cite> is
 not an iterable</p></li>
 <li><p><strong>TypeError</strong> – if any value of a subiterable is not a
-<a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a> type</p></li>
+<a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a> type</p></li>
 <li><p><strong>ValueError</strong> – if <cite>initializer</cite> or any of the subiterables of
 <cite>initializer</cite> are not exactly length three</p></li>
 </ul>
@@ -367,15 +338,15 @@ not an iterable</p></li>
 <section id="attributes">
 <h2>Attributes<a class="headerlink" href="#attributes" title="Permalink to this heading">#</a></h2>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="EMatrix.I">
-<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">I</span></span><a class="headerlink" href="#EMatrix.I" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EMatrix.I">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">I</span></span><a class="headerlink" href="#pyevspace.EMatrix.I" title="Permalink to this definition">#</a></dt>
 <dd><p>Identity matrix. <strong>This value should not be edited.</strong></p>
 <dl class="field-list simple">
 <dt class="field-odd">Value<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="code highlight python docutils literal highlight-python"><span class="n">EMatrix</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span></code></p>
 </dd>
 <dt class="field-even">Type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="#EMatrix" title="EMatrix">EMatrix</a></p>
+<dd class="field-even"><p><a class="reference internal" href="#pyevspace.EMatrix" title="pyevspace.EMatrix">EMatrix</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -384,169 +355,169 @@ not an iterable</p></li>
 <section id="arithmetic-operators">
 <h2>Arithmetic Operators<a class="headerlink" href="#arithmetic-operators" title="Permalink to this heading">#</a></h2>
 <dl class="py method">
-<dt class="sig sig-object py" id="EMatrix.__add__">
-<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__add__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__add__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EMatrix.__add__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__add__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EMatrix.__add__" title="Permalink to this definition">#</a></dt>
 <dd><p>Standard matrix addition of two matrices.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#EMatrix" title="EMatrix"><em>EMatrix</em></a>) – the matrix to be added to self</p>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#pyevspace.EMatrix" title="pyevspace.EMatrix"><em>EMatrix</em></a>) – the matrix to be added to self</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>the matrix sum of self and <cite>other</cite></p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#EMatrix" title="EMatrix">EMatrix</a></p>
+<dd class="field-odd"><p><a class="reference internal" href="#pyevspace.EMatrix" title="pyevspace.EMatrix">EMatrix</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#EMatrix" title="EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#pyevspace.EMatrix" title="pyevspace.EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> type</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EMatrix.__sub__">
-<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__sub__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__sub__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EMatrix.__sub__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__sub__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EMatrix.__sub__" title="Permalink to this definition">#</a></dt>
 <dd><p>Standard matrix subtraction of two matrices.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#EMatrix" title="EMatrix"><em>EMatrix</em></a>) – the matrix to be subtracted from self</p>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#pyevspace.EMatrix" title="pyevspace.EMatrix"><em>EMatrix</em></a>) – the matrix to be subtracted from self</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>the matrix difference of self and <cite>other</cite></p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#EMatrix" title="EMatrix">EMatrix</a></p>
+<dd class="field-odd"><p><a class="reference internal" href="#pyevspace.EMatrix" title="pyevspace.EMatrix">EMatrix</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#EMatrix" title="EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#pyevspace.EMatrix" title="pyevspace.EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> type</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EMatrix.__mul__">
-<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__mul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__mul__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EMatrix.__mul__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__mul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EMatrix.__mul__" title="Permalink to this definition">#</a></dt>
 <dd><p>Standard multiplication depending on the type of <cite>other</cite>:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a> - standard scalar multiplication</p></li>
-<li><p><a class="reference internal" href="evector.html#EVector" title="EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a> - left-hand matrix multiplication of a vector</p></li>
-<li><p><a class="reference internal" href="#EMatrix" title="EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> - matrix multiplication of a matrix</p></li>
+<li><p><a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a> - standard scalar multiplication</p></li>
+<li><p><a class="reference internal" href="evector.html#pyevspace.EVector" title="pyevspace.EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a> - left-hand matrix multiplication of a vector</p></li>
+<li><p><a class="reference internal" href="#pyevspace.EMatrix" title="pyevspace.EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> - matrix multiplication of a matrix</p></li>
 </ul>
 </div></blockquote>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a> | EVector | EMatrix) – the object to multiply self by</p>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a> | EVector | EMatrix) – the object to multiply self by</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>the product of self and <cite>other</cite></p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="evector.html#EVector" title="EVector">EVector</a> or <a class="reference internal" href="#EMatrix" title="EMatrix">EMatrix</a></p>
+<dd class="field-odd"><p><a class="reference internal" href="evector.html#pyevspace.EVector" title="pyevspace.EVector">EVector</a> or <a class="reference internal" href="#pyevspace.EMatrix" title="pyevspace.EMatrix">EMatrix</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if other is not a <a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a>,
-<a class="reference internal" href="evector.html#EVector" title="EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a> or <a class="reference internal" href="#EMatrix" title="EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if other is not a <a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>,
+<a class="reference internal" href="evector.html#pyevspace.EVector" title="pyevspace.EVector"><code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></a> or <a class="reference internal" href="#pyevspace.EMatrix" title="pyevspace.EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> type</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EMatrix.__truediv__">
-<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__truediv__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scalar</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__truediv__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EMatrix.__truediv__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__truediv__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scalar</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EMatrix.__truediv__" title="Permalink to this definition">#</a></dt>
 <dd><p>Standard scalar division.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to divide each component of self by</p>
+<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to divide each component of self by</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>the scalar quotient</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#EMatrix" title="EMatrix">EMatrix</a></p>
+<dd class="field-odd"><p><a class="reference internal" href="#pyevspace.EMatrix" title="pyevspace.EMatrix">EMatrix</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>
 type</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EMatrix.__neg__">
-<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__neg__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__neg__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EMatrix.__neg__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__neg__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EMatrix.__neg__" title="Permalink to this definition">#</a></dt>
 <dd><p>Negates each component of self.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>the negative of self</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="#EMatrix" title="EMatrix">EMatrix</a></p>
+<dd class="field-even"><p><a class="reference internal" href="#pyevspace.EMatrix" title="pyevspace.EMatrix">EMatrix</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EMatrix.__iadd__">
-<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__iadd__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__iadd__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EMatrix.__iadd__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__iadd__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EMatrix.__iadd__" title="Permalink to this definition">#</a></dt>
 <dd><p>Inplace standard vector addition.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#EMatrix" title="EMatrix"><em>EMatrix</em></a>) – the matrix to add to self</p>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#pyevspace.EMatrix" title="pyevspace.EMatrix"><em>EMatrix</em></a>) – the matrix to add to self</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#EMatrix" title="EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#pyevspace.EMatrix" title="pyevspace.EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> type</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EMatrix.__isub__">
-<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__isub__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__isub__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EMatrix.__isub__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__isub__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EMatrix.__isub__" title="Permalink to this definition">#</a></dt>
 <dd><p>Inplace standard vector subtraction.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#EMatrix" title="EMatrix"><em>EMatrix</em></a>) – the matrix to subtract from self</p>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#pyevspace.EMatrix" title="pyevspace.EMatrix"><em>EMatrix</em></a>) – the matrix to subtract from self</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#EMatrix" title="EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#pyevspace.EMatrix" title="pyevspace.EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> type</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EMatrix.__imul__">
-<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__imul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scalar</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__imul__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EMatrix.__imul__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__imul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scalar</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EMatrix.__imul__" title="Permalink to this definition">#</a></dt>
 <dd><p>Inplace standard scalar multiplication.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to multilpy each element of self by</p>
+<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to multilpy each element of self by</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>
 type</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EMatrix.__itruediv__">
-<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__itruediv__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scalar</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__itruediv__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EMatrix.__itruediv__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__itruediv__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scalar</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EMatrix.__itruediv__" title="Permalink to this definition">#</a></dt>
 <dd><p>Inplace standard scalar division.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to divide each component of self by</p>
+<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to divide each component of self by</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>
 type</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EMatrix.__str__">
-<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__str__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EMatrix.__str__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EMatrix.__str__" title="Permalink to this definition">#</a></dt>
 <dd><p>Returns a string representation of self, formatted similarly to a
 list of lists.</p>
 <dl class="field-list simple">
@@ -560,8 +531,8 @@ list of lists.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EMatrix.__reduce__">
-<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__reduce__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__reduce__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EMatrix.__reduce__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__reduce__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EMatrix.__reduce__" title="Permalink to this definition">#</a></dt>
 <dd><p>Allows support for pickling.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -577,12 +548,12 @@ list of lists.</p>
 <section id="logical-operators">
 <h2>Logical Operators<a class="headerlink" href="#logical-operators" title="Permalink to this heading">#</a></h2>
 <dl class="py method">
-<dt class="sig sig-object py" id="EMatrix.__eq__">
-<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__eq__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__eq__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EMatrix.__eq__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__eq__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EMatrix.__eq__" title="Permalink to this definition">#</a></dt>
 <dd><p>Compares each component of two matrices for equality.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#EMatrix" title="EMatrix"><em>EMatrix</em></a>) – The matrix to compare to self</p>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#pyevspace.EMatrix" title="pyevspace.EMatrix"><em>EMatrix</em></a>) – The matrix to compare to self</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if each component of <cite>other</cite> and self are equivalent</p>
@@ -591,14 +562,14 @@ list of lists.</p>
 <dd class="field-odd"><p>bool</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#EMatrix" title="EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#pyevspace.EMatrix" title="pyevspace.EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> type</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="EMatrix.__ne__">
-<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__ne__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#EMatrix.__ne__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="pyevspace.EMatrix.__ne__">
+<span class="sig-prename descclassname"><span class="pre">EMatrix.</span></span><span class="sig-name descname"><span class="pre">__ne__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.EMatrix.__ne__" title="Permalink to this definition">#</a></dt>
 <dd><p>Compares each component of two matrices for an inequality.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -608,7 +579,7 @@ list of lists.</p>
 <dd class="field-even"><p>bool</p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#EMatrix" title="EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> type</p>
+<dd class="field-odd"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#pyevspace.EMatrix" title="pyevspace.EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> type</p>
 </dd>
 </dl>
 </dd></dl>
@@ -645,7 +616,7 @@ not in the interval [0, 2].</p>
 </section>
 <section id="buffer-protocol">
 <h2>Buffer Protocol<a class="headerlink" href="#buffer-protocol" title="Permalink to this heading">#</a></h2>
-<p>The <a class="reference internal" href="#EMatrix" title="EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> class supports the buffer protocol and can be used
+<p>The <a class="reference internal" href="#pyevspace.EMatrix" title="pyevspace.EMatrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code></a> class supports the buffer protocol and can be used
 by other objects which also support the buffer interface. For example
 it can be used to instantiate a <code class="xref py py-class docutils literal notranslate"><span class="pre">memoryview</span></code> object</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">EMatrix</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
@@ -710,12 +681,12 @@ NumPy.</p>
 <nav id="bd-toc-nav" class="page-toc">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#a-euclidean-matrix">
-   A Euclidean matrix
+  <a class="reference internal nav-link" href="#constructor">
+   Constructor
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EMatrix">
+    <a class="reference internal nav-link" href="#pyevspace.EMatrix">
      <code class="docutils literal notranslate">
       <span class="pre">
        EMatrix
@@ -731,7 +702,7 @@ NumPy.</p>
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EMatrix.I">
+    <a class="reference internal nav-link" href="#pyevspace.EMatrix.I">
      <code class="docutils literal notranslate">
       <span class="pre">
        EMatrix.I
@@ -747,7 +718,7 @@ NumPy.</p>
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EMatrix.__add__">
+    <a class="reference internal nav-link" href="#pyevspace.EMatrix.__add__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EMatrix.__add__()
@@ -756,7 +727,7 @@ NumPy.</p>
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EMatrix.__sub__">
+    <a class="reference internal nav-link" href="#pyevspace.EMatrix.__sub__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EMatrix.__sub__()
@@ -765,7 +736,7 @@ NumPy.</p>
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EMatrix.__mul__">
+    <a class="reference internal nav-link" href="#pyevspace.EMatrix.__mul__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EMatrix.__mul__()
@@ -774,7 +745,7 @@ NumPy.</p>
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EMatrix.__truediv__">
+    <a class="reference internal nav-link" href="#pyevspace.EMatrix.__truediv__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EMatrix.__truediv__()
@@ -783,7 +754,7 @@ NumPy.</p>
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EMatrix.__neg__">
+    <a class="reference internal nav-link" href="#pyevspace.EMatrix.__neg__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EMatrix.__neg__()
@@ -792,7 +763,7 @@ NumPy.</p>
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EMatrix.__iadd__">
+    <a class="reference internal nav-link" href="#pyevspace.EMatrix.__iadd__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EMatrix.__iadd__()
@@ -801,7 +772,7 @@ NumPy.</p>
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EMatrix.__isub__">
+    <a class="reference internal nav-link" href="#pyevspace.EMatrix.__isub__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EMatrix.__isub__()
@@ -810,7 +781,7 @@ NumPy.</p>
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EMatrix.__imul__">
+    <a class="reference internal nav-link" href="#pyevspace.EMatrix.__imul__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EMatrix.__imul__()
@@ -819,7 +790,7 @@ NumPy.</p>
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EMatrix.__itruediv__">
+    <a class="reference internal nav-link" href="#pyevspace.EMatrix.__itruediv__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EMatrix.__itruediv__()
@@ -828,7 +799,7 @@ NumPy.</p>
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EMatrix.__str__">
+    <a class="reference internal nav-link" href="#pyevspace.EMatrix.__str__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EMatrix.__str__()
@@ -837,7 +808,7 @@ NumPy.</p>
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EMatrix.__reduce__">
+    <a class="reference internal nav-link" href="#pyevspace.EMatrix.__reduce__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EMatrix.__reduce__()
@@ -853,7 +824,7 @@ NumPy.</p>
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EMatrix.__eq__">
+    <a class="reference internal nav-link" href="#pyevspace.EMatrix.__eq__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EMatrix.__eq__()
@@ -862,7 +833,7 @@ NumPy.</p>
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#EMatrix.__ne__">
+    <a class="reference internal nav-link" href="#pyevspace.EMatrix.__ne__">
      <code class="docutils literal notranslate">
       <span class="pre">
        EMatrix.__ne__()
