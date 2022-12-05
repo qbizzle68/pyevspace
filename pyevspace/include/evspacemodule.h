@@ -103,10 +103,10 @@ static EVSpace_CAPI* EVSpaceAPI = NULL;
 #define Matrix_StealArray(arr)		EVSpaceAPI->Matrix_StealArray(arr, EVSpace_CAPI->MatrixType)
 
 /* macros for C API */
-#define EVSpace_Vector_add(rhs, lhs, ans)			EVSpaceAPI->EVSpace_Vector_add(rhs, lhs, ans)
-#define EVSpace_Vector_subtract(rhs, lhs, ans)		EVSpaceAPI->EVSpace_Vector_subtract(rhs, lhs, ans)
-#define EVSpace_Vector_multiply(rhs, lhs, ans)		EVSpaceAPI->EVSpace_Vector_multiply(rhs, lhs, ans)
-#define EVSpace_Vector_divide(rhs, lhs, ans)		EVSpaceAPI->EVSpace_Vector_divide(rhs, lhs, ans)
+#define EVSpace_Vector_add(rhs, lhs)				EVSpaceAPI->EVSpace_Vector_add(rhs, lhs)
+#define EVSpace_Vector_subtract(rhs, lhs)		EVSpaceAPI->EVSpace_Vector_subtract(rhs, lhs)
+#define EVSpace_Vector_multiply(rhs, lhs)		EVSpaceAPI->EVSpace_Vector_multiply(rhs, lhs)
+#define EVSpace_Vector_divide(rhs, lhs)		EVSpaceAPI->EVSpace_Vector_divide(rhs, lhs)
 #define EVSpace_Vector_iadd(self, other)			EVSpaceAPI->EVSpace_Vector_iadd(self, other)
 #define EVSpace_Vector_isubtract(self, other)		EVSpaceAPI->EVSpace_Vector_isubtract(self, other)
 #define EVSpace_Vector_imultilpy(self, other)		EVSpaceAPI->EVSpace_Vector_imultiply(self, other)
@@ -132,7 +132,7 @@ static EVSpace_CAPI* EVSpaceAPI = NULL;
 #define EVSpace_cross(lhs, rhs)		EVSpaceAPI->EVSpace_cross(lhs, rhs)
 #define EVSpace_norm(self)			EVSpaceAPI->EVSpace_norm(self)
 #define EVSpace_vang(lhs, rhs)		EVSpaceAPI->EVSpace_vang(lhs, rhs)
-#define EVSpace_vxcl(lhs, rhs)		EVSpaceAPI->EVSpace_vxcl(lhs, rhs)
+#define EVSpace_vxcl(vec, xcl)		EVSpaceAPI->EVSpace_vxcl(vec, xcl)
 #define EVSpace_det(lhs)			EVSpaceAPI->EVSpace_det(lhs)
 #define EVSpace_transpose(self)		EVSpaceAPI->EVSpace_transpose(self)
 
