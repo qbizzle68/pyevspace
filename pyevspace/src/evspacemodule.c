@@ -195,12 +195,10 @@ vector_str(const EVSpace_Vector* self)
 static PyObject* 
 vector_iter(PyObject* self) 
 {
-	Py_INCREF(self);
-	((EVSpace_Vector*)self)->itr_number = 0;
-	return self;
+	return PySeqIter_New(self);
 }
 
-static PyObject* 
+/*static PyObject*
 vector_next(PyObject* self)
 {
 	EVSpace_Vector* itr = (EVSpace_Vector*)self;
@@ -216,7 +214,7 @@ vector_next(PyObject* self)
 		PyErr_SetNone(PyExc_StopIteration);
 
 	return rtn;
-}
+}*/
 
 #define ULP_MAXIMUM	10 // this is a guess, 1 seems too stringent 
 
@@ -644,7 +642,7 @@ static PyTypeObject EVSpace_VectorType = {
 	.tp_doc			= vector_doc,
 	.tp_richcompare	= (richcmpfunc)vector_richcompare,
 	.tp_iter		= vector_iter,
-	.tp_iternext	= vector_next,
+	//.tp_iternext	= vector_next,
 	.tp_methods		= vector_methods,
 	.tp_new			= vector_new,
 	.tp_free		= vector_free,

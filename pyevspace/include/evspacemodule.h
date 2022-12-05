@@ -9,7 +9,7 @@ extern "C" {
 typedef struct {
 	PyObject_HEAD
 	double *data;			/* x, y, z component of vectors */
-	int itr_number;
+//	int itr_number;
 } EVSpace_Vector;
 
 typedef struct {
@@ -90,7 +90,7 @@ typedef struct {
 /* This is only used by the API and should not be included in
  * evspacemodule.c since it doesn't use the capsule.
  */
-//#ifndef _EVSPACE_IMPL
+#ifndef _EVSPACE_IMPL
 /* Define global variable for the C API and a macro for setting it. */
 static EVSpace_CAPI* EVSpaceAPI = NULL;
 
