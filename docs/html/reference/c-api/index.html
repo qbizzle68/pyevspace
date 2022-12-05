@@ -248,7 +248,6 @@
     <ul class="current nav bd-sidenav">
 <li class="toctree-l1 has-children"><a class="reference internal" href="../api/index.html">PyEVSpace API</a><input checked class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../api/pyevspace.html">PyEVSpace Documentation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api/evspace.html">Euclidean Vector Spaces</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/evector.html">EVector API Reference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/ematrix.html">EMatrix API Reference</a></li>
 </ul>
@@ -287,7 +286,162 @@
               
   <section id="c-api">
 <h1>C API<a class="headerlink" href="#c-api" title="Permalink to this heading">#</a></h1>
-<p>put c-api documentation here</p>
+<p>The C-API defines two structs that represent the EVector and EMatrix.</p>
+<section id="types">
+<h2>Types<a class="headerlink" href="#types" title="Permalink to this heading">#</a></h2>
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.EVSpace_Vector">
+<span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Vector</span></span></span><a class="headerlink" href="#c.EVSpace_Vector" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>C struct that defines the Python EVector type.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyObject_HEAD</span><span class="w"></span>
+<span class="w">        </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">data</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">itr_numer</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="p">;</span><span class="w"></span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.EVSpace_Matrix">
+<span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Matrix</span></span></span><a class="headerlink" href="#c.EVSpace_Matrix" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>C struct that defines the Python EMatrix type.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyObject_HEAD</span><span class="w"></span>
+<span class="w">        </span><span class="nf">double</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">data</span><span class="p">)[</span><span class="mi">3</span><span class="p">];</span><span class="w"></span>
+<span class="p">}</span><span class="w"> </span><span class="n">EVSpace_Matrix</span><span class="p">;</span><span class="w"></span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="macros">
+<h2>Macros<a class="headerlink" href="#macros" title="Permalink to this heading">#</a></h2>
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_VECTOR_GETX">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_VECTOR_GETX</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">o</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_VECTOR_GETX" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Simplifies accessing the X component of a vector by casting <cite>o</cite> to an
+EVSpace_Vector* and calling the underlying array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>o</strong> – a PyObject* or EVSpace_Vector* to get the X component of</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_VECTOR_GETY">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_VECTOR_GETY</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">o</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_VECTOR_GETY" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Simplifies accessing the Y component of a vector by casting <cite>o</cite> to an
+EVSpace_Vector* and calling the underlying array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>o</strong> – a PyObject* or EVSpace_Vector* to get the Y component of</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_VECTOR_GETZ">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_VECTOR_GETZ</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">o</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_VECTOR_GETZ" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Simplifies accessing the Z component of a vector by casting <cite>o</cite> to an
+EVSpace_Vector* and calling the underlying array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>o</strong> – a PyObject* or EVSpace_Vector* to get the Z component of</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_VECTOR_SETX">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_VECTOR_SETX</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">o</span></span>, <span class="n"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_VECTOR_SETX" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Simplifies setting the X component of a vector by casting <cite>o</cite> to an
+EVSpace_Vector* and setting the correct component of the underlying
+array to <cite>v</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>o</strong> – a PyObject* or EVSpace_Vector* to set the X component of</p></li>
+<li><p><strong>v</strong> – the value to set the array component to</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_VECTOR_SETY">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_VECTOR_SETY</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">o</span></span>, <span class="n"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_VECTOR_SETY" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Simplifies setting the Y component of a vector by casting <cite>o</cite> to an
+EVSpace_Vector* and setting the correct component of the underlying
+array to <cite>v</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>o</strong> – a PyObject* or EVSpace_Vector* to set the Y component of</p></li>
+<li><p><strong>v</strong> – the value to set the array component to</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_VECTOR_SETZ">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_VECTOR_SETZ</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">o</span></span>, <span class="n"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_VECTOR_SETZ" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Simplifies setting the Z component of a vector by casting <cite>o</cite> to an
+EVSpace_Vector* and setting the correct component of the underlying
+array to <cite>v</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>o</strong> – a PyObject* or EVSpace_Vector* to set the Z component of</p></li>
+<li><p><strong>v</strong> – the value to set the array component to</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_MATRIX_GET">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_MATRIX_GET</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">o</span></span>, <span class="n"><span class="pre">r</span></span>, <span class="n"><span class="pre">c</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_MATRIX_GET" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Simplifies accessing a component of <cite>o</cite> by casting to a
+EVSpace_Matrix* and calling the underlying array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>o</strong> – a PyObject* or EVSpace_Vector* to get the component of</p></li>
+<li><p><strong>r</strong> – the row of the component to get</p></li>
+<li><p><strong>c</strong> – the column of the component to get</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_MATRIX_SET">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_MATRIX_SET</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">o</span></span>, <span class="n"><span class="pre">r</span></span>, <span class="n"><span class="pre">c</span></span>, <span class="n"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_MATRIX_SET" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Simplifies accessing a component of <cite>o</cite> by casting to a
+EVSpace_Matrix* and setting the correct component of the underlying
+array to <cite>v</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>o</strong> – a PyObject* or EVSpace_Vector* to get the component of</p></li>
+<li><p><strong>r</strong> – the row of the component to set</p></li>
+<li><p><strong>c</strong> – the column of the component to get</p></li>
+<li><p><strong>v</strong> – the value to set the array component to</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -314,6 +468,28 @@
           
             <div class="bd-sidebar-secondary bd-toc">
               
+<div class="toc-item">
+  
+<div class="tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+</div>
+<nav id="bd-toc-nav" class="page-toc">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#types">
+   Types
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#macros">
+   Macros
+  </a>
+ </li>
+</ul>
+
+</nav>
+</div>
+
 <div class="toc-item">
   
 <div id="searchbox"></div>
