@@ -172,13 +172,18 @@ vector_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED)
 	return vector_steal_array(arr, type);
 }
 
-/* EVector type methods */
+static int 
+vector_string_length(const EVSpace_Vector* self)
+{
+	// see how many bytes snprintf would write, then allocate that memory
+	return snprintf(NULL, 0, "[%g, %g, %g]",
+		Vector_X(self), Vector_Y(self), Vector_Z(self));
+}
+
 static PyObject* 
 vector_str(const EVSpace_Vector* self) 
 {
-	// see how many bytes snprintf would write, then allocate that memory
-	int buffer_size = snprintf(NULL, 0, "[%g, %g, %g]",
-		Vector_X(self), Vector_Y(self), Vector_Z(self));
+	int buffer_size = vector_string_length(self);
 
 	char* buffer = malloc(buffer_size + 1);
 	if (!buffer)
@@ -186,6 +191,24 @@ vector_str(const EVSpace_Vector* self)
 
 	// don't need snprintf because we now how many bytes will be written
 	sprintf(buffer, "[%g, %g, %g]",
+		Vector_X(self), Vector_Y(self), Vector_Z(self));
+	PyObject* rtn = PyUnicode_FromString(buffer);
+	free(buffer);
+
+	return rtn;
+}
+
+static PyObject*
+vector_repr(const EVSpace_Vector* self)
+{
+	int buffer_size = vector_string_length(self);
+
+	// 9 extra chars for type name and 1 for null char
+	char* buffer = malloc(buffer_size + 10);
+	if (!buffer)
+		return PyErr_NoMemory();
+
+	sprintf(buffer, "EVector([%g, %g, %g])",
 		Vector_X(self), Vector_Y(self), Vector_Z(self));
 	PyObject* rtn = PyUnicode_FromString(buffer);
 	free(buffer);
@@ -623,6 +646,7 @@ static PyTypeObject EVSpace_VectorType = {
 	.tp_as_number	= &vector_as_number,
 	.tp_as_sequence = &vector_as_sequence,
 	.tp_str			= (reprfunc)vector_str,
+	.tp_repr		= (reprfunc)vector_repr,
 	.tp_as_buffer	= &vector_buffer,
 	.tp_flags		= Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE,
 	.tp_doc			= vector_doc,
@@ -714,31 +738,60 @@ static void matrix_free(void* self) {
 	free(PyMatrix_DATA(self));
 }
 
-static PyObject* 
-matrix_str(PyObject* self) 
+#define MATRIX_STRING_FORMAT	"[[%g, %g, %g]\n[%g, %g, %g]\n[%g, %g, %g]]"
+
+static int
+matrix_string_length(const EVSpace_Matrix* self)
 {
-	const char* format = "([%g, %g, %g]\n[%g, %g, %g]\n[%g, %g, %g])";
-	// let snprintf tell us how many bytes it would have written
-	const int buffer_size = snprintf(NULL, 0, format,
-		Matrix_COMP(self, 0, 0), Matrix_COMP(self, 0, 1), 
-		Matrix_COMP(self, 0, 2), Matrix_COMP(self, 1, 0), 
+	return snprintf(NULL, 0, MATRIX_STRING_FORMAT,
+		Matrix_COMP(self, 0, 0), Matrix_COMP(self, 0, 1),
+		Matrix_COMP(self, 0, 2), Matrix_COMP(self, 1, 0),
 		Matrix_COMP(self, 1, 1), Matrix_COMP(self, 1, 2),
-		Matrix_COMP(self, 2, 0), Matrix_COMP(self, 2, 1), 
-		Matrix_COMP(self, 2, 2)
-	);
+		Matrix_COMP(self, 2, 0), Matrix_COMP(self, 2, 1),
+		Matrix_COMP(self, 2, 2));
+}
+
+static PyObject* 
+matrix_str(EVSpace_Matrix* self)
+{
+	//const char* format = "[[%g, %g, %g]\n[%g, %g, %g]\n[%g, %g, %g]]";
+	// let snprintf tell us how many bytes it would have written
+	const int buffer_size = matrix_string_length(self);
 
 	char* buffer = malloc(buffer_size + 1);
 	if (!buffer)
 		return PyErr_NoMemory();
 
-	sprintf(buffer, format,
+	sprintf(buffer, MATRIX_STRING_FORMAT,
 		Matrix_COMP(self, 0, 0), Matrix_COMP(self, 0, 1), 
 		Matrix_COMP(self, 0, 2), Matrix_COMP(self, 1, 0), 
 		Matrix_COMP(self, 1, 1), Matrix_COMP(self, 1, 2),
 		Matrix_COMP(self, 2, 0), Matrix_COMP(self, 2, 1), 
+		Matrix_COMP(self, 2, 2));
+	
+	PyObject* rtn = PyUnicode_FromString(buffer);
+	free(buffer);
+	return rtn;
+}
+
+static PyObject*
+matrix_repr(EVSpace_Matrix* self)
+{
+	const int buffer_size = matrix_string_length(self);
+
+	// 9 chars for type name, 2 chars for tabs, 1 for null char
+	char* buffer = malloc(buffer_size + 12);
+	if (!buffer)
+		return PyErr_NoMemory();
+
+	sprintf(buffer, "EMatrix([[%g, %g, %g]\n\t[%g, %g, %g]\n\t[%g, %g, %g]])",
+		Matrix_COMP(self, 0, 0), Matrix_COMP(self, 0, 1),
+		Matrix_COMP(self, 0, 2), Matrix_COMP(self, 1, 0),
+		Matrix_COMP(self, 1, 1), Matrix_COMP(self, 1, 2),
+		Matrix_COMP(self, 2, 0), Matrix_COMP(self, 2, 1),
 		Matrix_COMP(self, 2, 2)
 	);
-	
+
 	PyObject* rtn = PyUnicode_FromString(buffer);
 	free(buffer);
 	return rtn;
@@ -1209,7 +1262,8 @@ static PyTypeObject EVSpace_MatrixType = {
 	.tp_itemsize	= 0,
 	.tp_as_number	= &matrix_as_number,
 	.tp_as_mapping	= &matrix_as_mapping,
-	.tp_str			= matrix_str,
+	.tp_str			= (reprfunc)matrix_str,
+	.tp_repr		= (reprfunc)matrix_repr,
 	.tp_as_buffer	= &matrix_buffer,
 	.tp_flags		= Py_TPFLAGS_DEFAULT | Py_TPFLAGS_MAPPING,
 	.tp_doc			= matrix_doc,
