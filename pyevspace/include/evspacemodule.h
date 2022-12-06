@@ -9,12 +9,10 @@ extern "C" {
 typedef struct {
 	PyObject_HEAD
 	double *data;			/* x, y, z component of vectors */
-//	int itr_number;
 } EVSpace_Vector;
 
 typedef struct {
 	PyObject_HEAD
-	//double (*data)[3];		/* row by column ordering */
 	double* data;			/* row by column ordering */
 } EVSpace_Matrix;
 

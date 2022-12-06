@@ -938,9 +938,6 @@ iadd_matrix_matrix(EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs, int factor)
 {
 	assert(factor == 1 || factor == -1);
 
-	//double(*lhs_state)[3] = lhs->data;
-	//const double(*rhs_state)[3] = rhs->data;
-
 	Matrix_COMP(lhs, 0, 0) += Matrix_COMP(rhs, 0, 0) * factor;
 	Matrix_COMP(lhs, 0, 1) += Matrix_COMP(rhs, 0, 1) * factor;
 	Matrix_COMP(lhs, 0, 2) += Matrix_COMP(rhs, 0, 2) * factor;
@@ -950,16 +947,6 @@ iadd_matrix_matrix(EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs, int factor)
 	Matrix_COMP(lhs, 2, 0) += Matrix_COMP(rhs, 2, 0) * factor;
 	Matrix_COMP(lhs, 2, 1) += Matrix_COMP(rhs, 2, 1) * factor;
 	Matrix_COMP(lhs, 2, 2) += Matrix_COMP(rhs, 2, 2) * factor;
-
-	/*lhs_state[0][0] += rhs_state[0][0] * factor;
-	lhs_state[0][1] += rhs_state[0][1] * factor;
-	lhs_state[0][2] += rhs_state[0][2] * factor;
-	lhs_state[1][0] += rhs_state[1][0] * factor;
-	lhs_state[1][1] += rhs_state[1][1] * factor;
-	lhs_state[1][2] += rhs_state[1][2] * factor;
-	lhs_state[2][0] += rhs_state[2][0] * factor;
-	lhs_state[2][1] += rhs_state[2][1] * factor;
-	lhs_state[2][2] += rhs_state[2][2] * factor;*/
 }
 
 static PyObject* 
@@ -985,7 +972,6 @@ matrix_isubtract(PyObject* lhs, PyObject* rhs)
 }
 
 static inline void
-//imultiply_matrix_scalar_states(double (* const mat)[3], double scalar) 
 imultiply_matrix_scalar_states(double* mat, double scalar)
 {
 	mat[RC_INDEX(0, 0)] *= scalar;
@@ -997,16 +983,6 @@ imultiply_matrix_scalar_states(double* mat, double scalar)
 	mat[RC_INDEX(2, 0)] *= scalar;
 	mat[RC_INDEX(2, 1)] *= scalar;
 	mat[RC_INDEX(2, 2)] *= scalar;
-
-	/*mat[0][0] *= scalar;
-	mat[0][1] *= scalar;
-	mat[0][2] *= scalar;
-	mat[1][0] *= scalar;
-	mat[1][1] *= scalar;
-	mat[1][2] *= scalar;
-	mat[2][0] *= scalar;
-	mat[2][1] *= scalar;
-	mat[2][2] *= scalar;*/
 }
 
 static PyObject* 
@@ -1046,7 +1022,6 @@ matrix_idivide(PyObject* lhs, PyObject* rhs)
 static PyObject* 
 neg_matrix(const EVSpace_Matrix* self) 
 {
-	//double(*state)[3] = malloc(3 * sizeof * state);
 	double* state = malloc(9 * sizeof(double));
 	if (!state)
 		return PyErr_NoMemory();
@@ -1060,16 +1035,6 @@ neg_matrix(const EVSpace_Matrix* self)
 	state[RC_INDEX(2, 0)] = -Matrix_COMP(self, 2, 0);
 	state[RC_INDEX(2, 1)] = -Matrix_COMP(self, 2, 1);
 	state[RC_INDEX(2, 2)] = -Matrix_COMP(self, 2, 2);
-
-	/*state[0][0] = -Matrix_GET(self, 0, 0);
-	state[0][1] = -Matrix_GET(self, 0, 1);
-	state[0][2] = -Matrix_GET(self, 0, 2);
-	state[1][0] = -Matrix_GET(self, 1, 0);
-	state[1][1] = -Matrix_GET(self, 1, 1);
-	state[1][2] = -Matrix_GET(self, 1, 2);
-	state[2][0] = -Matrix_GET(self, 2, 0);
-	state[2][1] = -Matrix_GET(self, 2, 1);
-	state[2][2] = -Matrix_GET(self, 2, 2);*/
 
 	PyObject* rtn = new_matrix_steal(state);
 	if (!rtn)
@@ -1115,7 +1080,6 @@ matrix_get_item(PyObject* self, PyObject* args)
 		return NULL;
 	}
 
-	//return PyFloat_FromDouble(Matrix_GET(self, row, col));
 	return PyFloat_FromDouble(Matrix_COMP(self, row, col));
 }
 
@@ -1139,7 +1103,6 @@ matrix_set_item(PyObject* self, PyObject* args, PyObject* value)
 	if (value_double == -1 && PyErr_Occurred())
 		return -1;
 
-	//Matrix_SET(self, row, col, value_double);
 	Matrix_COMP(self, row, col) = value_double;
 	return 0;
 }
@@ -1204,16 +1167,6 @@ matrix_equal(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
 		&& double_almost_eq(Matrix_COMP(lhs, 2, 0), Matrix_COMP(rhs, 2, 0))
 		&& double_almost_eq(Matrix_COMP(lhs, 2, 1), Matrix_COMP(rhs, 2, 1))
 		&& double_almost_eq(Matrix_COMP(lhs, 2, 2), Matrix_COMP(rhs, 2, 2)));
-
-	/*return (double_almost_eq(Matrix_GET(lhs, 0, 0), Matrix_GET(rhs, 0, 0))
-		&& double_almost_eq(Matrix_GET(lhs, 0, 1), Matrix_GET(rhs, 0, 1))
-		&& double_almost_eq(Matrix_GET(lhs, 0, 2), Matrix_GET(rhs, 0, 2))
-		&& double_almost_eq(Matrix_GET(lhs, 1, 0), Matrix_GET(rhs, 1, 0))
-		&& double_almost_eq(Matrix_GET(lhs, 1, 1), Matrix_GET(rhs, 1, 1))
-		&& double_almost_eq(Matrix_GET(lhs, 1, 2), Matrix_GET(rhs, 1, 2))
-		&& double_almost_eq(Matrix_GET(lhs, 2, 0), Matrix_GET(rhs, 2, 0))
-		&& double_almost_eq(Matrix_GET(lhs, 2, 1), Matrix_GET(rhs, 2, 1))
-		&& double_almost_eq(Matrix_GET(lhs, 2, 2), Matrix_GET(rhs, 2, 2)));*/
 }
 
 static PyObject* 
@@ -1240,9 +1193,6 @@ matrix_reduce(PyObject* self, PyObject* Py_UNUSED)
 		Matrix_COMP(self, 0, 0), Matrix_COMP(self, 0, 1), Matrix_COMP(self, 0, 2), 
 		Matrix_COMP(self, 1, 0), Matrix_COMP(self, 1, 1), Matrix_COMP(self, 1, 2),
 		Matrix_COMP(self, 2, 0), Matrix_COMP(self, 2, 1), Matrix_COMP(self, 2, 2));
-		/*Matrix_GET(self, 0, 0), Matrix_GET(self, 0, 1), Matrix_GET(self, 0, 2),
-		Matrix_GET(self, 1, 0), Matrix_GET(self, 1, 1), Matrix_GET(self, 1, 2),
-		Matrix_GET(self, 2, 0), Matrix_GET(self, 2, 1), Matrix_GET(self, 2, 2));*/
 }
 
 static PyMethodDef matrix_methods[] = {
@@ -1389,12 +1339,10 @@ evspace_msub(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
 static PyObject* 
 evspace_mdiv(const EVSpace_Matrix* lhs, double rhs) 
 {
-	//double(*ans)[3] = malloc(3 * sizeof * ans);
 	double* ans = malloc(9 * sizeof(double));
 	if (!ans)
 		return NULL;
 
-	//multiply_matrix_scalar_states(lhs->data, 1.0 / rhs, ans);
 	multiply_matrix_scalar_states(Matrix_DATA(lhs), 1.0 / rhs, ans);
 
 	PyObject* rtn = new_matrix_steal(ans);
@@ -1419,14 +1367,12 @@ evspace_msub_inplace(EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
 static void 
 evspace_mmult_inplace(EVSpace_Matrix* lhs, double rhs) 
 {
-	//imultiply_matrix_scalar_states(lhs->data, rhs);
 	imultiply_matrix_scalar_states(Matrix_DATA(lhs), rhs);
 }
 
 static void 
 evspace_mdiv_inplace(EVSpace_Matrix* lhs, double rhs) 
 {
-	//imultiply_matrix_scalar_states(lhs->data, 1.0 / rhs);
 	imultiply_matrix_scalar_states(Matrix_DATA(lhs), 1.0 / rhs);
 }
 
@@ -1451,7 +1397,6 @@ evspace_det(const EVSpace_Matrix* self)
 static PyObject* 
 evspace_transpose(const EVSpace_Matrix* self) 
 {
-	//double (*state)[3] = malloc(3 * sizeof(*state));
 	double* state = malloc(9 * sizeof(double));
 	if (!state)
 		return PyErr_NoMemory();
@@ -1465,16 +1410,6 @@ evspace_transpose(const EVSpace_Matrix* self)
 	state[RC_INDEX(2, 0)] = Matrix_COMP(self, 0, 2);
 	state[RC_INDEX(2, 1)] = Matrix_COMP(self, 1, 2);
 	state[RC_INDEX(2, 2)] = Matrix_COMP(self, 2, 2);
-
-	/*state[0][0] = Matrix_GET(self, 0, 0);
-	state[0][1] = Matrix_GET(self, 1, 0);
-	state[0][2] = Matrix_GET(self, 2, 0);
-	state[1][0] = Matrix_GET(self, 0, 1);
-	state[1][1] = Matrix_GET(self, 1, 1);
-	state[1][2] = Matrix_GET(self, 2, 1);
-	state[2][0] = Matrix_GET(self, 0, 2);
-	state[2][1] = Matrix_GET(self, 1, 2);
-	state[2][2] = Matrix_GET(self, 2, 2);*/
 
 	PyObject* rtn = new_matrix_steal(state);
 	if (!rtn)
