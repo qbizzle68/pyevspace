@@ -88,17 +88,17 @@ typedef struct {
 /* This is only used by the API and should not be included in
  * evspacemodule.c since it doesn't use the capsule.
  */
-#ifndef _EVSPACE_IMPL
+//#ifndef _EVSPACE_IMPL
 /* Define global variable for the C API and a macro for setting it. */
 static EVSpace_CAPI* EVSpaceAPI = NULL;
 
 #define EVSpace_IMPORT EVSpaceAPI = (EVSpace_CAPI *)PyCapsule_Import(EVSpace_CAPSULE_NAME, 0)
 
 /* macros for simplified constructor calls */
-#define Vector_FromArray(arr)		EVSpaceAPI->Vector_FromValues(arr, EVSpace_CAPI->VectorType)
-#define Vector_StealArray(arr)		EVSpaceAPI->Vector_StealArray(arr, EVSpace_CAPI->VectorType)
-#define Matrix_FromArray(arr)		EVSpaceAPI->Matrix_FromArray(arr, EVSpace_CAPI->MatrixType)
-#define Matrix_StealArray(arr)		EVSpaceAPI->Matrix_StealArray(arr, EVSpace_CAPI->MatrixType)
+#define Vector_FromArray(arr)		EVSpaceAPI->Vector_FromValues(arr, EVSpaceAPI->VectorType)
+#define Vector_StealArray(arr)		EVSpaceAPI->Vector_StealArray(arr, EVSpaceAPI->VectorType)
+#define Matrix_FromArray(arr)		EVSpaceAPI->Matrix_FromArray(arr, EVSpaceAPI->MatrixType)
+#define Matrix_StealArray(arr)		EVSpaceAPI->Matrix_StealArray(arr, EVSpaceAPI->MatrixType)
 
 /* macros for C API */
 #define EVSpace_Vector_add(rhs, lhs)				EVSpaceAPI->EVSpace_Vector_add(rhs, lhs)
@@ -131,7 +131,7 @@ static EVSpace_CAPI* EVSpaceAPI = NULL;
 #define EVSpace_norm(self)			EVSpaceAPI->EVSpace_norm(self)
 #define EVSpace_vang(lhs, rhs)		EVSpaceAPI->EVSpace_vang(lhs, rhs)
 #define EVSpace_vxcl(vec, xcl)		EVSpaceAPI->EVSpace_vxcl(vec, xcl)
-Edefine EVSpace_proj(proj, onto)	EVSpaceAPI->EVSpace_proj(proj, onto)
+#define EVSpace_proj(proj, onto)	EVSpaceAPI->EVSpace_proj(proj, onto)
 #define EVSpace_det(lhs)			EVSpaceAPI->EVSpace_det(lhs)
 #define EVSpace_transpose(self)		EVSpaceAPI->EVSpace_transpose(self)
 
