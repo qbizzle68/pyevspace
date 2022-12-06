@@ -474,13 +474,13 @@ static PyNumberMethods vector_as_number = {
 	.nb_inplace_true_divide = (binaryfunc)vector_idivide,
 };
 
-static Py_ssize_t 
+static Py_ssize_t
 vector_length(EVSpace_Vector* self) 
 {
 	return 3;
 }
 
-static PyObject* 
+static PyObject*
 vector_get_item(EVSpace_Vector* self, Py_ssize_t index) 
 {
 	if (index < 0 || index > 2) {
@@ -613,7 +613,7 @@ vector_normalize(PyObject* self, PyObject* Py_UNUSED)
 	double mag = VECTOR_MAG(vector_self);
 	idiv_vector_scalar(vector_self, mag);
 
-	Py_RETURN_NONE;
+	return Py_NewRef(self);
 }
 
 static PyObject* 
