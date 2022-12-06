@@ -1378,6 +1378,27 @@ evspace_vxcl(const EVSpace_Vector* vector, const EVSpace_Vector* exclude)
 	return rtn;
 }
 
+static PyObject*
+evspace_proj(const EVSpace_Vector* proj, const EVSpace_Vector* onto)
+{
+	double dot = evspace_dot(proj, onto);
+	double mag2 = VECTOR_MAG2(onto);
+
+	double* arr = malloc(3 * sizeof(double));
+	if (!arr)
+		return PyErr_NoMemory();
+
+	arr[0] = Vector_X(onto) * dot / mag2;
+	arr[1] = Vector_Y(onto) * dot / mag2;
+	arr[2] = Vector_Z(onto) * dot / mag2;
+
+	PyObject* rtn = new_vector_steal(arr);
+	if (!rtn)
+		free(arr);
+
+	return rtn;
+}
+
 static PyObject* 
 evspace_madd(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs) 
 {
@@ -1520,6 +1541,7 @@ EVSpace_CAPI* get_evspace_capi(void)
 	capi->EVSpace_norm = evspace_norm;
 	capi->EVSpace_vang = evspace_vang;
 	capi->EVSpace_vxcl = evspace_vxcl;
+	capi->EVSpace_proj = evspace_proj;
 	capi->EVSpace_det = evspace_det;
 	capi->EVSpace_transpose = evspace_transpose;
 
@@ -1633,6 +1655,26 @@ vector_vxcl(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size)
 	return evspace_vxcl((EVSpace_Vector*)args[0], (EVSpace_Vector*)args[1]);
 }
 
+static PyObject*
+vector_proj(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size)
+{
+	if (size != 2) {
+		PyErr_SetString(PyExc_TypeError, "proj() takes exactly two arguments");
+		return NULL;
+	}
+
+	if (!Vector_Check(args[0])) {
+		PyErr_SetString(PyExc_TypeError, "first argument must be EVector type");
+		return NULL;
+	}
+	if (!Vector_Check(args[1])) {
+		PyErr_SetString(PyExc_TypeError, "second argument must be EVector type");
+		return NULL;
+	}
+
+	return evspace_proj((EVSpace_Vector*)args[0], (EVSpace_Vector*)args[1]);
+}
+
 static PyObject* 
 matrix_det(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size) 
 {
@@ -1673,6 +1715,7 @@ static PyMethodDef evspace_methods[] = {
 	{"norm", (PyCFunction)vector_norm, METH_FASTCALL, PyDoc_STR("Returns a normalized version of an EVector.")},
 	{"vang", (PyCFunction)vector_vang, METH_FASTCALL, PyDoc_STR("Returns the shortest angle between two EVector's.")},
 	{"vxcl", (PyCFunction)vector_vxcl, METH_FASTCALL, PyDoc_STR("vxcl(vector, exclude) -> vector with exclude excluded from it")},
+	{"proj", (PyCFunction)vector_proj, METH_FASTCALL, PyDoc_STR("proj(proj, onto) -> proj projected onto onto")},
 	{"det", (PyCFunction)matrix_det, METH_FASTCALL, PyDoc_STR("Returns the determinate of a EMatrix.")},
 	{"transpose", (PyCFunction)matrix_transpose, METH_FASTCALL, PyDoc_STR("Returns the transpose of an EMatrix.")},
 	{NULL}

@@ -76,6 +76,7 @@ typedef struct {
 	PyObject* (*EVSpace_norm)(const EVSpace_Vector*);
 	double (*EVSpace_vang)(const EVSpace_Vector*, const EVSpace_Vector*);
 	PyObject* (*EVSpace_vxcl)(const EVSpace_Vector*, const EVSpace_Vector*);
+	PyObject* (*EVSpace_proj)(const EVSpace_Vector*, const EVSpace_Vector*);
 	double (*EVSpace_det)(const EVSpace_Matrix*);
 	PyObject* (*EVSpace_transpose)(const EVSpace_Matrix*);
 
@@ -130,6 +131,7 @@ static EVSpace_CAPI* EVSpaceAPI = NULL;
 #define EVSpace_norm(self)			EVSpaceAPI->EVSpace_norm(self)
 #define EVSpace_vang(lhs, rhs)		EVSpaceAPI->EVSpace_vang(lhs, rhs)
 #define EVSpace_vxcl(vec, xcl)		EVSpaceAPI->EVSpace_vxcl(vec, xcl)
+Edefine EVSpace_proj(proj, onto)	EVSpaceAPI->EVSpace_proj(proj, onto)
 #define EVSpace_det(lhs)			EVSpaceAPI->EVSpace_det(lhs)
 #define EVSpace_transpose(self)		EVSpaceAPI->EVSpace_transpose(self)
 
