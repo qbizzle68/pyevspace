@@ -15,11 +15,11 @@ class Test_ematrix(unittest.TestCase):
         self.assertEqual(self.m123 + self.m147, ans)
 
         with self.assertRaises(TypeError) as cm:
-            self.v123 + 1
+            self.m123 + 1
         self.assertEqual(TypeError, type(cm.exception))
 
         with self.assertRaises(TypeError) as cm:
-            self.v123 + 'a'
+            self.m123 + 'a'
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_iadd(self):
@@ -29,11 +29,11 @@ class Test_ematrix(unittest.TestCase):
         self.assertEqual(self.m123 + self.m147, ans)
 
         with self.assertRaises(TypeError) as cm:
-            self.v123 += 1
+            self.m123 += 1
         self.assertEqual(TypeError, type(cm.exception))
 
         with self.assertRaises(TypeError) as cm:
-            self.v123 += 'a'
+            self.m123 += 'a'
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_subtract(self):
@@ -41,11 +41,11 @@ class Test_ematrix(unittest.TestCase):
         self.assertEqual(self.m123 - self.m147, ans)
 
         with self.assertRaises(TypeError) as cm:
-            self.v123 - 1
+            self.m123 - 1
         self.assertEqual(TypeError, type(cm.exception))
 
         with self.assertRaises(TypeError) as cm:
-            self.v123 - 'a'
+            self.m123 - 'a'
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_isubtract(self):
@@ -55,11 +55,11 @@ class Test_ematrix(unittest.TestCase):
         self.assertEqual(m, ans)
 
         with self.assertRaises(TypeError) as cm:
-            self.v123 += 1
+            self.m123 += 1
         self.assertEqual(TypeError, type(cm.exception))
 
         with self.assertRaises(TypeError) as cm:
-            self.v123 += 'a'
+            self.m123 += 'a'
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_scalar_multiply(self):
@@ -72,7 +72,7 @@ class Test_ematrix(unittest.TestCase):
         self.assertEqual(TypeError, type(cm.exception))
 
         with self.assertRaises(TypeError) as cm:
-            self.v123 * 'a'
+            self.m123 * 'a'
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_vector_multiply(self):
