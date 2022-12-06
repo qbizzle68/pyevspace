@@ -93,6 +93,18 @@ class Test_evspace(unittest.TestCase):
             vang(5)
         self.assertEqual(TypeError, type(cm.exception))
 
+    def test_proj(self):
+        self.assertEqual(proj(EVector((1, 1, 7)), EVector((1, 1, 1))), EVector((3, 3, 3)))
+        self.assertEqual(proj(EVector.e1, EVector.e2), EVector())
+        
+        with self.assertRaises(TypeError) as cm:
+            proj(3, 'a')
+        self.assertEqual(TypeError, type(cm.exception))
+
+        with self.assertRaises(TypeError) as cm:
+            proj(EVector())
+        self.assertEqual(TypeError, type(cm.exception))
+
     def test_det(self):
         self.assertEqual(det(self.m), 0)
         m = EMatrix((2, 6, 4), (7, 3, 1), (8, 0, 0))
