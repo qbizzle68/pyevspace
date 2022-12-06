@@ -95,7 +95,7 @@ static EVSpace_CAPI* EVSpaceAPI = NULL;
 #define EVSpace_IMPORT EVSpaceAPI = (EVSpace_CAPI *)PyCapsule_Import(EVSpace_CAPSULE_NAME, 0)
 
 /* macros for simplified constructor calls */
-#define Vector_FromArray(arr)		EVSpaceAPI->Vector_FromValues(arr, EVSpaceAPI->VectorType)
+#define Vector_FromArray(arr)		EVSpaceAPI->Vector_FromArray(arr, EVSpaceAPI->VectorType)
 #define Vector_StealArray(arr)		EVSpaceAPI->Vector_StealArray(arr, EVSpaceAPI->VectorType)
 #define Matrix_FromArray(arr)		EVSpaceAPI->Matrix_FromArray(arr, EVSpaceAPI->MatrixType)
 #define Matrix_StealArray(arr)		EVSpaceAPI->Matrix_StealArray(arr, EVSpaceAPI->MatrixType)
