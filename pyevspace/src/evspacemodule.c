@@ -9,22 +9,21 @@
 
 /* define macros for type checking EVSpace types */
 #define Vector_Check(o)			PyObject_TypeCheck(o, &EVSpace_VectorType)
-//#define Vector_CheckExact(o)	Py_IS_TYPE(o, &EVSpace_VectorType)
 #define Matrix_Check(o)			PyObject_TypeCheck(o, &EVSpace_MatrixType)
-//#define Matrix_CheckExact(o)	Py_IS_TYPE(o, &EVSpace_MatrixType)
 
 /* shorten macros for readability */
-#define Vector_GETX(o)			EVSpace_VECTOR_GETX(o)
-#define Vector_GETY(o)			EVSpace_VECTOR_GETY(o)
-#define Vector_GETZ(o)			EVSpace_VECTOR_GETZ(o)
-#define Vector_SETX(o, v)		EVSpace_VECTOR_SETX(o, v)
-#define Vector_SETY(o, v)		EVSpace_VECTOR_SETY(o, v)
-#define Vector_SETZ(o, v)		EVSpace_VECTOR_SETZ(o, v)
+#define Vector_X(o)				EVSpace_VECTOR_X(o)
+#define Vector_Y(o)				EVSpace_VECTOR_Y(o)
+#define Vector_Z(o)				EVSpace_VECTOR_Z(o)
 #define Vector_INDEX(v, i)		(v->data[i])
-#define Matrix_GET(o, r, c)		EVSpace_MATRIX_GET(o, r, c)
-#define Matrix_SET(o, r, c, v)	EVSpace_MATRIX_SET(o, r, c, v)
-#define Vector_DATA(o)			(((EVSpace_Vector*)o)->data)
-#define Matrix_DATA(o)			(((EVSpace_Matrix*)o)->data)
+
+#define RC_INDEX(r, c)			EVSpace_RC_INDEX(r, c)
+#define Matrix_COMP(o, r, c)	EVSpace_MATRIX_COMPONENT(o, r, c)
+
+#define Vector_DATA(o)			(o->data)
+#define Matrix_DATA(o)			(o->data)
+#define PyVector_DATA(o)		(((EVSpace_Vector*)o)->data)
+#define PyMatrix_DATA(o)		(((EVSpace_Matrix*)o)->data)
 
 /* forward declarations */
 static PyTypeObject EVSpace_VectorType;
@@ -50,14 +49,15 @@ vector_from_array(const double* arr, PyTypeObject* type)
 		return NULL;
 
 	if (arr) {
-		self->data = malloc(3 * sizeof(double));
-		if (!self->data)
+		Vector_DATA(self) = malloc(3 * sizeof(double));
+		if (!Vector_DATA(self))
 			return PyErr_NoMemory();
-		memcpy(self->data, arr, 3 * sizeof(double));
+
+		memcpy(Vector_DATA(self), arr, 3 * sizeof(double));
 	}
 	else {
-		self->data = calloc(3, sizeof(double));
-		if (!self->data)
+		Vector_DATA(self) = calloc(3, sizeof(double));
+		if (!Vector_DATA(self))
 			return PyErr_NoMemory();
 	}
 
@@ -73,7 +73,7 @@ vector_steal_array(double* arr, PyTypeObject* type)
 	if (!self)
 		return NULL;
 
-	self->data = arr;
+	Vector_DATA(self) = arr;
 	arr = NULL;
 
 	return (PyObject*)self;
@@ -87,7 +87,7 @@ vector_steal_array(double* arr, PyTypeObject* type)
 static void
 vector_free(void* self)
 {
-	free(Vector_DATA(self));
+	free(PyVector_DATA(self));
 }
 
 /* get double from PyObject */
@@ -177,15 +177,16 @@ static PyObject*
 vector_str(const EVSpace_Vector* self) 
 {
 	// see how many bytes snprintf would write, then allocate that memory
-	int buffer_size = snprintf(NULL, 0, "[%g, %g, %g]", 
-							   Vector_GETX(self), Vector_GETY(self), Vector_GETZ(self));
+	int buffer_size = snprintf(NULL, 0, "[%g, %g, %g]",
+		Vector_X(self), Vector_Y(self), Vector_Z(self));
 
 	char* buffer = malloc(buffer_size + 1);
 	if (!buffer)
 		return PyErr_NoMemory();
 
 	// don't need snprintf because we now how many bytes will be written
-	sprintf(buffer, "[%g, %g, %g]", Vector_GETX(self), Vector_GETY(self), Vector_GETZ(self));
+	sprintf(buffer, "[%g, %g, %g]",
+		Vector_X(self), Vector_Y(self), Vector_Z(self));
 	PyObject* rtn = PyUnicode_FromString(buffer);
 	free(buffer);
 
@@ -197,24 +198,6 @@ vector_iter(PyObject* self)
 {
 	return PySeqIter_New(self);
 }
-
-/*static PyObject*
-vector_next(PyObject* self)
-{
-	EVSpace_Vector* itr = (EVSpace_Vector*)self;
-	int index = itr->itr_number;
-	PyObject* rtn = NULL;
-
-	if (index < 3) {
-		rtn = PyFloat_FromDouble(Vector_INDEX(itr, index));
-		if (rtn)
-			(itr->itr_number)++;
-	}
-	else
-		PyErr_SetNone(PyExc_StopIteration);
-
-	return rtn;
-}*/
 
 #define ULP_MAXIMUM	10 // this is a guess, 1 seems too stringent 
 
@@ -236,10 +219,9 @@ double_almost_eq(double a, double b )
 	return 0;
 }
 
-/* macro for simplifying equality expression */
-#define Vector_EQ(l, r) (double_almost_eq(Vector_GETX(l), Vector_GETX(r)) \
-						&& double_almost_eq(Vector_GETY(l), Vector_GETY(r)) \
-						&& double_almost_eq(Vector_GETZ(l), Vector_GETZ(r)))
+#define Vector_EQ(l, r) (double_almost_eq(Vector_X(l), Vector_X(r)) \
+						&& double_almost_eq(Vector_Y(l), Vector_Y(r)) \
+						&& double_almost_eq(Vector_Z(l), Vector_Z(r)))
 
 static PyObject* 
 vector_richcompare(PyObject* self, PyObject* other, int op) 
@@ -262,10 +244,10 @@ add_vector_vector(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs, int fact
 	double* arr = malloc(3 * sizeof(double));
 	if (!arr)
 		return PyErr_NoMemory();
-
-	arr[0] = Vector_GETX(lhs) + Vector_GETX(rhs) * factor;
-	arr[1] = Vector_GETY(lhs) + Vector_GETY(rhs) * factor;
-	arr[2] = Vector_GETZ(lhs) + Vector_GETZ(rhs) * factor;
+	
+	arr[0] = Vector_X(lhs) + Vector_X(rhs) * factor;
+	arr[1] = Vector_Y(lhs) + Vector_Y(rhs) * factor;
+	arr[2] = Vector_Z(lhs) + Vector_Z(rhs) * factor;
 
 	return new_vector_steal(arr);
 }
@@ -295,9 +277,9 @@ mult_vector_scalar(const EVSpace_Vector* lhs, double rhs)
 	if (!arr)
 		return PyErr_NoMemory();
 
-	arr[0] = Vector_GETX(lhs) * rhs;
-	arr[1] = Vector_GETY(lhs) * rhs;
-	arr[2] = Vector_GETZ(lhs) * rhs;
+	arr[0] = Vector_X(lhs) * rhs;
+	arr[1] = Vector_Y(lhs) * rhs;
+	arr[2] = Vector_Z(lhs) * rhs;
 
 	PyObject* rtn = new_vector_steal(arr);
 	if (!rtn)
@@ -320,15 +302,15 @@ vector_multiply(PyObject* lhs, PyObject* rhs)
 }
 
 static PyObject* 
-div_vector_scalar(const EVSpace_Vector* lhs, double rhs) 
+div_vector_scalar(const EVSpace_Vector* lhs, double rhs)
 {
 	double* arr = malloc(3 * sizeof(double));
 	if (!arr)
 		return NULL;
 
-	arr[0] = Vector_GETX(lhs) / rhs;
-	arr[1] = Vector_GETY(lhs) / rhs;
-	arr[2] = Vector_GETZ(lhs) / rhs;
+	arr[0] = Vector_X(lhs) / rhs;
+	arr[1] = Vector_Y(lhs) / rhs;
+	arr[2] = Vector_Z(lhs) / rhs;
 
 	PyObject* rtn = new_vector_steal(arr);
 	if (!rtn)
@@ -354,9 +336,10 @@ static void
 iadd_vector_vector(EVSpace_Vector* lhs, const EVSpace_Vector* rhs, int factor) 
 {
 	assert(factor == 1 || factor == -1);
-	Vector_SETX(lhs, Vector_GETX(lhs) + Vector_GETX(rhs) * factor);
-	Vector_SETY(lhs, Vector_GETY(lhs) + Vector_GETY(rhs) * factor);
-	Vector_SETZ(lhs, Vector_GETZ(lhs) + Vector_GETZ(rhs) * factor);
+	
+	Vector_X(lhs) = Vector_X(lhs) + Vector_X(rhs) * factor;
+	Vector_Y(lhs) = Vector_Y(lhs) + Vector_Y(rhs) * factor;
+	Vector_Z(lhs) = Vector_Z(lhs) + Vector_Z(rhs) * factor;
 }
 
 static PyObject* 
@@ -384,9 +367,9 @@ vector_isubtract(PyObject* lhs, PyObject* rhs)
 static void 
 imult_vector_scalar(EVSpace_Vector* lhs, double rhs) 
 {
-	Vector_SETX(lhs, Vector_GETX(lhs) * rhs);
-	Vector_SETY(lhs, Vector_GETY(lhs) * rhs);
-	Vector_SETZ(lhs, Vector_GETZ(lhs) * rhs);
+	Vector_X(lhs) = Vector_X(lhs) * rhs;
+	Vector_Y(lhs) = Vector_Y(lhs) * rhs;
+	Vector_Z(lhs) = Vector_Z(lhs) * rhs;
 }
 
 static PyObject* 
@@ -408,9 +391,9 @@ vector_imultiply(PyObject* lhs, PyObject* rhs)
 static void 
 idiv_vector_scalar(EVSpace_Vector* lhs, double rhs) 
 {
-	Vector_SETX(lhs, Vector_GETX(lhs) / rhs);
-	Vector_SETY(lhs, Vector_GETY(lhs) / rhs);
-	Vector_SETZ(lhs, Vector_GETZ(lhs) / rhs);
+	Vector_X(lhs) = Vector_X(lhs) / rhs;
+	Vector_Y(lhs) = Vector_Y(lhs) / rhs;
+	Vector_Z(lhs) = Vector_Z(lhs) / rhs;
 }
 
 static PyObject* 
@@ -436,9 +419,9 @@ neg_vector(const EVSpace_Vector* self)
 	if (!arr)
 		return NULL;
 
-	arr[0] = -Vector_GETX(self);
-	arr[1] = -Vector_GETY(self);
-	arr[2] = -Vector_GETZ(self);
+	arr[0] = -Vector_X(self);
+	arr[0] = -Vector_Y(self);
+	arr[0] = -Vector_Z(self);
 
 	PyObject* rtn = new_vector_steal(arr);
 	if (!rtn)
@@ -533,7 +516,7 @@ vector_buffer_get(PyObject* obj, Py_buffer* view, int flags)
 	*internal = BUFFER_RELEASE_SHAPE;
 
 	view->obj = obj;
-	view->buf = Vector_DATA(obj);
+	view->buf = PyVector_DATA(obj);
 	view->len = 3 * sizeof(double);
 	view->readonly = 0;
 	view->itemsize = sizeof(double);
@@ -563,10 +546,9 @@ static PyBufferProcs vector_buffer = {
 	(releasebufferproc)buffer_release
 };
 
-/* macros for dot and magnitude expressions */
-#define VECTOR_DOT(l, r)	(Vector_GETX(l)*Vector_GETX(r) \
-							+ Vector_GETY(l)*Vector_GETY(r) \
-							+ Vector_GETZ(l)*Vector_GETZ(r))
+#define VECTOR_DOT(l, r)	(Vector_X(l) * Vector_X(r) \
+							+ Vector_Y(l) * Vector_Y(r) \
+							+ Vector_Z(l) * Vector_Z(r))
 #define VECTOR_MAG2(o)	(VECTOR_DOT(o, o))
 #define VECTOR_MAG(o) (sqrt(VECTOR_MAG2(o)))
 
@@ -616,7 +598,11 @@ vector_reduce(PyObject* self, PyObject* Py_UNUSED)
 {
 	EVSpace_Vector* self_vector = (EVSpace_Vector*)self;
 	// need the extra tuple here to please the EVector constructor
-	return Py_BuildValue("(O((ddd)))", Py_TYPE(self), Vector_GETX(self_vector), Vector_GETY(self_vector), Vector_GETZ(self_vector));
+	return Py_BuildValue("(O((ddd)))", 
+		Py_TYPE(self), 
+		Vector_X(self_vector), 
+		Vector_Y(self_vector), 
+		Vector_Z(self_vector));
 }
 
 static PyMethodDef vector_methods[] = {
@@ -642,31 +628,31 @@ static PyTypeObject EVSpace_VectorType = {
 	.tp_doc			= vector_doc,
 	.tp_richcompare	= (richcmpfunc)vector_richcompare,
 	.tp_iter		= vector_iter,
-	//.tp_iternext	= vector_next,
 	.tp_methods		= vector_methods,
 	.tp_new			= vector_new,
 	.tp_free		= vector_free,
 };
 
 
-static PyObject* 
-matrix_from_array(double (*state)[3], PyTypeObject* type) 
+static PyObject*
+matrix_from_array(double* state, PyTypeObject* type)
 {
 	EVSpace_Matrix* rtn = (EVSpace_Matrix*)type->tp_alloc(type, 0);
+	if (!rtn)
+		return NULL;
 
-	double(*array)[3] = calloc(3, sizeof * array);
-	if (!array)
+	Matrix_DATA(rtn) = calloc(9, sizeof(double));
+	if (!Matrix_DATA(rtn))
 		return PyErr_NoMemory();
 
-	rtn->data = array;
 	if (state)
-		memcpy(rtn->data, state, 9 * sizeof(double));
+		memcpy(Matrix_DATA(rtn), state, 9 * sizeof(double));
 
 	return (PyObject*)rtn;
 }
 
 static PyObject* 
-matrix_steal_array(double (*array)[3], PyTypeObject* type) 
+matrix_steal_array(double* array, PyTypeObject* type)
 {
 	assert(array != NULL);
 
@@ -674,15 +660,15 @@ matrix_steal_array(double (*array)[3], PyTypeObject* type)
 	if (!rtn)
 		return NULL;
 
-	rtn->data = array;
+	Matrix_DATA(rtn) = array;
 	array = NULL;
 
 	return (PyObject*)rtn;
 }
 
 /* macros for simplifying new_matrix call */
-#define new_matrix(a) matrix_from_array(a, &EVSpace_MatrixType);
-#define new_matrix_empty new_matrix(NULL)
+#define new_matrix(a)		matrix_from_array(a, &EVSpace_MatrixType);
+#define new_matrix_empty	new_matrix(NULL)
 #define new_matrix_steal(a) matrix_steal_array(a, &EVSpace_MatrixType);
 
 static PyObject* 
@@ -702,14 +688,14 @@ matrix_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED)
 		return NULL;
 	}
 
-	double(*array)[3] = malloc(sizeof(*array) * 3);
+	double* array = malloc(9 * sizeof(double));
 	if (!array)
 		return PyErr_NoMemory();
 
 	PyObject* results[3] = {
-		get_state_sequence(parameters[0], array[0]),
-		get_state_sequence(parameters[1], array[1]),
-		get_state_sequence(parameters[2], array[2])
+		get_state_sequence(parameters[0], array),
+		get_state_sequence(parameters[1], array + 3),
+		get_state_sequence(parameters[2], array + 6)
 	};
 
 	if (!results[0] || !results[1] || !results[2]) {
@@ -725,7 +711,7 @@ matrix_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED)
 }
 
 static void matrix_free(void* self) {
-	free(Matrix_DATA(self));
+	free(PyMatrix_DATA(self));
 }
 
 static PyObject* 
@@ -734,9 +720,11 @@ matrix_str(PyObject* self)
 	const char* format = "([%g, %g, %g]\n[%g, %g, %g]\n[%g, %g, %g])";
 	// let snprintf tell us how many bytes it would have written
 	const int buffer_size = snprintf(NULL, 0, format,
-		Matrix_GET(self, 0, 0), Matrix_GET(self, 0, 1), Matrix_GET(self, 0, 2),
-		Matrix_GET(self, 1, 0), Matrix_GET(self, 1, 1), Matrix_GET(self, 1, 2),
-		Matrix_GET(self, 2, 0), Matrix_GET(self, 2, 1), Matrix_GET(self, 2, 2)
+		Matrix_COMP(self, 0, 0), Matrix_COMP(self, 0, 1), 
+		Matrix_COMP(self, 0, 2), Matrix_COMP(self, 1, 0), 
+		Matrix_COMP(self, 1, 1), Matrix_COMP(self, 1, 2),
+		Matrix_COMP(self, 2, 0), Matrix_COMP(self, 2, 1), 
+		Matrix_COMP(self, 2, 2)
 	);
 
 	char* buffer = malloc(buffer_size + 1);
@@ -744,9 +732,11 @@ matrix_str(PyObject* self)
 		return PyErr_NoMemory();
 
 	sprintf(buffer, format,
-		Matrix_GET(self, 0, 0), Matrix_GET(self, 0, 1), Matrix_GET(self, 0, 2),
-		Matrix_GET(self, 1, 0), Matrix_GET(self, 1, 1), Matrix_GET(self, 1, 2),
-		Matrix_GET(self, 2, 0), Matrix_GET(self, 2, 1), Matrix_GET(self, 2, 2)
+		Matrix_COMP(self, 0, 0), Matrix_COMP(self, 0, 1), 
+		Matrix_COMP(self, 0, 2), Matrix_COMP(self, 1, 0), 
+		Matrix_COMP(self, 1, 1), Matrix_COMP(self, 1, 2),
+		Matrix_COMP(self, 2, 0), Matrix_COMP(self, 2, 1), 
+		Matrix_COMP(self, 2, 2)
 	);
 	
 	PyObject* rtn = PyUnicode_FromString(buffer);
@@ -759,7 +749,7 @@ static void
 get_matrix_state(const EVSpace_Matrix* mat, double (*state)[3]) 
 {
 	assert(double != NULL);
-	memcpy(state, mat->data, 9 * sizeof(double));
+	memcpy(state, Matrix_DATA(mat), 9 * sizeof(double));
 }
 
 /* factor is 1 for addition, -1 for subtraction */
@@ -768,20 +758,29 @@ add_matrix_matrix(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs, int fact
 {
 	assert(factor == 1 || factor == -1);
 
-	double(*lhs_state)[3] = malloc(3 * sizeof * lhs_state);
+	double* lhs_state = malloc(9 * sizeof(double));
 	if (!lhs_state)
 		return PyErr_NoMemory();
-	const double(*rhs_state)[3] = rhs->data;
+	const double* rhs_state = Matrix_DATA(rhs);
 
-	lhs_state[0][0] = Matrix_GET(lhs, 0, 0) + rhs_state[0][0] * factor;
-	lhs_state[0][1] = Matrix_GET(lhs, 0, 1) + rhs_state[0][1] * factor;
-	lhs_state[0][2] = Matrix_GET(lhs, 0, 2) + rhs_state[0][2] * factor;
-	lhs_state[1][0] = Matrix_GET(lhs, 1, 0) + rhs_state[1][0] * factor;
-	lhs_state[1][1] = Matrix_GET(lhs, 1, 1) + rhs_state[1][1] * factor;
-	lhs_state[1][2] = Matrix_GET(lhs, 1, 2) + rhs_state[1][2] * factor;
-	lhs_state[2][0] = Matrix_GET(lhs, 2, 0) + rhs_state[2][0] * factor;
-	lhs_state[2][1] = Matrix_GET(lhs, 2, 1) + rhs_state[2][1] * factor;
-	lhs_state[2][2] = Matrix_GET(lhs, 2, 2) + rhs_state[2][2] * factor;
+	lhs_state[RC_INDEX(0, 0)] = Matrix_COMP(lhs, 0, 0) 
+		+ Matrix_COMP(rhs, 0, 0) * factor;
+	lhs_state[RC_INDEX(0, 1)] = Matrix_COMP(lhs, 0, 1) 
+		+ Matrix_COMP(rhs, 0, 1) * factor;
+	lhs_state[RC_INDEX(0, 2)] = Matrix_COMP(lhs, 0, 2) 
+		+ Matrix_COMP(rhs, 0, 2) * factor;
+	lhs_state[RC_INDEX(1, 0)] = Matrix_COMP(lhs, 1, 0) 
+		+ Matrix_COMP(rhs, 1, 0) * factor;
+	lhs_state[RC_INDEX(1, 1)] = Matrix_COMP(lhs, 1, 1) 
+		+ Matrix_COMP(rhs, 1, 1) * factor;
+	lhs_state[RC_INDEX(1, 2)] = Matrix_COMP(lhs, 1, 2) 
+		+ Matrix_COMP(rhs, 1, 2) * factor;
+	lhs_state[RC_INDEX(2, 0)] = Matrix_COMP(lhs, 2, 0) 
+		+ Matrix_COMP(rhs, 2, 0) * factor;
+	lhs_state[RC_INDEX(2, 1)] = Matrix_COMP(lhs, 2, 1) 
+		+ Matrix_COMP(rhs, 2, 1) * factor;
+	lhs_state[RC_INDEX(2, 2)] = Matrix_COMP(lhs, 2, 2) 
+		+ Matrix_COMP(rhs, 2, 2) * factor;
 
 	PyObject* rtn = new_matrix_steal(lhs_state);
 	if (!rtn)
@@ -803,43 +802,53 @@ static PyObject*
 matrix_subtract(PyObject* lhs, PyObject* rhs)
 {
 	if (Matrix_Check(lhs) && Matrix_Check(rhs))
-		return add_matrix_matrix((EVSpace_Matrix*)lhs, (EVSpace_Matrix*)rhs, -1);
+		return add_matrix_matrix((EVSpace_Matrix*)lhs, 
+								 (EVSpace_Matrix*)rhs, 
+								 -1);
 
 	Py_RETURN_NOTIMPLEMENTED;
 }
 
 static void
-multiply_matrix_vector_states(const double(* const mat)[3], const double* const vec, double* const ans)
+multiply_matrix_vector_states(const double* mat, const double* vec, double* ans, int stride)
 {
 	assert(ans != NULL);
 
-	ans[0] = mat[0][0] * vec[0] + mat[0][1] * vec[1] + mat[0][2] * vec[2];
-	ans[1] = mat[1][0] * vec[0] + mat[1][1] * vec[1] + mat[1][2] * vec[2];
-	ans[2] = mat[2][0] * vec[0] + mat[2][1] * vec[1] + mat[2][2] * vec[2];
+	ans[0] = mat[RC_INDEX(0, 0)] * vec[0] 
+		   + mat[RC_INDEX(0, 1)] * vec[stride] 
+		   + mat[RC_INDEX(0, 2)] * vec[2 * stride];
+
+	ans[stride] = mat[RC_INDEX(1, 0)] * vec[0]
+				+ mat[RC_INDEX(1, 1)] * vec[stride]
+				+ mat[RC_INDEX(1, 2)] * vec[2 * stride];
+
+	ans[2 * stride] = mat[RC_INDEX(2, 0)] * vec[0]
+					+ mat[RC_INDEX(2, 1)] * vec[stride]
+					+ mat[RC_INDEX(2, 2)] * vec[2 * stride];
 }
 
 static void
-multiply_matrix_scalar_states(const double(* const mat)[3], double rhs, double(* const ans)[3]) 
+multiply_matrix_scalar_states(const double* mat, double rhs, double* ans)
 {
-	ans[0][0] = mat[0][0] * rhs;
-	ans[0][1] = mat[0][1] * rhs;
-	ans[0][2] = mat[0][2] * rhs;
-	ans[1][0] = mat[1][0] * rhs;
-	ans[1][1] = mat[1][1] * rhs;
-	ans[1][2] = mat[1][2] * rhs;
-	ans[2][0] = mat[2][0] * rhs;
-	ans[2][1] = mat[2][1] * rhs;
-	ans[2][2] = mat[2][2] * rhs;
+	ans[RC_INDEX(0, 0)] = mat[RC_INDEX(0, 0)] * rhs;
+	ans[RC_INDEX(0, 1)] = mat[RC_INDEX(0, 1)] * rhs;
+	ans[RC_INDEX(0, 2)] = mat[RC_INDEX(0, 2)] * rhs;
+	ans[RC_INDEX(1, 0)] = mat[RC_INDEX(1, 0)] * rhs;
+	ans[RC_INDEX(1, 1)] = mat[RC_INDEX(1, 1)] * rhs;
+	ans[RC_INDEX(1, 2)] = mat[RC_INDEX(1, 2)] * rhs;
+	ans[RC_INDEX(2, 0)] = mat[RC_INDEX(2, 0)] * rhs;
+	ans[RC_INDEX(2, 1)] = mat[RC_INDEX(2, 1)] * rhs;
+	ans[RC_INDEX(2, 2)] = mat[RC_INDEX(2, 2)] * rhs;
 }
 
 static PyObject* 
 multiply_matrix_scalar(const EVSpace_Matrix* lhs, double rhs) 
 {
-	double(*ans)[3] = malloc(3 * sizeof * ans);
+	double* ans = malloc(9 * sizeof(double));
 	if (!ans)
 		return NULL;
 
-	multiply_matrix_scalar_states(lhs->data, rhs, ans);
+	multiply_matrix_scalar_states(Matrix_DATA(lhs), rhs, ans);
 
 	PyObject* rtn = new_matrix_steal(ans);
 	if (!rtn)
@@ -855,7 +864,7 @@ multiply_matrix_vector(const EVSpace_Matrix* lhs, const EVSpace_Vector* rhs)
 	if (!ans)
 		return PyErr_NoMemory();
 
-	multiply_matrix_vector_states(lhs->data, rhs->data, ans);
+	multiply_matrix_vector_states(Matrix_DATA(lhs), Matrix_DATA(rhs), ans, 1);
 
 	PyObject* rtn = new_vector_steal(ans);
 	if (!rtn)
@@ -865,21 +874,18 @@ multiply_matrix_vector(const EVSpace_Matrix* lhs, const EVSpace_Vector* rhs)
 }
 
 static PyObject* 
-multiply_matrix_matrix(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs) 
+multiply_matrix_matrix(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
 {
-	double(*ans)[3] = malloc(3 * sizeof(*ans));
+	double* ans = malloc(9 * sizeof(double));
 	if (!ans)
 		return NULL;
 
-	for (int i = 0; i < 3; i++) {
-		for (int j = 0; j < 3; j++) {
-			double sum = 0;
-			for (int k = 0; k < 3; k++) {
-				sum += Matrix_GET(lhs, i, k) * Matrix_GET(rhs, k, j);
-			}
-			ans[i][j] = sum;
-		}
-	}
+	multiply_matrix_vector_states(Matrix_DATA(lhs), Matrix_DATA(rhs),
+		ans, 3);
+	multiply_matrix_vector_states(Matrix_DATA(lhs), Matrix_DATA(rhs)+1,
+		ans+1, 3);
+	multiply_matrix_vector_states(Matrix_DATA(lhs), Matrix_DATA(rhs)+2,
+		ans+2, 3);
 
 	PyObject* rtn = new_matrix_steal(ans);
 	if (!rtn)
@@ -932,10 +938,20 @@ iadd_matrix_matrix(EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs, int factor)
 {
 	assert(factor == 1 || factor == -1);
 
-	double(*lhs_state)[3] = lhs->data;
-	const double(*rhs_state)[3] = rhs->data;
+	//double(*lhs_state)[3] = lhs->data;
+	//const double(*rhs_state)[3] = rhs->data;
 
-	lhs_state[0][0] += rhs_state[0][0] * factor;
+	Matrix_COMP(lhs, 0, 0) += Matrix_COMP(rhs, 0, 0) * factor;
+	Matrix_COMP(lhs, 0, 1) += Matrix_COMP(rhs, 0, 1) * factor;
+	Matrix_COMP(lhs, 0, 2) += Matrix_COMP(rhs, 0, 2) * factor;
+	Matrix_COMP(lhs, 1, 0) += Matrix_COMP(rhs, 1, 0) * factor;
+	Matrix_COMP(lhs, 1, 1) += Matrix_COMP(rhs, 1, 1) * factor;
+	Matrix_COMP(lhs, 1, 2) += Matrix_COMP(rhs, 1, 2) * factor;
+	Matrix_COMP(lhs, 2, 0) += Matrix_COMP(rhs, 2, 0) * factor;
+	Matrix_COMP(lhs, 2, 1) += Matrix_COMP(rhs, 2, 1) * factor;
+	Matrix_COMP(lhs, 2, 2) += Matrix_COMP(rhs, 2, 2) * factor;
+
+	/*lhs_state[0][0] += rhs_state[0][0] * factor;
 	lhs_state[0][1] += rhs_state[0][1] * factor;
 	lhs_state[0][2] += rhs_state[0][2] * factor;
 	lhs_state[1][0] += rhs_state[1][0] * factor;
@@ -943,7 +959,7 @@ iadd_matrix_matrix(EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs, int factor)
 	lhs_state[1][2] += rhs_state[1][2] * factor;
 	lhs_state[2][0] += rhs_state[2][0] * factor;
 	lhs_state[2][1] += rhs_state[2][1] * factor;
-	lhs_state[2][2] += rhs_state[2][2] * factor;
+	lhs_state[2][2] += rhs_state[2][2] * factor;*/
 }
 
 static PyObject* 
@@ -968,10 +984,21 @@ matrix_isubtract(PyObject* lhs, PyObject* rhs)
 	Py_RETURN_NOTIMPLEMENTED;
 }
 
-static inline void 
-imultiply_matrix_scalar_states(double (* const mat)[3], double scalar) 
+static inline void
+//imultiply_matrix_scalar_states(double (* const mat)[3], double scalar) 
+imultiply_matrix_scalar_states(double* mat, double scalar)
 {
-	mat[0][0] *= scalar;
+	mat[RC_INDEX(0, 0)] *= scalar;
+	mat[RC_INDEX(0, 1)] *= scalar;
+	mat[RC_INDEX(0, 2)] *= scalar;
+	mat[RC_INDEX(1, 0)] *= scalar;
+	mat[RC_INDEX(1, 1)] *= scalar;
+	mat[RC_INDEX(1, 2)] *= scalar;
+	mat[RC_INDEX(2, 0)] *= scalar;
+	mat[RC_INDEX(2, 1)] *= scalar;
+	mat[RC_INDEX(2, 2)] *= scalar;
+
+	/*mat[0][0] *= scalar;
 	mat[0][1] *= scalar;
 	mat[0][2] *= scalar;
 	mat[1][0] *= scalar;
@@ -979,7 +1006,7 @@ imultiply_matrix_scalar_states(double (* const mat)[3], double scalar)
 	mat[1][2] *= scalar;
 	mat[2][0] *= scalar;
 	mat[2][1] *= scalar;
-	mat[2][2] *= scalar;
+	mat[2][2] *= scalar;*/
 }
 
 static PyObject* 
@@ -991,7 +1018,7 @@ matrix_imultiply(PyObject* lhs, PyObject* rhs)
 			if (scalar == -1.0 && PyErr_Occurred())
 				return NULL;
 
-			imultiply_matrix_scalar_states(Matrix_DATA(lhs), scalar);
+			imultiply_matrix_scalar_states(PyMatrix_DATA(lhs), scalar);
 
 			return Py_NewRef(lhs);
 		}
@@ -1008,7 +1035,7 @@ matrix_idivide(PyObject* lhs, PyObject* rhs)
 		if (scalar == -1.0 && PyErr_Occurred())
 			return NULL;
 		
-		imultiply_matrix_scalar_states(Matrix_DATA(lhs), 1.0 / scalar);
+		imultiply_matrix_scalar_states(PyMatrix_DATA(lhs), 1.0 / scalar);
 
 		return Py_NewRef(lhs);
 	}
@@ -1019,11 +1046,22 @@ matrix_idivide(PyObject* lhs, PyObject* rhs)
 static PyObject* 
 neg_matrix(const EVSpace_Matrix* self) 
 {
-	double(*state)[3] = malloc(3 * sizeof * state);
+	//double(*state)[3] = malloc(3 * sizeof * state);
+	double* state = malloc(9 * sizeof(double));
 	if (!state)
 		return PyErr_NoMemory();
 
-	state[0][0] = -Matrix_GET(self, 0, 0);
+	state[RC_INDEX(0, 0)] = -Matrix_COMP(self, 0, 0);
+	state[RC_INDEX(0, 1)] = -Matrix_COMP(self, 0, 1);
+	state[RC_INDEX(0, 2)] = -Matrix_COMP(self, 0, 2);
+	state[RC_INDEX(1, 0)] = -Matrix_COMP(self, 1, 0);
+	state[RC_INDEX(1, 1)] = -Matrix_COMP(self, 1, 1);
+	state[RC_INDEX(1, 2)] = -Matrix_COMP(self, 1, 2);
+	state[RC_INDEX(2, 0)] = -Matrix_COMP(self, 2, 0);
+	state[RC_INDEX(2, 1)] = -Matrix_COMP(self, 2, 1);
+	state[RC_INDEX(2, 2)] = -Matrix_COMP(self, 2, 2);
+
+	/*state[0][0] = -Matrix_GET(self, 0, 0);
 	state[0][1] = -Matrix_GET(self, 0, 1);
 	state[0][2] = -Matrix_GET(self, 0, 2);
 	state[1][0] = -Matrix_GET(self, 1, 0);
@@ -1031,7 +1069,7 @@ neg_matrix(const EVSpace_Matrix* self)
 	state[1][2] = -Matrix_GET(self, 1, 2);
 	state[2][0] = -Matrix_GET(self, 2, 0);
 	state[2][1] = -Matrix_GET(self, 2, 1);
-	state[2][2] = -Matrix_GET(self, 2, 2);
+	state[2][2] = -Matrix_GET(self, 2, 2);*/
 
 	PyObject* rtn = new_matrix_steal(state);
 	if (!rtn)
@@ -1062,7 +1100,7 @@ static PyNumberMethods matrix_as_number = {
 };
 
 static PyObject* 
-matrix_get(PyObject* self, PyObject* args) 
+matrix_get_item(PyObject* self, PyObject* args) 
 {
 	int row = -1, col = -1;
 	if (!PyArg_ParseTuple(args, "ii", &row, &col))
@@ -1077,11 +1115,12 @@ matrix_get(PyObject* self, PyObject* args)
 		return NULL;
 	}
 
-	return PyFloat_FromDouble(Matrix_GET(self, row, col));
+	//return PyFloat_FromDouble(Matrix_GET(self, row, col));
+	return PyFloat_FromDouble(Matrix_COMP(self, row, col));
 }
 
 static int 
-matrix_set(PyObject* self, PyObject* args, PyObject* value) 
+matrix_set_item(PyObject* self, PyObject* args, PyObject* value) 
 {
 	int row = -1, col = -1;
 	if (!PyArg_ParseTuple(args, "ii", &row, &col))
@@ -1100,13 +1139,14 @@ matrix_set(PyObject* self, PyObject* args, PyObject* value)
 	if (value_double == -1 && PyErr_Occurred())
 		return -1;
 
-	Matrix_SET(self, row, col, value_double);
+	//Matrix_SET(self, row, col, value_double);
+	Matrix_COMP(self, row, col) = value_double;
 	return 0;
 }
 
 static PyMappingMethods matrix_as_mapping = {
-	.mp_subscript		= (binaryfunc)matrix_get,
-	.mp_ass_subscript	= (objobjargproc)matrix_set,
+	.mp_subscript		= (binaryfunc)matrix_get_item,
+	.mp_ass_subscript	= (objobjargproc)matrix_set_item,
 };
 
 static int
@@ -1132,7 +1172,7 @@ matrix_buffer_get(PyObject* obj, Py_buffer* view, int flags)
 	*internal = BUFFER_RELEASE_SHAPE;
 
 	view->obj = obj;
-	view->buf = Matrix_DATA(obj);
+	view->buf = PyMatrix_DATA(obj);
 	view->len = 9 * sizeof(double);
 	view->readonly = 0;
 	view->itemsize = sizeof(double);
@@ -1155,7 +1195,17 @@ static PyBufferProcs matrix_buffer = {
 static int 
 matrix_equal(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs) 
 {
-	return (double_almost_eq(Matrix_GET(lhs, 0, 0), Matrix_GET(rhs, 0, 0))
+	return (double_almost_eq(Matrix_COMP(lhs, 0, 0), Matrix_COMP(rhs, 0, 0))
+		&& double_almost_eq(Matrix_COMP(lhs, 0, 1), Matrix_COMP(rhs, 0, 1))
+		&& double_almost_eq(Matrix_COMP(lhs, 0, 2), Matrix_COMP(rhs, 0, 2))
+		&& double_almost_eq(Matrix_COMP(lhs, 1, 0), Matrix_COMP(rhs, 1, 0))
+		&& double_almost_eq(Matrix_COMP(lhs, 1, 1), Matrix_COMP(rhs, 1, 1))
+		&& double_almost_eq(Matrix_COMP(lhs, 1, 2), Matrix_COMP(rhs, 1, 2))
+		&& double_almost_eq(Matrix_COMP(lhs, 2, 0), Matrix_COMP(rhs, 2, 0))
+		&& double_almost_eq(Matrix_COMP(lhs, 2, 1), Matrix_COMP(rhs, 2, 1))
+		&& double_almost_eq(Matrix_COMP(lhs, 2, 2), Matrix_COMP(rhs, 2, 2)));
+
+	/*return (double_almost_eq(Matrix_GET(lhs, 0, 0), Matrix_GET(rhs, 0, 0))
 		&& double_almost_eq(Matrix_GET(lhs, 0, 1), Matrix_GET(rhs, 0, 1))
 		&& double_almost_eq(Matrix_GET(lhs, 0, 2), Matrix_GET(rhs, 0, 2))
 		&& double_almost_eq(Matrix_GET(lhs, 1, 0), Matrix_GET(rhs, 1, 0))
@@ -1163,7 +1213,7 @@ matrix_equal(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
 		&& double_almost_eq(Matrix_GET(lhs, 1, 2), Matrix_GET(rhs, 1, 2))
 		&& double_almost_eq(Matrix_GET(lhs, 2, 0), Matrix_GET(rhs, 2, 0))
 		&& double_almost_eq(Matrix_GET(lhs, 2, 1), Matrix_GET(rhs, 2, 1))
-		&& double_almost_eq(Matrix_GET(lhs, 2, 2), Matrix_GET(rhs, 2, 2)));
+		&& double_almost_eq(Matrix_GET(lhs, 2, 2), Matrix_GET(rhs, 2, 2)));*/
 }
 
 static PyObject* 
@@ -1186,10 +1236,13 @@ matrix_richcompare(PyObject* self, PyObject* other, int op)
 static PyObject* 
 matrix_reduce(PyObject* self, PyObject* Py_UNUSED) 
 {
-	return Py_BuildValue("(O((ddd)(ddd)(ddd)))", Py_TYPE(self), 
-		Matrix_GET(self, 0, 0), Matrix_GET(self, 0, 1), Matrix_GET(self, 0, 2),
+	return Py_BuildValue("(O((ddd)(ddd)(ddd)))", Py_TYPE(self),
+		Matrix_COMP(self, 0, 0), Matrix_COMP(self, 0, 1), Matrix_COMP(self, 0, 2), 
+		Matrix_COMP(self, 1, 0), Matrix_COMP(self, 1, 1), Matrix_COMP(self, 1, 2),
+		Matrix_COMP(self, 2, 0), Matrix_COMP(self, 2, 1), Matrix_COMP(self, 2, 2));
+		/*Matrix_GET(self, 0, 0), Matrix_GET(self, 0, 1), Matrix_GET(self, 0, 2),
 		Matrix_GET(self, 1, 0), Matrix_GET(self, 1, 1), Matrix_GET(self, 1, 2),
-		Matrix_GET(self, 2, 0), Matrix_GET(self, 2, 1), Matrix_GET(self, 2, 2));
+		Matrix_GET(self, 2, 0), Matrix_GET(self, 2, 1), Matrix_GET(self, 2, 2));*/
 }
 
 static PyMethodDef matrix_methods[] = {
@@ -1273,9 +1326,9 @@ evspace_cross(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs)
 	if (!arr)
 		return PyErr_NoMemory();
 
-	arr[0] = Vector_GETY(lhs) * Vector_GETZ(rhs) - Vector_GETZ(lhs) * Vector_GETY(rhs);
-	arr[1] = Vector_GETZ(lhs) * Vector_GETX(rhs) - Vector_GETX(lhs) * Vector_GETZ(rhs);
-	arr[2] = Vector_GETX(lhs) * Vector_GETY(rhs) - Vector_GETY(lhs) * Vector_GETX(rhs);
+	arr[0] = Vector_Y(lhs) * Vector_Z(rhs) - Vector_Z(lhs) * Vector_Y(rhs);
+	arr[1] = Vector_Z(lhs) * Vector_X(rhs) - Vector_X(lhs) * Vector_Z(rhs);
+	arr[2] = Vector_X(lhs) * Vector_Y(rhs) - Vector_Y(lhs) * Vector_X(rhs);
 
 	PyObject* rtn = new_vector_steal(arr);
 	if (!rtn)
@@ -1310,9 +1363,9 @@ evspace_vxcl(const EVSpace_Vector* vector, const EVSpace_Vector* exclude)
 	if (!arr)
 		return PyErr_NoMemory();
 
-	arr[0] = Vector_GETX(vector) - Vector_GETX(exclude) * scale;
-	arr[1] = Vector_GETY(vector) - Vector_GETY(exclude) * scale;
-	arr[2] = Vector_GETZ(vector) - Vector_GETZ(exclude) * scale;
+	arr[0] = Vector_X(vector) - Vector_X(exclude) * scale;
+	arr[1] = Vector_Y(vector) - Vector_Y(exclude) * scale;
+	arr[2] = Vector_Z(vector) - Vector_Z(exclude) * scale;
 
 	PyObject* rtn = new_vector_steal(arr);
 	if (!rtn)
@@ -1336,11 +1389,13 @@ evspace_msub(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
 static PyObject* 
 evspace_mdiv(const EVSpace_Matrix* lhs, double rhs) 
 {
-	double(*ans)[3] = malloc(3 * sizeof * ans);
+	//double(*ans)[3] = malloc(3 * sizeof * ans);
+	double* ans = malloc(9 * sizeof(double));
 	if (!ans)
 		return NULL;
 
-	multiply_matrix_scalar_states(lhs->data, 1.0 / rhs, ans);
+	//multiply_matrix_scalar_states(lhs->data, 1.0 / rhs, ans);
+	multiply_matrix_scalar_states(Matrix_DATA(lhs), 1.0 / rhs, ans);
 
 	PyObject* rtn = new_matrix_steal(ans);
 	if (!rtn)
@@ -1364,21 +1419,31 @@ evspace_msub_inplace(EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
 static void 
 evspace_mmult_inplace(EVSpace_Matrix* lhs, double rhs) 
 {
-	imultiply_matrix_scalar_states(lhs->data, rhs);
+	//imultiply_matrix_scalar_states(lhs->data, rhs);
+	imultiply_matrix_scalar_states(Matrix_DATA(lhs), rhs);
 }
 
 static void 
 evspace_mdiv_inplace(EVSpace_Matrix* lhs, double rhs) 
 {
-	imultiply_matrix_scalar_states(lhs->data, 1.0 / rhs);
+	//imultiply_matrix_scalar_states(lhs->data, 1.0 / rhs);
+	imultiply_matrix_scalar_states(Matrix_DATA(lhs), 1.0 / rhs);
 }
 
 static double 
 evspace_det(const EVSpace_Matrix* self) 
 {
-	double term_1 = Matrix_GET(self, 0, 0) * (Matrix_GET(self, 1, 1) * Matrix_GET(self, 2, 2) - Matrix_GET(self, 1, 2) * Matrix_GET(self, 2, 1));
-	double term_2 = Matrix_GET(self, 0, 1) * (Matrix_GET(self, 1, 0) * Matrix_GET(self, 2, 2) - Matrix_GET(self, 1, 2) * Matrix_GET(self, 2, 0));
-	double term_3 = Matrix_GET(self, 0, 2) * (Matrix_GET(self, 1, 0) * Matrix_GET(self, 2, 1) - Matrix_GET(self, 1, 1) * Matrix_GET(self, 2, 0));
+	double term_1 = Matrix_COMP(self, 0, 0)
+		* (Matrix_COMP(self, 1, 1) * Matrix_COMP(self, 2, 2)
+			- Matrix_COMP(self, 1, 2) * Matrix_COMP(self, 2, 1));
+
+	double term_2 = Matrix_COMP(self, 0, 1)
+		* (Matrix_COMP(self, 1, 0) * Matrix_COMP(self, 2, 2)
+			- Matrix_COMP(self, 1, 2) * Matrix_COMP(self, 2, 0));
+
+	double term_3 = Matrix_COMP(self, 0, 2)
+		* (Matrix_COMP(self, 1, 0) * Matrix_COMP(self, 2, 1)
+			- Matrix_COMP(self, 1, 1) * Matrix_COMP(self, 2, 0));
 
 	return term_1 - term_2 + term_3;
 }
@@ -1386,11 +1451,22 @@ evspace_det(const EVSpace_Matrix* self)
 static PyObject* 
 evspace_transpose(const EVSpace_Matrix* self) 
 {
-	double (*state)[3] = malloc(3 * sizeof(*state));
+	//double (*state)[3] = malloc(3 * sizeof(*state));
+	double* state = malloc(9 * sizeof(double));
 	if (!state)
 		return PyErr_NoMemory();
 
-	state[0][0] = Matrix_GET(self, 0, 0);
+	state[RC_INDEX(0, 0)] = Matrix_COMP(self, 0, 0);
+	state[RC_INDEX(0, 1)] = Matrix_COMP(self, 1, 0);
+	state[RC_INDEX(0, 2)] = Matrix_COMP(self, 2, 0);
+	state[RC_INDEX(1, 0)] = Matrix_COMP(self, 0, 1);
+	state[RC_INDEX(1, 1)] = Matrix_COMP(self, 1, 1);
+	state[RC_INDEX(1, 2)] = Matrix_COMP(self, 2, 1);
+	state[RC_INDEX(2, 0)] = Matrix_COMP(self, 0, 2);
+	state[RC_INDEX(2, 1)] = Matrix_COMP(self, 1, 2);
+	state[RC_INDEX(2, 2)] = Matrix_COMP(self, 2, 2);
+
+	/*state[0][0] = Matrix_GET(self, 0, 0);
 	state[0][1] = Matrix_GET(self, 1, 0);
 	state[0][2] = Matrix_GET(self, 2, 0);
 	state[1][0] = Matrix_GET(self, 0, 1);
@@ -1398,7 +1474,7 @@ evspace_transpose(const EVSpace_Matrix* self)
 	state[1][2] = Matrix_GET(self, 2, 1);
 	state[2][0] = Matrix_GET(self, 0, 2);
 	state[2][1] = Matrix_GET(self, 1, 2);
-	state[2][2] = Matrix_GET(self, 2, 2);
+	state[2][2] = Matrix_GET(self, 2, 2);*/
 
 	PyObject* rtn = new_matrix_steal(state);
 	if (!rtn)
@@ -1640,7 +1716,7 @@ PyInit__pyevspace(void)
 		return NULL;
 	}
 
-	Vector_SETX(vector, 1.0);
+	Vector_X(vector) = 1.0;
 	if (PyDict_SetItemString(EVSpace_VectorType.tp_dict, "e1", (PyObject*)vector) < 0) {
 		Py_DECREF(vector);
 		return NULL;
@@ -1651,7 +1727,7 @@ PyInit__pyevspace(void)
 	if (!vector)
 		return NULL;
 
-	Vector_SETY(vector, 1.0);
+	Vector_Y(vector) = 1.0;
 	if (PyDict_SetItemString(EVSpace_VectorType.tp_dict, "e2", (PyObject*)vector) < 0) {
 		Py_DECREF(vector);
 		return NULL;
@@ -1662,7 +1738,7 @@ PyInit__pyevspace(void)
 	if (!vector)
 		return NULL;
 
-	Vector_SETZ(vector, 1.0);
+	Vector_Z(vector) = 1.0;
 	if (PyDict_SetItemString(EVSpace_VectorType.tp_dict, "e3", (PyObject*)vector) < 0) {
 		Py_DECREF(vector);
 		return NULL;
@@ -1674,7 +1750,10 @@ PyInit__pyevspace(void)
 		return NULL;
 	}
 	
-	Matrix_SET(matrix, 0, 0, 1.0), Matrix_SET(matrix, 1, 1, 1.0), Matrix_SET(matrix, 2, 2, 1.0);
+	//Matrix_SET(matrix, 0, 0, 1.0), Matrix_SET(matrix, 1, 1, 1.0), Matrix_SET(matrix, 2, 2, 1.0);
+	Matrix_COMP(matrix, 0, 0) = 1.0;
+	Matrix_COMP(matrix, 1, 1) = 1.0;
+	Matrix_COMP(matrix, 2, 2) = 1.0;
 	if (PyDict_SetItemString(EVSpace_MatrixType.tp_dict, "I", (PyObject*)matrix) < 0) {
 		Py_DECREF(matrix);
 		return NULL;

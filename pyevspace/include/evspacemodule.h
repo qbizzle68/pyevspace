@@ -14,22 +14,21 @@ typedef struct {
 
 typedef struct {
 	PyObject_HEAD
-	double (*data)[3];		/* row by column ordering */
+	//double (*data)[3];		/* row by column ordering */
+	double* data;			/* row by column ordering */
 } EVSpace_Matrix;
 
 
 /* define macros for accessing EVSpace_Vector array values */
-#define EVSpace_VECTOR_GETX(o)		(((EVSpace_Vector*)o)->data[0])
-#define EVSpace_VECTOR_GETY(o)		(((EVSpace_Vector*)o)->data[1])
-#define EVSpace_VECTOR_GETZ(o)		(((EVSpace_Vector*)o)->data[2])
-#define EVSpace_VECTOR_SETX(o, v)	(EVSpace_VECTOR_GETX(o) = (v))
-#define EVSpace_VECTOR_SETY(o, v)	(EVSpace_VECTOR_GETY(o) = (v))
-#define EVSpace_VECTOR_SETZ(o, v)	(EVSpace_VECTOR_GETZ(o) = (v))
+#define EVSpace_VECTOR_X(o)		(((EVSpace_Vector*)o)->data[0])
+#define EVSpace_VECTOR_Y(o)		(((EVSpace_Vector*)o)->data[1])
+#define EVSpace_VECTOR_Z(o)		(((EVSpace_Vector*)o)->data[2])
 
 
 /* define macros for accessing EVSpace_Matrix values */
-#define EVSpace_MATRIX_GET(o, r, c)		(((EVSpace_Matrix*)o)->data[r][c])
-#define EVSpace_MATRIX_SET(o, r, c, v)	(EVSpace_MATRIX_GET(o, r, c) = (v))
+#define EVSpace_RC_INDEX(r, c)			(3 * r + c)
+#define EVSpace_MATRIX_COMPONENT(o, r, c) \
+		(((EVSpace_Matrix*)o)->data[EVSpace_RC_INDEX(r, c)])
 
 
 /* Define structure for C API */
@@ -41,8 +40,8 @@ typedef struct {
 	/* constructors */
 	PyObject* (*Vector_FromArray)(double*, PyTypeObject*);
 	PyObject* (*Vector_StealArray)(double*, PyTypeObject*);
-	PyObject* (*Matrix_FromArray)(double(*)[3], PyTypeObject*);
-	PyObject* (*Matrix_StealArray)(double(*)[3], PyTypeObject*);
+	PyObject* (*Matrix_FromArray)(double*, PyTypeObject*);
+	PyObject* (*Matrix_StealArray)(double*, PyTypeObject*);
 
 	/* vector number methods */
 	PyObject* (*EVSpace_Vector_add)(const EVSpace_Vector*, const EVSpace_Vector*);
