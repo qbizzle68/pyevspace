@@ -38,6 +38,7 @@
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/sphinx_highlight.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'reference/c-api/index';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -287,18 +288,44 @@
   <section id="c-api">
 <h1>C API<a class="headerlink" href="#c-api" title="Permalink to this heading">#</a></h1>
 <p>The C-API defines two structs that represent the EVector and EMatrix.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All methods in the C API capsule return a <code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code>*.</p>
+</div>
 <section id="types">
 <h2>Types<a class="headerlink" href="#types" title="Permalink to this heading">#</a></h2>
 <dl class="c struct">
 <dt class="sig sig-object c" id="c.EVSpace_Vector">
 <span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Vector</span></span></span><a class="headerlink" href="#c.EVSpace_Vector" title="Permalink to this definition">#</a><br /></dt>
-<dd><p>C struct that defines the Python EVector type.</p>
+<dd><p>C struct that defines the Python EVector type. A pointer of this type can be
+cast to or from a <code class="xref c c-type docutils literal notranslate"><span class="pre">PyObject</span></code>*.</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">        </span><span class="n">PyObject_HEAD</span><span class="w"></span>
 <span class="w">        </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">data</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">itr_numer</span><span class="p">;</span><span class="w"></span>
 <span class="p">}</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="p">;</span><span class="w"></span>
 </pre></div>
+</div>
+</dd></dl>
+
+<dl class="c member">
+<dt class="sig sig-object c" id="c.EVSpace_Vector.data">
+<span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">data</span></span></span><a class="headerlink" href="#c.EVSpace_Vector.data" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>The internal data array for the vector. The memory is allocated in the
+<a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_Vector</span></code></a> constructors to an array of length three. The
+values of the array of course are mutable, however caution should be used
+with resect to changing the actual pointer value. Setting the pointer to a
+new array is much more efficient than copying memory into it, however if the
+object is currently in use by a buffer object such as a <code class="xref py py-class docutils literal notranslate"><span class="pre">memoryview</span></code>,
+you may be unable to free the original data array without rendering any views
+of the object useless, causing a memory leak. If you must change the pointer
+value, be sure you have considered all upstream and downstream consequences
+of doing so.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you chose to change the value of the data pointer, you are responsible
+for also freeing the memory. If you do not you must be sure that any other
+resource with a reference to the memory will free it when it is no longer
+in use, or else this will result in a memory leak.</p>
 </div>
 </dd></dl>
 
@@ -308,139 +335,1138 @@
 <dd><p>C struct that defines the Python EMatrix type.</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">        </span><span class="n">PyObject_HEAD</span><span class="w"></span>
-<span class="w">        </span><span class="nf">double</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">data</span><span class="p">)[</span><span class="mi">3</span><span class="p">];</span><span class="w"></span>
+<span class="w">        </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">data</span><span class="p">;</span><span class="w"></span>
 <span class="p">}</span><span class="w"> </span><span class="n">EVSpace_Matrix</span><span class="p">;</span><span class="w"></span>
 </pre></div>
 </div>
 </dd></dl>
 
+<dl class="c member">
+<dt class="sig sig-object c" id="c.EVSpace_Matrix.data">
+<span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><span class="n"><span class="pre">EVSpace_Matrix</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">data</span></span></span><a class="headerlink" href="#c.EVSpace_Matrix.data" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>The internal data array for the matrix. The memory is allocated in the
+<a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_Matrix</span></code></a> constructors to a one-demensional array of length
+nine. The memory starts at index [0, 0] and increases by column first, then
+by row. The mapping from two-dimensional indices to one-dimension is
+<span class="math notranslate nohighlight">\(3 * row + col\)</span>. The <a class="reference internal" href="#c.EVSpace_RC_INDEX" title="EVSpace_RC_INDEX"><code class="xref c c-macro docutils literal notranslate"><span class="pre">EVSpace_RC_INDEX</span></code></a> macro can be used for
+cleanly mapping between dimensions.</p>
+<p>The <code class="xref c c-macro docutils literal notranslate"><span class="pre">EVSpace_Matrix_COMPONENT</span></code> handles the mapping for you when
+dealing with an <a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_Matrix</span></code></a> instance.</p>
+<p>The values of the array of course are mutable, however caution should be used
+with resect to changing the actual pointer value. Setting the pointer to a
+new array is much more efficient than copying memory into it, however if the
+object is currently in use by a buffer object such as a <code class="xref py py-class docutils literal notranslate"><span class="pre">memoryview</span></code>,
+you may be unable to free the original data array without rendering any views
+of the object useless, causing a memory leak. If you must change the pointer
+value, be sure you have considered all upstream and downstream consequences
+of doing so.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you chose to change the value of the data pointer, you are responsible
+for also freeing the memory. If you do not you must be sure that any other
+resource with a reference to the memory will free it when it is no longer
+in use, or else this will result in a memory leak.</p>
+</div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI">
+<span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_CAPI</span></span></span><a class="headerlink" href="#c.EVSpace_CAPI" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Python capsule object that contain all functions of the pyevspace C API. For
+more details on capsules check out the official Python
+<a class="reference external" href="https://docs.python.org/3/extending/extending.html#providing-a-c-api-for-an-extension-module">docs</a>.
+The capsule can be imported using the <code class="xref c c-macro docutils literal notranslate"><span class="pre">EVSpace_IMPORT</span></code> which sets
+the global pointer <code class="xref c c-var docutils literal notranslate"><span class="pre">EVSpaceAPI</span></code> using the <code class="code highlight c docutils literal highlight-c"><span class="n">PyCapsule_Import</span><span class="p">()</span><span class="w"></span></code>
+method. There are helper macros for every function inside the capsule to avoid
+cumbersome method calls. For example to create a new <a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_Vector</span></code></a></p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">new_vector_long</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">EVSpaceAPI</span><span class="o">-&gt;</span><span class="n">Vector_FromArray</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span><span class="w"> </span><span class="n">EVSpaceAPI</span><span class="o">-&gt;</span><span class="n">VectorType</span><span class="p">);</span><span class="w"></span>
+<span class="n">new_vector_short</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Vector_FromArray</span><span class="p">(</span><span class="n">arr</span><span class="p">);</span><span class="w"></span>
+</pre></div>
+</div>
+<p>you can use the macro to massively reduce the length of your code. The struct
+is defined as follows.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="cm">/* type objects */</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyTypeObject</span><span class="o">*</span><span class="w"> </span><span class="n">VectorType</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyTypeObject</span><span class="o">*</span><span class="w"> </span><span class="n">MatrixType</span><span class="p">;</span><span class="w"></span>
+
+<span class="w">        </span><span class="cm">/* constructors */</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">Vector_FromArray</span><span class="p">)(</span><span class="kt">double</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">PyTypeObject</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">Vector_StealArray</span><span class="p">)(</span><span class="kt">double</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">PyTypeObject</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">Matrix_FromArray</span><span class="p">)(</span><span class="kt">double</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">PyTypeObject</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">Matrix_StealArray</span><span class="p">)(</span><span class="kt">double</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">PyTypeObject</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">        </span><span class="cm">/* vector number methods */</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_Vector_add</span><span class="p">)(</span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_Vector_subtract</span><span class="p">)(</span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_Vector_multiply</span><span class="p">)(</span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_Vector_divide</span><span class="p">)(</span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_Vector_iadd</span><span class="p">)(</span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_Vector_isubtract</span><span class="p">)(</span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_Vector_imultiply</span><span class="p">)(</span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_Vector_idivide</span><span class="p">)(</span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_Vector_negative</span><span class="p">)(</span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">        </span><span class="cm">/* matrix number methods */</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_Matrix_add</span><span class="p">)(</span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Matrix</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Matrix</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_Matrix_subtract</span><span class="p">)(</span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Matrix</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Matrix</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_Matrix_multiply_vector</span><span class="p">)(</span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Matrix</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_Matrix_multiply_matrix</span><span class="p">)(</span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Matrix</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Matrix</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_Matrix_multiply_scalar</span><span class="p">)(</span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Matrix</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_Matrix_divide</span><span class="p">)(</span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Matrix</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_Matrix_iadd</span><span class="p">)(</span><span class="n">EVSpace_Matrix</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Matrix</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_Matrix_isubtract</span><span class="p">)(</span><span class="n">EVSpace_Matrix</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Matrix</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_Matrix_imultiply_scalar</span><span class="p">)(</span><span class="n">EVSpace_Matrix</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_Matrix_idivide</span><span class="p">)(</span><span class="n">EVSpace_Matrix</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_Matrix_negative</span><span class="p">)(</span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Matrix</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">        </span><span class="cm">/* vector class methods */</span><span class="w"></span>
+<span class="w">        </span><span class="kt">double</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_mag</span><span class="p">)(</span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="kt">double</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_mag_squared</span><span class="p">)(</span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_normalize</span><span class="p">)(</span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">        </span><span class="cm">/* module methods */</span><span class="w"></span>
+<span class="w">        </span><span class="kt">double</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_dot</span><span class="p">)(</span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_cross</span><span class="p">)(</span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_norm</span><span class="p">)(</span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="kt">double</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_vang</span><span class="p">)(</span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_vxcl</span><span class="p">)(</span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_proj</span><span class="p">)(</span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Vector</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="kt">double</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_det</span><span class="p">)(</span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Matrix</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">PyObject</span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">EVSpace_transpose</span><span class="p">)(</span><span class="k">const</span><span class="w"> </span><span class="n">EVSpace_Matrix</span><span class="o">*</span><span class="p">);</span><span class="w"></span>
+
+<span class="p">}</span><span class="w"> </span><span class="n">EVSpace_CAPI</span><span class="p">;</span><span class="w"></span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="c member">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.VectorType">
+<span class="n"><span class="pre">PyTypeObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">VectorType</span></span></span><a class="headerlink" href="#c.EVSpace_CAPI.VectorType" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>The static <code class="xref c c-type docutils literal notranslate"><span class="pre">PyTypeObject</span></code> implementation of <a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_Vector</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c member">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.MatrixType">
+<span class="n"><span class="pre">PyTypeObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">MatrixType</span></span></span><a class="headerlink" href="#c.EVSpace_CAPI.MatrixType" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>The static <code class="xref c c-type docutils literal notranslate"><span class="pre">PyTypeObject</span></code> implementation of <a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_Matrix</span></code></a>.</p>
+</dd></dl>
+
+</section>
+<section id="functions">
+<span id="functions-label"></span><h2>Functions<a class="headerlink" href="#functions" title="Permalink to this heading">#</a></h2>
+<section id="constructors">
+<h3>Constructors<a class="headerlink" href="#constructors" title="Permalink to this heading">#</a></h3>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.Vector_FromArray">
+<span class="n"><span class="pre">PyObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">Vector_FromArray</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">array</span></span>, <span class="n"><span class="pre">PyTypeObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">type</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.Vector_FromArray" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Creates a new <a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_Vector</span></code></a> instance by copying the data from
+<cite>array</cite>. If <cite>array</cite> is NULL, the vector components will be initialized to
+zero.</p>
+<p>The <cite>array</cite> parameter must have a size of at least three. Since the data is
+only copied from the array, it is still the users responsibility to free the
+memory to avoid leaks.</p>
+<p>The <cite>type</cite> parameter must be the <code class="code highlight c docutils literal highlight-c"><span class="n">PyTypeObject</span><span class="w"></span></code> implementation of
+<a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_Vector</span></code></a>, which can be found in the capsule as
+<a class="reference internal" href="#c.EVSpace_CAPI.VectorType" title="VectorType"><code class="xref c c-type docutils literal notranslate"><span class="pre">VectorType</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>array</strong> – array of size three with the x, y and z values</p></li>
+<li><p><strong>type</strong> – the Python type of <a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_Vector</span></code></a></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a pointer to the new vector</p>
+</dd>
+<dt class="field-odd">Return values<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NULL</strong> – if an error occurred</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.Vector_StealArray">
+<span class="n"><span class="pre">PyObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">Vector_StealArray</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">array</span></span>, <span class="n"><span class="pre">PyTypeObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">type</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.Vector_StealArray" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Creates a new <a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_Vector</span></code></a> instance by stealing an array pointer
+for the underlying data array. This is a much more efficient constructor
+than <a class="reference internal" href="#c.EVSpace_CAPI.Vector_FromArray" title="Vector_FromArray"><code class="xref c c-func docutils literal notranslate"><span class="pre">Vector_FromArray()</span></code></a> because no copying is done. The underlying
+data pointer is set to the <cite>array</cite> parameter, and <cite>array</cite> is set to NULL on
+success.</p>
+<p>The <cite>type</cite> parameter must be the <code class="code highlight c docutils literal highlight-c"><span class="n">PyTypeObject</span><span class="w"></span></code> implementation of
+<a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_Vector</span></code></a>, which can be found in the capsule as
+<a class="reference internal" href="#c.EVSpace_CAPI.VectorType" title="VectorType"><code class="xref c c-type docutils literal notranslate"><span class="pre">VectorType</span></code></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <cite>array</cite> parameter is set to NULL only if this function succeeds. If
+the function does not succeed (NULL is returned) it is still the users
+responsibility to free <cite>array</cite> to avoid a memory leak.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>array</strong> – array of size three with the x, y and z value. set to NULL
+on success</p></li>
+<li><p><strong>type</strong> – the Python type of <a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_Vector</span></code></a></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a pointer to the new vector</p>
+</dd>
+<dt class="field-odd">Return values<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NULL</strong> – if an error occurred</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.Matrix_FromArray">
+<span class="n"><span class="pre">PyObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">Matrix_FromArray</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">array</span></span>, <span class="n"><span class="pre">PyTypeObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">type</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.Matrix_FromArray" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Creates a new <a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_Matrix</span></code></a> instance by copying the data from
+<cite>array</cite>. If <cite>array</cite> is NULL, the matrix components will be initialized to
+zero.</p>
+<p>The <cite>array</cite> parameter must have a size of at least nine. Since the data is
+only copied from the array, it is still the users responsibility to free the
+memory to avoid leaks.</p>
+<p>The <cite>type</cite> parameter must be the <code class="code highlight c docutils literal highlight-c"><span class="n">PyTypeObject</span><span class="w"></span></code> implementation of
+<a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_Matrix</span></code></a>, which can be found in the capsule as
+<a class="reference internal" href="#c.EVSpace_CAPI.MatrixType" title="MatrixType"><code class="xref c c-type docutils literal notranslate"><span class="pre">MatrixType</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>array</strong> – array of size nine holding the matrix component values</p></li>
+<li><p><strong>type</strong> – the Python type of <a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_Matrix</span></code></a></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a pointer to the new matrix</p>
+</dd>
+<dt class="field-odd">Return values<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NULL</strong> – if an error occurred</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.Matrix_StealArray">
+<span class="n"><span class="pre">PyObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">Matrix_StealArray</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">array</span></span>, <span class="n"><span class="pre">PyTypeObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">type</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.Matrix_StealArray" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Creates a new <a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_Matrix</span></code></a> instance by stealing an array pointer
+for the underlying data array. This is a much more efficient constructor
+than <a class="reference internal" href="#c.EVSpace_CAPI.Matrix_FromArray" title="Matrix_FromArray"><code class="xref c c-func docutils literal notranslate"><span class="pre">Matrix_FromArray()</span></code></a> because no copying is done. The underlying
+data pointer is set to the <cite>array</cite> argument, and <cite>array</cite> is set to NULL on
+success.</p>
+<p>The <cite>type</cite> parameter must be the <code class="code highlight c docutils literal highlight-c"><span class="n">PyTypeObject</span><span class="w"></span></code> implementation of
+<a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_Matrix</span></code></a>, which can be found in the capsule as
+<a class="reference internal" href="#c.EVSpace_CAPI.MatrixType" title="MatrixType"><code class="xref c c-type docutils literal notranslate"><span class="pre">MatrixType</span></code></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <cite>array</cite> parameter is set to NULL only if this function succeeds. If
+the function does not succeed (NULL is returned) it is still the users
+responsibility to free <cite>array</cite> to avoid a memory leak.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>array</strong> – array of size nine holding the matrix component values</p></li>
+<li><p><strong>type</strong> – the Python type of <a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_Matrix</span></code></a></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a pointer to the new matrix</p>
+</dd>
+<dt class="field-odd">Return values<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NULL</strong> – if an error occurred</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="vector-numeric-methods">
+<h3>Vector numeric methods<a class="headerlink" href="#vector-numeric-methods" title="Permalink to this heading">#</a></h3>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_Vector_add">
+<span class="n"><span class="pre">PyObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Vector_add</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lhs</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rhs</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_Vector_add" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Returns a new <a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_Vector</span></code></a> equal to <span class="math notranslate nohighlight">\(lhs + rhs\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lhs</strong> – vector to be added to</p></li>
+<li><p><strong>rhs</strong> – vector to add to</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the sum of <cite>lhs</cite> and <cite>rhs</cite></p>
+</dd>
+<dt class="field-odd">Return values<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NULL</strong> – if an error occurred</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_Vector_subtract">
+<span class="n"><span class="pre">PyObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Vector_subtract</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lhs</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rhs</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_Vector_subtract" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Returns a new <a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_Vector</span></code></a> equal to <span class="math notranslate nohighlight">\(lhs - rhs\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lhs</strong> – vector to be subtracted from</p></li>
+<li><p><strong>rhs</strong> – vector to subtract</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the difference of <cite>lhs</cite>, and <cite>rhs</cite></p>
+</dd>
+<dt class="field-odd">Return values<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NULL</strong> – if an error occurred</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_Vector_multiply">
+<span class="n"><span class="pre">PyObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Vector_multiply</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lhs</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">scalar</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_Vector_multiply" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Returns a new <a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_Vector</span></code></a> equal to <span class="math notranslate nohighlight">\(lhs * scalar\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lhs</strong> – vector to be multiplied</p></li>
+<li><p><strong>rhs</strong> – scalar to multiply each element of <cite>lhs</cite> by</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the product of <cite>lhs</cite> and <cite>scalar</cite></p>
+</dd>
+<dt class="field-odd">Return values<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NULL</strong> – if an error occurred</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_Vector_divide">
+<span class="n"><span class="pre">PyObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Vector_divide</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lhs</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">scalar</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_Vector_divide" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Returns a new <a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_Vector</span></code></a> equal to <span class="math notranslate nohighlight">\(lhs / scalar\)</span>.
+This is equivalent to</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">EVSpace_CAPI</span><span class="p">.</span><span class="n">EVSpace_Vector_multiply</span><span class="p">(</span><span class="n">lhs</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">scalar</span><span class="p">);</span><span class="w"></span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_Vector_iadd">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Vector_iadd</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">self</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">other</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_Vector_iadd" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Inplace vector addition. This function doesn’t call any Python code and will
+always succeed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> – vector to be added to</p></li>
+<li><p><strong>other</strong> – vector to add to <cite>self</cite></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_Vector_isubtract">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Vector_isubtract</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">self</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">other</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_Vector_isubtract" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Inplace vector subtraction. This function doesn’t call any Python code and
+will always succeed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> – vector to be subtracted from</p></li>
+<li><p><strong>other</strong> – vector to subtract from <cite>self</cite></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_Vector_imultiply">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Vector_imultiply</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">self</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">scalar</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_Vector_imultiply" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Inplace scalar multiplication. This function doesn’t call any Python code
+and will always succeed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> – vector to multiply</p></li>
+<li><p><strong>scalar</strong> – scalar to multiply <cite>self</cite> by</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_Vector_idivide">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Vector_idivide</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">self</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">scalar</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_Vector_idivide" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Inplace scalar division. This function doesn’t call any Python code and will
+always succeed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> – vector to divide</p></li>
+<li><p><strong>scalar</strong> – scalar to divide <cite>self</cite> by</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_Vector_negative">
+<span class="n"><span class="pre">PyObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Vector_negative</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">self</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_Vector_negative" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Urnary negative operator, returns a new vector pointing in the opposite
+direction of <cite>self</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> – vector to negate</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the negative vector of <cite>self</cite></p>
+</dd>
+<dt class="field-odd">Return values<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NULL</strong> – if an error occurrs</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="matrix-numeric-methods">
+<h3>Matrix numeric methods<a class="headerlink" href="#matrix-numeric-methods" title="Permalink to this heading">#</a></h3>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_Matrix_add">
+<span class="n"><span class="pre">PyObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Matrix_add</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><span class="n"><span class="pre">EVSpace_Matrix</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lhs</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><span class="n"><span class="pre">EVSpace_Matrix</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rhs</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_Matrix_add" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Returns a new matrix equal to <span class="math notranslate nohighlight">\(lhs + rhs\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lhs</strong> – first matrix</p></li>
+<li><p><strong>rhs</strong> – second matrix</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>matrix sum of <cite>lhs</cite> and <cite>rhs</cite></p>
+</dd>
+<dt class="field-odd">Return values<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NULL</strong> – if an error occurred</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_Matrix_subtract">
+<span class="n"><span class="pre">PyObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Matrix_subtract</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><span class="n"><span class="pre">EVSpace_Matrix</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lhs</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><span class="n"><span class="pre">EVSpace_Matrix</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rhs</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_Matrix_subtract" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Returns a new matrix equal to <span class="math notranslate nohighlight">\(lhs - rhs\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lhs</strong> – first matrix</p></li>
+<li><p><strong>rhs</strong> – second matrix</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>matrix difference of <cite>lhs</cite> and <cite>rhs</cite></p>
+</dd>
+<dt class="field-odd">Return values<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NULL</strong> – if an error occurred</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_Matrix_multiply_vector">
+<span class="n"><span class="pre">PyObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Matrix_multiply_vector</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><span class="n"><span class="pre">EVSpace_Matrix</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">matrix</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vector</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_Matrix_multiply_vector" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Left-hand matrix multiplication of a vector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>matrix</strong> – matrix to multiply <cite>vector</cite> by</p></li>
+<li><p><strong>vector</strong> – vector to multiply</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a new transformed vector</p>
+</dd>
+<dt class="field-odd">Return values<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NULL</strong> – if an error occurred</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_Matrix_multiply_matrix">
+<span class="n"><span class="pre">PyObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Matrix_multiply_matrix</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><span class="n"><span class="pre">EVSpace_Matrix</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lhs</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><span class="n"><span class="pre">EVSpace_Matrix</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rhs</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_Matrix_multiply_matrix" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Compound two transformations via matrix multiplication.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lhs</strong> – first matrix</p></li>
+<li><p><strong>rhs</strong> – second matrix</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the compounded matrix</p>
+</dd>
+<dt class="field-odd">Return values<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NULL</strong> – if an error occurred</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_Matrix_multiply_scalar">
+<span class="n"><span class="pre">PyObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Matrix_multiply_scalar</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><span class="n"><span class="pre">EVSpace_Matrix</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">self</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">scalar</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_Matrix_multiply_scalar" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Scalar matrix multiplication.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> – matrix to multipliy</p></li>
+<li><p><strong>scalar</strong> – scalar to multiply each component of <cite>matrix</cite> by</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>matrix product</p>
+</dd>
+<dt class="field-odd">Return values<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NULL</strong> – if an error occurred</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_Matrix_divide">
+<span class="n"><span class="pre">PyObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Matrix_divide</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><span class="n"><span class="pre">EVSpace_Matrix</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lhs</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">scalar</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_Matrix_divide" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Matrix scalar division.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lhs</strong> – matrix to divide</p></li>
+<li><p><strong>scalar</strong> – scalar to divide each component of <cite>matrix</cite> by</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>matrix quotient</p>
+</dd>
+<dt class="field-odd">Return values<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NULL</strong> – if an error occurred</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_Matrix_iadd">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Matrix_iadd</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><span class="n"><span class="pre">EVSpace_Matrix</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">self</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><span class="n"><span class="pre">EVSpace_Matrix</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">other</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_Matrix_iadd" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Inplace matrix addition, adding <cite>other</cite> to <cite>self</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> – matrix to be added to</p></li>
+<li><p><strong>other</strong> – matrix to add to <cite>self</cite></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_Matrix_isubtract">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Matrix_isubtract</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><span class="n"><span class="pre">EVSpace_Matrix</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">self</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><span class="n"><span class="pre">EVSpace_Matrix</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">other</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_Matrix_isubtract" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Inplace matrix subtraction, subtracting <cite>other</cite> from <cite>self</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> – matrix to be subtracted from</p></li>
+<li><p><strong>other</strong> – matrix to subtract</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_Matrix_imultiply_scalar">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Matrix_imultiply_scalar</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><span class="n"><span class="pre">EVSpace_Matrix</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">self</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">scalar</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_Matrix_imultiply_scalar" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Inplace scalar multiplication.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> – matrix to multiply</p></li>
+<li><p><strong>scalar</strong> – scalar to multiply each component of <cite>matrix</cite> by</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_Matrix_idivide">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Matrix_idivide</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><span class="n"><span class="pre">EVSpace_Matrix</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">self</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n"><span class="pre">other</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_Matrix_idivide" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Inplace scalar division.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> – matrix to divide</p></li>
+<li><p><strong>scalar</strong> – scalar to divide each component of <cite>matrix</cite> by</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_Matrix_negative">
+<span class="n"><span class="pre">PyObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Matrix_negative</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><span class="n"><span class="pre">EVSpace_Matrix</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">matrix</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_Matrix_negative" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Unary negative operator, negates each component of <cite>matrix</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>matrix</strong> – matrix to negate</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>negative matrix of <cite>matrix</cite></p>
+</dd>
+<dt class="field-odd">Return values<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NULL</strong> – if an error occurred</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="vector-type-methods">
+<h3>Vector type methods<a class="headerlink" href="#vector-type-methods" title="Permalink to this heading">#</a></h3>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_mag">
+<span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_mag</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vector</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_mag" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Computes the magnitude, or length, of a vector. This function doesn’t call any
+Python code and always succeeds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vector</strong> – vector to compute the magnitude of</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the length of <cite>vector</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_mag_squared">
+<span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_mag_squared</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vector</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_mag_squared" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Computes the square of the magnitude of a vector. This is more efficient than
+squaring the value returned from <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_mag" title="EVSpace_mag"><code class="xref c c-func docutils literal notranslate"><span class="pre">EVSpace_mag()</span></code></a> and also avoids rounding
+errors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vector</strong> – vector to find the magnitude of</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the square of the length of <cite>vector</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_normalize">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_normalize</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">self</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_normalize" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Normalizes a vector inplace, which maintains its direction but changes its
+length to 1.0.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> – vector to normalize</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_dot">
+<span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_dot</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lhs</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rhs</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_dot" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Computes the dot product of two vectors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lhs</strong> – first vector</p></li>
+<li><p><strong>rhs</strong> – second vector</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the dot product of <cite>lhs</cite> and <cite>rhs</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_cross">
+<span class="n"><span class="pre">PyObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_cross</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lhs</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">rhs</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_cross" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Computes the cross product of two vectors. This uses a right-hand coordinate
+frame. This vector can be negated to compute a cross product for a left-hand
+coordinate frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lhs</strong> – first vector</p></li>
+<li><p><strong>rhs</strong> – second vector</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the right-handed cross product of <cite>lhs</cite> and <cite>rhs</cite></p>
+</dd>
+<dt class="field-odd">Return values<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NULL</strong> – if an error occurred</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_norm">
+<span class="n"><span class="pre">PyObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_norm</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vector</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_norm" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Returns a new vector equal to the norm of <cite>self</cite>. The returned vector points
+in the same difection as <cite>self</cite> but has a length of 1.0.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self</strong> – vector to compute the norm of</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a normalized version of <cite>self</cite></p>
+</dd>
+<dt class="field-odd">Return values<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NULL</strong> – if an error occurred</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_vang">
+<span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_vang</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">from</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">to</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_vang" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Compute the angle between two vectors. This is always the shortest angle
+between <cite>from</cite> and <cite>to</cite>.</p>
+<p>Note: don’t be confused by the nomenclature of the parameters,
+<code class="code highlight c docutils literal highlight-c"><span class="n">EVSpace_vang</span><span class="p">(</span><span class="n">from</span><span class="p">,</span><span class="w"> </span><span class="n">to</span><span class="p">)</span><span class="w"></span></code> is equal to <code class="code highlight c docutils literal highlight-c"><span class="n">EVSpace_vang</span><span class="p">(</span><span class="n">to</span><span class="p">,</span><span class="w"> </span><span class="n">from</span><span class="p">)</span><span class="w"></span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>from</strong> – first vector</p></li>
+<li><p><strong>to</strong> – second vector</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the shortest angle between <cite>from</cite> and <cite>to</cite> in radians</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_vxcl">
+<span class="n"><span class="pre">PyObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_vxcl</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">vector</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">exclude</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_vxcl" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Creates a new vector equal to <cite>vector</cite> with all parts of <cite>exclude</cite> removed
+from it. This is in effect the vector projection of <cite>vector</cite> on the plane
+whose normal vector is <cite>exclude</cite>. The result of this function and the
+<cite>exclude</cite> vector are linearly independent vectors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vector</strong> – starting vector</p></li>
+<li><p><strong>exclude</strong> – vector to exclude from <cite>vector</cite></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the projection of <cite>vector</cite> onto the plane whose normal vector is
+<cite>exclude</cite>.</p>
+</dd>
+<dt class="field-odd">Return values<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NULL</strong> – if an error occurred</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_proj">
+<span class="n"><span class="pre">PyObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_proj</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">proj</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Vector" title="EVSpace_Vector"><span class="n"><span class="pre">EVSpace_Vector</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">onto</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_proj" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>The projection of one vector onto another. If the angle between vectors u and v
+is theta, u projected onto v is the vector pointing in the direction of v whose
+length is <span class="math notranslate nohighlight">\(|u| * cos(theta)\)</span>. If the dot product of u and v is negative,
+this vector points in the opposite direction of v.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>proj</strong> – vector to project</p></li>
+<li><p><strong>onto</strong> – vector to be projected on</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the projection of <cite>proj</cite> onto <cite>onto</cite></p>
+</dd>
+<dt class="field-odd">Return values<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NULL</strong> – if an error occurred</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="matrix-type-methods">
+<h3>Matrix type methods<a class="headerlink" href="#matrix-type-methods" title="Permalink to this heading">#</a></h3>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_det">
+<span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_det</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><span class="n"><span class="pre">EVSpace_Matrix</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">matrix</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_det" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Computes the determinate of a matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>matrix</strong> – matrix to compute the determinate of</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the determinate of <cite>matrix</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.EVSpace_CAPI.EVSpace_transpose">
+<span class="n"><span class="pre">PyObject</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><span class="n"><span class="pre">EVSpace_CAPI</span></span></a><span class="p"><span class="pre">.</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">EVSpace_transpose</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.EVSpace_Matrix" title="EVSpace_Matrix"><span class="n"><span class="pre">EVSpace_Matrix</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">matrix</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_CAPI.EVSpace_transpose" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Returns a new matrix equal to the transpose of <cite>matrix</cite>. The returned matrix
+of this function has the values of <cite>matrix</cite> but with the rows and columns
+switched.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>matrix</strong> – matrix to transpose</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the transpose of <cite>matrix</cite></p>
+</dd>
+<dt class="field-odd">Return values<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NULL</strong> – if an error occurred</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 </section>
 <section id="macros">
 <h2>Macros<a class="headerlink" href="#macros" title="Permalink to this heading">#</a></h2>
+<section id="type-ease-of-use">
+<h3>Type ease of use<a class="headerlink" href="#type-ease-of-use" title="Permalink to this heading">#</a></h3>
 <dl class="c macro">
-<dt class="sig sig-object c" id="c.EVSpace_VECTOR_GETX">
-<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_VECTOR_GETX</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">o</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_VECTOR_GETX" title="Permalink to this definition">#</a><br /></dt>
-<dd><p>Simplifies accessing the X component of a vector by casting <cite>o</cite> to an
+<dt class="sig sig-object c" id="c.EVSpace_VECTOR_X">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_VECTOR_X</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">obj</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_VECTOR_X" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Simplifies accessing the X component of a vector by casting <cite>obj</cite> to an
 EVSpace_Vector* and calling the underlying array.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>o</strong> – a PyObject* or EVSpace_Vector* to get the X component of</p></li>
+<li><p><strong>obj</strong> – a PyObject* or EVSpace_Vector* to get the X component of</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="c macro">
-<dt class="sig sig-object c" id="c.EVSpace_VECTOR_GETY">
-<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_VECTOR_GETY</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">o</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_VECTOR_GETY" title="Permalink to this definition">#</a><br /></dt>
-<dd><p>Simplifies accessing the Y component of a vector by casting <cite>o</cite> to an
+<dt class="sig sig-object c" id="c.EVSpace_VECTOR_Y">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_VECTOR_Y</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">obj</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_VECTOR_Y" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Simplifies accessing the Y component of a vector by casting <cite>obj</cite> to an
 EVSpace_Vector* and calling the underlying array.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>o</strong> – a PyObject* or EVSpace_Vector* to get the Y component of</p></li>
+<li><p><strong>obj</strong> – a PyObject* or EVSpace_Vector* to get the Y component of</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="c macro">
-<dt class="sig sig-object c" id="c.EVSpace_VECTOR_GETZ">
-<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_VECTOR_GETZ</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">o</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_VECTOR_GETZ" title="Permalink to this definition">#</a><br /></dt>
-<dd><p>Simplifies accessing the Z component of a vector by casting <cite>o</cite> to an
+<dt class="sig sig-object c" id="c.EVSpace_VECTOR_Z">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_VECTOR_Z</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">obj</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_VECTOR_Z" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Simplifies accessing the Z component of a vector by casting <cite>obj</cite> to an
 EVSpace_Vector* and calling the underlying array.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>o</strong> – a PyObject* or EVSpace_Vector* to get the Z component of</p></li>
+<li><p><strong>obj</strong> – a PyObject* or EVSpace_Vector* to get the Z component of</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="c macro">
-<dt class="sig sig-object c" id="c.EVSpace_VECTOR_SETX">
-<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_VECTOR_SETX</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">o</span></span>, <span class="n"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_VECTOR_SETX" title="Permalink to this definition">#</a><br /></dt>
-<dd><p>Simplifies setting the X component of a vector by casting <cite>o</cite> to an
-EVSpace_Vector* and setting the correct component of the underlying
-array to <cite>v</cite>.</p>
+<dt class="sig sig-object c" id="c.EVSpace_RC_INDEX">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_RC_INDEX</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">row</span></span>, <span class="n"><span class="pre">col</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_RC_INDEX" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Maps a row and column index to a single 1-dimensional contiguous array
+index. This is simply <code class="code highlight c docutils literal highlight-c"><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">row</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">col</span><span class="w"></span></code>, but looks much cleaner in code.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>o</strong> – a PyObject* or EVSpace_Vector* to set the X component of</p></li>
-<li><p><strong>v</strong> – the value to set the array component to</p></li>
+<li><p><strong>row</strong> – row index</p></li>
+<li><p><strong>col</strong> – col index</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="c macro">
-<dt class="sig sig-object c" id="c.EVSpace_VECTOR_SETY">
-<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_VECTOR_SETY</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">o</span></span>, <span class="n"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_VECTOR_SETY" title="Permalink to this definition">#</a><br /></dt>
-<dd><p>Simplifies setting the Y component of a vector by casting <cite>o</cite> to an
-EVSpace_Vector* and setting the correct component of the underlying
-array to <cite>v</cite>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>o</strong> – a PyObject* or EVSpace_Vector* to set the Y component of</p></li>
-<li><p><strong>v</strong> – the value to set the array component to</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="c macro">
-<dt class="sig sig-object c" id="c.EVSpace_VECTOR_SETZ">
-<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_VECTOR_SETZ</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">o</span></span>, <span class="n"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_VECTOR_SETZ" title="Permalink to this definition">#</a><br /></dt>
-<dd><p>Simplifies setting the Z component of a vector by casting <cite>o</cite> to an
-EVSpace_Vector* and setting the correct component of the underlying
-array to <cite>v</cite>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>o</strong> – a PyObject* or EVSpace_Vector* to set the Z component of</p></li>
-<li><p><strong>v</strong> – the value to set the array component to</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="c macro">
-<dt class="sig sig-object c" id="c.EVSpace_MATRIX_GET">
-<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_MATRIX_GET</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">o</span></span>, <span class="n"><span class="pre">r</span></span>, <span class="n"><span class="pre">c</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_MATRIX_GET" title="Permalink to this definition">#</a><br /></dt>
-<dd><p>Simplifies accessing a component of <cite>o</cite> by casting to a
+<dt class="sig sig-object c" id="c.EVSpace_MATRIX_COMPONENT">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_MATRIX_COMPONENT</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">obj</span></span>, <span class="n"><span class="pre">row</span></span>, <span class="n"><span class="pre">col</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_MATRIX_COMPONENT" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Simplifies accessing a component of <cite>obj</cite> by casting to a
 EVSpace_Matrix* and calling the underlying array.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>o</strong> – a PyObject* or EVSpace_Vector* to get the component of</p></li>
-<li><p><strong>r</strong> – the row of the component to get</p></li>
-<li><p><strong>c</strong> – the column of the component to get</p></li>
+<li><p><strong>obj</strong> – a PyObject* or EVSpace_Vector* to get the component of</p></li>
+<li><p><strong>row</strong> – the row of the component to get</p></li>
+<li><p><strong>col</strong> – the column of the component to get</p></li>
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+</section>
+<section id="capsule-ease-of-use">
+<h3>Capsule ease of use<a class="headerlink" href="#capsule-ease-of-use" title="Permalink to this heading">#</a></h3>
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_CAPSULE_NAME">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_CAPSULE_NAME</span></span></span><a class="headerlink" href="#c.EVSpace_CAPSULE_NAME" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>Unique identifier for the C API capsule.</p>
+</dd></dl>
+
+<p>The following macros are shorthand calls to the methods in the
+<a class="reference internal" href="#c.EVSpace_CAPI" title="EVSpace_CAPI"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI</span></code></a> struct. Details of each method can be found in the
+<a class="reference internal" href="#functions-label"><span class="std std-ref">Functions</span></a> section.</p>
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.Vector_FromArray">
+<span class="sig-name descname"><span class="n"><span class="pre">Vector_FromArray</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">array</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Vector_FromArray" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.Vector_FromArray" title="EVSpace_CAPI.Vector_FromArray"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.Vector_FromArray</span></code></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This macro handles the <cite>type</cite> argument in the constructor call.</p>
+</div>
 </dd></dl>
 
 <dl class="c macro">
-<dt class="sig sig-object c" id="c.EVSpace_MATRIX_SET">
-<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_MATRIX_SET</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">o</span></span>, <span class="n"><span class="pre">r</span></span>, <span class="n"><span class="pre">c</span></span>, <span class="n"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_MATRIX_SET" title="Permalink to this definition">#</a><br /></dt>
-<dd><p>Simplifies accessing a component of <cite>o</cite> by casting to a
-EVSpace_Matrix* and setting the correct component of the underlying
-array to <cite>v</cite>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>o</strong> – a PyObject* or EVSpace_Vector* to get the component of</p></li>
-<li><p><strong>r</strong> – the row of the component to set</p></li>
-<li><p><strong>c</strong> – the column of the component to get</p></li>
-<li><p><strong>v</strong> – the value to set the array component to</p></li>
-</ul>
-</dd>
-</dl>
+<dt class="sig sig-object c" id="c.Vector_StealArray">
+<span class="sig-name descname"><span class="n"><span class="pre">Vector_StealArray</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">array</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Vector_StealArray" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.Vector_StealArray" title="EVSpace_CAPI.Vector_StealArray"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.Vector_StealArray</span></code></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This macro handles the <cite>type</cite> argument in the constructor call.</p>
+</div>
 </dd></dl>
 
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.Matrix_FromArray">
+<span class="sig-name descname"><span class="n"><span class="pre">Matrix_FromArray</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">array</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Matrix_FromArray" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.Matrix_FromArray" title="EVSpace_CAPI.Matrix_FromArray"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.Matrix_FromArray</span></code></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This macro handles the <cite>type</cite> argument in the constructor call.</p>
+</div>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.Matrix_StealArray">
+<span class="sig-name descname"><span class="n"><span class="pre">Matrix_StealArray</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">array</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.Matrix_StealArray" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.Matrix_StealArray" title="EVSpace_CAPI.Matrix_StealArray"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.Matrix_StealArray</span></code></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This macro handles the <cite>type</cite> argument in the constructor call.</p>
+</div>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_Vector_add">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Vector_add</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">rhs</span></span>, <span class="n"><span class="pre">lhs</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_Vector_add" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_Vector_add" title="EVSpace_CAPI.EVSpace_Vector_add"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_Vector_add</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_Vector_subtract">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Vector_subtract</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">rhs</span></span>, <span class="n"><span class="pre">lhs</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_Vector_subtract" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_Vector_subtract" title="EVSpace_CAPI.EVSpace_Vector_subtract"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_Vector_subtract</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_Vector_multiply">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Vector_multiply</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">self</span></span>, <span class="n"><span class="pre">scalar</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_Vector_multiply" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_Vector_multiply" title="EVSpace_CAPI.EVSpace_Vector_multiply"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_Vector_multiply</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_Vector_divide">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Vector_divide</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">self</span></span>, <span class="n"><span class="pre">scalar</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_Vector_divide" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_Vector_divide" title="EVSpace_CAPI.EVSpace_Vector_divide"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_Vector_divide</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_Vector_iadd">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Vector_iadd</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">self</span></span>, <span class="n"><span class="pre">other</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_Vector_iadd" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_Vector_iadd" title="EVSpace_CAPI.EVSpace_Vector_iadd"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_Vector_iadd</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_Vector_isubtract">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Vector_isubtract</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">self</span></span>, <span class="n"><span class="pre">other</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_Vector_isubtract" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_Vector_isubtract" title="EVSpace_CAPI.EVSpace_Vector_isubtract"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_Vector_isubtract</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVspace_Vector_imultiply">
+<span class="sig-name descname"><span class="n"><span class="pre">EVspace_Vector_imultiply</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">self</span></span>, <span class="n"><span class="pre">scalar</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVspace_Vector_imultiply" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVspace_Vector_imultiply</span></code>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_Vector_idivide">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Vector_idivide</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">self</span></span>, <span class="n"><span class="pre">scalar</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_Vector_idivide" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_Vector_idivide" title="EVSpace_CAPI.EVSpace_Vector_idivide"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_Vector_idivide</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_Vector_negative">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Vector_negative</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">self</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_Vector_negative" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_Vector_negative" title="EVSpace_CAPI.EVSpace_Vector_negative"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_Vector_negative</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_Matrix_add">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Matrix_add</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">rhs</span></span>, <span class="n"><span class="pre">lhs</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_Matrix_add" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_Matrix_add" title="EVSpace_CAPI.EVSpace_Matrix_add"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_Matrix_add</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_Matrix_subtract">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Matrix_subtract</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">rhs</span></span>, <span class="n"><span class="pre">lhs</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_Matrix_subtract" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_Matrix_subtract" title="EVSpace_CAPI.EVSpace_Matrix_subtract"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_Matrix_subtract</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_Matrix_multiply_vector">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Matrix_multiply_vector</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">rhs</span></span>, <span class="n"><span class="pre">lhs</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_Matrix_multiply_vector" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_Matrix_multiply_vector" title="EVSpace_CAPI.EVSpace_Matrix_multiply_vector"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_Matrix_multiply_vector</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_Matrix_multiply_matrix">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Matrix_multiply_matrix</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">rhs</span></span>, <span class="n"><span class="pre">lhs</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_Matrix_multiply_matrix" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_Matrix_multiply_matrix" title="EVSpace_CAPI.EVSpace_Matrix_multiply_matrix"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_Matrix_multiply_matrix</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_Matrix_multiply_scalar">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Matrix_multiply_scalar</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">self</span></span>, <span class="n"><span class="pre">scalar</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_Matrix_multiply_scalar" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_Matrix_multiply_scalar" title="EVSpace_CAPI.EVSpace_Matrix_multiply_scalar"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_Matrix_multiply_scalar</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_Matrix_divide">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Matrix_divide</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">rhs</span></span>, <span class="n"><span class="pre">lhs</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_Matrix_divide" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_Matrix_divide" title="EVSpace_CAPI.EVSpace_Matrix_divide"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_Matrix_divide</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_Matrix_iadd">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Matrix_iadd</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">self</span></span>, <span class="n"><span class="pre">other</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_Matrix_iadd" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_Matrix_iadd" title="EVSpace_CAPI.EVSpace_Matrix_iadd"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_Matrix_iadd</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_Matrix_isubtract">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Matrix_isubtract</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">self</span></span>, <span class="n"><span class="pre">other</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_Matrix_isubtract" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_Matrix_isubtract" title="EVSpace_CAPI.EVSpace_Matrix_isubtract"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_Matrix_isubtract</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_Matrix_imultiply">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Matrix_imultiply</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">self</span></span>, <span class="n"><span class="pre">scalar</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_Matrix_imultiply" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_Matrix_imultiply</span></code>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_Matrix_idivide">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Matrix_idivide</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">self</span></span>, <span class="n"><span class="pre">scalar</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_Matrix_idivide" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_Matrix_idivide" title="EVSpace_CAPI.EVSpace_Matrix_idivide"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_Matrix_idivide</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_Matrix_negative">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_Matrix_negative</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">self</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_Matrix_negative" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_Matrix_negative" title="EVSpace_CAPI.EVSpace_Matrix_negative"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_Matrix_negative</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_mag">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_mag</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">self</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_mag" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_mag" title="EVSpace_CAPI.EVSpace_mag"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_mag</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_mag_squared">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_mag_squared</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">self</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_mag_squared" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_mag_squared" title="EVSpace_CAPI.EVSpace_mag_squared"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_mag_squared</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_normalize">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_normalize</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">self</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_normalize" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_normalize" title="EVSpace_CAPI.EVSpace_normalize"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_normalize</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_dot">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_dot</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">lhs</span></span>, <span class="n"><span class="pre">rhs</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_dot" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_dot" title="EVSpace_CAPI.EVSpace_dot"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_dot</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_cross">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_cross</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">lhs</span></span>, <span class="n"><span class="pre">rhs</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_cross" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_cross" title="EVSpace_CAPI.EVSpace_cross"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_cross</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_norm">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_norm</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">self</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_norm" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_norm" title="EVSpace_CAPI.EVSpace_norm"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_norm</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_vang">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_vang</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">from</span></span>, <span class="n"><span class="pre">to</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_vang" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_vang" title="EVSpace_CAPI.EVSpace_vang"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_vang</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_vxcl">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_vxcl</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">vec</span></span>, <span class="n"><span class="pre">xcl</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_vxcl" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_vxcl" title="EVSpace_CAPI.EVSpace_vxcl"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_vxcl</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_proj">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_proj</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">proj</span></span>, <span class="n"><span class="pre">onto</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_proj" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_proj" title="EVSpace_CAPI.EVSpace_proj"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_proj</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_det">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_det</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">self</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_det" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_det" title="EVSpace_CAPI.EVSpace_det"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_det</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.EVSpace_transpose">
+<span class="sig-name descname"><span class="n"><span class="pre">EVSpace_transpose</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">self</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.EVSpace_transpose" title="Permalink to this definition">#</a><br /></dt>
+<dd><p>See <a class="reference internal" href="#c.EVSpace_CAPI.EVSpace_transpose" title="EVSpace_CAPI.EVSpace_transpose"><code class="xref c c-type docutils literal notranslate"><span class="pre">EVSpace_CAPI.EVSpace_transpose</span></code></a>.</p>
+</dd></dl>
+
+</section>
 </section>
 </section>
 
@@ -481,9 +1507,53 @@ array to <cite>v</cite>.</p>
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#functions">
+   Functions
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#constructors">
+     Constructors
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#vector-numeric-methods">
+     Vector numeric methods
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#matrix-numeric-methods">
+     Matrix numeric methods
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#vector-type-methods">
+     Vector type methods
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#matrix-type-methods">
+     Matrix type methods
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#macros">
    Macros
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#type-ease-of-use">
+     Type ease of use
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#capsule-ease-of-use">
+     Capsule ease of use
+    </a>
+   </li>
+  </ul>
  </li>
 </ul>
 

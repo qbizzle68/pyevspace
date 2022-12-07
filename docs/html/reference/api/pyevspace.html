@@ -303,16 +303,8 @@ Therefore numeric types are interpreted in the following order:</p>
 <blockquote>
 <div><ol class="arabic simple">
 <li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>s are converted to a C <code class="code highlight c docutils literal highlight-c"><span class="kt">double</span><span class="w"></span></code></p></li>
-<li><dl class="simple">
-<dt>A conversion is attempted with the type’s <code class="code highlight python docutils literal highlight-python"><span class="fm">__float__</span><span class="p">()</span></code></dt><dd><p>method</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>A conversion is attempted with the type’s <code class="code highlight python docutils literal highlight-python"><span class="fm">__index__</span><span class="p">()</span></code></dt><dd><p>method</p>
-</dd>
-</dl>
-</li>
+<li><p>A conversion is attempted with the type’s <code class="code highlight python docutils literal highlight-python"><span class="fm">__float__</span><span class="p">()</span></code> method</p></li>
+<li><p>A conversion is attempted with the type’s <code class="code highlight python docutils literal highlight-python"><span class="fm">__index__</span><span class="p">()</span></code> method</p></li>
 <li><p>No suitable conversion can be made and a TypeError is raised</p></li>
 </ol>
 </div></blockquote>

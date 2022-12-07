@@ -406,27 +406,165 @@
 </li>
       <li><a href="reference/api/evector.html#pyevspace.EVector">EVector (class in pyevspace)</a>
 </li>
-      <li><a href="reference/c-api/index.html#c.EVSpace_Matrix">EVSpace_Matrix (C struct)</a>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI">EVSpace_CAPI (C struct)</a>
 </li>
-      <li><a href="reference/c-api/index.html#c.EVSpace_MATRIX_GET">EVSpace_MATRIX_GET (C macro)</a>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_cross">EVSpace_CAPI.EVSpace_cross (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_det">EVSpace_CAPI.EVSpace_det (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_dot">EVSpace_CAPI.EVSpace_dot (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_mag">EVSpace_CAPI.EVSpace_mag (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_mag_squared">EVSpace_CAPI.EVSpace_mag_squared (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_Matrix_add">EVSpace_CAPI.EVSpace_Matrix_add (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_Matrix_divide">EVSpace_CAPI.EVSpace_Matrix_divide (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_Matrix_iadd">EVSpace_CAPI.EVSpace_Matrix_iadd (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_Matrix_idivide">EVSpace_CAPI.EVSpace_Matrix_idivide (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_Matrix_imultiply_scalar">EVSpace_CAPI.EVSpace_Matrix_imultiply_scalar (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_Matrix_isubtract">EVSpace_CAPI.EVSpace_Matrix_isubtract (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_Matrix_multiply_matrix">EVSpace_CAPI.EVSpace_Matrix_multiply_matrix (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_Matrix_multiply_scalar">EVSpace_CAPI.EVSpace_Matrix_multiply_scalar (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_Matrix_multiply_vector">EVSpace_CAPI.EVSpace_Matrix_multiply_vector (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_Matrix_negative">EVSpace_CAPI.EVSpace_Matrix_negative (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_Matrix_subtract">EVSpace_CAPI.EVSpace_Matrix_subtract (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_norm">EVSpace_CAPI.EVSpace_norm (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_normalize">EVSpace_CAPI.EVSpace_normalize (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_proj">EVSpace_CAPI.EVSpace_proj (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_transpose">EVSpace_CAPI.EVSpace_transpose (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_vang">EVSpace_CAPI.EVSpace_vang (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_Vector_add">EVSpace_CAPI.EVSpace_Vector_add (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_Vector_divide">EVSpace_CAPI.EVSpace_Vector_divide (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_Vector_iadd">EVSpace_CAPI.EVSpace_Vector_iadd (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_Vector_idivide">EVSpace_CAPI.EVSpace_Vector_idivide (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_Vector_imultiply">EVSpace_CAPI.EVSpace_Vector_imultiply (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_Vector_isubtract">EVSpace_CAPI.EVSpace_Vector_isubtract (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_Vector_multiply">EVSpace_CAPI.EVSpace_Vector_multiply (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_Vector_negative">EVSpace_CAPI.EVSpace_Vector_negative (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_Vector_subtract">EVSpace_CAPI.EVSpace_Vector_subtract (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.EVSpace_vxcl">EVSpace_CAPI.EVSpace_vxcl (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.Matrix_FromArray">EVSpace_CAPI.Matrix_FromArray (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.Matrix_StealArray">EVSpace_CAPI.Matrix_StealArray (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.MatrixType">EVSpace_CAPI.MatrixType (C member)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.Vector_FromArray">EVSpace_CAPI.Vector_FromArray (C function)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.Vector_StealArray">EVSpace_CAPI.Vector_StealArray (C function)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/c-api/index.html#c.EVSpace_MATRIX_SET">EVSpace_MATRIX_SET (C macro)</a>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPI.VectorType">EVSpace_CAPI.VectorType (C member)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_CAPSULE_NAME">EVSpace_CAPSULE_NAME (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_cross">EVSpace_cross (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_det">EVSpace_det (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_dot">EVSpace_dot (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_mag">EVSpace_mag (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_mag_squared">EVSpace_mag_squared (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_Matrix">EVSpace_Matrix (C struct)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_Matrix.data">EVSpace_Matrix.data (C member)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_Matrix_add">EVSpace_Matrix_add (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_MATRIX_COMPONENT">EVSpace_MATRIX_COMPONENT (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_Matrix_divide">EVSpace_Matrix_divide (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_Matrix_iadd">EVSpace_Matrix_iadd (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_Matrix_idivide">EVSpace_Matrix_idivide (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_Matrix_imultiply">EVSpace_Matrix_imultiply (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_Matrix_isubtract">EVSpace_Matrix_isubtract (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_Matrix_multiply_matrix">EVSpace_Matrix_multiply_matrix (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_Matrix_multiply_scalar">EVSpace_Matrix_multiply_scalar (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_Matrix_multiply_vector">EVSpace_Matrix_multiply_vector (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_Matrix_negative">EVSpace_Matrix_negative (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_Matrix_subtract">EVSpace_Matrix_subtract (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_norm">EVSpace_norm (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_normalize">EVSpace_normalize (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_proj">EVSpace_proj (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_RC_INDEX">EVSpace_RC_INDEX (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_transpose">EVSpace_transpose (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_vang">EVSpace_vang (C macro)</a>
 </li>
       <li><a href="reference/c-api/index.html#c.EVSpace_Vector">EVSpace_Vector (C struct)</a>
 </li>
-      <li><a href="reference/c-api/index.html#c.EVSpace_VECTOR_GETX">EVSpace_VECTOR_GETX (C macro)</a>
+      <li><a href="reference/c-api/index.html#c.EVSpace_Vector.data">EVSpace_Vector.data (C member)</a>
 </li>
-      <li><a href="reference/c-api/index.html#c.EVSpace_VECTOR_GETY">EVSpace_VECTOR_GETY (C macro)</a>
+      <li><a href="reference/c-api/index.html#c.EVSpace_Vector_add">EVSpace_Vector_add (C macro)</a>
 </li>
-      <li><a href="reference/c-api/index.html#c.EVSpace_VECTOR_GETZ">EVSpace_VECTOR_GETZ (C macro)</a>
+      <li><a href="reference/c-api/index.html#c.EVSpace_Vector_divide">EVSpace_Vector_divide (C macro)</a>
 </li>
-      <li><a href="reference/c-api/index.html#c.EVSpace_VECTOR_SETX">EVSpace_VECTOR_SETX (C macro)</a>
+      <li><a href="reference/c-api/index.html#c.EVSpace_Vector_iadd">EVSpace_Vector_iadd (C macro)</a>
 </li>
-      <li><a href="reference/c-api/index.html#c.EVSpace_VECTOR_SETY">EVSpace_VECTOR_SETY (C macro)</a>
+      <li><a href="reference/c-api/index.html#c.EVSpace_Vector_idivide">EVSpace_Vector_idivide (C macro)</a>
 </li>
-      <li><a href="reference/c-api/index.html#c.EVSpace_VECTOR_SETZ">EVSpace_VECTOR_SETZ (C macro)</a>
+      <li><a href="reference/c-api/index.html#c.EVspace_Vector_imultiply">EVspace_Vector_imultiply (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_Vector_isubtract">EVSpace_Vector_isubtract (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_Vector_multiply">EVSpace_Vector_multiply (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_Vector_negative">EVSpace_Vector_negative (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_Vector_subtract">EVSpace_Vector_subtract (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_VECTOR_X">EVSpace_VECTOR_X (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_VECTOR_Y">EVSpace_VECTOR_Y (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_VECTOR_Z">EVSpace_VECTOR_Z (C macro)</a>
+</li>
+      <li><a href="reference/c-api/index.html#c.EVSpace_vxcl">EVSpace_vxcl (C macro)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -446,8 +584,12 @@
 </li>
       <li><a href="reference/api/evector.html#pyevspace.EVector.mag2">mag2() (pyevspace.EVector method)</a>
 </li>
+      <li><a href="reference/c-api/index.html#c.Matrix_FromArray">Matrix_FromArray (C macro)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/c-api/index.html#c.Matrix_StealArray">Matrix_StealArray (C macro)</a>
+</li>
       <li>
     module
 
@@ -496,8 +638,12 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/api/pyevspace.html#pyevspace.vang">vang() (in module pyevspace)</a>
 </li>
+      <li><a href="reference/c-api/index.html#c.Vector_FromArray">Vector_FromArray (C macro)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/c-api/index.html#c.Vector_StealArray">Vector_StealArray (C macro)</a>
+</li>
       <li><a href="reference/api/pyevspace.html#pyevspace.vxcl">vxcl() (in module pyevspace)</a>
 </li>
   </ul></td>

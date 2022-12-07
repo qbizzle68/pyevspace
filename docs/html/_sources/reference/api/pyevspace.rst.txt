@@ -24,10 +24,8 @@ are also available.
 	Therefore numeric types are interpreted in the following order:
 
 		1. :class:`float`\ s are converted to a C :c:`double`
-		2. A conversion is attempted with the type's :python:`__float__()` 
-			method
-		3. A conversion is attempted with the type's :python:`__index__()` 
-			method
+		2. A conversion is attempted with the type's :python:`__float__()` method
+		3. A conversion is attempted with the type's :python:`__index__()` method
 		4. No suitable conversion can be made and a TypeError is raised
 
 	Therefore in this documentation a numeric type is any type that is
