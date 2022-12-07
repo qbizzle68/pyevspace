@@ -6,6 +6,11 @@ are all 3-dimensional. This means that operations don't require size checking at
 optimum performance. The package only allows 3-dimensional vectors and matrices, so if you need something 
 different, you should use a package more suited to your needs, such as [numpy](https://numpy.org/).
 
+## Documentation
+
+The full documentation of this project with both Python and C APIs can be found [here](https://qbizzle68.github.io/pyevspace/html/index.html).
+For a full documentation of this project and both the Python and C APIs
+
 ## Install
 
 The python module can be installed with
