@@ -9,7 +9,6 @@ different, you should use a package more suited to your needs, such as [numpy](h
 ## Documentation
 
 The full documentation of this project with both Python and C APIs can be found [here](https://qbizzle68.github.io/pyevspace/html/index.html).
-For a full documentation of this project and both the Python and C APIs
 
 ## Install
 
