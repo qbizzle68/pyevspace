@@ -113,10 +113,6 @@ class Test_ematrix(unittest.TestCase):
         self.assertEqual(self.m123[0, 0], 1)
         self.assertEqual(self.m123[1, 2], 6)
 
-        with self.assertRaises(SystemError) as cm:
-            x = self.m123[0]
-        self.assertEqual(SystemError, type(cm.exception))
-
         with self.assertRaises(TypeError) as cm:
             x = self.m123[1, 'a']
         self.assertEqual(TypeError, type(cm.exception))
