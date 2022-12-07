@@ -463,7 +463,7 @@ vector_negative(PyObject* self)
 }
 
 static PyNumberMethods vector_as_number = {
-	.nb_add					= (binaryfunc)vector_add,
+	/*.nb_add = (binaryfunc)vector_add,
 	.nb_subtract			= (binaryfunc)vector_subtract,
 	.nb_multiply			= (binaryfunc)vector_multiply,
 	.nb_true_divide			= (binaryfunc)vector_divide,
@@ -471,7 +471,41 @@ static PyNumberMethods vector_as_number = {
 	.nb_inplace_add			= (binaryfunc)vector_iadd,
 	.nb_inplace_subtract	= (binaryfunc)vector_isubtract,
 	.nb_inplace_multiply	= (binaryfunc)vector_imultiply,
-	.nb_inplace_true_divide = (binaryfunc)vector_idivide,
+	.nb_inplace_true_divide = (binaryfunc)vector_idivide,*/
+
+	(binaryfunc)vector_add,			/* nb_add */
+	(binaryfunc)vector_subtract,	/* nb_subtract */
+	(binaryfunc)vector_multiply,	/* nb_multiply */
+	0,
+	0,
+	0,
+	(unaryfunc)vector_negative,		/* nb_negative */
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	(binaryfunc)vector_iadd,		/* nb_inplace_add */
+	(binaryfunc)vector_isubtract,	/* nb_inplace_subtract */
+	(binaryfunc)vector_imultiply,	/* nb_inplace_multiply */
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	(binaryfunc)vector_divide,		/* nb_true_divide */
+	0,
+	(binaryfunc)vector_idivide,		/* nb_inplace_true_divide */
 };
 
 static Py_ssize_t
@@ -509,9 +543,15 @@ vector_set_item(EVSpace_Vector* self, Py_ssize_t index, PyObject* arg)
 }
 
 static PySequenceMethods vector_as_sequence = {
-	.sq_length		= (lenfunc)vector_length,
+	/*.sq_length = (lenfunc)vector_length,
 	.sq_item		= (ssizeargfunc)vector_get_item,
-	.sq_ass_item	= (ssizeobjargproc)vector_set_item,
+	.sq_ass_item	= (ssizeobjargproc)vector_set_item,*/
+	(lenfunc)vector_length,				/* sq_length */
+	0,
+	0,
+	(ssizeargfunc)vector_get_item,		/* sq_item */
+	0,
+	(ssizeobjargproc)vector_set_item	/* sq_ass_item */
 };
 
 #define BUFFER_RELEASE_SHAPE	0x1
@@ -565,8 +605,8 @@ buffer_release(PyObject* obj, Py_buffer* view)
 }
 
 static PyBufferProcs vector_buffer = {
-	(getbufferproc)vector_buffer_get,
-	(releasebufferproc)buffer_release
+	(getbufferproc)vector_buffer_get,	/* bf_getbuffer */
+	(releasebufferproc)buffer_release	/* bf_releasebuffer */
 };
 
 #define VECTOR_DOT(l, r)	(Vector_X(l) * Vector_X(r) \
@@ -640,7 +680,7 @@ PyDoc_STRVAR(vector_doc, "Data type representing a 3 dimensional vector in a Euc
 
 static PyTypeObject EVSpace_VectorType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	.tp_name		= "pyevspace.EVector",
+	/*.tp_name = "pyevspace.EVector",
 	.tp_basicsize	= sizeof(EVSpace_Vector),
 	.tp_itemsize	= 0,
 	.tp_as_number	= &vector_as_number,
@@ -654,7 +694,45 @@ static PyTypeObject EVSpace_VectorType = {
 	.tp_iter		= vector_iter,
 	.tp_methods		= vector_methods,
 	.tp_new			= vector_new,
-	.tp_free		= vector_free,
+	.tp_free		= vector_free,*/
+	"pyevspace.EVector",			/* tp_name */
+	sizeof(EVSpace_Vector),			/* tp_basicsize */
+	0,								/* tp_itemsize */
+	0,
+	0,
+	0,
+	0,
+	0,
+	(reprfunc)vector_repr,			/* tp_repr */
+	&vector_as_number,				/* tp_as_number */
+	&vector_as_sequence,			/* tp_as_sequence */
+	0,
+	0,
+	0,
+	(reprfunc)vector_str,			/* tp_str */
+	0,
+	0,
+	&vector_buffer,					/* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE,	/* tp_flags */
+	vector_doc,						/* tp_doc */
+	0,
+	0,
+	&vector_richcompare,			/* tp_richcompare */
+	0,
+	(getiterfunc)vector_iter,		/* tp_iter */
+	0,
+	vector_methods,				/* tp_methods */
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	(newfunc)vector_new,			/* tp_new */
+	(freefunc)vector_free			/* tp_free */
 };
 
 
