@@ -1184,7 +1184,7 @@ matrix_negative(PyObject* lhs)
 }
 
 static PyNumberMethods matrix_as_number = {
-	.nb_add					= (binaryfunc)matrix_add,
+	/*.nb_add = (binaryfunc)matrix_add,
 	.nb_subtract			= (binaryfunc)matrix_subtract,
 	.nb_multiply			= (binaryfunc)matrix_multiply,
 	.nb_negative			= (unaryfunc)matrix_negative,
@@ -1192,7 +1192,40 @@ static PyNumberMethods matrix_as_number = {
 	.nb_inplace_subtract	= (binaryfunc)matrix_isubtract,
 	.nb_inplace_multiply	= (binaryfunc)matrix_imultiply,
 	.nb_true_divide			= (binaryfunc)matrix_divide,
-	.nb_inplace_true_divide	= (binaryfunc)matrix_idivide,
+	.nb_inplace_true_divide	= (binaryfunc)matrix_idivide,*/
+	(binaryfunc)matrix_add,			/* nb_add */
+	(binaryfunc)matrix_subtract,	/* nb_subtract */
+	(binaryfunc)matrix_multiply,	/* nb_multiply */
+	0,
+	0,
+	0,
+	(unaryfunc)matrix_negative,		/* nb_negative */
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	(binaryfunc)matrix_iadd,		/* nb_inplace_add */
+	(binaryfunc)matrix_isubtract,	/* nb_inplace_subtract */
+	(binaryfunc)matrix_imultiply,	/* nb_inplace_multiply */
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	(binaryfunc)matrix_divide,		/* nb_true_divide */
+	0,
+	(binaryfunc)matrix_idivide,		/* nb_inplace_true_divide */
 };
 
 static PyObject* 
@@ -1269,8 +1302,11 @@ matrix_set_item(PyObject* self, PyObject* args, PyObject* value)
 }
 
 static PyMappingMethods matrix_as_mapping = {
-	.mp_subscript		= (binaryfunc)matrix_get_item,
-	.mp_ass_subscript	= (objobjargproc)matrix_set_item,
+	/*.mp_subscript = (binaryfunc)matrix_get_item,
+	.mp_ass_subscript	= (objobjargproc)matrix_set_item,*/
+	0,
+	(binaryfunc)matrix_get_item,		/* mp_subscript */
+	(objobjargproc)matrix_set_item		/* mp_ass_subscript */
 };
 
 static int
@@ -1312,8 +1348,10 @@ matrix_buffer_get(PyObject* obj, Py_buffer* view, int flags)
 }
 
 static PyBufferProcs matrix_buffer = {
-	.bf_getbuffer		= (getbufferproc)matrix_buffer_get,
-	.bf_releasebuffer	= (releasebufferproc)buffer_release
+	/*.bf_getbuffer = (getbufferproc)matrix_buffer_get,
+	.bf_releasebuffer	= (releasebufferproc)buffer_release*/
+	(getbufferproc)matrix_buffer_get,	/* bf_getbuffer */
+	(releasebufferproc)buffer_release	/* bf_releasebuffer */
 };
 
 static int 
@@ -1365,7 +1403,7 @@ PyDoc_STRVAR(matrix_doc, "Data type for a matrix in a Euclidean vector space.");
 
 static PyTypeObject EVSpace_MatrixType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	.tp_name		= "pyevspace.EMatrix",
+	/*.tp_name = "pyevspace.EMatrix",
 	.tp_basicsize	= sizeof(EVSpace_Matrix),
 	.tp_itemsize	= 0,
 	.tp_as_number	= &matrix_as_number,
@@ -1378,7 +1416,45 @@ static PyTypeObject EVSpace_MatrixType = {
 	.tp_richcompare	= (richcmpfunc)matrix_richcompare,
 	.tp_methods		= matrix_methods,
 	.tp_new			= matrix_new,
-	.tp_free		= matrix_free,
+	.tp_free		= matrix_free,*/
+	"pyevspace.EMatrix",			/* tp_name */
+	sizeof(EVSpace_Matrix),			/* tp_basicsize */
+	0,								/* tp_itemsize */
+	0,
+	0,
+	0,
+	0,
+	0,
+	(reprfunc)matrix_repr,			/* tp_repr */
+	&matrix_as_number,				/* tp_as_number */
+	0,
+	&matrix_as_mapping,				/* tp_as_mapping */
+	0,
+	0,
+	(reprfunc)matrix_str,			/* tp_str */
+	0,
+	0,
+	&matrix_buffer,					/* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_MAPPING,	/* tp_flags */
+	matrix_doc,						/* tp_doc */
+	0,
+	0,
+	&matrix_richcompare,			/* tp_richcompare */
+	0,
+	0,
+	0,
+	matrix_methods,					/* tp_methods */
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	(newfunc)matrix_new,			/* tp_new */
+	(freefunc)matrix_free			/* tp_free */
 };
 
 /* C API capsule methods */
@@ -1833,10 +1909,14 @@ static PyMethodDef evspace_methods[] = {
 
 static PyModuleDef EVSpace_Module = {
 	PyModuleDef_HEAD_INIT,
-	.m_name = "_pyevspace",
+	/*.m_name = "_pyevspace",
 	.m_doc = NULL, //evspace_doc,
 	.m_size = -1,
-	.m_methods = evspace_methods,
+	.m_methods = evspace_methods,*/
+	"_pyevspace",		/* m_name */
+	NULL,				/* m_doc */
+	-1,					/* m_size */
+	evspace_methods		/* m_methods */
 };
 
 PyMODINIT_FUNC
