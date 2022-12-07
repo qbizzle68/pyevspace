@@ -1121,6 +1121,36 @@ static PyObject*
 matrix_get_item(PyObject* self, PyObject* args) 
 {
 	int row = -1, col = -1;
+	static Py_ssize_t three = 3;
+
+	if (PyLong_Check(args)) {
+		row = PyLong_AsLong(args);
+		if (row == -1 && PyErr_Occurred())
+			return NULL;
+
+		if (row < 0 || row > 2) {
+			PyErr_Format(PyExc_IndexError, "row index (%i) must be in [0-2]", row);
+			return NULL;
+		}
+
+		Py_buffer* view = malloc(sizeof(Py_buffer));
+		if (!view)
+			return NULL;
+
+		view->buf = PyVector_DATA(self) + (row * 3);
+		view->obj = self;
+		view->len = 3 * sizeof(double);
+		view->readonly = 0;
+		view->itemsize = sizeof(double);
+		view->format = "d";
+		view->ndim = 1;
+		view->shape = &three;
+		view->strides = NULL;
+		view->suboffsets = NULL;
+
+		return PyMemoryView_FromBuffer(view);
+	}
+
 	if (!PyArg_ParseTuple(args, "ii", &row, &col))
 		return NULL;
 
