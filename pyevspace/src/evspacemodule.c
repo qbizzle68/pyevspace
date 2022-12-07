@@ -443,8 +443,8 @@ neg_vector(const EVSpace_Vector* self)
 		return NULL;
 
 	arr[0] = -Vector_X(self);
-	arr[0] = -Vector_Y(self);
-	arr[0] = -Vector_Z(self);
+	arr[1] = -Vector_Y(self);
+	arr[2] = -Vector_Z(self);
 
 	PyObject* rtn = new_vector_steal(arr);
 	if (!rtn)
@@ -1275,19 +1275,19 @@ static PyTypeObject EVSpace_MatrixType = {
 
 /* C API capsule methods */
 static PyObject* 
-evspace_vadd(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs) 
+evspace_vadd(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs)
 {
 	return add_vector_vector(lhs, rhs, 1);
 }
 
 static PyObject* 
-evspace_vsub(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs) 
+evspace_vsub(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs)
 {
 	return add_vector_vector(lhs, rhs, -1);
 }
 
 static void 
-evspace_vadd_inplace(EVSpace_Vector* lhs, const EVSpace_Vector* rhs) 
+evspace_vadd_inplace(EVSpace_Vector* lhs, const EVSpace_Vector* rhs)
 {
 	iadd_vector_vector(lhs, rhs, 1);
 }
