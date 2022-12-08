@@ -476,39 +476,15 @@ vector_negative(PyObject* self)
 #endif
 
 static PyNumberMethods vector_as_number = {
-	(binaryfunc)vector_add,			/* nb_add */
-	(binaryfunc)vector_subtract,	/* nb_subtract */
-	(binaryfunc)vector_multiply,	/* nb_multiply */
-	0,
-	0,
-	0,
-	(unaryfunc)vector_negative,		/* nb_negative */
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	(binaryfunc)vector_iadd,		/* nb_inplace_add */
-	(binaryfunc)vector_isubtract,	/* nb_inplace_subtract */
-	(binaryfunc)vector_imultiply,	/* nb_inplace_multiply */
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	(binaryfunc)vector_divide,		/* nb_true_divide */
-	0,
-	(binaryfunc)vector_idivide,		/* nb_inplace_true_divide */
+	.nb_add					= (binaryfunc)vector_add,
+	.nb_subtract			= (binaryfunc)vector_subtract,
+	.nb_multiply			= (binaryfunc)vector_multiply,
+	.nb_negative			= (unaryfunc)vector_negative,
+	.nb_inplace_add			= (binaryfunc)vector_iadd,
+	.nb_inplace_subtract	= (binaryfunc)vector_isubtract,
+	.nb_inplace_multiply	= (binaryfunc)vector_imultiply,
+	.nb_true_divide			= (binaryfunc)vector_divide,
+	.nb_inplace_true_divide	= (binaryfunc)vector_idivide
 };
 
 #ifdef dont_compile
@@ -550,12 +526,9 @@ vector_set_item(EVSpace_Vector* self, Py_ssize_t index, PyObject* arg)
 #endif
 
 static PySequenceMethods vector_as_sequence = {
-	(lenfunc)vector_length,				/* sq_length */
-	0,
-	0,
-	(ssizeargfunc)vector_get_item,		/* sq_item */
-	0,
-	(ssizeobjargproc)vector_set_item	/* sq_ass_item */
+	.sq_length		= (lenfunc)vector_length,
+	.sq_item		= (ssizeargfunc)vector_get_item,
+	.sq_ass_item	= (ssizeobjargproc)vector_set_item
 };
 
 #ifdef dont_compile
@@ -613,8 +586,8 @@ buffer_release(PyObject* obj, Py_buffer* view)
 #endif
 
 static PyBufferProcs vector_buffer = {
-	(getbufferproc)vector_buffer_get,	/* bf_getbuffer */
-	(releasebufferproc)buffer_release	/* bf_releasebuffer */
+	.bf_getbuffer		= (getbufferproc)vector_buffer_get,
+	.bf_releasebuffer	= (releasebufferproc)buffer_release
 };
 
 #ifdef dont_compile
@@ -692,44 +665,21 @@ PyDoc_STRVAR(vector_doc, "Data type representing a 3 dimensional vector in a Euc
 
 static PyTypeObject EVSpace_VectorType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"pyevspace.EVector",			/* tp_name */
-	sizeof(EVSpace_Vector),			/* tp_basicsize */
-	0,								/* tp_itemsize */
-	0,
-	0,
-	0,
-	0,
-	0,
-	(reprfunc)vector_repr,			/* tp_repr */
-	&vector_as_number,				/* tp_as_number */
-	&vector_as_sequence,			/* tp_as_sequence */
-	0,
-	0,
-	0,
-	(reprfunc)vector_str,			/* tp_str */
-	0,
-	0,
-	&vector_buffer,					/* tp_as_buffer */
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE,	/* tp_flags */
-	vector_doc,						/* tp_doc */
-	0,
-	0,
-	(richcmpfunc)& vector_richcompare,			/* tp_richcompare */
-	0,
-	(getiterfunc)vector_iter,		/* tp_iter */
-	0,
-	vector_methods,				/* tp_methods */
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	(newfunc)vector_new,			/* tp_new */
-	(freefunc)vector_free			/* tp_free */
+	.tp_name	= "pyevspace.EVector",
+	.tp_basicsize = sizeof(EVSpace_Vector),
+	.tp_itemsize = 0,
+	.tp_repr	= (reprfunc)vector_repr,
+	.tp_as_number	= &vector_as_number,
+	.tp_as_sequence	= &vector_as_sequence,
+	.tp_str	= (reprfunc)vector_str,
+	.tp_as_buffer	= &vector_buffer,
+	.tp_flags	= Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE,
+	.tp_doc	= vector_doc,
+	.tp_richcompare	= (richcmpfunc)&vector_richcompare,
+	.tp_iter	= (getiterfunc)vector_iter,
+	.tp_methods	= vector_methods,
+	.tp_new	= (newfunc)vector_new,
+	.tp_free	= (freefunc)vector_free
 };
 
 #ifdef dont_compile
@@ -1322,9 +1272,8 @@ matrix_set_item(PyObject* self, PyObject* args, PyObject* value)
 #endif
 
 static PyMappingMethods matrix_as_mapping = {
-	0,
-	(binaryfunc)matrix_get_item,		/* mp_subscript */
-	(objobjargproc)matrix_set_item		/* mp_ass_subscript */
+	.mp_subscript	= (binaryfunc)matrix_get_item,
+	.mp_ass_subscript	= (objobjargproc)matrix_set_item
 };
 
 #ifdef dont_complie
@@ -1370,8 +1319,8 @@ matrix_buffer_get(PyObject* obj, Py_buffer* view, int flags)
 #endif
 
 static PyBufferProcs matrix_buffer = {
-	(getbufferproc)matrix_buffer_get,	/* bf_getbuffer */
-	(releasebufferproc)buffer_release	/* bf_releasebuffer */
+	.bf_getbuffer	= (getbufferproc)matrix_buffer_get,
+	.bf_releasebuffer	= (releasebufferproc)buffer_release
 };
 
 #ifdef dont_compile
@@ -1427,44 +1376,20 @@ PyDoc_STRVAR(matrix_doc, "Data type for a matrix in a Euclidean vector space.");
 
 static PyTypeObject EVSpace_MatrixType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"pyevspace.EMatrix",			/* tp_name */
-	sizeof(EVSpace_Matrix),			/* tp_basicsize */
-	0,								/* tp_itemsize */
-	0,
-	0,
-	0,
-	0,
-	0,
-	(reprfunc)matrix_repr,			/* tp_repr */
-	&matrix_as_number,				/* tp_as_number */
-	0,
-	&matrix_as_mapping,				/* tp_as_mapping */
-	0,
-	0,
-	(reprfunc)matrix_str,			/* tp_str */
-	0,
-	0,
-	&matrix_buffer,					/* tp_as_buffer */
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_MAPPING,	/* tp_flags */
-	matrix_doc,						/* tp_doc */
-	0,
-	0,
-	(richcmpfunc)&matrix_richcompare,			/* tp_richcompare */
-	0,
-	0,
-	0,
-	matrix_methods,					/* tp_methods */
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	(newfunc)matrix_new,			/* tp_new */
-	(freefunc)matrix_free			/* tp_free */
+	.tp_name		= "pyevspace.EMatrix",
+	.tp_basicsize	= sizeof(EVSpace_Matrix),
+	.tp_itemsize	= 0,
+	.tp_repr		= (reprfunc)matrix_repr,
+	.tp_as_number	= &matrix_as_number,
+	.tp_as_mapping	= &matrix_as_mapping,
+	.tp_str			= (reprfunc)matrix_str,
+	.tp_as_buffer	= &matrix_buffer,
+	.tp_flags		= Py_TPFLAGS_DEFAULT | Py_TPFLAGS_MAPPING,
+	.tp_doc			= matrix_doc,
+	.tp_richcompare	= (richcmpfunc)&matrix_richcompare,
+	.tp_methods		= matrix_methods,
+	.tp_new			= (newfunc)matrix_new,
+	.tp_free		= (freefunc)matrix_free
 };
 
 #ifdef dont_complie
@@ -1708,45 +1633,45 @@ EVSpace_CAPI* get_evspace_capi(void)
 	capi->VectorType = &EVSpace_VectorType;
 	capi->MatrixType = &EVSpace_MatrixType;
 
-	capi->Vector_FromArray = vector_from_array;
-	capi->Vector_StealArray = vector_steal_array;
-	capi->Matrix_FromArray = matrix_from_array;
-	capi->Matrix_StealArray = matrix_steal_array;
+	capi->Vector_FromArray	= vector_from_array;
+	capi->Vector_StealArray	= vector_steal_array;
+	capi->Matrix_FromArray	= matrix_from_array;
+	capi->Matrix_StealArray	= matrix_steal_array;
 
-	capi->EVSpace_Vector_add = add_vector_vector;
-	capi->EVSpace_Vector_subtract = subtract_vector_vector;
-	capi->EVSpace_Vector_multiply = multiply_vector_scalar;
-	capi->EVSpace_Vector_divide = divide_vector_scalar;
-	capi->EVSpace_Vector_iadd = iadd_vector_vector;
-	capi->EVSpace_Vector_isubtract = isubtract_vector_vector;
-	capi->EVSpace_Vector_imultiply = imultiply_vector_scalar;
-	capi->EVSpace_Vector_idivide = idivide_vector_scalar;
-	capi->EVSpace_Vector_negative = negative_vector;
+	capi->EVSpace_Vector_add		= add_vector_vector;
+	capi->EVSpace_Vector_subtract	= subtract_vector_vector;
+	capi->EVSpace_Vector_multiply	= multiply_vector_scalar;
+	capi->EVSpace_Vector_divide		= divide_vector_scalar;
+	capi->EVSpace_Vector_iadd		= iadd_vector_vector;
+	capi->EVSpace_Vector_isubtract	= isubtract_vector_vector;
+	capi->EVSpace_Vector_imultiply	= imultiply_vector_scalar;
+	capi->EVSpace_Vector_idivide	= idivide_vector_scalar;
+	capi->EVSpace_Vector_negative	= negative_vector;
 
-	capi->EVSpace_Matrix_add = add_matrix_matrix;
-	capi->EVSpace_Matrix_subtract = subtract_matrix_matrix;
-	capi->EVSpace_Matrix_multiply_vector = multiply_matrix_vector;
-	capi->EVSpace_Matrix_multiply_matrix = multiply_matrix_matrix;
-	capi->EVSpace_Matrix_multiply_scalar = multiply_matrix_scalar;
-	capi->EVSpace_Matrix_divide = divide_matrix_scalar;
-	capi->EVSpace_Matrix_iadd = iadd_matrix_matrix;
-	capi->EVSpace_Matrix_isubtract = isubtract_matrix_matrix;
-	capi->EVSpace_Matrix_imultiply_scalar = imultiply_matrix_scalar;
-	capi->EVSpace_Matrix_idivide = idivide_matrix_scalar;
-	capi->EVSpace_Matrix_negative = capsule_matrix_negative;
+	capi->EVSpace_Matrix_add				= add_matrix_matrix;
+	capi->EVSpace_Matrix_subtract			= subtract_matrix_matrix;
+	capi->EVSpace_Matrix_multiply_vector	= multiply_matrix_vector;
+	capi->EVSpace_Matrix_multiply_matrix	= multiply_matrix_matrix;
+	capi->EVSpace_Matrix_multiply_scalar	= multiply_matrix_scalar;
+	capi->EVSpace_Matrix_divide				= divide_matrix_scalar;
+	capi->EVSpace_Matrix_iadd				= iadd_matrix_matrix;
+	capi->EVSpace_Matrix_isubtract			= isubtract_matrix_matrix;
+	capi->EVSpace_Matrix_imultiply_scalar	= imultiply_matrix_scalar;
+	capi->EVSpace_Matrix_idivide			= idivide_matrix_scalar;
+	capi->EVSpace_Matrix_negative			= capsule_matrix_negative;
 
-	capi->EVSpace_mag = capsule_vector_magnitude;
-	capi->EVSpace_mag_squared = capsule_vector_magnitude2;
-	capi->EVSpace_normalize = capsule_vector_normalize;
+	capi->EVSpace_mag			= capsule_vector_magnitude;
+	capi->EVSpace_mag_squared	= capsule_vector_magnitude2;
+	capi->EVSpace_normalize		= capsule_vector_normalize;
 
-	capi->EVSpace_dot = capsule_vector_dot;
-	capi->EVSpace_cross = capsule_vector_cross;
-	capi->EVSpace_norm = capsule_vector_norm;
-	capi->EVSpace_vang = capsule_vang;
-	capi->EVSpace_vxcl = capsule_vxcl;
-	capi->EVSpace_proj = capsule_proj;
-	capi->EVSpace_det = capsule_determinate;
-	capi->EVSpace_transpose = capsule_transpose;
+	capi->EVSpace_dot		= capsule_vector_dot;
+	capi->EVSpace_cross		= capsule_vector_cross;
+	capi->EVSpace_norm		= capsule_vector_norm;
+	capi->EVSpace_vang		= capsule_vang;
+	capi->EVSpace_vxcl		= capsule_vxcl;
+	capi->EVSpace_proj		= capsule_proj;
+	capi->EVSpace_det		= capsule_determinate;
+	capi->EVSpace_transpose	= capsule_transpose;
 
 	return capi;
 }
@@ -1940,14 +1865,10 @@ static PyMethodDef evspace_methods[] = {
 
 static PyModuleDef EVSpace_Module = {
 	PyModuleDef_HEAD_INIT,
-	/*.m_name = "_pyevspace",
-	.m_doc = NULL, //evspace_doc,
-	.m_size = -1,
-	.m_methods = evspace_methods,*/
-	"_pyevspace",		/* m_name */
-	NULL,				/* m_doc */
-	-1,					/* m_size */
-	evspace_methods		/* m_methods */
+	.m_name		= "_pyevspace",
+	.m_doc		= NULL,
+	.m_size		= -1,
+	.m_methods	= evspace_methods
 };
 
 PyMODINIT_FUNC
