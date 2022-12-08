@@ -476,6 +476,8 @@ matrix_divide(EVSpace_Matrix* mat, PyObject* arg)
 			return divide_matrix_scalar(mat, scalar);
 		}
 	}
+
+	Py_RETURN_NOTIMPLEMENTED;
 }
 
 static PyObject*
