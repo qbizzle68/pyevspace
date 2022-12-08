@@ -7,27 +7,36 @@
 #define _EVSPACE_IMPL
 #include <evspacemodule.h>
 
+/* allow source include */
+#define __EVSPACE_SOURCE_INCLUDE__
+#include "evspace_common.c"
+#include "evspace_vector.c"
+#include "evspace_matrix.c"
+#undef __EVSPACE_SOURCE_INCLUDE__
+
+
+
 /* define macros for type checking EVSpace types */
-#define Vector_Check(o)			PyObject_TypeCheck(o, &EVSpace_VectorType)
-#define Matrix_Check(o)			PyObject_TypeCheck(o, &EVSpace_MatrixType)
+//#define Vector_Check(o)			PyObject_TypeCheck(o, &EVSpace_VectorType)
+//#define Matrix_Check(o)			PyObject_TypeCheck(o, &EVSpace_MatrixType)
 
 /* shorten macros for readability */
-#define Vector_X(o)				EVSpace_VECTOR_X(o)
+/*#define Vector_X(o)				EVSpace_VECTOR_X(o)
 #define Vector_Y(o)				EVSpace_VECTOR_Y(o)
 #define Vector_Z(o)				EVSpace_VECTOR_Z(o)
-#define Vector_INDEX(v, i)		(v->data[i])
+#define Vector_INDEX(v, i)		(v->data[i])*/
 
-#define RC_INDEX(r, c)			EVSpace_RC_INDEX(r, c)
-#define Matrix_COMP(o, r, c)	EVSpace_MATRIX_COMPONENT(o, r, c)
+/*#define RC_INDEX(r, c)			EVSpace_RC_INDEX(r, c)
+#define Matrix_COMP(o, r, c)	EVSpace_MATRIX_COMPONENT(o, r, c)*/
 
-#define Vector_DATA(o)			(o->data)
-#define Matrix_DATA(o)			(o->data)
-#define PyVector_DATA(o)		(((EVSpace_Vector*)o)->data)
-#define PyMatrix_DATA(o)		(((EVSpace_Matrix*)o)->data)
+//#define Vector_DATA(o)			(o->data)
+//#define Matrix_DATA(o)			(o->data)
+//#define PyVector_DATA(o)		(((EVSpace_Vector*)o)->data)
+//#define PyMatrix_DATA(o)		(((EVSpace_Matrix*)o)->data)
 
 /* forward declarations */
-static PyTypeObject EVSpace_VectorType;
-static PyTypeObject EVSpace_MatrixType;
+//static PyTypeObject EVSpace_VectorType;
+//static PyTypeObject EVSpace_MatrixType;
 
 /**
  *	\\ constructors \\
@@ -40,6 +49,8 @@ static PyTypeObject EVSpace_MatrixType;
  * vector values will be initialized to 0. Macros also exist to simplify 
  * the calls to these constructors.
  */
+
+#ifdef dont_compile
 
 static PyObject* 
 vector_from_array(const double* arr, PyTypeObject* type)
@@ -462,6 +473,8 @@ vector_negative(PyObject* self)
 	return neg_vector((EVSpace_Vector*)self);
 }
 
+#endif
+
 static PyNumberMethods vector_as_number = {
 	(binaryfunc)vector_add,			/* nb_add */
 	(binaryfunc)vector_subtract,	/* nb_subtract */
@@ -498,6 +511,8 @@ static PyNumberMethods vector_as_number = {
 	(binaryfunc)vector_idivide,		/* nb_inplace_true_divide */
 };
 
+#ifdef dont_compile
+
 static Py_ssize_t
 vector_length(EVSpace_Vector* self) 
 {
@@ -532,6 +547,8 @@ vector_set_item(EVSpace_Vector* self, Py_ssize_t index, PyObject* arg)
 	return 0;
 }
 
+#endif
+
 static PySequenceMethods vector_as_sequence = {
 	(lenfunc)vector_length,				/* sq_length */
 	0,
@@ -540,6 +557,8 @@ static PySequenceMethods vector_as_sequence = {
 	0,
 	(ssizeobjargproc)vector_set_item	/* sq_ass_item */
 };
+
+#ifdef dont_compile
 
 #define BUFFER_RELEASE_SHAPE	0x1
 
@@ -591,10 +610,14 @@ buffer_release(PyObject* obj, Py_buffer* view)
 	}
 }
 
+#endif
+
 static PyBufferProcs vector_buffer = {
 	(getbufferproc)vector_buffer_get,	/* bf_getbuffer */
 	(releasebufferproc)buffer_release	/* bf_releasebuffer */
 };
+
+#ifdef dont_compile
 
 #define VECTOR_DOT(l, r)	(Vector_X(l) * Vector_X(r) \
 							+ Vector_Y(l) * Vector_Y(r) \
@@ -655,6 +678,8 @@ vector_reduce(PyObject* self, PyObject* Py_UNUSED)
 		Vector_Z(self_vector));
 }
 
+#endif
+
 static PyMethodDef vector_methods[] = {
 	{"mag", (PyCFunction)vector_magnitude, METH_NOARGS, PyDoc_STR("Compute the magnitude of a vector.")},
 	{"mag2", (PyCFunction)vector_magnitude_square, METH_NOARGS, PyDoc_STR("Compute the square of the maginitude of a vector.")},
@@ -689,7 +714,7 @@ static PyTypeObject EVSpace_VectorType = {
 	vector_doc,						/* tp_doc */
 	0,
 	0,
-	&vector_richcompare,			/* tp_richcompare */
+	(richcmpfunc)& vector_richcompare,			/* tp_richcompare */
 	0,
 	(getiterfunc)vector_iter,		/* tp_iter */
 	0,
@@ -707,6 +732,7 @@ static PyTypeObject EVSpace_VectorType = {
 	(freefunc)vector_free			/* tp_free */
 };
 
+#ifdef dont_compile
 
 static PyObject*
 matrix_from_array(double* state, PyTypeObject* type)
@@ -745,6 +771,52 @@ matrix_steal_array(double* array, PyTypeObject* type)
 #define new_matrix_empty	new_matrix(NULL)
 #define new_matrix_steal(a) matrix_steal_array(a, &EVSpace_MatrixType);
 
+//static PyObject*
+//get_state_sequence(PyObject* arg, double* arr)
+//{
+//	assert(arr != NULL);
+//
+//	char* err = "";
+//	// what do we do with err?
+//	PyObject* fast_sequence = PySequence_Fast(arg, err);
+//	if (!fast_sequence) {
+//		if (PyErr_Occurred() == PyExc_TypeError)
+//			PyErr_SetString(PyExc_TypeError, "parameter must be a sequence");
+//		return NULL;
+//	}
+//
+//	if (PySequence_Fast_GET_SIZE(fast_sequence) == 3) {
+//		PyObject** items = PySequence_Fast_ITEMS(fast_sequence);
+//
+//		arr[0] = PyFloat_AsDouble(items[0]);
+//		if (arr[0] == -1.0 && PyErr_Occurred()) {
+//			PyErr_SetString(PyExc_TypeError, "value must be a numeric type");
+//			Py_DECREF(fast_sequence);
+//			return NULL;
+//		}
+//
+//		arr[1] = PyFloat_AsDouble(items[1]);
+//		if (arr[1] == -1.0 && PyErr_Occurred()) {
+//			PyErr_SetString(PyExc_TypeError, "value must be a numeric type");
+//			Py_DECREF(fast_sequence);
+//			return NULL;
+//		}
+//
+//		arr[2] = PyFloat_AsDouble(items[2]);
+//		if (arr[2] == -1.0 && PyErr_Occurred()) {
+//			PyErr_SetString(PyExc_TypeError, "value must be a numeric type");
+//			Py_DECREF(fast_sequence);
+//			return NULL;
+//		}
+//
+//		return arg;
+//	}
+//	else {
+//		PyErr_SetString(PyExc_ValueError, "a sequence or iterable must have exactly 3 elements");
+//		return NULL;
+//	}
+//}
+
 static PyObject* 
 matrix_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED) 
 {
@@ -766,13 +838,16 @@ matrix_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED)
 	if (!array)
 		return PyErr_NoMemory();
 
-	PyObject* results[3] = {
-		get_state_sequence(parameters[0], array),
+	int results[3] = {
+		get_sequence_state(parameters[0], array),
+		get_sequence_state(parameters[1], array + 3),
+		get_sequence_state(parameters[2], array + 6)
+		/*get_state_sequence(parameters[0], array),
 		get_state_sequence(parameters[1], array + 3),
-		get_state_sequence(parameters[2], array + 6)
+		get_state_sequence(parameters[2], array + 6)*/
 	};
 
-	if (!results[0] || !results[1] || !results[2]) {
+	if (results[0] < 0 || results[1] < 0 || results[2] < 0) {
 		free(array);
 		return NULL;
 	}
@@ -1155,41 +1230,21 @@ matrix_negative(PyObject* lhs)
 	Py_RETURN_NOTIMPLEMENTED;
 }
 
+#endif
+
 static PyNumberMethods matrix_as_number = {
-	(binaryfunc)matrix_add,			/* nb_add */
-	(binaryfunc)matrix_subtract,	/* nb_subtract */
-	(binaryfunc)matrix_multiply,	/* nb_multiply */
-	0,
-	0,
-	0,
-	(unaryfunc)matrix_negative,		/* nb_negative */
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	(binaryfunc)matrix_iadd,		/* nb_inplace_add */
-	(binaryfunc)matrix_isubtract,	/* nb_inplace_subtract */
-	(binaryfunc)matrix_imultiply,	/* nb_inplace_multiply */
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	(binaryfunc)matrix_divide,		/* nb_true_divide */
-	0,
-	(binaryfunc)matrix_idivide,		/* nb_inplace_true_divide */
+	.nb_add				= (binaryfunc)matrix_add,
+	.nb_subtract		= (binaryfunc)matrix_subtract,
+	.nb_multiply		= (binaryfunc)matrix_multiply,
+	.nb_negative		= (unaryfunc)negative_matrix,
+	.nb_inplace_add		= (binaryfunc)matrix_iadd,
+	.nb_inplace_subtract = (binaryfunc)matrix_isubtract,
+	.nb_inplace_multiply = (binaryfunc)matrix_imultiply,
+	.nb_true_divide		= (binaryfunc)matrix_divide,
+	.nb_inplace_true_divide = (binaryfunc)matrix_idivide
 };
+
+#ifdef dont_complie
 
 static PyObject* 
 matrix_get_item(PyObject* self, PyObject* args) 
@@ -1264,11 +1319,15 @@ matrix_set_item(PyObject* self, PyObject* args, PyObject* value)
 	return 0;
 }
 
+#endif
+
 static PyMappingMethods matrix_as_mapping = {
 	0,
 	(binaryfunc)matrix_get_item,		/* mp_subscript */
 	(objobjargproc)matrix_set_item		/* mp_ass_subscript */
 };
+
+#ifdef dont_complie
 
 static int
 matrix_buffer_get(PyObject* obj, Py_buffer* view, int flags)
@@ -1308,10 +1367,14 @@ matrix_buffer_get(PyObject* obj, Py_buffer* view, int flags)
 	return 0;
 }
 
+#endif
+
 static PyBufferProcs matrix_buffer = {
 	(getbufferproc)matrix_buffer_get,	/* bf_getbuffer */
 	(releasebufferproc)buffer_release	/* bf_releasebuffer */
 };
+
+#ifdef dont_compile
 
 static int 
 matrix_equal(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs) 
@@ -1353,6 +1416,8 @@ matrix_reduce(PyObject* self, PyObject* Py_UNUSED)
 		Matrix_COMP(self, 2, 0), Matrix_COMP(self, 2, 1), Matrix_COMP(self, 2, 2));
 }
 
+#endif
+
 static PyMethodDef matrix_methods[] = {
 	{"__reduce__", (PyCFunction)matrix_reduce, METH_NOARGS, PyDoc_STR("__reduce__() -> (cls, state")},
 	{NULL}
@@ -1384,7 +1449,7 @@ static PyTypeObject EVSpace_MatrixType = {
 	matrix_doc,						/* tp_doc */
 	0,
 	0,
-	&matrix_richcompare,			/* tp_richcompare */
+	(richcmpfunc)&matrix_richcompare,			/* tp_richcompare */
 	0,
 	0,
 	0,
@@ -1401,6 +1466,8 @@ static PyTypeObject EVSpace_MatrixType = {
 	(newfunc)matrix_new,			/* tp_new */
 	(freefunc)matrix_free			/* tp_free */
 };
+
+#ifdef dont_complie
 
 /* C API capsule methods */
 static PyObject* 
@@ -1451,6 +1518,10 @@ evspace_dot(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs)
 {
 	return VECTOR_DOT(lhs, rhs);
 }
+
+#endif
+
+#ifdef dont_compile
 
 static PyObject* 
 evspace_cross(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs) 
@@ -1527,6 +1598,7 @@ evspace_proj(const EVSpace_Vector* proj, const EVSpace_Vector* onto)
 
 	return rtn;
 }
+
 
 static PyObject* 
 evspace_madd(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs) 
@@ -1622,6 +1694,8 @@ evspace_transpose(const EVSpace_Matrix* self)
 	return rtn;
 }
 
+#endif
+
 static inline 
 EVSpace_CAPI* get_evspace_capi(void) 
 {
@@ -1639,40 +1713,40 @@ EVSpace_CAPI* get_evspace_capi(void)
 	capi->Matrix_FromArray = matrix_from_array;
 	capi->Matrix_StealArray = matrix_steal_array;
 
-	capi->EVSpace_Vector_add = evspace_vadd;
-	capi->EVSpace_Vector_subtract = evspace_vsub;
-	capi->EVSpace_Vector_multiply = mult_vector_scalar;
-	capi->EVSpace_Vector_divide = div_vector_scalar;
-	capi->EVSpace_Vector_iadd = evspace_vadd_inplace;
-	capi->EVSpace_Vector_isubtract = evspace_vsub_inplace;
-	capi->EVSpace_Vector_imultiply = imult_vector_scalar;
-	capi->EVSpace_Vector_idivide = idiv_vector_scalar;
-	capi->EVSpace_Vector_negative = neg_vector;
+	capi->EVSpace_Vector_add = add_vector_vector;
+	capi->EVSpace_Vector_subtract = subtract_vector_vector;
+	capi->EVSpace_Vector_multiply = multiply_vector_scalar;
+	capi->EVSpace_Vector_divide = divide_vector_scalar;
+	capi->EVSpace_Vector_iadd = iadd_vector_vector;
+	capi->EVSpace_Vector_isubtract = isubtract_vector_vector;
+	capi->EVSpace_Vector_imultiply = imultiply_vector_scalar;
+	capi->EVSpace_Vector_idivide = idivide_vector_scalar;
+	capi->EVSpace_Vector_negative = negative_vector;
 
-	capi->EVSpace_Matrix_add = evspace_madd;
-	capi->EVSpace_Matrix_subtract = evspace_msub;
+	capi->EVSpace_Matrix_add = add_matrix_matrix;
+	capi->EVSpace_Matrix_subtract = subtract_matrix_matrix;
 	capi->EVSpace_Matrix_multiply_vector = multiply_matrix_vector;
 	capi->EVSpace_Matrix_multiply_matrix = multiply_matrix_matrix;
 	capi->EVSpace_Matrix_multiply_scalar = multiply_matrix_scalar;
-	capi->EVSpace_Matrix_divide = evspace_mdiv;
-	capi->EVSpace_Matrix_iadd = evspace_madd_inplace;
-	capi->EVSpace_Matrix_isubtract = evspace_msub_inplace;
-	capi->EVSpace_Matrix_imultiply_scalar = evspace_mmult_inplace;
-	capi->EVSpace_Matrix_idivide = evspace_mdiv_inplace;
-	capi->EVSpace_Matrix_negative = neg_matrix;
+	capi->EVSpace_Matrix_divide = divide_matrix_scalar;
+	capi->EVSpace_Matrix_iadd = iadd_matrix_matrix;
+	capi->EVSpace_Matrix_isubtract = isubtract_matrix_matrix;
+	capi->EVSpace_Matrix_imultiply_scalar = imultiply_matrix_scalar;
+	capi->EVSpace_Matrix_idivide = idivide_matrix_scalar;
+	capi->EVSpace_Matrix_negative = capsule_matrix_negative;
 
-	capi->EVSpace_mag = evspace_mag;
-	capi->EVSpace_mag_squared = evspace_mag2;
-	capi->EVSpace_normalize = evspace_normalize;
+	capi->EVSpace_mag = capsule_vector_magnitude;
+	capi->EVSpace_mag_squared = capsule_vector_magnitude2;
+	capi->EVSpace_normalize = capsule_vector_normalize;
 
-	capi->EVSpace_dot = evspace_dot;
-	capi->EVSpace_cross = evspace_cross;
-	capi->EVSpace_norm = evspace_norm;
-	capi->EVSpace_vang = evspace_vang;
-	capi->EVSpace_vxcl = evspace_vxcl;
-	capi->EVSpace_proj = evspace_proj;
-	capi->EVSpace_det = evspace_det;
-	capi->EVSpace_transpose = evspace_transpose;
+	capi->EVSpace_dot = capsule_vector_dot;
+	capi->EVSpace_cross = capsule_vector_cross;
+	capi->EVSpace_norm = capsule_vector_norm;
+	capi->EVSpace_vang = capsule_vang;
+	capi->EVSpace_vxcl = capsule_vxcl;
+	capi->EVSpace_proj = capsule_proj;
+	capi->EVSpace_det = capsule_determinate;
+	capi->EVSpace_transpose = capsule_transpose;
 
 	return capi;
 }
@@ -1683,6 +1757,8 @@ evspace_destructor(PyObject* capi)
 	void* ptr = PyCapsule_GetPointer(capi, EVSpace_CAPSULE_NAME);
 	free(ptr);
 }
+
+#ifdef dont_compile
 
 static PyObject* 
 vector_dot(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size) 
@@ -1804,6 +1880,7 @@ vector_proj(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size)
 	return evspace_proj((EVSpace_Vector*)args[0], (EVSpace_Vector*)args[1]);
 }
 
+
 static PyObject* 
 matrix_det(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size) 
 {
@@ -1837,16 +1914,25 @@ matrix_transpose(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size)
 
 	return evspace_transpose((EVSpace_Matrix*)args[0]);
 }
+#endif
 
 static PyMethodDef evspace_methods[] = {
-	{"dot", (PyCFunction)vector_dot, METH_FASTCALL, PyDoc_STR("Returns the dot product of two EVectors.")},
-	{"cross", (PyCFunction)vector_cross, METH_FASTCALL, PyDoc_STR("Returns the cross product of two EVectors.")},
-	{"norm", (PyCFunction)vector_norm, METH_FASTCALL, PyDoc_STR("Returns a normalized version of an EVector.")},
-	{"vang", (PyCFunction)vector_vang, METH_FASTCALL, PyDoc_STR("Returns the shortest angle between two EVector's.")},
-	{"vxcl", (PyCFunction)vector_vxcl, METH_FASTCALL, PyDoc_STR("vxcl(vector, exclude) -> vector with exclude excluded from it")},
-	{"proj", (PyCFunction)vector_proj, METH_FASTCALL, PyDoc_STR("proj(proj, onto) -> proj projected onto onto")},
-	{"det", (PyCFunction)matrix_det, METH_FASTCALL, PyDoc_STR("Returns the determinate of a EMatrix.")},
-	{"transpose", (PyCFunction)matrix_transpose, METH_FASTCALL, PyDoc_STR("Returns the transpose of an EMatrix.")},
+	{"dot", (PyCFunction)vector_dot, METH_FASTCALL,
+		PyDoc_STR("Returns the dot product of two EVectors.")},
+	{"cross", (PyCFunction)vector_cross, METH_FASTCALL,
+		PyDoc_STR("Returns the cross product of two EVectors.")},
+	{"norm", (PyCFunction)vector_norm, METH_FASTCALL,
+		PyDoc_STR("Returns a normalized version of an EVector.")},
+	{"vang", (PyCFunction)vector_vang, METH_FASTCALL,
+		PyDoc_STR("Returns the shortest angle between two EVector's.")},
+	{"vxcl", (PyCFunction)vector_vxcl, METH_FASTCALL,
+		PyDoc_STR("vxcl(vector, exclude) -> vector with exclude excluded from it")},
+	{"proj", (PyCFunction)vector_proj, METH_FASTCALL,
+		PyDoc_STR("proj(proj, onto) -> proj projected onto onto")},
+	{"det", (PyCFunction)matrix_determinate, METH_FASTCALL,
+		PyDoc_STR("Returns the determinate of a EMatrix.")},
+	{"transpose", (PyCFunction)matrix_transpose, METH_FASTCALL,
+		PyDoc_STR("Returns the transpose of an EMatrix.")},
 	{NULL}
 };
 
@@ -1876,34 +1962,41 @@ PyInit__pyevspace(void)
 	if (PyType_Ready(&EVSpace_MatrixType) < 0)
 		return NULL;
 
-	EVSpace_Vector* vector = (EVSpace_Vector*)new_vector_empty;
+	//EVSpace_Vector* vector = (EVSpace_Vector*)new_vector_empty;
+	EVSpace_Vector* vector 
+		= (EVSpace_Vector*)vector_from_array(NULL, &EVSpace_VectorType);
 	if (!vector) {
 		return NULL;
 	}
 
-	Vector_X(vector) = 1.0;
+	//Vector_X(vector) = 1.0;
+	vector->data[0] = 1.0;
 	if (PyDict_SetItemString(EVSpace_VectorType.tp_dict, "e1", (PyObject*)vector) < 0) {
 		Py_DECREF(vector);
 		return NULL;
 	}
 	Py_DECREF(vector);
 	
-	vector = (EVSpace_Vector*)new_vector_empty;
+	//vector = (EVSpace_Vector*)new_vector_empty;
+	vector = (EVSpace_Vector*)vector_from_array(NULL, &EVSpace_VectorType);
 	if (!vector)
 		return NULL;
 
-	Vector_Y(vector) = 1.0;
+	//Vector_Y(vector) = 1.0;
+	vector->data[1] = 1.0;
 	if (PyDict_SetItemString(EVSpace_VectorType.tp_dict, "e2", (PyObject*)vector) < 0) {
 		Py_DECREF(vector);
 		return NULL;
 	}
 	Py_DECREF(vector);
 
-	vector = (EVSpace_Vector*)new_vector_empty;
+	//vector = (EVSpace_Vector*)new_vector_empty;
+	vector = (EVSpace_Vector*)vector_from_array(NULL, &EVSpace_VectorType);
 	if (!vector)
 		return NULL;
 
-	Vector_Z(vector) = 1.0;
+	//Vector_Z(vector) = 1.0;
+	vector->data[2] = 1.0;
 	if (PyDict_SetItemString(EVSpace_VectorType.tp_dict, "e3", (PyObject*)vector) < 0) {
 		Py_DECREF(vector);
 		return NULL;

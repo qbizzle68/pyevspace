@@ -18,9 +18,27 @@
     <ClCompile Include="src\evspacemodule.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\evspace_common.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\evspace_vector.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\evspace_matrix.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\evspacemodule.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\evspace_vector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\evspace_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\evspace_matrix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

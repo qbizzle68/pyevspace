@@ -5,16 +5,20 @@
 extern "C" {
 #endif
 
-/* C types for EVectorand EMatrix */
-typedef struct {
-	PyObject_HEAD
-	double *data;			/* x, y, z component of vectors */
-} EVSpace_Vector;
+#include <evspace_common.h>
+#include <evspace_vector.h>
+#include <evspace_matrix.h>
 
-typedef struct {
-	PyObject_HEAD
-	double* data;			/* row by column ordering */
-} EVSpace_Matrix;
+/* C types for EVectorand EMatrix */
+//typedef struct {
+//	PyObject_HEAD
+//	double *data;			/* x, y, z component of vectors */
+//} EVSpace_Vector;
+
+//typedef struct {
+//	PyObject_HEAD
+//	double* data;			/* row by column ordering */
+//} EVSpace_Matrix;
 
 
 /* define macros for accessing EVSpace_Vector array values */
