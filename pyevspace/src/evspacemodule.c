@@ -15,6 +15,8 @@
 #undef __EVSPACE_SOURCE_INCLUDE__
 
 
+/* EVSpace_VectorType definition */
+
 static PyNumberMethods vector_as_number = {
 	.nb_add					= (binaryfunc)vector_add,
 	.nb_subtract			= (binaryfunc)vector_subtract,
@@ -39,9 +41,9 @@ static PyBufferProcs vector_buffer = {
 };
 
 static PyMethodDef vector_methods[] = {
-	{"mag", (PyCFunction)vector_magnitude, METH_NOARGS, PyDoc_STR("Compute the magnitude of a vector.")},
-	{"mag2", (PyCFunction)vector_magnitude_square, METH_NOARGS, PyDoc_STR("Compute the square of the maginitude of a vector.")},
-	{"normalize", (PyCFunction)vector_normalize, METH_NOARGS, PyDoc_STR("Normalize a vector in place.")},
+	{"mag", (PyCFunction)vector_magnitude, METH_NOARGS, PyDoc_STR("mag() -> the magnitude of a vector")},
+	{"mag2", (PyCFunction)vector_magnitude_square, METH_NOARGS, PyDoc_STR("mag2() -> the square of the maginitude of a vector")},
+	{"normalize", (PyCFunction)vector_normalize, METH_NOARGS, PyDoc_STR("normalize() -> normalize a vector in place")},
 	{"__reduce__", (PyCFunction)vector_reduce, METH_NOARGS, PyDoc_STR("__reduce__() -> (cls, state")},
 	{NULL}
 };
@@ -66,6 +68,9 @@ static PyTypeObject EVSpace_VectorType = {
 	.tp_new	= (newfunc)vector_new,
 	.tp_free	= (freefunc)vector_free
 };
+
+
+/* EVSpace_MatrixType definition*/
 
 static PyNumberMethods matrix_as_number = {
 	.nb_add				= (binaryfunc)matrix_add,
@@ -114,6 +119,9 @@ static PyTypeObject EVSpace_MatrixType = {
 	.tp_new			= (newfunc)matrix_new,
 	.tp_free		= (freefunc)matrix_free
 };
+
+
+/* capsule definition */
 
 static inline 
 EVSpace_CAPI* get_evspace_capi(void) 
@@ -170,6 +178,9 @@ EVSpace_CAPI* get_evspace_capi(void)
 	return capi;
 }
 
+
+/* module definition */
+
 static void 
 evspace_destructor(PyObject* capi) 
 {
@@ -179,30 +190,30 @@ evspace_destructor(PyObject* capi)
 
 static PyMethodDef evspace_methods[] = {
 	{"dot", (PyCFunction)vector_dot, METH_FASTCALL,
-		PyDoc_STR("Returns the dot product of two EVectors.")},
+		PyDoc_STR("dot(lhs, rhs) -> dot product of two EVectors")},
 	{"cross", (PyCFunction)vector_cross, METH_FASTCALL,
-		PyDoc_STR("Returns the cross product of two EVectors.")},
+		PyDoc_STR("cross(lhs, rhs) -> cross product of two EVectors")},
 	{"norm", (PyCFunction)vector_norm, METH_FASTCALL,
-		PyDoc_STR("Returns a normalized version of an EVector.")},
+		PyDoc_STR("norm(vector) -> a normalized version of an EVector")},
 	{"vang", (PyCFunction)vector_vang, METH_FASTCALL,
-		PyDoc_STR("Returns the shortest angle between two EVector's.")},
+		PyDoc_STR("vang(from, to) -> the shortest angle between two EVector's")},
 	{"vxcl", (PyCFunction)vector_vxcl, METH_FASTCALL,
 		PyDoc_STR("vxcl(vector, exclude) -> vector with exclude excluded from it")},
 	{"proj", (PyCFunction)vector_proj, METH_FASTCALL,
 		PyDoc_STR("proj(proj, onto) -> proj projected onto onto")},
 	{"det", (PyCFunction)matrix_determinate, METH_FASTCALL,
-		PyDoc_STR("Returns the determinate of a EMatrix.")},
+		PyDoc_STR("det(matrix) -> the determinate of a EMatrix")},
 	{"transpose", (PyCFunction)matrix_transpose, METH_FASTCALL,
-		PyDoc_STR("Returns the transpose of an EMatrix.")},
+		PyDoc_STR("transpose(matrix) -> the transpose of an EMatrix")},
 	{NULL}
 };
 
-//PyDoc_STRVAR(evspace_doc, "Module for a 3-dimensional Euclidean vector space with a vector and matrix type as well as necessary methods to use them.");
+PyDoc_STRVAR(evspace_doc, "A 3-dimensional Euclidean vector space module with a vector and matrix type as well as necessary methods to use them.");
 
 static PyModuleDef EVSpace_Module = {
 	PyModuleDef_HEAD_INIT,
 	.m_name		= "_pyevspace",
-	.m_doc		= NULL,
+	.m_doc		= evspace_doc,
 	.m_size		= -1,
 	.m_methods	= evspace_methods
 };
