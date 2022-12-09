@@ -1,5 +1,6 @@
 ﻿#define PY_SSIZE_T_CLEAN
 #include <Python.h>
+#include <structmember.h> // PyMemberDef
 #include <float.h> // DBL_EPSILON
 #include <stdint.h> // int32_t, int64_t
 
@@ -12,6 +13,7 @@
 #include "evspace_common.c"
 #include "evspace_vector.c"
 #include "evspace_matrix.c"
+#include "evspace_angles.c"
 #undef __EVSPACE_SOURCE_INCLUDE__
 
 
@@ -118,6 +120,38 @@ static PyTypeObject EVSpace_MatrixType = {
 	.tp_methods		= matrix_methods,
 	.tp_new			= (newfunc)matrix_new,
 	.tp_free		= (freefunc)matrix_free
+};
+
+static PyMemberDef angles_members[] = {
+	{"alpha", T_DOUBLE, offsetof(EVSpace_Angles, alpha), 0, 
+		"first angle of a rotation"},
+	{"beta", T_DOUBLE, offsetof(EVSpace_Angles, beta), 0,
+		"second angle of a rotation"},
+	{"gamma", T_DOUBLE, offsetof(EVSpace_Angles, gamma), 0,
+		"third angle of a rotation"},
+	{NULL}
+};
+
+static PyMethodDef angles_methods[] = {
+	{"__reduce__", (PyCFunction)angles_reduce, METH_NOARGS,
+		PyDoc_STR("__reduce__() -> (cls, state")},
+	{NULL}
+};
+
+PyDoc_STRVAR(angles_doc, "data structure to hold the angles of an Euler rotation");
+
+static PyTypeObject EVSpace_AnglesType = {
+	PyVarObject_HEAD_INIT(NULL, 0)
+	.tp_name		= "pyevspace.angles",
+	.tp_basicsize	= sizeof(EVSpace_Angles),
+	.tp_itemsize	= 0,
+	.tp_repr		= (reprfunc)angles_repr,
+	.tp_str			= (reprfunc)angles_str,
+	.tp_flags		= Py_TPFLAGS_DEFAULT,
+	.tp_doc			= angles_doc,
+	.tp_methods		= angles_methods,
+	.tp_members		= angles_members,
+	.tp_new			= (newfunc)angles_new
 };
 
 
@@ -292,7 +326,15 @@ PyInit__pyevspace(void)
 	}
 
 	Py_INCREF(&EVSpace_MatrixType);
-	if (PyModule_AddType(m, &EVSpace_MatrixType) < 0)
+	if (PyModule_AddType(m, &EVSpace_MatrixType) < 0) {
+		Py_DECREF(m);
+		Py_DECREF(&EVSpace_VectorType);
+		Py_DECREF(&EVSpace_MatrixType);
+		return NULL;
+	}
+
+	Py_INCREF(&EVSpace_AnglesType);
+	if (PyModule_AddType(m, &EVSpace_AnglesType) < 0)
 		goto cleanup;
 
 	capi = get_evspace_capi();
@@ -317,6 +359,7 @@ cleanup:
 	Py_DECREF(m);
 	Py_DECREF(&EVSpace_VectorType);
 	Py_DECREF(&EVSpace_MatrixType);
+	Py_DECREF(&EVSpace_AnglesType);
 
 	return NULL;
 }

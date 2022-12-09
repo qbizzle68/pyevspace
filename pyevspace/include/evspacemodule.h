@@ -8,6 +8,7 @@ extern "C" {
 #include <evspace_common.h>
 #include <evspace_vector.h>
 #include <evspace_matrix.h>
+#include <evspace_angles.h>
 
 /* C types for EVectorand EMatrix */
 //typedef struct {

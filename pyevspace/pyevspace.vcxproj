@@ -168,12 +168,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\evspacemodule.c" />
+    <ClCompile Include="src\evspace_angles.c" />
     <ClCompile Include="src\evspace_common.c" />
     <ClCompile Include="src\evspace_matrix.c" />
     <ClCompile Include="src\evspace_vector.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\evspacemodule.h" />
+    <ClInclude Include="include\evspace_angles.h" />
     <ClInclude Include="include\evspace_matrix.h" />
     <ClInclude Include="include\evspace_vector.h" />
     <ClInclude Include="include\evspace_common.h" />
