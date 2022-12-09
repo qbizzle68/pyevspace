@@ -101,6 +101,44 @@ angles_reduce(const EVSpace_Angles* self, PyObject* Py_UNUSED(_))
 		self->gamma);
 }
 
+static PyObject*
+angles_get_item(const EVSpace_Angles* self, Py_ssize_t index)
+{
+	if (index == 0)
+		return PyFloat_FromDouble(self->alpha);
+	else if (index == 1)
+		return PyFloat_FromDouble(self->beta);
+	else if (index == 2)
+		return PyFloat_FromDouble(self->gamma);
+	else {
+		PyErr_Format(PyExc_IndexError,
+			"index (%i) must be in [0-2]", index);
+		return NULL;
+	}
+}
+
+static int
+angles_set_item(EVSpace_Angles* self, Py_ssize_t index, PyObject* value)
+{
+	double dbl_value = PyFloat_AsDouble(value);
+	if (dbl_value == -1.0 && PyErr_Occurred())
+		return -1;
+
+	if (index == 0)
+		self->alpha = dbl_value;
+	else if (index == 1)
+		self->beta = dbl_value;
+	else if (index == 2)
+		self->gamma = dbl_value;
+	else {
+		PyErr_Format(PyExc_IndexError,
+			"index (%i) must be in [0-2]", index);
+		return -1;
+	}
+
+	return 0;
+}
+
 
 #endif // EVSPACE_ANGLES_C
 #endif // __EVSPACE_SOURCE_INCLUDE__

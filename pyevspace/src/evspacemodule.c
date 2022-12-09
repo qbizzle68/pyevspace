@@ -54,21 +54,21 @@ PyDoc_STRVAR(vector_doc, "Data type representing a 3 dimensional vector in a Euc
 
 static PyTypeObject EVSpace_VectorType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	.tp_name	= "pyevspace.EVector",
-	.tp_basicsize = sizeof(EVSpace_Vector),
-	.tp_itemsize = 0,
-	.tp_repr	= (reprfunc)vector_repr,
+	.tp_name		= "pyevspace.EVector",
+	.tp_basicsize	= sizeof(EVSpace_Vector),
+	.tp_itemsize	= 0,
+	.tp_repr		= (reprfunc)vector_repr,
 	.tp_as_number	= &vector_as_number,
 	.tp_as_sequence	= &vector_as_sequence,
-	.tp_str	= (reprfunc)vector_str,
+	.tp_str			= (reprfunc)vector_str,
 	.tp_as_buffer	= &vector_buffer,
-	.tp_flags	= Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE,
-	.tp_doc	= vector_doc,
+	.tp_flags		= Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE,
+	.tp_doc			= vector_doc,
 	.tp_richcompare	= (richcmpfunc)&vector_richcompare,
-	.tp_iter	= (getiterfunc)vector_iter,
-	.tp_methods	= vector_methods,
-	.tp_new	= (newfunc)vector_new,
-	.tp_free	= (freefunc)vector_free
+	.tp_iter		= (getiterfunc)vector_iter,
+	.tp_methods		= vector_methods,
+	.tp_new			= (newfunc)vector_new,
+	.tp_free		= (freefunc)vector_free
 };
 
 
@@ -122,6 +122,12 @@ static PyTypeObject EVSpace_MatrixType = {
 	.tp_free		= (freefunc)matrix_free
 };
 
+static PySequenceMethods angles_as_sequence = {
+	.sq_length = (lenfunc)vector_length,
+	.sq_item = (ssizeargfunc)angles_get_item,
+	.sq_ass_item = (ssizeobjargproc)angles_set_item
+};
+
 static PyMemberDef angles_members[] = {
 	{"alpha", T_DOUBLE, offsetof(EVSpace_Angles, alpha), 0, 
 		"first angle of a rotation"},
@@ -146,6 +152,7 @@ static PyTypeObject EVSpace_AnglesType = {
 	.tp_basicsize	= sizeof(EVSpace_Angles),
 	.tp_itemsize	= 0,
 	.tp_repr		= (reprfunc)angles_repr,
+	.tp_as_sequence = &angles_as_sequence,
 	.tp_str			= (reprfunc)angles_str,
 	.tp_flags		= Py_TPFLAGS_DEFAULT,
 	.tp_doc			= angles_doc,
