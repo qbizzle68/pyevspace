@@ -177,6 +177,7 @@
     <ClInclude Include="include\evspacemodule.h" />
     <ClInclude Include="include\evspace_angles.h" />
     <ClInclude Include="include\evspace_matrix.h" />
+    <ClInclude Include="include\evspace_rotation.h" />
     <ClInclude Include="include\evspace_vector.h" />
     <ClInclude Include="include\evspace_common.h" />
   </ItemGroup>

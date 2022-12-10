@@ -64,9 +64,9 @@ vector_steal_array(double* arr, PyTypeObject* type)
 }
 
 /* macros to simplify the constructor calls */
-#define new_vector(a)		vector_from_array(a, &EVSpace_VectorType);
-#define new_vector_empty	vector_from_array(NULL, &EVSpace_VectorType);
-#define new_vector_steal(a)	vector_steal_array(a, &EVSpace_VectorType);
+#define new_vector(a)		vector_from_array(a, &EVSpace_VectorType)
+#define new_vector_empty	vector_from_array(NULL, &EVSpace_VectorType)
+#define new_vector_steal(a)	vector_steal_array(a, &EVSpace_VectorType)
 
 static PyObject*
 vector_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED)

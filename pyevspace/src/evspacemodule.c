@@ -154,11 +154,43 @@ static PyTypeObject EVSpace_AnglesType = {
 	.tp_repr		= (reprfunc)angles_repr,
 	.tp_as_sequence = &angles_as_sequence,
 	.tp_str			= (reprfunc)angles_str,
-	.tp_flags		= Py_TPFLAGS_DEFAULT,
+	.tp_flags		= Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE,
 	.tp_doc			= angles_doc,
 	.tp_methods		= angles_methods,
 	.tp_members		= angles_members,
 	.tp_new			= (newfunc)angles_new
+};
+
+static PySequenceMethods order_as_sequence = {
+	.sq_length = (lenfunc)vector_length,
+	.sq_item = (ssizeargfunc)order_get_item,
+	.sq_ass_item = (ssizeobjargproc)order_set_item
+};
+
+static PyMemberDef order_members[] = {
+	{"first", T_INT, offsetof(EVSpace_Order, first), READONLY,
+		"first axis of a rotation"},
+	{"second", T_INT, offsetof(EVSpace_Order, second), READONLY,
+		"second axis of a rotation"},
+	{"third", T_INT, offsetof(EVSpace_Order, third), READONLY,
+		"third axis of a rotation"},
+	{NULL}
+};
+
+PyDoc_STRVAR(order_doc, "simple class to hold the axis order of an Euler rotation");
+
+static PyTypeObject EVSpace_OrderType = {
+	PyVarObject_HEAD_INIT(NULL, 0)
+	.tp_name = "pyevspace.order",
+	.tp_basicsize = sizeof(EVSpace_Order),
+	.tp_itemsize = 0,
+	.tp_repr = (reprfunc)order_repr,
+	.tp_as_sequence = &order_as_sequence,
+	.tp_str	= (reprfunc)order_str,
+	.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE,
+	.tp_doc = order_doc,
+	.tp_members = order_members,
+	.tp_new = (newfunc)order_new
 };
 
 
@@ -259,8 +291,123 @@ static PyModuleDef EVSpace_Module = {
 	.m_methods	= evspace_methods
 };
 
+#define PYEVSPACE_ADD_DICT(dict, name, value_expr)			\
+	{														\
+		PyObject* value = (value_expr);						\
+		if (!value)											\
+			return -1;										\
+															\
+		if (PyDict_SetItemString(dict, name, value) < 0) {	\
+			Py_DECREF(value);								\
+			return -1;										\
+		}													\
+		Py_DECREF(value);									\
+	}
+
+#define PYEVSPACE_ADD_OBJECT(m, name, value_expr)		\
+	{													\
+		PyObject* value = (value_expr);					\
+		if (!value)										\
+			return -1;									\
+														\
+		if (PyModule_AddObject(m, name, value) < 0) {	\
+			Py_DECREF(value);							\
+			return -1;									\
+		}												\
+	}
+
+#define PYEVSPACE_ADD_ORDER(m, cap, order, f, s, l)			\
+	{														\
+		PyObject* val = (PyObject*)new_order(f, s, l);		\
+		PYEVSPACE_ADD_OBJECT(m, #order, val);				\
+		cap->EVSpace_##order = (const EVSpace_Order*)val;	\
+	}
+
+static int
+_pyevspace_exec(PyObject* module)
+{
+	PyTypeObject* types[] = {
+		&EVSpace_VectorType,
+		&EVSpace_MatrixType,
+		&EVSpace_AnglesType,
+		&EVSpace_OrderType
+	};
+
+	for (int i = 0; i < Py_ARRAY_LENGTH(types); i++) {
+		if (PyModule_AddType(module, types[i]) < 0)
+			return -1;
+	}
+
+	double arr[3] = { 1.0, 0.0, 0.0 };
+	PyObject* dict = EVSpace_VectorType.tp_dict;
+	PYEVSPACE_ADD_DICT(dict, "e1", new_vector(arr));
+	arr[0] = 0.0, arr[1] = 1.0;
+	PYEVSPACE_ADD_DICT(dict, "e2", new_vector(arr));
+	arr[1] = 0.0, arr[2] = 1.0;
+	PYEVSPACE_ADD_DICT(dict, "e3", new_vector(arr));
+
+	double mat[9] = { 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 };
+	dict = EVSpace_MatrixType.tp_dict;
+	PYEVSPACE_ADD_DICT(dict, "I", new_matrix(mat));
+
+	if (PyModule_AddIntConstant(module, "X_AXIS", X_AXIS) < 0)
+		return -1;
+
+	if (PyModule_AddIntConstant(module, "Y_AXIS", Y_AXIS) < 0)
+		return -1;
+
+	if (PyModule_AddIntConstant(module, "Z_AXIS", Z_AXIS) < 0)
+		return -1;
+
+	EVSpace_CAPI* capi = get_evspace_capi();
+	if (!capi)
+		return -1;
+
+	PYEVSPACE_ADD_ORDER(module, capi, XYZ, X_AXIS, Y_AXIS, Z_AXIS);
+	PYEVSPACE_ADD_ORDER(module, capi, XZY, X_AXIS, Z_AXIS, Y_AXIS);
+	PYEVSPACE_ADD_ORDER(module, capi, YXZ, Y_AXIS, X_AXIS, Z_AXIS);
+	PYEVSPACE_ADD_ORDER(module, capi, YZX, Y_AXIS, Z_AXIS, X_AXIS);
+	PYEVSPACE_ADD_ORDER(module, capi, ZXY, Z_AXIS, X_AXIS, Y_AXIS);
+	PYEVSPACE_ADD_ORDER(module, capi, ZYX, Z_AXIS, Y_AXIS, X_AXIS);
+	PYEVSPACE_ADD_ORDER(module, capi, XYX, X_AXIS, Y_AXIS, X_AXIS);
+	PYEVSPACE_ADD_ORDER(module, capi, XZX, X_AXIS, Z_AXIS, X_AXIS);
+	PYEVSPACE_ADD_ORDER(module, capi, YXY, Y_AXIS, X_AXIS, Y_AXIS);
+	PYEVSPACE_ADD_ORDER(module, capi, YZY, Y_AXIS, Z_AXIS, Y_AXIS);
+	PYEVSPACE_ADD_ORDER(module, capi, ZXZ, Z_AXIS, X_AXIS, Z_AXIS);
+	PYEVSPACE_ADD_ORDER(module, capi, ZYZ, Z_AXIS, Y_AXIS, Z_AXIS);
+
+	PyObject* capsule = PyCapsule_New(capi, EVSpace_CAPSULE_NAME, 
+		evspace_destructor);
+	if (!capsule) {
+		free(capi);
+		return -1;
+	}
+
+	if (PyModule_AddObject(module, "evspace_CAPI", capsule) < 0) {
+		Py_DECREF(capsule);
+		return -1;
+	}
+
+	return 0;
+}
+
 PyMODINIT_FUNC
 PyInit__pyevspace(void)
+{
+	PyObject* module = PyModule_Create(&EVSpace_Module);
+	if (!module)
+		return NULL;
+
+	if (_pyevspace_exec(module) < 0) {
+		Py_DECREF(module);
+		return NULL;
+	}
+
+	return module;
+}
+
+PyMODINIT_FUNC
+PyInit__pyevspace2(void)
 {	
 	PyObject* m = NULL, * capsule = NULL;
 	EVSpace_CAPI* capi = NULL;
@@ -341,7 +488,15 @@ PyInit__pyevspace(void)
 	}
 
 	Py_INCREF(&EVSpace_AnglesType);
-	if (PyModule_AddType(m, &EVSpace_AnglesType) < 0)
+	if (PyModule_AddType(m, &EVSpace_AnglesType) < 0) {
+		Py_DECREF(m);
+		Py_DECREF(&EVSpace_VectorType);
+		Py_DECREF(&EVSpace_MatrixType);
+		Py_DECREF(&EVSpace_AnglesType);
+	}
+
+	Py_INCREF(&EVSpace_OrderType);
+	if (PyModule_AddType(m, &EVSpace_OrderType) < 0)
 		goto cleanup;
 
 	capi = get_evspace_capi();
@@ -367,6 +522,7 @@ cleanup:
 	Py_DECREF(&EVSpace_VectorType);
 	Py_DECREF(&EVSpace_MatrixType);
 	Py_DECREF(&EVSpace_AnglesType);
+	Py_DECREF(&EVSpace_OrderType);
 
 	return NULL;
 }

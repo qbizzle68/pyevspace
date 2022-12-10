@@ -45,6 +45,7 @@ typedef struct {
 	PyObject* (*Vector_StealArray)(double*, PyTypeObject*);
 	PyObject* (*Matrix_FromArray)(double*, PyTypeObject*);
 	PyObject* (*Matrix_StealArray)(double*, PyTypeObject*);
+	PyObject* (*Angle_New)(EVSpace_Axis, EVSpace_Axis EVSpace_Axis, PyTypeObject*);
 
 	/* vector number methods */
 	PyObject* (*EVSpace_Vector_add)(const EVSpace_Vector*, const EVSpace_Vector*);
@@ -84,6 +85,20 @@ typedef struct {
 	PyObject* (*EVSpace_proj)(const EVSpace_Vector*, const EVSpace_Vector*);
 	double (*EVSpace_det)(const EVSpace_Matrix*);
 	PyObject* (*EVSpace_transpose)(const EVSpace_Matrix*);
+
+	/* rotation orders */
+	const EVSpace_Order* EVSpace_XYZ;
+	const EVSpace_Order* EVSpace_XZY;
+	const EVSpace_Order* EVSpace_YXZ;
+	const EVSpace_Order* EVSpace_YZX;
+	const EVSpace_Order* EVSpace_ZXY;
+	const EVSpace_Order* EVSpace_ZYX;
+	const EVSpace_Order* EVSpace_XYX;
+	const EVSpace_Order* EVSpace_XZX;
+	const EVSpace_Order* EVSpace_YXY;
+	const EVSpace_Order* EVSpace_YZY;
+	const EVSpace_Order* EVSpace_ZXZ;
+	const EVSpace_Order* EVSpace_ZYZ;
 
 } EVSpace_CAPI;
 
