@@ -39,13 +39,16 @@ typedef struct {
 	/* type objects */
 	PyTypeObject* VectorType;
 	PyTypeObject* MatrixType;
+	PyTypeObject* AngleType;
+	PyTypeObject* OrderType;
 
 	/* constructors */
 	PyObject* (*Vector_FromArray)(double*, PyTypeObject*);
 	PyObject* (*Vector_StealArray)(double*, PyTypeObject*);
 	PyObject* (*Matrix_FromArray)(double*, PyTypeObject*);
 	PyObject* (*Matrix_StealArray)(double*, PyTypeObject*);
-	PyObject* (*Angle_New)(EVSpace_Axis, EVSpace_Axis EVSpace_Axis, PyTypeObject*);
+	PyObject* (*Angle_New)(double, double, double, PyTypeObject*);
+	PyObject* (*Order_New)(EVSpace_Axis, EVSpace_Axis, EVSpace_Axis, PyTypeObject*);
 
 	/* vector number methods */
 	PyObject* (*EVSpace_Vector_add)(const EVSpace_Vector*, const EVSpace_Vector*);
