@@ -44,9 +44,4 @@ static PyObject*
 new_order_ex(EVSpace_Axis first, EVSpace_Axis second, EVSpace_Axis third, 
 	PyTypeObject* type);
 
-static PyObject*
-order_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED(_));
-
-// put the order instances here? how do we fill them for the public API?
-
 #endif // EVSPACE_ANGLES_H
