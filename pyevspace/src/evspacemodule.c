@@ -14,6 +14,7 @@
 #include "evspace_vector.c"
 #include "evspace_matrix.c"
 #include "evspace_angles.c"
+#include "evspace_rotation.c"
 #undef __EVSPACE_SOURCE_INCLUDE__
 
 
@@ -193,6 +194,42 @@ static PyTypeObject EVSpace_OrderType = {
 	.tp_new = (newfunc)order_new
 };
 
+static PyMemberDef rotation_members[] = {
+	{"order", T_OBJECT_EX, offsetof(EVSpace_Rotation, order), READONLY,
+		"order of axes in the rotation"},
+	//{"angles", T_OBJECT_EX, offsetof(EVSpace_Rotation, angles), READONLY,
+		//"angles of the rotations"},
+	{"matrix", T_OBJECT_EX, offsetof(EVSpace_Rotation, matrix), READONLY,
+		"internal matrix describing the rotation"},
+	{NULL}
+};
+
+static PyGetSetDef rotation_getset[] = {
+	{"angles", (getter)rotation_angles_getter, (setter)rotation_angles_setter, 
+		"angles of the rotations", NULL},
+	{"alpha", (getter)rotation_subangle_getter, (setter)rotation_subangle_setter,
+		"alpha angle of the angles attribute", (void*)ROTATION_ANGLE_ALPHA},
+	{"beta", (getter)rotation_subangle_getter, (setter)rotation_subangle_setter,
+		"beta angle of the angles attribute", (void*)ROTATION_ANGLE_BETA},
+	{"gamma", (getter)rotation_subangle_getter, (setter)rotation_subangle_setter,
+		"gamma angle of the angles attribute", (void*)ROTATION_ANGLE_GAMMA},
+	{NULL}
+};
+
+PyDoc_STRVAR(rotation_doc, "");
+
+static PyTypeObject EVSpace_RotationType = {
+	PyVarObject_HEAD_INIT(NULL, 0)
+	.tp_name = "pyevspace.rotation",
+	.tp_basicsize = sizeof(EVSpace_Rotation),
+	.tp_itemsize = 0,
+	.tp_flags = Py_TPFLAGS_DEFAULT,
+	.tp_doc = rotation_doc,
+	.tp_members = rotation_members,
+	.tp_getset = rotation_getset,
+	.tp_new = (newfunc)rotation_new
+};
+
 
 /* capsule definition */
 
@@ -330,7 +367,8 @@ _pyevspace_exec(PyObject* module)
 		&EVSpace_VectorType,
 		&EVSpace_MatrixType,
 		&EVSpace_AnglesType,
-		&EVSpace_OrderType
+		&EVSpace_OrderType,
+		&EVSpace_RotationType
 	};
 
 	for (int i = 0; i < Py_ARRAY_LENGTH(types); i++) {

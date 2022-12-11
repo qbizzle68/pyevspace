@@ -9,8 +9,10 @@
 
 // forward declaration
 static PyTypeObject EVSpace_AnglesType;
+static PyTypeObject EVSpace_OrderType;
 
 #define Angles_Check(o)		PyObject_TypeCheck(o, &EVSpace_AnglesType)
+#define Order_Check(o)		PyObject_TypeCheck(o, &EVSpace_OrderType)
 
 typedef struct {
 	PyObject_HEAD
@@ -27,8 +29,6 @@ typedef enum {
 	Y_AXIS = 1,
 	Z_AXIS = 2
 } EVSpace_Axis;
-
-static PyTypeObject EVSpace_OrderType;
 
 typedef struct {
 	PyObject_HEAD

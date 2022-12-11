@@ -9,6 +9,7 @@ extern "C" {
 #include <evspace_vector.h>
 #include <evspace_matrix.h>
 #include <evspace_angles.h>
+#include <evspace_rotation.h>
 
 /* C types for EVectorand EMatrix */
 //typedef struct {
@@ -102,6 +103,12 @@ typedef struct {
 	const EVSpace_Order* EVSpace_YZY;
 	const EVSpace_Order* EVSpace_ZXZ;
 	const EVSpace_Order* EVSpace_ZYZ;
+
+	/* rotation matrix methods */
+	EVSpace_Matrix* (*EVSpace_get_matrix)(EVSpace_Axis, double);
+	EVSpace_Matrix* (*EVSpace_get_euler)(const EVSpace_Order*, const EVSpace_Angles*);
+	EVSpace_Matrix* (*EVSpace_from_to)(const EVSpace_Order*, const EVSpace_Angles*,
+		const EVSpace_Order*, const EVSpace_Angles*);
 
 } EVSpace_CAPI;
 
