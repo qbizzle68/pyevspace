@@ -7,11 +7,12 @@
 /* don't need the extra's for the C API */
 #define _EVSPACE_IMPL
 #include <evspacemodule.h>
+#include <evspace_vector.h>
 
 /* allow source include */
 #define __EVSPACE_SOURCE_INCLUDE__
 #include "evspace_common.c"
-#include "evspace_vector.c"
+//#include "evspace_vector.c"
 #include "evspace_matrix.c"
 #include "evspace_angles.c"
 #include "evspace_rotation.c"
