@@ -141,6 +141,16 @@ typedef struct {
 	EVSpace_Matrix* (*EVSpace_from_to)(const EVSpace_Order*, const EVSpace_Angles*,
 									   const EVSpace_Order*, const EVSpace_Angles*);
 
+	/* rotate vector methods */
+	EVSpace_Vector* (*EVSpace_axis_to)(EVSpace_Axis, double, const EVSpace_Vector*);
+	EVSpace_Vector* (*EVSpace_axis_from)(EVSpace_Axis, double, const EVSpace_Vector*);
+	EVSpace_Vector* (*EVSpace_euler_to)(const EVSpace_Order*, const EVSpace_Angles*,
+										const EVSpace_Vector*);
+	EVSpace_Vector* (*EVSpace_euler_from)(const EVSpace_Order*, const EVSpace_Angles*,
+										const EVSpace_Vector*);
+	EVSpace_Vector* (*EVSpace_matrix_to)(const EVSpace_Matrix*, const EVSpace_Vector*);
+	EVSpace_Vector* (*EVSpace_matrix_from)(const EVSpace_Matrix*, const EVSpace_Vector*);
+
 } EVSpace_CAPI;
 
 #define EVSpace_CAPSULE_NAME "pyevspace.evspace_CAPI"

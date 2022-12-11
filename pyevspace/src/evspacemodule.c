@@ -289,6 +289,10 @@ EVSpace_CAPI* get_evspace_capi(void)
 	capi->EVSpace_det		= _determinate;
 	capi->EVSpace_transpose	= _transpose;
 
+	capi->EVSpace_get_matrix	= get_rotation_matrix;
+	capi->EVSpace_get_euler		= get_euler_matrix;
+	capi->EVSpace_from_to		= get_matrix_from_to;
+
 	return capi;
 }
 
@@ -319,6 +323,13 @@ static PyMethodDef evspace_methods[] = {
 		PyDoc_STR("det(matrix) -> the determinate of a EMatrix")},
 	{"transpose", (PyCFunction)matrix_transpose, METH_FASTCALL,
 		PyDoc_STR("transpose(matrix) -> the transpose of an EMatrix")},
+	{"getMatrixAxis", (PyCFunction)rotation_matrix, METH_VARARGS,
+		PyDoc_STR("getMatrixAxis(axis, angle) -> rotation matrix about an axis")},
+	{"getMatrixEuler", (PyCFunction)euler_matrix, METH_FASTCALL,
+		PyDoc_STR("getMatrixEuler(order, angles) -> euler rotation matrix")},
+	{"getMatrixFromTo", (PyCFunction)matrix_from_to, METH_FASTCALL,
+		PyDoc_STR("getMatrixFromTo(ofrom, afrom, oto, ato) -> matrix from one \
+				  reference frame to another")},
 	{NULL}
 };
 
@@ -446,125 +457,4 @@ PyInit__pyevspace(void)
 	}
 
 	return module;
-}
-
-PyMODINIT_FUNC
-PyInit__pyevspace2(void)
-{	
-	PyObject* m = NULL, * capsule = NULL;
-	EVSpace_CAPI* capi = NULL;
-
-	if (PyType_Ready(&EVSpace_VectorType) < 0)
-		return NULL;
-
-	if (PyType_Ready(&EVSpace_MatrixType) < 0)
-		return NULL;
-
-	EVSpace_Vector* vector 
-		= (EVSpace_Vector*)_vector_from_array(NULL, &EVSpace_VectorType);
-	if (!vector) {
-		return NULL;
-	}
-
-	vector->data[0] = 1.0;
-	if (PyDict_SetItemString(EVSpace_VectorType.tp_dict, "e1", (PyObject*)vector) < 0) {
-		Py_DECREF(vector);
-		return NULL;
-	}
-	Py_DECREF(vector);
-	
-	vector = (EVSpace_Vector*)_vector_from_array(NULL, &EVSpace_VectorType);
-	if (!vector)
-		return NULL;
-
-	vector->data[1] = 1.0;
-	if (PyDict_SetItemString(EVSpace_VectorType.tp_dict, "e2", (PyObject*)vector) < 0) {
-		Py_DECREF(vector);
-		return NULL;
-	}
-	Py_DECREF(vector);
-
-	vector = (EVSpace_Vector*)_vector_from_array(NULL, &EVSpace_VectorType);
-	if (!vector)
-		return NULL;
-
-	vector->data[2] = 1.0;
-	if (PyDict_SetItemString(EVSpace_VectorType.tp_dict, "e3", (PyObject*)vector) < 0) {
-		Py_DECREF(vector);
-		return NULL;
-	}
-	Py_DECREF(vector);
-
-	EVSpace_Matrix* matrix = (EVSpace_Matrix*)new_matrix_empty;
-	if (!matrix) {
-		return NULL;
-	}
-	
-	Matrix_COMP(matrix, 0, 0) = 1.0;
-	Matrix_COMP(matrix, 1, 1) = 1.0;
-	Matrix_COMP(matrix, 2, 2) = 1.0;
-	if (PyDict_SetItemString(EVSpace_MatrixType.tp_dict, "I", (PyObject*)matrix) < 0) {
-		Py_DECREF(matrix);
-		return NULL;
-	}
-	Py_DECREF(matrix);
-
-	m = PyModule_Create(&EVSpace_Module);
-	if (!m)
-		return NULL;
-
-
-	Py_INCREF(&EVSpace_VectorType);
-	if (PyModule_AddType(m, &EVSpace_VectorType) < 0) {
-		Py_DECREF(m);
-		Py_DECREF(&EVSpace_VectorType);
-		return NULL;
-	}
-
-	Py_INCREF(&EVSpace_MatrixType);
-	if (PyModule_AddType(m, &EVSpace_MatrixType) < 0) {
-		Py_DECREF(m);
-		Py_DECREF(&EVSpace_VectorType);
-		Py_DECREF(&EVSpace_MatrixType);
-		return NULL;
-	}
-
-	Py_INCREF(&EVSpace_AnglesType);
-	if (PyModule_AddType(m, &EVSpace_AnglesType) < 0) {
-		Py_DECREF(m);
-		Py_DECREF(&EVSpace_VectorType);
-		Py_DECREF(&EVSpace_MatrixType);
-		Py_DECREF(&EVSpace_AnglesType);
-	}
-
-	Py_INCREF(&EVSpace_OrderType);
-	if (PyModule_AddType(m, &EVSpace_OrderType) < 0)
-		goto cleanup;
-
-	capi = get_evspace_capi();
-	if (!capi)
-		goto cleanup;
-
-	capsule = PyCapsule_New(capi, EVSpace_CAPSULE_NAME, evspace_destructor);	
-	if (!capsule) {
-		free(capi);
-		goto cleanup;
-	}
-
-	if (PyModule_AddObject(m, "evspace_CAPI", capsule) < 0) {
-		Py_DECREF(capsule);
-		goto cleanup;
-	}
-
-	return m;
-
-cleanup:
-
-	Py_DECREF(m);
-	Py_DECREF(&EVSpace_VectorType);
-	Py_DECREF(&EVSpace_MatrixType);
-	Py_DECREF(&EVSpace_AnglesType);
-	Py_DECREF(&EVSpace_OrderType);
-
-	return NULL;
 }
