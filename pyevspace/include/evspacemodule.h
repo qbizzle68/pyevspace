@@ -150,6 +150,10 @@ typedef struct {
 										const EVSpace_Vector*);
 	EVSpace_Vector* (*EVSpace_matrix_to)(const EVSpace_Matrix*, const EVSpace_Vector*);
 	EVSpace_Vector* (*EVSpace_matrix_from)(const EVSpace_Matrix*, const EVSpace_Vector*);
+	EVSpace_Vector* (*EVSpace_offset_to)(const EVSpace_Matrix*, const EVSpace_Vector*,
+										 const EVSpace_Vector*);
+	EVSpace_Vector* (*EVSpace_offset_from)(const EVSpace_Matrix*, const EVSpace_Vector*,
+										   const EVSpace_Vector*);
 
 } EVSpace_CAPI;
 

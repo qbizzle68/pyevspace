@@ -291,7 +291,16 @@ EVSpace_CAPI* get_evspace_capi(void)
 
 	capi->EVSpace_get_matrix	= _get_rotation_matrix;
 	capi->EVSpace_get_euler		= _get_euler_matrix;
-	capi->EVSpace_from_to		= get_matrix_from_to;
+	capi->EVSpace_from_to		= _get_matrix_from_to;
+
+	capi->EVSpace_axis_to		= _rotate_axis_to;
+	capi->EVSpace_axis_from		= _rotate_axis_from;
+	capi->EVSpace_euler_to		= _rotate_euler_to;
+	capi->EVSpace_euler_from	= _rotate_euler_from;
+	capi->EVSpace_matrix_to		= _rotate_matrix_to;
+	capi->EVSpace_matrix_from	= _rotate_matrix_from;
+	capi->EVSpace_offset_to		= _rotate_offset_to;
+	capi->EVSpace_offset_from	= _rotate_offset_from;
 
 	return capi;
 }
@@ -330,6 +339,30 @@ static PyMethodDef evspace_methods[] = {
 	{"getMatrixFromTo", (PyCFunction)matrix_from_to, METH_FASTCALL,
 		PyDoc_STR("getMatrixFromTo(ofrom, afrom, oto, ato) -> matrix from one \
 				  reference frame to another")},
+	{"rotateAxisTo", (PyCFunction)rotate_axis_to, METH_VARARGS,
+		PyDoc_STR("rotateAxisTo(axis, angle, vector) -> rotated vector to reference \
+				  frame around an axis")},
+	{"rotateAxisFrom", (PyCFunction)rotate_axis_from, METH_VARARGS,
+		PyDoc_STR("rotateAxisFrom(axis, angle, vector) -> rotated vector from reference \
+				  frame around an axis")},
+	{"rotateEulerTo", (PyCFunction)rotate_euler_to, METH_FASTCALL,
+		PyDoc_STR("rotateEulerTo(order, angles, vector) -> rotated vector to \
+				  reference frame by Euler rotation")},
+	{"rotateEulerFrom", (PyCFunction)rotate_euler_from, METH_FASTCALL,
+		PyDoc_STR("rotateEulerFrom(order, angles, vector) -> rotated vector from \
+				  reference frame by Euler rotation")},
+	{"rotateMatrixTo", (PyCFunction)rotate_matrix_to, METH_FASTCALL,
+		PyDoc_STR("rotateMatrixTo(matrix, vector) -> rotate vector to reference frame \
+				  by rotation matrix")},
+	{"rotateMatrixFrom", (PyCFunction)rotate_matrix_from, METH_FASTCALL,
+		PyDoc_STR("rotateMatrixFrom(matrix, vector) -> rotate vector to reference frame \
+				  by rotation matrix")},
+	{"rotateOffsetTo", (PyCFunction)rotate_offset_to, METH_FASTCALL,
+		PyDoc_STR("rotateOffsetTo(matrix, offset, vector) -> rotate to an offset \
+				  reference frame")},
+	{"rotateOffsetFrom", (PyCFunction)rotate_offset_from, METH_FASTCALL,
+		PyDoc_STR("rotateOffsetFrom(matrix, offset, vector) -> rotate from an offset \
+				  reference frame")},
 	{NULL}
 };
 
