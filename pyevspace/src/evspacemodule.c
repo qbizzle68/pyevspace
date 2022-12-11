@@ -9,6 +9,8 @@
 #include <evspacemodule.h>
 #include <evspace_vector.h>
 #include <evspace_matrix.h>
+#include <evspace_angles.h>
+#include <evspace_rotation.h>
 
 /* allow source include */
 #define __EVSPACE_SOURCE_INCLUDE__
@@ -16,7 +18,7 @@
 //#include "evspace_vector.c"
 //#include "evspace_matrix.c"
 //#include "evspace_angles.c"
-#include "evspace_rotation.c"
+//#include "evspace_rotation.c"
 #undef __EVSPACE_SOURCE_INCLUDE__
 
 

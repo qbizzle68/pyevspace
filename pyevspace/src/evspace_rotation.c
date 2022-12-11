@@ -59,9 +59,9 @@ _get_euler_transpose(const EVSpace_Order* order, const EVSpace_Angles* angles)
 	return matrix;
 }
 
-static EVSpace_Matrix*
-get_matrix_from_to(const EVSpace_Order* order_from, const EVSpace_Angles* angles_from,
-	const EVSpace_Order* order_to, const EVSpace_Angles* angles_to)
+//static EVSpace_Matrix*
+//get_matrix_from_to(const EVSpace_Order* order_from, const EVSpace_Angles* angles_from,
+//	const EVSpace_Order* order_to, const EVSpace_Angles* angles_to)
 
 
 #endif // EVSPACE_ROTATION_C

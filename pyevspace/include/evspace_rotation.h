@@ -76,6 +76,62 @@ _get_z_rotation(double angle)
 	return rtn;
 }
 
+static EVSpace_Matrix*
+get_rotation_matrix(EVSpace_Axis axis, double angle)
+{
+	if (axis == X_AXIS)
+		return _get_x_rotation(angle);
+	else if (axis == Y_AXIS)
+		return _get_y_rotation(angle);
+	else if (axis == Z_AXIS)
+		return _get_z_rotation(angle);
+	else {
+		PyErr_Format(PyExc_ValueError,
+			"axis value (%i) must be in [0-2]", (int)axis);
+		return NULL;
+	}
+}
+
+static EVSpace_Matrix*
+get_euler_matrix(const EVSpace_Order* order, const EVSpace_Angles* angles)
+{
+	EVSpace_Matrix* first_matrix
+		= (EVSpace_Matrix*)get_rotation_matrix(order->first, angles->alpha);
+	if (!first_matrix)
+		return NULL;
+
+	EVSpace_Matrix* second_matrix
+		= (EVSpace_Matrix*)get_rotation_matrix(order->second, angles->beta);
+	if (!second_matrix) {
+		Py_DECREF(first_matrix);
+		return NULL;
+	}
+
+	EVSpace_Matrix* third_matrix
+		= (EVSpace_Matrix*)get_rotation_matrix(order->third, angles->gamma);
+	if (!third_matrix) {
+		Py_DECREF(first_matrix);
+		Py_DECREF(second_matrix);
+		return NULL;
+	}
+
+	EVSpace_Matrix* temp
+		= (EVSpace_Matrix*)multiply_matrix_matrix(first_matrix, second_matrix);
+	Py_DECREF(first_matrix);
+	Py_DECREF(second_matrix);
+	if (!temp) {
+		Py_DECREF(third_matrix);
+		return NULL;
+	}
+
+	EVSpace_Matrix* rtn
+		= (EVSpace_Matrix*)multiply_matrix_matrix(temp, third_matrix);
+	Py_DECREF(third_matrix);
+	Py_DECREF(temp);
+
+	return rtn;
+}
+
 
 /* constructor */
 
@@ -224,63 +280,6 @@ rotation_subangle_setter(EVSpace_Rotation* self, PyObject* arg, void* closure)
 	return 0;
 }
 
-/* generate matrices */
-
-static EVSpace_Matrix*
-get_rotation_matrix(EVSpace_Axis axis, double angle)
-{
-	if (axis == X_AXIS)
-		return _get_x_rotation(angle);
-	else if (axis == Y_AXIS)
-		return _get_y_rotation(angle);
-	else if (axis == Z_AXIS)
-		return _get_z_rotation(angle);
-	else {
-		PyErr_Format(PyExc_ValueError,
-			"axis value (%i) must be in [0-2]", (int)axis);
-		return NULL;
-	}
-}
-
-static EVSpace_Matrix*
-get_euler_matrix(const EVSpace_Order* order, const EVSpace_Angles* angles)
-{
-	EVSpace_Matrix* first_matrix
-		= (EVSpace_Matrix*)get_rotation_matrix(order->first, angles->alpha);
-	if (!first_matrix)
-		return NULL;
-
-	EVSpace_Matrix* second_matrix
-		= (EVSpace_Matrix*)get_rotation_matrix(order->second, angles->beta);
-	if (!second_matrix) {
-		Py_DECREF(first_matrix);
-		return NULL;
-	}
-
-	EVSpace_Matrix* third_matrix
-		= (EVSpace_Matrix*)get_rotation_matrix(order->third, angles->gamma);
-	if (!third_matrix) {
-		Py_DECREF(first_matrix);
-		Py_DECREF(second_matrix);
-		return NULL;
-	}
-
-	EVSpace_Matrix* temp
-		= (EVSpace_Matrix*)multiply_matrix_matrix(first_matrix, second_matrix);
-	Py_DECREF(first_matrix);
-	Py_DECREF(second_matrix);
-	if (!temp) {
-		Py_DECREF(third_matrix);
-		return NULL;
-	}
-
-	EVSpace_Matrix* rtn
-		= (EVSpace_Matrix*)multiply_matrix_matrix(temp, third_matrix);
-	Py_DECREF(third_matrix);
-	Py_DECREF(temp);
-
-	return rtn;
-}
 
 static EVSpace_Matrix*
 get_matrix_from_to(const EVSpace_Order* order_from, const EVSpace_Angles* angles_from,
@@ -290,7 +289,10 @@ get_matrix_from_to(const EVSpace_Order* order_from, const EVSpace_Angles* angles
 	if (!from)
 		return NULL;
 
-	EVSpace_Matrix* to = _get_euler_transpose(order_to, angles_to);
+//	EVSpace_Matrix* to = _get_euler_transpose(order_to, angles_to);
+	EVSpace_Matrix* to = get_euler_matrix(order_to, angles_to);
+	// todo: implement this !!!!!!!!!!!!!!!!!!!!!1
+	//_transpose_inplace(to);
 	if (!to) {
 		Py_DECREF(from);
 		return NULL;
