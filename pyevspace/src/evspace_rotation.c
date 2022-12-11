@@ -1,4 +1,4 @@
-#ifdef __EVSPACE_SOURCE_INCLUDE__
+//#ifdef __EVSPACE_SOURCE_INCLUDE__
 
 #ifndef EVSPACE_ROTATION_C
 #define EVSPACE_ROTATION_C
@@ -7,15 +7,15 @@
 
 
 // these may not be defined by the time this file is included into main source
-#ifndef new_matrix
-#define new_matrix(a)		matrix_from_array(a, &EVSpace_MatrixType)
-#endif
-#ifndef new_matrix_empty
-#define new_matrix_empty	new_matrix(NULL)
-#endif
-#ifndef new_matrix_steal
-#define new_matrix_steal(a)	matrix_steal_array(a, &EVSpace_MatrixType);
-#endif
+//#ifndef new_matrix
+//#define new_matrix(a)		matrix_from_array(a, &EVSpace_MatrixType)
+//#endif
+//#ifndef new_matrix_empty
+//#define new_matrix_empty	new_matrix(NULL)
+//#endif
+//#ifndef new_matrix_steal
+//#define new_matrix_steal(a)	matrix_steal_array(a, &EVSpace_MatrixType);
+//#endif
 
 
 
@@ -38,7 +38,7 @@
 //get_euler_matrix(const EVSpace_Order* order, const EVSpace_Angles* angles)
 
 
-static PyObject*
+/*static PyObject*
 rotation_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED(_))
 {
 	PyObject* order = NULL, *angles = NULL;
@@ -57,17 +57,17 @@ rotation_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED(_))
 		return NULL;
 	}
 
-	return (PyObject*)new_rotation_ex((EVSpace_Order*)order, 
+	return (PyObject*)_new_rotation((EVSpace_Order*)order, 
 									  (EVSpace_Angles*)angles, type);
-}
+}*/
 
-static PyObject*
+/*static PyObject*
 rotation_angles_getter(PyObject* self, void* closure)
 {
 	return Py_NewRef((PyObject*)(((EVSpace_Rotation*)self)->angles));
-}
+}*/
 
-static int
+/*static int
 rotation_angles_setter(EVSpace_Rotation* self, EVSpace_Angles* arg, void* closure)
 {
 	if (!arg) {
@@ -83,7 +83,7 @@ rotation_angles_setter(EVSpace_Rotation* self, EVSpace_Angles* arg, void* closur
 	}
 
 	EVSpace_Matrix* matrix 
-		= (EVSpace_Matrix*)get_euler_matrix(self->order, arg);
+		= (EVSpace_Matrix*)_get_euler_matrix(self->order, arg);
 	if (!matrix)
 		return -1;
 
@@ -98,13 +98,13 @@ rotation_angles_setter(EVSpace_Rotation* self, EVSpace_Angles* arg, void* closur
 	Py_XDECREF(tmp);
 
 	return 0;
-}
+}*/
 
-#define ROTATION_ANGLE_ALPHA	0
-#define ROTATION_ANGLE_BETA		1
-#define ROTATION_ANGLE_GAMMA	2
+//#define ROTATION_ANGLE_ALPHA	0
+//#define ROTATION_ANGLE_BETA		1
+//#define ROTATION_ANGLE_GAMMA	2
 
-static PyObject*
+/*static PyObject*
 rotation_subangle_getter(EVSpace_Rotation* self, void* closure)
 {
 	size_t which = (size_t)closure;
@@ -120,9 +120,9 @@ rotation_subangle_getter(EVSpace_Rotation* self, void* closure)
 		angle = self->angles->gamma;
 
 	return PyFloat_FromDouble(angle);
-}
+}*/
 
-static int
+/*static int
 rotation_subangle_setter(EVSpace_Rotation* self, PyObject* arg, void* closure)
 {
 	printf("in setter\n");
@@ -153,7 +153,7 @@ rotation_subangle_setter(EVSpace_Rotation* self, PyObject* arg, void* closure)
 	double temp = *angle_addr;
 	*angle_addr = angle;
 
-	EVSpace_Matrix* matrix = get_euler_matrix(self->order, self->angles);
+	EVSpace_Matrix* matrix = _get_euler_matrix(self->order, self->angles);
 	if (!matrix) {
 		*angle_addr = temp;
 		return -1;
@@ -166,10 +166,10 @@ rotation_subangle_setter(EVSpace_Rotation* self, PyObject* arg, void* closure)
 	Py_XDECREF(tmp);
 
 	return 0;
-}
+}*/
 
-static EVSpace_Matrix*
-get_rotation_matrix(EVSpace_Axis axis, double angle)
+/*static EVSpace_Matrix*
+_get_rotation_matrix(EVSpace_Axis axis, double angle)
 {
 	if (axis == X_AXIS)
 		return _get_x_rotation(angle);
@@ -182,37 +182,29 @@ get_rotation_matrix(EVSpace_Axis axis, double angle)
 			"axis value (%i) must be in [0-2]", (int)axis);
 		return NULL;
 	}
-}
+}*/
 
-static PyObject*
-rotation_matrix(PyObject* Py_UNUSED(_), PyObject* args)
-{
-	EVSpace_Axis axis;
-	double angle = 0;
+//static PyObject*
+//rotation_matrix(PyObject* Py_UNUSED(_), PyObject* args)
 
-	if (PyArg_ParseTuple(args, "id", &(int)axis, &angle) < 0)
-		return NULL;
 
-	return (PyObject*)get_rotation_matrix(axis, angle);
-}
-
-static EVSpace_Matrix*
-get_euler_matrix(const EVSpace_Order* order, const EVSpace_Angles* angles)
+/*static EVSpace_Matrix*
+_get_euler_matrix(const EVSpace_Order* order, const EVSpace_Angles* angles)
 {
 	EVSpace_Matrix* first_matrix 
-		= (EVSpace_Matrix*)get_rotation_matrix(order->first, angles->alpha);
+		= (EVSpace_Matrix*)_get_rotation_matrix(order->first, angles->alpha);
 	if (!first_matrix)
 		return NULL;
 
 	EVSpace_Matrix* second_matrix 
-		= (EVSpace_Matrix*)get_rotation_matrix(order->second, angles->beta);
+		= (EVSpace_Matrix*)_get_rotation_matrix(order->second, angles->beta);
 	if (!second_matrix) {
 		Py_DECREF(first_matrix);
 		return NULL;
 	}
 
 	EVSpace_Matrix* third_matrix 
-		= (EVSpace_Matrix*)get_rotation_matrix(order->third, angles->gamma);
+		= (EVSpace_Matrix*)_get_rotation_matrix(order->third, angles->gamma);
 	if (!third_matrix) {
 		Py_DECREF(first_matrix);
 		Py_DECREF(second_matrix);
@@ -234,52 +226,21 @@ get_euler_matrix(const EVSpace_Order* order, const EVSpace_Angles* angles)
 	Py_DECREF(temp);
 
 	return rtn;
-}
+}*/
 
-static PyObject*
-euler_matrix(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t size)
-{
-	if (size != 2) {
-		PyErr_Format(PyExc_TypeError,
-			"function takes exactly two arguments (%i given)", size);
-		return NULL;
-	}
+//static PyObject*
+//euler_matrix(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t size)
 
-	if (!Order_Check(args[0])) {
-		PyErr_SetString(PyExc_TypeError, 
-			"parameter 1 must be pyevspace.order type");
-		return NULL;
-	}
-	if (!Angles_Check(args[1])) {
-		PyErr_SetString(PyExc_TypeError,
-			"parameter 2 must be pyevspace.angles type");
-		return NULL;
-	}
 
-	return (PyObject*)get_euler_matrix((EVSpace_Order*)args[0], 
-									   (EVSpace_Angles*)args[1]);
-}
+//static inline void
+//_transpose_inplace(double* state)
 
-static inline void
-_transpose_inplace(double* state)
-{
-	double temp[3] = { state[EVSpace_RC_INDEX(0, 1)],
-		state[EVSpace_RC_INDEX(0, 2)],
-		state[EVSpace_RC_INDEX(1, 2)] };
-
-	state[EVSpace_RC_INDEX(0, 1)] = state[EVSpace_RC_INDEX(1, 0)];
-	state[EVSpace_RC_INDEX(0, 2)] = state[EVSpace_RC_INDEX(2, 0)];
-	state[EVSpace_RC_INDEX(1, 2)] = state[EVSpace_RC_INDEX(2, 1)];
-	state[EVSpace_RC_INDEX(1, 0)] = temp[0];
-	state[EVSpace_RC_INDEX(2, 0)] = temp[1];
-	state[EVSpace_RC_INDEX(2, 1)] = temp[2];
-}
 
 // should delete when this is replaced
-static EVSpace_Matrix*
+/*static EVSpace_Matrix*
 _get_euler_transpose(const EVSpace_Order* order, const EVSpace_Angles* angles)
 {
-	EVSpace_Matrix* matrix = get_euler_matrix(order, angles);
+	EVSpace_Matrix* matrix = _get_euler_matrix(order, angles);
 	if (!matrix)
 		return NULL;
 
@@ -295,75 +256,37 @@ _get_euler_transpose(const EVSpace_Order* order, const EVSpace_Angles* angles)
 	EVSpace_MATRIX_COMP(matrix, 2, 1) = temp[2];
 
 	return matrix;
-}
+}*/
 
 //static EVSpace_Matrix*
 //get_matrix_from_to(const EVSpace_Order* order_from, const EVSpace_Angles* angles_from,
 //	const EVSpace_Order* order_to, const EVSpace_Angles* angles_to)
 
 
-static PyObject*
-matrix_from_to(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t size)
-{
-	if (size != 4) {
-		PyErr_Format(PyExc_TypeError,
-			"function takes exactly 4 arguments (%i given)", size);
-		return NULL;
-	}
+//static PyObject*
+//matrix_from_to(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t size)
 
-	if (!Order_Check(args[0])) {
-		PyErr_SetString(PyExc_TypeError, 
-			"argument 1 must be pyevspace.order type");
-		return NULL;
-	}
-	if (!Angles_Check(args[1])) {
-		PyErr_SetString(PyExc_TypeError,
-			"argument 2 must be pyevspace.angle type");
-		return NULL;
-	}
-	if (!Order_Check(args[2])) {
-		PyErr_SetString(PyExc_TypeError,
-			"argument 3 must be pyevspace.order type");
-		return NULL;
-	}
-	if (!Angles_Check(args[3])) {
-		PyErr_SetString(PyExc_TypeError,
-			"argument 4 must be pyevspace.angle type");
-		return NULL;
-	}
 
-	return (PyObject*)get_matrix_from_to((EVSpace_Order*)args[0],
-		(EVSpace_Angles*)args[1],
-		(EVSpace_Order*)args[2],
-		(EVSpace_Angles*)args[3]);
-}
+//static EVSpace_Vector*
+//rotate_axis_to(EVSpace_Axis axis, double angle, const EVSpace_Vector* vector)
 
-static EVSpace_Vector*
-rotate_axis_to(EVSpace_Axis axis, double angle, const EVSpace_Vector* vector)
-{
-	EVSpace_Matrix* matrix = get_rotation_matrix(axis, angle);
-	if (!matrix)
-		return NULL;
 
-	_transpose_inplace(Matrix_DATA(matrix));
-}
-
-static EVSpace_Vector*
-rotate_axis_from(EVSpace_Axis axis, double angle, const EVSpace_Vector* vector);
-
-static EVSpace_Vector*
-rotate_euler_to(const EVSpace_Order* order, const EVSpace_Angles* angles,
-	const EVSpace_Vector* vector);
-
-static EVSpace_Vector*
-rotate_euler_from(const EVSpace_Order* order, const EVSpace_Angles* angles,
-	const EVSpace_Vector* vector);
-
-static EVSpace_Vector*
-rotate_matrix_to(const EVSpace_Matrix* matrix, const EVSpace_Vector* vector);
-
-static EVSpace_Vector*
-rotate_matrix_from(const EVSpace_Matrix* matrix, const EVSpace_Vector* vector);)
+//static EVSpace_Vector*
+//rotate_axis_from(EVSpace_Axis axis, double angle, const EVSpace_Vector* vector);
+//
+//static EVSpace_Vector*
+//rotate_euler_to(const EVSpace_Order* order, const EVSpace_Angles* angles,
+//	const EVSpace_Vector* vector);
+//
+//static EVSpace_Vector*
+//rotate_euler_from(const EVSpace_Order* order, const EVSpace_Angles* angles,
+//	const EVSpace_Vector* vector);
+//
+//static EVSpace_Vector*
+//rotate_matrix_to(const EVSpace_Matrix* matrix, const EVSpace_Vector* vector);
+//
+//static EVSpace_Vector*
+//rotate_matrix_from(const EVSpace_Matrix* matrix, const EVSpace_Vector* vector);
 
 #endif // EVSPACE_ROTATION_C
-#endif // __EVSPACE_SOURCE_INCLUDE__
+//#endif // __EVSPACE_SOURCE_INCLUDE__

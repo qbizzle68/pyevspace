@@ -289,8 +289,8 @@ EVSpace_CAPI* get_evspace_capi(void)
 	capi->EVSpace_det		= _determinate;
 	capi->EVSpace_transpose	= _transpose;
 
-	capi->EVSpace_get_matrix	= get_rotation_matrix;
-	capi->EVSpace_get_euler		= get_euler_matrix;
+	capi->EVSpace_get_matrix	= _get_rotation_matrix;
+	capi->EVSpace_get_euler		= _get_euler_matrix;
 	capi->EVSpace_from_to		= get_matrix_from_to;
 
 	return capi;
