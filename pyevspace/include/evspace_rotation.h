@@ -287,7 +287,7 @@ _rotate_offset_to(const EVSpace_Matrix* matrix, const EVSpace_Vector* offset,
 	Py_DECREF(transpose);
 	Py_DECREF(rotated_vector);
 	Py_DECREF(rotated_offset);
-	return NULL;
+	return rtn;
 }
 
 static EVSpace_Vector*
