@@ -8,12 +8,13 @@
 #define _EVSPACE_IMPL
 #include <evspacemodule.h>
 #include <evspace_vector.h>
+#include <evspace_matrix.h>
 
 /* allow source include */
 #define __EVSPACE_SOURCE_INCLUDE__
 #include "evspace_common.c"
 //#include "evspace_vector.c"
-#include "evspace_matrix.c"
+//#include "evspace_matrix.c"
 #include "evspace_angles.c"
 #include "evspace_rotation.c"
 #undef __EVSPACE_SOURCE_INCLUDE__
@@ -248,8 +249,8 @@ EVSpace_CAPI* get_evspace_capi(void)
 
 	capi->Vector_FromArray	= _vector_from_array;
 	capi->Vector_StealArray	= _vector_steal_array;
-	capi->Matrix_FromArray	= matrix_from_array;
-	capi->Matrix_StealArray	= matrix_steal_array;
+	capi->Matrix_FromArray	= _matrix_from_array;
+	capi->Matrix_StealArray	= _matrix_steal_array;
 
 	capi->EVSpace_Vector_add		= _add_vector_vector;
 	capi->EVSpace_Vector_subtract	= _subtract_vector_vector;
@@ -271,20 +272,20 @@ EVSpace_CAPI* get_evspace_capi(void)
 	capi->EVSpace_Matrix_isubtract			= isubtract_matrix_matrix;
 	capi->EVSpace_Matrix_imultiply_scalar	= imultiply_matrix_scalar;
 	capi->EVSpace_Matrix_idivide			= idivide_matrix_scalar;
-	capi->EVSpace_Matrix_negative			= capsule_matrix_negative;
+	capi->EVSpace_Matrix_negative			= _matrix_negative;
 
-	capi->EVSpace_mag			= capsule_vector_magnitude;
-	capi->EVSpace_mag_squared	= capsule_vector_magnitude2;
-	capi->EVSpace_normalize		= capsule_vector_normalize;
+	capi->EVSpace_mag			= _vector_magnitude;
+	capi->EVSpace_mag_squared	= _vector_magnitude2;
+	capi->EVSpace_normalize		= _vector_normalize;
 
-	capi->EVSpace_dot		= capsule_vector_dot;
-	capi->EVSpace_cross		= capsule_vector_cross;
-	capi->EVSpace_norm		= capsule_vector_norm;
-	capi->EVSpace_vang		= capsule_vang;
-	capi->EVSpace_vxcl		= capsule_vxcl;
-	capi->EVSpace_proj		= capsule_proj;
-	capi->EVSpace_det		= capsule_determinate;
-	capi->EVSpace_transpose	= capsule_transpose;
+	capi->EVSpace_dot		= _vector_dot;
+	capi->EVSpace_cross		= _vector_cross;
+	capi->EVSpace_norm		= _vector_norm;
+	capi->EVSpace_vang		= _vector_angle;
+	capi->EVSpace_vxcl		= _vector_exclude;
+	capi->EVSpace_proj		= _vector_projection;
+	capi->EVSpace_det		= _determinate;
+	capi->EVSpace_transpose	= _transpose;
 
 	return capi;
 }
@@ -379,15 +380,15 @@ _pyevspace_exec(PyObject* module)
 
 	double arr[3] = { 1.0, 0.0, 0.0 };
 	PyObject* dict = EVSpace_VectorType.tp_dict;
-	PYEVSPACE_ADD_DICT(dict, "e1", new_vector(arr));
+	PYEVSPACE_ADD_DICT(dict, "e1", (PyObject*)new_vector(arr));
 	arr[0] = 0.0, arr[1] = 1.0;
-	PYEVSPACE_ADD_DICT(dict, "e2", new_vector(arr));
+	PYEVSPACE_ADD_DICT(dict, "e2", (PyObject*)new_vector(arr));
 	arr[1] = 0.0, arr[2] = 1.0;
-	PYEVSPACE_ADD_DICT(dict, "e3", new_vector(arr));
+	PYEVSPACE_ADD_DICT(dict, "e3", (PyObject*)new_vector(arr));
 
 	double mat[9] = { 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 };
 	dict = EVSpace_MatrixType.tp_dict;
-	PYEVSPACE_ADD_DICT(dict, "I", new_matrix(mat));
+	PYEVSPACE_ADD_DICT(dict, "I", (PyObject*)new_matrix(mat));
 
 	if (PyModule_AddIntConstant(module, "X_AXIS", X_AXIS) < 0)
 		return -1;

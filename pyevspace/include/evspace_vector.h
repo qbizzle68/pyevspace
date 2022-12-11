@@ -55,17 +55,17 @@ _vector_from_array(const double* arr, PyTypeObject* type)
 	if (arr) {
 		Vector_DATA(self) = (double*)malloc(Vector_SIZE);
 		if (!Vector_DATA(self))
-			return PyErr_NoMemory();
+			return (EVSpace_Vector*)PyErr_NoMemory();
 
 		memcpy(Vector_DATA(self), arr, Vector_SIZE);
 	}
 	else {
 		Vector_DATA(self) = (double*)calloc(3, sizeof(double));
 		if (!Vector_DATA(self))
-			return PyErr_NoMemory();
+			return (EVSpace_Vector*)PyErr_NoMemory();
 	}
 
-	return (PyObject*)self;
+	return self;
 }
 
 static EVSpace_Vector*
@@ -80,7 +80,7 @@ _vector_steal_array(double* arr, PyTypeObject* type)
 	Vector_DATA(self) = arr;
 	arr = NULL;
 
-	return (PyObject*)self;
+	return self;
 }
 
 /* macros to simplify the constructor calls */
@@ -98,7 +98,7 @@ vector_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED)
 		return NULL;
 
 	if (Py_IsNone(parameter))
-		return new_vector_empty;
+		return (PyObject*)new_vector_empty;
 
 	double* arr = (double*)malloc(Vector_SIZE);
 	if (!arr)
@@ -109,7 +109,7 @@ vector_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED)
 		return NULL;
 	}
 
-	return _vector_steal_array(arr, type);
+	return (PyObject*)_vector_steal_array(arr, type);
 }
 
 
@@ -214,13 +214,13 @@ _add_vector_vector(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs)
 {
 	double* arr = malloc(Vector_SIZE);
 	if (!arr)
-		return PyErr_NoMemory();
+		return (EVSpace_Vector*)PyErr_NoMemory();
 
 	arr[0] = Vector_X(lhs) + Vector_X(rhs);
 	arr[1] = Vector_Y(lhs) + Vector_Y(rhs);
 	arr[2] = Vector_Z(lhs) + Vector_Z(rhs);
 
-	PyObject* rtn = new_vector_steal(arr);
+	EVSpace_Vector* rtn = new_vector_steal(arr);
 	if (!rtn)
 		free(arr);
 
@@ -232,13 +232,13 @@ _subtract_vector_vector(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs)
 {
 	double* arr = malloc(Vector_SIZE);
 	if (!arr)
-		return PyErr_NoMemory();
+		return (EVSpace_Vector *)PyErr_NoMemory();
 
 	arr[0] = Vector_X(lhs) - Vector_X(rhs);
 	arr[1] = Vector_Y(lhs) - Vector_Y(rhs);
 	arr[2] = Vector_Z(lhs) - Vector_Z(rhs);
 
-	PyObject* rtn = new_vector_steal(arr);
+	EVSpace_Vector* rtn = new_vector_steal(arr);
 	if (!rtn)
 		free(arr);
 
@@ -250,13 +250,13 @@ _multiply_vector_scalar(const EVSpace_Vector* vector, double scalar)
 {
 	double* arr = malloc(Vector_SIZE);
 	if (!arr)
-		return PyErr_NoMemory();
+		return (EVSpace_Vector*)PyErr_NoMemory();
 
 	arr[0] = Vector_X(vector) * scalar;
 	arr[1] = Vector_Y(vector) * scalar;
 	arr[2] = Vector_Z(vector) * scalar;
 
-	PyObject* rtn = new_vector_steal(arr);
+	EVSpace_Vector* rtn = new_vector_steal(arr);
 	if (!rtn)
 		free(arr);
 
@@ -274,11 +274,11 @@ _divide_vector_scalar(const EVSpace_Vector* vector, double scalar)
 	arr[1] = Vector_Y(vector) / scalar;
 	arr[2] = Vector_Z(vector) / scalar;
 
-	PyObject* rtn = new_vector_steal(arr);
+	EVSpace_Vector* rtn = new_vector_steal(arr);
 	if (!rtn)
 		free(arr);
 
-	return rtn;
+	return (EVSpace_Vector*)rtn;
 }
 
 static void
@@ -313,7 +313,7 @@ _idivide_vector_scalar(EVSpace_Vector* self, double scalar)
 	Vector_Z(self) /= scalar;
 }
 
-static PyObject*
+static EVSpace_Vector*
 _negative_vector(const EVSpace_Vector* self)
 {
 	double* arr = malloc(Vector_SIZE);
@@ -324,7 +324,7 @@ _negative_vector(const EVSpace_Vector* self)
 	arr[1] = -Vector_Y(self);
 	arr[2] = -Vector_Z(self);
 
-	PyObject* rtn = new_vector_steal(arr);
+	EVSpace_Vector* rtn = new_vector_steal(arr);
 	if (!rtn)
 		free(arr);
 
@@ -340,7 +340,7 @@ vector_add(EVSpace_Vector* lhs, PyObject* rhs)
 {
 	if (Vector_Check((PyObject*)lhs) && Vector_Check(rhs))
 	{
-		return _add_vector_vector(lhs, (EVSpace_Vector*)rhs);
+		return (PyObject*)_add_vector_vector(lhs, (EVSpace_Vector*)rhs);
 	}
 
 	Py_RETURN_NOTIMPLEMENTED;
@@ -351,7 +351,7 @@ vector_subtract(EVSpace_Vector* lhs, PyObject* rhs)
 {
 	if (Vector_Check(lhs) && Vector_Check(rhs))
 	{
-		return _subtract_vector_vector(lhs, (EVSpace_Vector*)rhs);
+		return (PyObject*)_subtract_vector_vector(lhs, (EVSpace_Vector*)rhs);
 	}
 
 	Py_RETURN_NOTIMPLEMENTED;
@@ -365,7 +365,7 @@ vector_multiply(EVSpace_Vector* lhs, PyObject* rhs)
 		if (scalar == -1.0 && PyErr_Occurred())
 			return NULL;
 
-		return _multiply_vector_scalar(lhs, scalar);
+		return (PyObject*)_multiply_vector_scalar(lhs, scalar);
 	}
 
 	Py_RETURN_NOTIMPLEMENTED;
@@ -379,7 +379,7 @@ vector_divide(EVSpace_Vector* lhs, PyObject* rhs)
 		if (scalar == -1.0 && PyErr_Occurred())
 			return NULL;
 
-		return _divide_vector_scalar(lhs, scalar);
+		return (PyObject*)_divide_vector_scalar(lhs, scalar);
 	}
 
 	Py_RETURN_NOTIMPLEMENTED;
@@ -445,7 +445,7 @@ vector_negative(EVSpace_Vector* self)
 	if (!Vector_Check(self))
 		return NULL;
 
-	return _negative_vector(self);
+	return (PyObject*)_negative_vector(self);
 }
 
 
@@ -556,19 +556,19 @@ buffer_release(EVSpace_Vector* obj, Py_buffer* view)
 /* class methods capsule */
 
 static double
-capsule_vector_magnitude(const EVSpace_Vector* self)
+_vector_magnitude(const EVSpace_Vector* self)
 {
 	return VECTOR_MAG(self);
 }
 
 static double
-capsule_vector_magnitude2(const EVSpace_Vector* self)
+_vector_magnitude2(const EVSpace_Vector* self)
 {
 	return VECTOR_MAG2(self);
 }
 
 static void
-capsule_vector_normalize(EVSpace_Vector* self)
+_vector_normalize(EVSpace_Vector* self)
 {
 	_idivide_vector_scalar(self, VECTOR_MAG(self));
 }
@@ -634,37 +634,37 @@ vector_reduce(EVSpace_Vector* self, PyObject* Py_UNUSED)
 // module level capsule functions
 
 static double
-capsule_vector_dot(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs)
+_vector_dot(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs)
 {
 	return VECTOR_DOT(lhs, rhs);
 }
 
-static PyObject*
-capsule_vector_cross(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs)
+static EVSpace_Vector*
+_vector_cross(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs)
 {
 	double* arr = malloc(Vector_SIZE);
 	if (!arr)
-		return PyErr_NoMemory();
+		return (EVSpace_Vector*)PyErr_NoMemory();
 
 	arr[0] = Vector_Y(lhs) * Vector_Z(rhs) - Vector_Z(lhs) * Vector_Y(rhs);
 	arr[1] = Vector_Z(lhs) * Vector_X(rhs) - Vector_X(lhs) * Vector_Z(rhs);
 	arr[2] = Vector_X(lhs) * Vector_Y(rhs) - Vector_Y(lhs) * Vector_X(rhs);
 
-	PyObject* rtn = new_vector_steal(arr);
+	EVSpace_Vector* rtn = new_vector_steal(arr);
 	if (!rtn)
 		free(arr);
 
 	return rtn;
 }
 
-static PyObject*
-capsule_vector_norm(const EVSpace_Vector* self)
+static EVSpace_Vector*
+_vector_norm(const EVSpace_Vector* self)
 {
 	return _divide_vector_scalar(self, VECTOR_MAG(self));
 }
 
 static double
-capsule_vang(const EVSpace_Vector* from, const EVSpace_Vector* to)
+_vector_angle(const EVSpace_Vector* from, const EVSpace_Vector* to)
 {
 	double dot = VECTOR_DOT(from, to);
 	double lhs_mag = VECTOR_MAG(from);
@@ -675,41 +675,41 @@ capsule_vang(const EVSpace_Vector* from, const EVSpace_Vector* to)
 	return acos(dot / (lhs_mag * rhs_mag));
 }
 
-static PyObject*
-capsule_vxcl(const EVSpace_Vector* vector, const EVSpace_Vector* exclude)
+static EVSpace_Vector*
+_vector_exclude(const EVSpace_Vector* vector, const EVSpace_Vector* exclude)
 {
 	double scale = VECTOR_DOT(vector, exclude) / VECTOR_MAG2(exclude);
 
 	double* arr = malloc(Vector_SIZE);
 	if (!arr)
-		return PyErr_NoMemory();
+		return (EVSpace_Vector*)PyErr_NoMemory();
 
 	arr[0] = Vector_X(vector) - Vector_X(exclude) * scale;
 	arr[1] = Vector_Y(vector) - Vector_Y(exclude) * scale;
 	arr[2] = Vector_Z(vector) - Vector_Z(exclude) * scale;
 
-	PyObject* rtn = new_vector_steal(arr);
+	EVSpace_Vector* rtn = new_vector_steal(arr);
 	if (!rtn)
 		free(arr);
 
 	return rtn;
 }
 
-static PyObject*
-capsule_proj(const EVSpace_Vector* proj, const EVSpace_Vector* onto)
+static EVSpace_Vector*
+_vector_projection(const EVSpace_Vector* proj, const EVSpace_Vector* onto)
 {
 	double dot = VECTOR_DOT(proj, onto);
 	double mag2 = VECTOR_MAG2(onto);
 
 	double* arr = malloc(Vector_SIZE);
 	if (!arr)
-		return PyErr_NoMemory();
+		return (EVSpace_Vector*)PyErr_NoMemory();
 
 	arr[0] = Vector_X(onto) * dot / mag2;
 	arr[1] = Vector_Y(onto) * dot / mag2;
 	arr[2] = Vector_Z(onto) * dot / mag2;
 
-	PyObject* rtn = new_vector_steal(arr);
+	EVSpace_Vector* rtn = new_vector_steal(arr);
 	if (!rtn)
 		free(arr);
 
@@ -759,7 +759,8 @@ vector_cross(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size)
 		return NULL;
 	}
 
-	return capsule_vector_cross((EVSpace_Vector*)args[0], (EVSpace_Vector*)args[1]);
+	return (PyObject*)_vector_cross((EVSpace_Vector*)args[0], 
+									(EVSpace_Vector*)args[1]);
 }
 
 static PyObject*
@@ -775,7 +776,7 @@ vector_norm(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size)
 		return NULL;
 	}
 
-	return capsule_vector_norm((EVSpace_Vector*)args[0]);
+	return (PyObject*)_vector_norm((EVSpace_Vector*)args[0]);
 }
 
 static PyObject*
@@ -795,7 +796,7 @@ vector_vang(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size)
 		return NULL;
 	}
 
-	double angle = capsule_vang((EVSpace_Vector*)args[0], (EVSpace_Vector*)args[1]);
+	double angle = _vector_angle((EVSpace_Vector*)args[0], (EVSpace_Vector*)args[1]);
 
 	return PyFloat_FromDouble(angle);
 }
@@ -804,40 +805,48 @@ static PyObject*
 vector_vxcl(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size)
 {
 	if (size != 2) {
-		PyErr_SetString(PyExc_TypeError, "vxcl() takes exactly one argument");
+		PyErr_SetString(PyExc_TypeError, 
+			"vxcl() takes exactly one argument");
 		return NULL;
 	}
 
 	if (!Vector_Check(args[0])) {
-		PyErr_SetString(PyExc_TypeError, "first argument must be EVector type");
+		PyErr_SetString(PyExc_TypeError, 
+			"first argument must be EVector type");
 		return NULL;
 	}
 	else if (!Vector_Check(args[1])) {
-		PyErr_SetString(PyExc_TypeError, "second argument must be EVector type");
+		PyErr_SetString(PyExc_TypeError, 
+			"second argument must be EVector type");
 		return NULL;
 	}
 
-	return capsule_vxcl((EVSpace_Vector*)args[0], (EVSpace_Vector*)args[1]);
+	return (PyObject*)_vector_exclude((EVSpace_Vector*)args[0], 
+									  (EVSpace_Vector*)args[1]);
 }
 
 static PyObject*
 vector_proj(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size)
 {
 	if (size != 2) {
-		PyErr_SetString(PyExc_TypeError, "proj() takes exactly two arguments");
+		PyErr_SetString(PyExc_TypeError, 
+			"proj() takes exactly two arguments");
 		return NULL;
 	}
 
 	if (!Vector_Check(args[0])) {
-		PyErr_SetString(PyExc_TypeError, "first argument must be EVector type");
+		PyErr_SetString(PyExc_TypeError, 
+			"first argument must be EVector type");
 		return NULL;
 	}
 	if (!Vector_Check(args[1])) {
-		PyErr_SetString(PyExc_TypeError, "second argument must be EVector type");
+		PyErr_SetString(PyExc_TypeError, 
+			"second argument must be EVector type");
 		return NULL;
 	}
 
-	return capsule_proj((EVSpace_Vector*)args[0], (EVSpace_Vector*)args[1]);
+	return (PyObject*)_vector_projection((EVSpace_Vector*)args[0], 
+										 (EVSpace_Vector*)args[1]);
 }
 
 #endif // EVSPACE_VECTOR_H
