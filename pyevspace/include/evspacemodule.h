@@ -6,21 +6,50 @@ extern "C" {
 #endif
 
 #include <evspace_common.h>
-#include <evspace_vector.h>
-#include <evspace_matrix.h>
-#include <evspace_angles.h>
-#include <evspace_rotation.h>
+//#include <evspace_vector.h>
+//#include <evspace_matrix.h>
+//#include <evspace_angles.h>
+//#include <evspace_rotation.h>
 
-/* C types for EVectorand EMatrix */
-//typedef struct {
-//	PyObject_HEAD
-//	double *data;			/* x, y, z component of vectors */
-//} EVSpace_Vector;
+/* C types */
 
-//typedef struct {
-//	PyObject_HEAD
-//	double* data;			/* row by column ordering */
-//} EVSpace_Matrix;
+typedef struct {
+	PyObject_HEAD
+	double* data;			/* x, y, z component of vectors */
+} EVSpace_Vector;
+
+
+typedef struct {
+	PyObject_HEAD
+	double* data;			/* row by column ordering */
+} EVSpace_Matrix;
+
+typedef struct {
+	PyObject_HEAD
+		double alpha;
+	double beta;
+	double gamma;
+} EVSpace_Angles;
+
+typedef enum {
+	X_AXIS = 0,
+	Y_AXIS = 1,
+	Z_AXIS = 2
+} EVSpace_Axis;
+
+typedef struct {
+	PyObject_HEAD
+		EVSpace_Axis first;
+	EVSpace_Axis second;
+	EVSpace_Axis third;
+} EVSpace_Order;
+
+typedef struct {
+	PyObject_HEAD
+		EVSpace_Order* order;
+	EVSpace_Angles* angles;
+	EVSpace_Matrix* matrix;
+} EVSpace_Rotation;
 
 
 /* define macros for accessing EVSpace_Vector array values */
@@ -31,7 +60,7 @@ extern "C" {
 
 /* define macros for accessing EVSpace_Matrix values */
 #define EVSpace_RC_INDEX(r, c)			(3 * r + c)
-#define EVSpace_MATRIX_COMPONENT(o, r, c) \
+#define EVSpace_MATRIX_COMP(o, r, c) \
 		(((EVSpace_Matrix*)o)->data[EVSpace_RC_INDEX(r, c)])
 
 

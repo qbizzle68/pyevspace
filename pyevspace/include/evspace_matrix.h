@@ -4,20 +4,17 @@
 #include <Python.h>
 #include <evspace_common.h>
 #include <evspace_vector.h>
+#include <evspacemodule.h>
 
 // forward declaration
 static PyTypeObject EVSpace_MatrixType;
 
-typedef struct {
-	PyObject_HEAD
-	double* data;			/* row by column ordering */
-} EVSpace_Matrix;
 
 #define Matrix_Check(o)			PyObject_TypeCheck(o, &EVSpace_MatrixType)
 
-#define EVSpace_RC_INDEX(r, c)		(3 * r + c)
-#define EVSpace_MATRIX_COMP(o, r, c) \
-		(((EVSpace_Matrix*)o)->data[EVSpace_RC_INDEX(r, c)])
+//#define EVSpace_RC_INDEX(r, c)		(3 * r + c)
+//#define EVSpace_MATRIX_COMP(o, r, c) \
+		//(((EVSpace_Matrix*)o)->data[EVSpace_RC_INDEX(r, c)])
 
 #define Matrix_DATA(o)			(o->data)
 #define PyMatrix_DATA(o)		(((EVSpace_Matrix*)o)->data)

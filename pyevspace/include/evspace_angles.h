@@ -2,6 +2,7 @@
 #define EVSPACE_ANGLES_H
 
 #include <Python.h>
+#include <evspacemodule.h>
 //#include <math.h>
 
 #define PI		3.14159265358979323846
@@ -14,25 +15,7 @@ static PyTypeObject EVSpace_OrderType;
 #define Angles_Check(o)		PyObject_TypeCheck(o, &EVSpace_AnglesType)
 #define Order_Check(o)		PyObject_TypeCheck(o, &EVSpace_OrderType)
 
-typedef struct {
-	PyObject_HEAD
-	double alpha;
-	double beta;
-	double gamma;
-} EVSpace_Angles;
 
-typedef enum {
-	X_AXIS = 0,
-	Y_AXIS = 1,
-	Z_AXIS = 2
-} EVSpace_Axis;
-
-typedef struct {
-	PyObject_HEAD
-	EVSpace_Axis first;
-	EVSpace_Axis second;
-	EVSpace_Axis third;
-} EVSpace_Order;
 
 static EVSpace_Angles*
 _new_angles(double alpha, double beta, double gamma, PyTypeObject* type)

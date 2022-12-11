@@ -2,6 +2,7 @@
 #define EVSPACE_ROTATION_H
 
 #include <Python.h>
+#include <evspacemodule.h>
 #include <evspace_angles.h>
 #include <evspace_vector.h>
 #include <evspace_matrix.h>
@@ -9,12 +10,7 @@
 // forward declaration
 static PyTypeObject EVSpace_RotationType;
 
-typedef struct {
-	PyObject_HEAD
-	EVSpace_Order* order;
-	EVSpace_Angles* angles;
-	EVSpace_Matrix* matrix;
-} EVSpace_Rotation;
+
 
 static EVSpace_Matrix*
 _get_x_rotation(double angle)
