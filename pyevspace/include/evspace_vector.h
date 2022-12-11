@@ -45,8 +45,8 @@ typedef struct {
  * the calls to these constructors.
  */
 
-static PyObject* 
-vector_from_array(const double* arr, PyTypeObject* type)
+static EVSpace_Vector*
+_vector_from_array(const double* arr, PyTypeObject* type)
 {
 	EVSpace_Vector* self = (EVSpace_Vector*)(type->tp_alloc(type, 0));
 	if (!self)
@@ -68,8 +68,8 @@ vector_from_array(const double* arr, PyTypeObject* type)
 	return (PyObject*)self;
 }
 
-static PyObject* 
-vector_steal_array(double* arr, PyTypeObject* type)
+static EVSpace_Vector*
+_vector_steal_array(double* arr, PyTypeObject* type)
 {
 	assert(arr != NULL);
 
@@ -84,9 +84,9 @@ vector_steal_array(double* arr, PyTypeObject* type)
 }
 
 /* macros to simplify the constructor calls */
-#define new_vector(a)		vector_from_array(a, &EVSpace_VectorType)
-#define new_vector_empty	vector_from_array(NULL, &EVSpace_VectorType)
-#define new_vector_steal(a)	vector_steal_array(a, &EVSpace_VectorType)
+#define new_vector(a)		_vector_from_array(a, &EVSpace_VectorType)
+#define new_vector_empty	_vector_from_array(NULL, &EVSpace_VectorType)
+#define new_vector_steal(a)	_vector_steal_array(a, &EVSpace_VectorType)
 
 static PyObject*
 vector_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED)
@@ -109,7 +109,7 @@ vector_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED)
 		return NULL;
 	}
 
-	return vector_steal_array(arr, type);
+	return _vector_steal_array(arr, type);
 }
 
 
@@ -130,7 +130,7 @@ vector_free(void* self)
 
 /* helper for str and repr functions */
 static int
-vector_string_length(const EVSpace_Vector* self)
+__vector_string_length(const EVSpace_Vector* self)
 {
 	// see how many bytes snprintf would write
 	return snprintf(NULL, 0, VECTOR_STR_FORMAT,
@@ -141,7 +141,7 @@ static PyObject*
 vector_str(const EVSpace_Vector* self)
 {
 	// find how many bytes we need to allocate
-	const size_t buffer_size = vector_string_length(self);
+	const size_t buffer_size = __vector_string_length(self);
 
 	char* buffer = malloc(buffer_size + 1);
 	if (!buffer)
@@ -161,7 +161,7 @@ static PyObject*
 vector_repr(const EVSpace_Vector* self)
 {
 	// find how many bytes we need to allocate
-	const size_t buffer_size = vector_string_length(self);
+	const size_t buffer_size = __vector_string_length(self);
 
 	// 9 extra chars for type name and 1 for null char
 	char* buffer = malloc(buffer_size + 10);
@@ -209,8 +209,8 @@ vector_richcompare(EVSpace_Vector* self, PyObject* other, int op)
 
 /* capsule number functions */
 
-static PyObject*
-add_vector_vector(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs)
+static EVSpace_Vector*
+_add_vector_vector(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs)
 {
 	double* arr = malloc(Vector_SIZE);
 	if (!arr)
@@ -227,8 +227,8 @@ add_vector_vector(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs)
 	return rtn;
 }
 
-static PyObject*
-subtract_vector_vector(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs)
+static EVSpace_Vector*
+_subtract_vector_vector(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs)
 {
 	double* arr = malloc(Vector_SIZE);
 	if (!arr)
@@ -245,8 +245,8 @@ subtract_vector_vector(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs)
 	return rtn;
 }
 
-static PyObject*
-multiply_vector_scalar(const EVSpace_Vector* vector, double scalar)
+static EVSpace_Vector*
+_multiply_vector_scalar(const EVSpace_Vector* vector, double scalar)
 {
 	double* arr = malloc(Vector_SIZE);
 	if (!arr)
@@ -263,8 +263,8 @@ multiply_vector_scalar(const EVSpace_Vector* vector, double scalar)
 	return rtn;
 }
 
-static PyObject*
-divide_vector_scalar(const EVSpace_Vector* vector, double scalar)
+static EVSpace_Vector*
+_divide_vector_scalar(const EVSpace_Vector* vector, double scalar)
 {
 	double* arr = malloc(Vector_SIZE);
 	if (!arr)
@@ -282,7 +282,7 @@ divide_vector_scalar(const EVSpace_Vector* vector, double scalar)
 }
 
 static void
-iadd_vector_vector(EVSpace_Vector* self, const EVSpace_Vector* other)
+_iadd_vector_vector(EVSpace_Vector* self, const EVSpace_Vector* other)
 {
 	Vector_X(self) += Vector_X(other);
 	Vector_Y(self) += Vector_Y(other);
@@ -290,7 +290,7 @@ iadd_vector_vector(EVSpace_Vector* self, const EVSpace_Vector* other)
 }
 
 static void
-isubtract_vector_vector(EVSpace_Vector* self, const EVSpace_Vector* other)
+_isubtract_vector_vector(EVSpace_Vector* self, const EVSpace_Vector* other)
 {
 	Vector_X(self) -= Vector_X(other);
 	Vector_Y(self) -= Vector_Y(other);
@@ -298,7 +298,7 @@ isubtract_vector_vector(EVSpace_Vector* self, const EVSpace_Vector* other)
 }
 
 static void
-imultiply_vector_scalar(EVSpace_Vector* self, double scalar)
+_imultiply_vector_scalar(EVSpace_Vector* self, double scalar)
 {
 	Vector_X(self) *= scalar;
 	Vector_Y(self) *= scalar;
@@ -306,7 +306,7 @@ imultiply_vector_scalar(EVSpace_Vector* self, double scalar)
 }
 
 static void
-idivide_vector_scalar(EVSpace_Vector* self, double scalar)
+_idivide_vector_scalar(EVSpace_Vector* self, double scalar)
 {
 	Vector_X(self) /= scalar;
 	Vector_Y(self) /= scalar;
@@ -314,7 +314,7 @@ idivide_vector_scalar(EVSpace_Vector* self, double scalar)
 }
 
 static PyObject*
-negative_vector(const EVSpace_Vector* self)
+_negative_vector(const EVSpace_Vector* self)
 {
 	double* arr = malloc(Vector_SIZE);
 	if (!arr)
@@ -340,7 +340,7 @@ vector_add(EVSpace_Vector* lhs, PyObject* rhs)
 {
 	if (Vector_Check((PyObject*)lhs) && Vector_Check(rhs))
 	{
-		return add_vector_vector(lhs, (EVSpace_Vector*)rhs);
+		return _add_vector_vector(lhs, (EVSpace_Vector*)rhs);
 	}
 
 	Py_RETURN_NOTIMPLEMENTED;
@@ -351,7 +351,7 @@ vector_subtract(EVSpace_Vector* lhs, PyObject* rhs)
 {
 	if (Vector_Check(lhs) && Vector_Check(rhs))
 	{
-		return subtract_vector_vector(lhs, (EVSpace_Vector*)rhs);
+		return _subtract_vector_vector(lhs, (EVSpace_Vector*)rhs);
 	}
 
 	Py_RETURN_NOTIMPLEMENTED;
@@ -365,7 +365,7 @@ vector_multiply(EVSpace_Vector* lhs, PyObject* rhs)
 		if (scalar == -1.0 && PyErr_Occurred())
 			return NULL;
 
-		return multiply_vector_scalar(lhs, scalar);
+		return _multiply_vector_scalar(lhs, scalar);
 	}
 
 	Py_RETURN_NOTIMPLEMENTED;
@@ -379,7 +379,7 @@ vector_divide(EVSpace_Vector* lhs, PyObject* rhs)
 		if (scalar == -1.0 && PyErr_Occurred())
 			return NULL;
 
-		return divide_vector_scalar(lhs, scalar);
+		return _divide_vector_scalar(lhs, scalar);
 	}
 
 	Py_RETURN_NOTIMPLEMENTED;
@@ -389,7 +389,7 @@ static PyObject*
 vector_iadd(EVSpace_Vector* self, PyObject* other)
 {
 	if (Vector_Check(self) && Vector_Check(other)) {
-		iadd_vector_vector(self, (EVSpace_Vector*)other);
+		_iadd_vector_vector(self, (EVSpace_Vector*)other);
 		return Py_NewRef(self);
 	}
 
@@ -400,7 +400,7 @@ static PyObject*
 vector_isubtract(EVSpace_Vector* self, PyObject* other)
 {
 	if (Vector_Check(self) && Vector_Check(other)) {
-		isubtract_vector_vector(self, (EVSpace_Vector*)other);
+		_isubtract_vector_vector(self, (EVSpace_Vector*)other);
 		return Py_NewRef(self);
 	}
 
@@ -415,7 +415,7 @@ vector_imultiply(EVSpace_Vector* self, PyObject* other)
 		if (scalar == -1.0 && PyErr_Occurred())
 			return NULL;
 
-		imultiply_vector_scalar(self, scalar);
+		_imultiply_vector_scalar(self, scalar);
 
 		return Py_NewRef(self);
 	}
@@ -431,7 +431,7 @@ vector_idivide(EVSpace_Vector* self, PyObject* other)
 		if (scalar == -1.0 && PyErr_Occurred())
 			return NULL;
 
-		idivide_vector_scalar(self, scalar);
+		_idivide_vector_scalar(self, scalar);
 
 		return Py_NewRef(self);
 	}
@@ -445,7 +445,7 @@ vector_negative(EVSpace_Vector* self)
 	if (!Vector_Check(self))
 		return NULL;
 
-	return negative_vector(self);
+	return _negative_vector(self);
 }
 
 
@@ -570,7 +570,7 @@ capsule_vector_magnitude2(const EVSpace_Vector* self)
 static void
 capsule_vector_normalize(EVSpace_Vector* self)
 {
-	idivide_vector_scalar(self, VECTOR_MAG(self));
+	_idivide_vector_scalar(self, VECTOR_MAG(self));
 }
 
 
@@ -613,7 +613,7 @@ vector_normalize(EVSpace_Vector* self, PyObject* Py_UNUSED)
 		return NULL;
 	}
 
-	idivide_vector_scalar(self, VECTOR_MAG(self));
+	_idivide_vector_scalar(self, VECTOR_MAG(self));
 
 	return Py_NewRef(self);
 }
@@ -660,7 +660,7 @@ capsule_vector_cross(const EVSpace_Vector* lhs, const EVSpace_Vector* rhs)
 static PyObject*
 capsule_vector_norm(const EVSpace_Vector* self)
 {
-	return divide_vector_scalar(self, VECTOR_MAG(self));
+	return _divide_vector_scalar(self, VECTOR_MAG(self));
 }
 
 static double

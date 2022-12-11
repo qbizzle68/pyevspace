@@ -44,23 +44,24 @@ typedef struct {
 	PyTypeObject* OrderType;
 
 	/* constructors */
-	PyObject* (*Vector_FromArray)(double*, PyTypeObject*);
-	PyObject* (*Vector_StealArray)(double*, PyTypeObject*);
+	EVSpace_Vector* (*Vector_FromArray)(double*, PyTypeObject*);
+	EVSpace_Vector* (*Vector_StealArray)(double*, PyTypeObject*);
 	PyObject* (*Matrix_FromArray)(double*, PyTypeObject*);
 	PyObject* (*Matrix_StealArray)(double*, PyTypeObject*);
 	PyObject* (*Angle_New)(double, double, double, PyTypeObject*);
 	PyObject* (*Order_New)(EVSpace_Axis, EVSpace_Axis, EVSpace_Axis, PyTypeObject*);
 
 	/* vector number methods */
-	PyObject* (*EVSpace_Vector_add)(const EVSpace_Vector*, const EVSpace_Vector*);
-	PyObject* (*EVSpace_Vector_subtract)(const EVSpace_Vector*, const EVSpace_Vector*);
-	PyObject* (*EVSpace_Vector_multiply)(const EVSpace_Vector*, double);
-	PyObject* (*EVSpace_Vector_divide)(const EVSpace_Vector*, double);
+	EVSpace_Vector* (*EVSpace_Vector_add)(const EVSpace_Vector*, const EVSpace_Vector*);
+	EVSpace_Vector* (*EVSpace_Vector_subtract)(const EVSpace_Vector*, 
+											   const EVSpace_Vector*);
+	EVSpace_Vector* (*EVSpace_Vector_multiply)(const EVSpace_Vector*, double);
+	EVSpace_Vector* (*EVSpace_Vector_divide)(const EVSpace_Vector*, double);
 	void (*EVSpace_Vector_iadd)(EVSpace_Vector*, const EVSpace_Vector*);
 	void (*EVSpace_Vector_isubtract)(EVSpace_Vector*, const EVSpace_Vector*);
 	void (*EVSpace_Vector_imultiply)(EVSpace_Vector*, double);
 	void (*EVSpace_Vector_idivide)(EVSpace_Vector*, double);
-	PyObject* (*EVSpace_Vector_negative)(const EVSpace_Vector*);
+	EVSpace_Vector* (*EVSpace_Vector_negative)(const EVSpace_Vector*);
 
 	/* matrix number methods */
 	PyObject* (*EVSpace_Matrix_add)(const EVSpace_Matrix*, const EVSpace_Matrix*);

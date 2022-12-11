@@ -246,20 +246,20 @@ EVSpace_CAPI* get_evspace_capi(void)
 	capi->VectorType = &EVSpace_VectorType;
 	capi->MatrixType = &EVSpace_MatrixType;
 
-	capi->Vector_FromArray	= vector_from_array;
-	capi->Vector_StealArray	= vector_steal_array;
+	capi->Vector_FromArray	= _vector_from_array;
+	capi->Vector_StealArray	= _vector_steal_array;
 	capi->Matrix_FromArray	= matrix_from_array;
 	capi->Matrix_StealArray	= matrix_steal_array;
 
-	capi->EVSpace_Vector_add		= add_vector_vector;
-	capi->EVSpace_Vector_subtract	= subtract_vector_vector;
-	capi->EVSpace_Vector_multiply	= multiply_vector_scalar;
-	capi->EVSpace_Vector_divide		= divide_vector_scalar;
-	capi->EVSpace_Vector_iadd		= iadd_vector_vector;
-	capi->EVSpace_Vector_isubtract	= isubtract_vector_vector;
-	capi->EVSpace_Vector_imultiply	= imultiply_vector_scalar;
-	capi->EVSpace_Vector_idivide	= idivide_vector_scalar;
-	capi->EVSpace_Vector_negative	= negative_vector;
+	capi->EVSpace_Vector_add		= _add_vector_vector;
+	capi->EVSpace_Vector_subtract	= _subtract_vector_vector;
+	capi->EVSpace_Vector_multiply	= _multiply_vector_scalar;
+	capi->EVSpace_Vector_divide		= _divide_vector_scalar;
+	capi->EVSpace_Vector_iadd		= _iadd_vector_vector;
+	capi->EVSpace_Vector_isubtract	= _isubtract_vector_vector;
+	capi->EVSpace_Vector_imultiply	= _imultiply_vector_scalar;
+	capi->EVSpace_Vector_idivide	= _idivide_vector_scalar;
+	capi->EVSpace_Vector_negative	= _negative_vector;
 
 	capi->EVSpace_Matrix_add				= add_matrix_matrix;
 	capi->EVSpace_Matrix_subtract			= subtract_matrix_matrix;
@@ -458,7 +458,7 @@ PyInit__pyevspace2(void)
 		return NULL;
 
 	EVSpace_Vector* vector 
-		= (EVSpace_Vector*)vector_from_array(NULL, &EVSpace_VectorType);
+		= (EVSpace_Vector*)_vector_from_array(NULL, &EVSpace_VectorType);
 	if (!vector) {
 		return NULL;
 	}
@@ -470,7 +470,7 @@ PyInit__pyevspace2(void)
 	}
 	Py_DECREF(vector);
 	
-	vector = (EVSpace_Vector*)vector_from_array(NULL, &EVSpace_VectorType);
+	vector = (EVSpace_Vector*)_vector_from_array(NULL, &EVSpace_VectorType);
 	if (!vector)
 		return NULL;
 
@@ -481,7 +481,7 @@ PyInit__pyevspace2(void)
 	}
 	Py_DECREF(vector);
 
-	vector = (EVSpace_Vector*)vector_from_array(NULL, &EVSpace_VectorType);
+	vector = (EVSpace_Vector*)_vector_from_array(NULL, &EVSpace_VectorType);
 	if (!vector)
 		return NULL;
 
