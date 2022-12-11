@@ -1,4 +1,4 @@
-//#ifdef __EVSPACE_SOURCE_INCLUDE__
+#ifdef __EVSPACE_SOURCE_INCLUDE__
 
 #ifndef EVSPACE_ROTATION_C
 #define EVSPACE_ROTATION_C
@@ -93,7 +93,7 @@ new_rotation_ex(const EVSpace_Order* order, const EVSpace_Angles* angles,
 }
 
 static PyObject*
-rotation_new(const PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED(_))
+rotation_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED(_))
 {
 	PyObject* order = NULL, *angles = NULL;
 
