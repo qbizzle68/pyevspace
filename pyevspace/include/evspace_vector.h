@@ -8,13 +8,6 @@
 /* forward declaration */
 static PyTypeObject EVSpace_VectorType;
 
-
-#define Vector_Check(o)		PyObject_TypeCheck(o, &EVSpace_VectorType)
-
-//#define EVSpace_VECTOR_X(o)	(((EVSpace_Vector*)o)->data[0])
-//#define EVSpace_VECTOR_Y(o)	(((EVSpace_Vector*)o)->data[1])
-//#define EVSpace_VECTOR_Z(o)	(((EVSpace_Vector*)o)->data[2])
-
 #define Vector_EQ(l, r)		(double_almost_eq(Vector_X(l), Vector_X(r)) \
 							&& double_almost_eq(Vector_Y(l), Vector_Y(r)) \
 							&& double_almost_eq(Vector_Z(l), Vector_Z(r)))

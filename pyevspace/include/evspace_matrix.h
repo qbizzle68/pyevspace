@@ -9,20 +9,13 @@
 // forward declaration
 static PyTypeObject EVSpace_MatrixType;
 
-
-#define Matrix_Check(o)			PyObject_TypeCheck(o, &EVSpace_MatrixType)
-
-//#define EVSpace_RC_INDEX(r, c)		(3 * r + c)
-//#define EVSpace_MATRIX_COMP(o, r, c) \
-		//(((EVSpace_Matrix*)o)->data[EVSpace_RC_INDEX(r, c)])
+#define RC_INDEX(r, c)			EVSpace_RC_INDEX(r, c)
+#define Matrix_COMP(o, r, c)	EVSpace_MATRIX_COMP(o, r, c)
 
 #define Matrix_DATA(o)			(o->data)
 #define PyMatrix_DATA(o)		(((EVSpace_Matrix*)o)->data)
 
 #define MATRIX_SIZE				9 * sizeof(double)
-
-#define RC_INDEX(r, c)			EVSpace_RC_INDEX(r, c)
-#define Matrix_COMP(o, r, c)	EVSpace_MATRIX_COMP(o, r, c)
 
 
 // constructors 

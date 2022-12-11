@@ -10,8 +10,6 @@
 // forward declaration
 static PyTypeObject EVSpace_RotationType;
 
-
-
 static EVSpace_Matrix*
 _get_x_rotation(double angle)
 {

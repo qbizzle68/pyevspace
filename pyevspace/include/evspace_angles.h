@@ -12,11 +12,6 @@
 static PyTypeObject EVSpace_AnglesType;
 static PyTypeObject EVSpace_OrderType;
 
-#define Angles_Check(o)		PyObject_TypeCheck(o, &EVSpace_AnglesType)
-#define Order_Check(o)		PyObject_TypeCheck(o, &EVSpace_OrderType)
-
-
-
 static EVSpace_Angles*
 _new_angles(double alpha, double beta, double gamma, PyTypeObject* type)
 {

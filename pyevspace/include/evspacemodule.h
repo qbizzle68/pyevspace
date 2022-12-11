@@ -5,12 +5,6 @@
 extern "C" {
 #endif
 
-#include <evspace_common.h>
-//#include <evspace_vector.h>
-//#include <evspace_matrix.h>
-//#include <evspace_angles.h>
-//#include <evspace_rotation.h>
-
 /* C types */
 
 typedef struct {
@@ -26,7 +20,7 @@ typedef struct {
 
 typedef struct {
 	PyObject_HEAD
-		double alpha;
+	double alpha;
 	double beta;
 	double gamma;
 } EVSpace_Angles;
@@ -39,14 +33,14 @@ typedef enum {
 
 typedef struct {
 	PyObject_HEAD
-		EVSpace_Axis first;
+	EVSpace_Axis first;
 	EVSpace_Axis second;
 	EVSpace_Axis third;
 } EVSpace_Order;
 
 typedef struct {
 	PyObject_HEAD
-		EVSpace_Order* order;
+	EVSpace_Order* order;
 	EVSpace_Angles* angles;
 	EVSpace_Matrix* matrix;
 } EVSpace_Rotation;
@@ -62,6 +56,11 @@ typedef struct {
 #define EVSpace_RC_INDEX(r, c)			(3 * r + c)
 #define EVSpace_MATRIX_COMP(o, r, c) \
 		(((EVSpace_Matrix*)o)->data[EVSpace_RC_INDEX(r, c)])
+
+#define Vector_Check(o)		PyObject_TypeCheck(o, &EVSpace_VectorType)
+#define Matrix_Check(o)		PyObject_TypeCheck(o, &EVSpace_MatrixType)
+#define Angles_Check(o)		PyObject_TypeCheck(o, &EVSpace_AnglesType)
+#define Order_Check(o)		PyObject_TypeCheck(o, &EVSpace_OrderType)
 
 
 /* Define structure for C API */
