@@ -19,6 +19,11 @@ typedef struct {
 #define EVSpace_MATRIX_COMP(o, r, c) \
 		(((EVSpace_Matrix*)o)->data[EVSpace_RC_INDEX(r, c)])
 
+#define Matrix_DATA(o)			(o->data)
+#define PyMatrix_DATA(o)		(((EVSpace_Matrix*)o)->data)
+
+#define MATRIX_SIZE				9 * sizeof(double)
+
 
 // constructors 
 

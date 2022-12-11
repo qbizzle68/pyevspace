@@ -10,11 +10,6 @@
 #define RC_INDEX(r, c)			EVSpace_RC_INDEX(r, c)
 #define Matrix_COMP(o, r, c)	EVSpace_MATRIX_COMP(o, r, c)
 
-#define Matrix_DATA(o)			(o->data)
-#define PyMatrix_DATA(o)		(((EVSpace_Matrix*)o)->data)
-
-#define MATRIX_SIZE				9 * sizeof(double)
-
 
 
 static PyObject*
