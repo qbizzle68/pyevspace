@@ -1,8 +1,8 @@
 ﻿#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <structmember.h> // PyMemberDef
-#include <float.h> // DBL_EPSILON
-#include <stdint.h> // int32_t, int64_t
+//#include <float.h> // DBL_EPSILON
+//#include <stdint.h> // int32_t, int64_t
 
 /* don't need the extra's for the C API */
 #define _EVSPACE_IMPL
@@ -12,10 +12,10 @@
 
 /* allow source include */
 #define __EVSPACE_SOURCE_INCLUDE__
-#include "evspace_common.c"
+//#include "evspace_common.c"
 //#include "evspace_vector.c"
 //#include "evspace_matrix.c"
-#include "evspace_angles.c"
+//#include "evspace_angles.c"
 #include "evspace_rotation.c"
 #undef __EVSPACE_SOURCE_INCLUDE__
 
