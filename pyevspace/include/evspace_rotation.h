@@ -132,7 +132,7 @@ _get_euler_matrix(const EVSpace_Order* order, const EVSpace_Angles* angles)
 /* constructor */
 
 static PyObject*
-_new_rotation(const EVSpace_Order* order, const EVSpace_Angles* angles, 
+_rotation_new(const EVSpace_Order* order, const EVSpace_Angles* angles, 
 	PyTypeObject* type)
 {
 	EVSpace_Rotation* rot = (EVSpace_Rotation*)type->tp_alloc(type, 0);
@@ -335,7 +335,7 @@ rotation_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED(_))
 		return NULL;
 	}
 
-	return (PyObject*)_new_rotation((EVSpace_Order*)order,
+	return (PyObject*)_rotation_new((EVSpace_Order*)order,
 		(EVSpace_Angles*)angles, type);
 }
 
@@ -447,7 +447,7 @@ rotation_subangle_setter(EVSpace_Rotation* self, PyObject* arg, void* closure)
 }
 
 static PyObject*
-rotation_matrix(PyObject* Py_UNUSED(_), PyObject* args)
+get_rotation_matrix(PyObject* Py_UNUSED(_), PyObject* args)
 {
 	EVSpace_Axis axis;
 	double angle = 0;
@@ -459,7 +459,7 @@ rotation_matrix(PyObject* Py_UNUSED(_), PyObject* args)
 }
 
 static PyObject*
-euler_matrix(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t size)
+get_euler_matrix(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t size)
 {
 	if (size != 2) {
 		PyErr_Format(PyExc_TypeError,
@@ -483,7 +483,7 @@ euler_matrix(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t size)
 }
 
 static PyObject*
-matrix_from_to(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t size)
+get_matrix_from_to(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t size)
 {
 	if (size != 4) {
 		PyErr_Format(PyExc_TypeError,
