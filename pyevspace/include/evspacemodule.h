@@ -62,6 +62,8 @@ typedef struct {
 #define Matrix_Check(o)		PyObject_TypeCheck(o, &EVSpace_MatrixType)
 #define Angles_Check(o)		PyObject_TypeCheck(o, &EVSpace_AnglesType)
 #define Order_Check(o)		PyObject_TypeCheck(o, &EVSpace_OrderType)
+#define ReferenceFrame_Check(o)	\
+							PyObject_TypeCheck(o, &EVSpace_ReferenceFrameType)
 
 
 /* Define structure for C API */
@@ -79,7 +81,8 @@ typedef struct {
 	EVSpace_Matrix* (*Matrix_FromArray)(double*, PyTypeObject*);
 	EVSpace_Matrix* (*Matrix_StealArray)(double*, PyTypeObject*);
 	EVSpace_Angles* (*Angles_New)(double, double, double, PyTypeObject*);
-	EVSpace_Order* (*Order_New)(EVSpace_Axis, EVSpace_Axis, EVSpace_Axis, PyTypeObject*);
+	EVSpace_Order* (*Order_New)(EVSpace_Axis, EVSpace_Axis, EVSpace_Axis, 
+								PyTypeObject*);
 
 	/* vector number methods */
 	EVSpace_Vector* (*EVSpace_Vector_add)(const EVSpace_Vector*, const EVSpace_Vector*);

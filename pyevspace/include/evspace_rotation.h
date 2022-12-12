@@ -319,13 +319,13 @@ _rotate_offset_from(const EVSpace_Matrix* matrix, const EVSpace_Vector* offset,
 
 
 static PyObject*
-reference_frame_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
+refframe_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 {
 	static char* kwlist[] = { "", "", "offset", NULL };
 	PyObject* order = NULL, * angles = NULL, * offset = NULL;
 
 	//if (PyArg_ParseTuple(args, "OO", &order, &angles) < 0)
-	if (PyArg_ParseTupleAndKeywords(args, kwds, "OO|O", kwlist, 
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "OO|$O", kwlist, 
 									&order, &angles, &offset) < 0)
 		return NULL;
 
@@ -345,13 +345,14 @@ reference_frame_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 }
 
 static PyObject*
-reference_frame_angles_getter(PyObject* self, void* closure)
+refframe_angles_getter(PyObject* self, void* closure)
 {
 	return Py_NewRef((PyObject*)(((EVSpace_ReferenceFrame*)self)->angles));
 }
 
 static int
-reference_frame_angles_setter(EVSpace_ReferenceFrame* self, EVSpace_Angles* arg, void* closure)
+refframe_angles_setter(EVSpace_ReferenceFrame* self, EVSpace_Angles* arg, 
+	void* closure)
 {
 	if (!arg) {
 		PyErr_SetString(PyExc_ValueError,
@@ -388,7 +389,7 @@ reference_frame_angles_setter(EVSpace_ReferenceFrame* self, EVSpace_Angles* arg,
 #define ROTATION_ANGLE_GAMMA	2
 
 static PyObject*
-reference_frame_subangle_getter(EVSpace_ReferenceFrame* self, void* closure)
+refframe_subangle_getter(EVSpace_ReferenceFrame* self, void* closure)
 {
 	size_t which = (size_t)closure;
 	assert(which == ROTATION_ANGLE_ALPHA || which == ROTATION_ANGLE_BETA
@@ -406,7 +407,8 @@ reference_frame_subangle_getter(EVSpace_ReferenceFrame* self, void* closure)
 }
 
 static int
-reference_frame_subangle_setter(EVSpace_ReferenceFrame* self, PyObject* arg, void* closure)
+refframe_subangle_setter(EVSpace_ReferenceFrame* self, PyObject* arg, 
+	void* closure)
 {
 	size_t which = (size_t)closure;
 	assert(which == ROTATION_ANGLE_ALPHA || which == ROTATION_ANGLE_BETA
@@ -452,13 +454,18 @@ reference_frame_subangle_setter(EVSpace_ReferenceFrame* self, PyObject* arg, voi
 }
 
 static PyObject*
-reference_frame_offset_getter(EVSpace_ReferenceFrame* self, void* Py_UNUSED(_))
+refframe_offset_getter(EVSpace_ReferenceFrame* self, void* Py_UNUSED(_))
 {
-	return (PyObject*)self->offset;
+	if (self->offset) {
+		return (PyObject*)self->offset;
+	}
+	else {
+		Py_RETURN_NONE;
+	}
 }
 
 static int
-reference_frame_offset_setter(EVSpace_ReferenceFrame* self, PyObject* arg, 
+refframe_offset_setter(EVSpace_ReferenceFrame* self, PyObject* arg, 
 	void* Py_UNUSED(_))
 {
 	if (!arg) {
@@ -756,10 +763,9 @@ rotate_offset_from(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t siz
 }
 
 static PyObject*
-reference_frame_rotate_to(EVSpace_ReferenceFrame* self, PyObject* vector)
+refframe_rotate_to(EVSpace_ReferenceFrame* self, PyObject* vector)
 {
-	if (!Vector_Check(vector))
-	{
+	if (!Vector_Check(vector)) {
 		PyErr_SetString(PyExc_TypeError,
 			"argument must be pyevspace.Vector type");
 		return NULL;
@@ -772,22 +778,13 @@ reference_frame_rotate_to(EVSpace_ReferenceFrame* self, PyObject* vector)
 	else {
 		return (PyObject*)_rotate_matrix_to(self->matrix, 
 											(EVSpace_Vector*)vector);
-		/*EVSpace_Matrix* transpose = _matrix_transpose(self->matrix);
-		if (!transpose)
-			return NULL;
-
-		EVSpace_Vector* rtn = _matrix_multiply_v(transpose,
-												 (EVSpace_Vector*)self);
-		Py_DECREF(transpose);
-		return (PyObject*)rtn;*/
 	}
 }
 
 static PyObject*
-reference_frame_rotate_from(EVSpace_ReferenceFrame* self, PyObject* vector)
+refframe_rotate_from(EVSpace_ReferenceFrame* self, PyObject* vector)
 {
-	if (!Vector_Check(vector))
-	{
+	if (!Vector_Check(vector)) {
 		PyErr_SetString(PyExc_TypeError,
 			"argument must be pyevspace.Vector type");
 		return NULL;
@@ -801,10 +798,112 @@ reference_frame_rotate_from(EVSpace_ReferenceFrame* self, PyObject* vector)
 		return (PyObject*)_matrix_multiply_v(self->matrix,
 											 (EVSpace_Vector*)vector);
 	}
+}
 
-	//EVSpace_Vector* rtn = _matrix_multiply_v(self->matrix,
-											 //(EVSpace_Vector*)self);
-	//return (PyObject*)rtn;
+static EVSpace_Vector*
+_refframe_to_frame(const EVSpace_ReferenceFrame* self, 
+	const EVSpace_ReferenceFrame* frame, const EVSpace_Vector* vector)
+{
+	EVSpace_Vector *tmp, *rtn;
+
+	if (self->offset) {
+		tmp = _rotate_offset_from(self->matrix, self->offset, vector);
+	}
+	else {
+		tmp = _rotate_matrix_from(self->matrix, vector);
+	}
+
+	if (!tmp) {
+		return NULL;
+	}
+
+	if (frame->offset) {
+		rtn = _rotate_offset_to(frame->matrix, frame->offset, tmp);
+	}
+	else {
+		rtn = _rotate_matrix_to(frame->matrix, tmp);
+	}
+
+	Py_DECREF(tmp);
+	return rtn;
+}
+
+static EVSpace_Vector*
+_refframe_from_frame(const EVSpace_ReferenceFrame* self,
+	const EVSpace_ReferenceFrame* frame, const EVSpace_Vector* vector)
+{
+	EVSpace_Vector *tmp, *rtn;
+
+	if (frame->offset) {
+		tmp = _rotate_offset_to(frame->matrix, frame->offset, vector);
+	}
+	else {
+		tmp = _rotate_matrix_to(frame->matrix, vector);
+	}
+
+	if (!tmp) {
+		return NULL;
+	}
+
+	if (self->offset) {
+		rtn = _rotate_offset_from(self->matrix, self->offset, tmp);
+	}
+	else {
+		rtn = _rotate_matrix_from(self->matrix, tmp);
+	}
+
+	Py_DECREF(tmp);
+	return rtn;
+}
+
+static PyObject*
+refframe_to_frame(EVSpace_ReferenceFrame* self, PyObject* const* args,
+	Py_ssize_t size)
+{
+	if (size != 2) {
+		PyErr_Format(PyExc_TypeError,
+			"rotateToFrame() expected exactly 2 arguments (%i given)",
+			size);
+		return NULL;
+	}
+
+	if (!ReferenceFrame_Check(args[0])) {
+		PyErr_SetString(PyExc_TypeError,
+			"first argument must be pyevspace.ReferenceFrame type");
+		return NULL;
+	}
+	if (!Vector_Check(args[1])) {
+		PyErr_SetString(PyExc_TypeError,
+			"second argument must be pyevspace.Vector type");
+		return NULL;
+	}
+
+	return (PyObject*)_refframe_to_frame(self, args[0], args[1]);
+}
+
+static PyObject*
+refframe_from_frame(EVSpace_ReferenceFrame* self, PyObject* const* args,
+	Py_ssize_t size)
+{
+	if (size != 2) {
+		PyErr_Format(PyExc_TypeError,
+			"rotateFromFrame() expected exactly 2 arguments (%i given)",
+			size);
+		return NULL;
+	}
+
+	if (!ReferenceFrame_Check(args[0])) {
+		PyErr_SetString(PyExc_TypeError,
+			"first argument must be pyevspace.ReferenceFrame type");
+		return NULL;
+	}
+	if (!Vector_Check(args[1])) {
+		PyErr_SetString(PyExc_TypeError,
+			"second argument must be pyevspace.Vector type");
+		return NULL;
+	}
+
+	return (PyObject*)_refframe_from_frame(self, args[0], args[1]);
 }
 
 #endif // EVSPACE_ROTATION_H

@@ -203,30 +203,34 @@ static PyMemberDef reference_frame_members[] = {
 };
 
 static PyGetSetDef reference_frame_getset[] = {
-	{"angles", (getter)reference_frame_angles_getter,
-		(setter)reference_frame_angles_setter, 
+	{"angles", (getter)refframe_angles_getter, (setter)refframe_angles_setter,
 		"angles of the rotations", NULL},
-	{"alpha", (getter)reference_frame_subangle_getter,
-		(setter)reference_frame_subangle_setter,
+	{"alpha", (getter)refframe_subangle_getter,
+		(setter)refframe_subangle_setter,
 		"alpha angle of the angles attribute", (void*)ROTATION_ANGLE_ALPHA},
-	{"beta", (getter)reference_frame_subangle_getter,
-		(setter)reference_frame_subangle_setter,
+	{"beta", (getter)refframe_subangle_getter,
+		(setter)refframe_subangle_setter,
 		"beta angle of the angles attribute", (void*)ROTATION_ANGLE_BETA},
-	{"gamma", (getter)reference_frame_subangle_getter,
-		(setter)reference_frame_subangle_setter,
+	{"gamma", (getter)refframe_subangle_getter,
+		(setter)refframe_subangle_setter,
 		"gamma angle of the angles attribute", (void*)ROTATION_ANGLE_GAMMA},
-	{"offset", (getter)reference_frame_offset_getter, 
-		(setter)reference_frame_offset_setter,
+	{"offset", (getter)refframe_offset_getter, (setter)refframe_offset_setter,
 		"offset of the reference frame origin", NULL},
 	{NULL}
 };
 
 static PyMethodDef reference_frame_methods[] = {
-	{"rotateTo", (PyCFunction)reference_frame_rotate_to, METH_O,
+	{"rotateTo", (PyCFunction)refframe_rotate_to, METH_O,
 		PyDoc_STR("rotate a vector from an intertial frame to this reference \
 			frame")},
-	{"rotateFrom", (PyCFunction)reference_frame_rotate_from, METH_O,
+	{"rotateFrom", (PyCFunction)refframe_rotate_from, METH_O,
 		PyDoc_STR("rotate a vector to an inertial frame from this reference \
+			frame")},
+	{"rotateToFrame", (PyCFunction)refframe_to_frame, METH_FASTCALL,
+		PyDoc_STR("rotate a vector from this frame to another reference \
+			frame")},
+	{"rotateFromFrame", (PyCFunction)refframe_from_frame, METH_FASTCALL,
+		PyDoc_STR("rotate a vector from another frame to this reference \
 			frame")},
 	{NULL}
 };
@@ -243,7 +247,7 @@ static PyTypeObject EVSpace_ReferenceFrameType = {
 	.tp_methods		= reference_frame_methods,
 	.tp_members		= reference_frame_members,
 	.tp_getset		= reference_frame_getset,
-	.tp_new			= (newfunc)reference_frame_new
+	.tp_new			= (newfunc)refframe_new
 };
 
 
