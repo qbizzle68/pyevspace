@@ -8,9 +8,9 @@
 /* forward declaration */
 static PyTypeObject EVSpace_VectorType;
 
-#define Vector_EQ(l, r)		(double_almost_eq(Vector_X(l), Vector_X(r)) \
-							&& double_almost_eq(Vector_Y(l), Vector_Y(r)) \
-							&& double_almost_eq(Vector_Z(l), Vector_Z(r)))
+#define Vector_EQ(l, r)		(__double_almost_eq(Vector_X(l), Vector_X(r)) \
+							&& __double_almost_eq(Vector_Y(l), Vector_Y(r)) \
+							&& __double_almost_eq(Vector_Z(l), Vector_Z(r)))
 
 #define Vector_X(o)			EVSpace_VECTOR_X(o)
 #define Vector_Y(o)			EVSpace_VECTOR_Y(o)
@@ -94,7 +94,7 @@ vector_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED)
 	if (!arr)
 		return PyErr_NoMemory();
 
-	if (get_sequence_state(parameter, arr) < 0) {
+	if (__get_sequence_state(parameter, arr) < 0) {
 		free(arr);
 		return NULL;
 	}

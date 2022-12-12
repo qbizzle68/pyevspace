@@ -83,9 +83,9 @@ matrix_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED(_))
 		return PyErr_NoMemory();
 
 	int results[3] = {
-		get_sequence_state(parameters[0], array),
-		get_sequence_state(parameters[1], array + 3),
-		get_sequence_state(parameters[2], array + 6)
+		__get_sequence_state(parameters[0], array),
+		__get_sequence_state(parameters[1], array + 3),
+		__get_sequence_state(parameters[2], array + 6)
 	};
 
 	if (results[0] < 0 || results[1] < 0 || results[2] < 0) {
@@ -174,15 +174,15 @@ matrix_repr(const EVSpace_Matrix* self)
 static int
 __matrix_equal(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
 {
-	return (double_almost_eq(Matrix_COMP(lhs, 0, 0), Matrix_COMP(rhs, 0, 0))
-		&& double_almost_eq(Matrix_COMP(lhs, 0, 1), Matrix_COMP(rhs, 0, 1))
-		&& double_almost_eq(Matrix_COMP(lhs, 0, 2), Matrix_COMP(rhs, 0, 2))
-		&& double_almost_eq(Matrix_COMP(lhs, 1, 0), Matrix_COMP(rhs, 1, 0))
-		&& double_almost_eq(Matrix_COMP(lhs, 1, 1), Matrix_COMP(rhs, 1, 1))
-		&& double_almost_eq(Matrix_COMP(lhs, 1, 2), Matrix_COMP(rhs, 1, 2))
-		&& double_almost_eq(Matrix_COMP(lhs, 2, 0), Matrix_COMP(rhs, 2, 0))
-		&& double_almost_eq(Matrix_COMP(lhs, 2, 1), Matrix_COMP(rhs, 2, 1))
-		&& double_almost_eq(Matrix_COMP(lhs, 2, 2), Matrix_COMP(rhs, 2, 2)));
+	return (__double_almost_eq(Matrix_COMP(lhs, 0, 0), Matrix_COMP(rhs, 0, 0))
+		&& __double_almost_eq(Matrix_COMP(lhs, 0, 1), Matrix_COMP(rhs, 0, 1))
+		&& __double_almost_eq(Matrix_COMP(lhs, 0, 2), Matrix_COMP(rhs, 0, 2))
+		&& __double_almost_eq(Matrix_COMP(lhs, 1, 0), Matrix_COMP(rhs, 1, 0))
+		&& __double_almost_eq(Matrix_COMP(lhs, 1, 1), Matrix_COMP(rhs, 1, 1))
+		&& __double_almost_eq(Matrix_COMP(lhs, 1, 2), Matrix_COMP(rhs, 1, 2))
+		&& __double_almost_eq(Matrix_COMP(lhs, 2, 0), Matrix_COMP(rhs, 2, 0))
+		&& __double_almost_eq(Matrix_COMP(lhs, 2, 1), Matrix_COMP(rhs, 2, 1))
+		&& __double_almost_eq(Matrix_COMP(lhs, 2, 2), Matrix_COMP(rhs, 2, 2)));
 }
 
 static PyObject*

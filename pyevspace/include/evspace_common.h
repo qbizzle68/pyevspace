@@ -8,7 +8,7 @@
 #define BUFFER_RELEASE_SHAPE	0x1
 
 static int
-get_sequence_state(PyObject* arg, double* arr)
+__get_sequence_state(PyObject* arg, double* arr)
 {
 	assert(arr != NULL);
 
@@ -76,7 +76,7 @@ get_sequence_state(PyObject* arg, double* arr)
 #define ULP_MAXIMUM	10 // this is a guess, 1 seems too stringent 
 
 static int
-double_almost_eq(double a, double b)
+__double_almost_eq(double a, double b)
 {
 	// check for really close values near zero
 	if (fabs(a - b) < DBL_EPSILON)
