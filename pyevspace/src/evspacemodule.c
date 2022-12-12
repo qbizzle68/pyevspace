@@ -195,30 +195,31 @@ static PyTypeObject EVSpace_OrderType = {
 };
 
 static PyMemberDef rotation_members[] = {
-	{"order", T_OBJECT_EX, offsetof(EVSpace_Rotation, order), READONLY,
+	{"order", T_OBJECT_EX, offsetof(EVSpace_ReferenceFrame, order), READONLY,
 		"order of axes in the rotation"},
-	{"matrix", T_OBJECT_EX, offsetof(EVSpace_Rotation, matrix), READONLY,
+	{"matrix", T_OBJECT_EX, offsetof(EVSpace_ReferenceFrame, matrix), READONLY,
 		"internal matrix describing the rotation"},
 	{NULL}
 };
 
 static PyGetSetDef rotation_getset[] = {
-	{"angles", (getter)rotation_angles_getter, (setter)rotation_angles_setter, 
+	{"angles", (getter)reference_frame_angles_getter, 
+		(setter)reference_frame_angles_setter, 
 		"angles of the rotations", NULL},
-	{"alpha", (getter)rotation_subangle_getter, (setter)rotation_subangle_setter,
+	{"alpha", (getter)reference_frame_subangle_getter, (setter)reference_frame_subangle_setter,
 		"alpha angle of the angles attribute", (void*)ROTATION_ANGLE_ALPHA},
-	{"beta", (getter)rotation_subangle_getter, (setter)rotation_subangle_setter,
+	{"beta", (getter)reference_frame_subangle_getter, (setter)reference_frame_subangle_setter,
 		"beta angle of the angles attribute", (void*)ROTATION_ANGLE_BETA},
-	{"gamma", (getter)rotation_subangle_getter, (setter)rotation_subangle_setter,
+	{"gamma", (getter)reference_frame_subangle_getter, (setter)reference_frame_subangle_setter,
 		"gamma angle of the angles attribute", (void*)ROTATION_ANGLE_GAMMA},
 	{NULL}
 };
 
 static PyMethodDef rotation_methods[] = {
-	{"rotateTo", (PyCFunction)rotation_rotate_to, METH_O,
+	{"rotateTo", (PyCFunction)reference_frame_rotate_to, METH_O,
 		PyDoc_STR("rotate a vector from an intertial frame to this reference \
 			frame")},
-	{"rotateFrom", (PyCFunction)rotation_rotate_from, METH_O,
+	{"rotateFrom", (PyCFunction)reference_frame_rotate_from, METH_O,
 		PyDoc_STR("rotate a vector to an inertial frame from this reference \
 			frame")},
 	{NULL}
@@ -226,17 +227,17 @@ static PyMethodDef rotation_methods[] = {
 
 PyDoc_STRVAR(rotation_doc, "");
 
-static PyTypeObject EVSpace_RotationType = {
+static PyTypeObject EVSpace_ReferenceFrameType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	.tp_name		= "pyevspace.Rotation",
-	.tp_basicsize	= sizeof(EVSpace_Rotation),
+	.tp_name		= "pyevspace.ReferenceFrame",
+	.tp_basicsize	= sizeof(EVSpace_ReferenceFrame),
 	.tp_itemsize	= 0,
 	.tp_flags		= Py_TPFLAGS_DEFAULT,
 	.tp_doc			= rotation_doc,
 	.tp_methods		= rotation_methods,
 	.tp_members		= rotation_members,
 	.tp_getset		= rotation_getset,
-	.tp_new			= (newfunc)rotation_new
+	.tp_new			= (newfunc)reference_frame_new
 };
 
 
@@ -425,7 +426,7 @@ _pyevspace_exec(PyObject* module)
 		&EVSpace_MatrixType,
 		&EVSpace_AnglesType,
 		&EVSpace_OrderType,
-		&EVSpace_RotationType
+		&EVSpace_ReferenceFrameType
 	};
 
 	for (int i = 0; i < Py_ARRAY_LENGTH(types); i++) {

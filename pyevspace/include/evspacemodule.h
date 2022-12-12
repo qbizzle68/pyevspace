@@ -43,7 +43,7 @@ typedef struct {
 	EVSpace_Order* order;
 	EVSpace_Angles* angles;
 	EVSpace_Matrix* matrix;
-} EVSpace_Rotation;
+} EVSpace_ReferenceFrame;
 
 
 /* define macros for accessing EVSpace_Vector array values */
@@ -68,8 +68,9 @@ typedef struct {
 	/* type objects */
 	PyTypeObject* VectorType;
 	PyTypeObject* MatrixType;
-	PyTypeObject* AngleType;
+	PyTypeObject* AnglesType;
 	PyTypeObject* OrderType;
+	PyTypeObject* RotationType;
 
 	/* constructors */
 	EVSpace_Vector* (*Vector_FromArray)(double*, PyTypeObject*);
@@ -167,35 +168,62 @@ typedef struct {
 /* Define global variable for the C API and a macro for setting it. */
 static EVSpace_CAPI* EVSpaceAPI = NULL;
 
-#define EVSpace_IMPORT EVSpaceAPI = (EVSpace_CAPI *)PyCapsule_Import(EVSpace_CAPSULE_NAME, 0)
+#define EVSpace_IMPORT EVSpaceAPI \
+			= (EVSpace_CAPI *)PyCapsule_Import(EVSpace_CAPSULE_NAME, 0)
 
 /* macros for simplified constructor calls */
-#define Vector_FromArray(arr)		EVSpaceAPI->Vector_FromArray(arr, EVSpaceAPI->VectorType)
-#define Vector_StealArray(arr)		EVSpaceAPI->Vector_StealArray(arr, EVSpaceAPI->VectorType)
-#define Matrix_FromArray(arr)		EVSpaceAPI->Matrix_FromArray(arr, EVSpaceAPI->MatrixType)
-#define Matrix_StealArray(arr)		EVSpaceAPI->Matrix_StealArray(arr, EVSpaceAPI->MatrixType)
+#define Vector_FromArray(arr)		\
+			EVSpaceAPI->Vector_FromArray(arr, EVSpaceAPI->VectorType)
+#define Vector_StealArray(arr)		\
+			EVSpaceAPI->Vector_StealArray(arr, EVSpaceAPI->VectorType)
+#define Matrix_FromArray(arr)		\
+			EVSpaceAPI->Matrix_FromArray(arr, EVSpaceAPI->MatrixType)
+#define Matrix_StealArray(arr)		\
+			EVSpaceAPI->Matrix_StealArray(arr, EVSpaceAPI->MatrixType)
+#define Angles_New()
 
 /* macros for C API */
-#define EVSpace_Vector_add(rhs, lhs)				EVSpaceAPI->EVSpace_Vector_add(rhs, lhs)
-#define EVSpace_Vector_subtract(rhs, lhs)		EVSpaceAPI->EVSpace_Vector_subtract(rhs, lhs)
-#define EVSpace_Vector_multiply(rhs, lhs)		EVSpaceAPI->EVSpace_Vector_multiply(rhs, lhs)
-#define EVSpace_Vector_divide(rhs, lhs)		EVSpaceAPI->EVSpace_Vector_divide(rhs, lhs)
-#define EVSpace_Vector_iadd(self, other)			EVSpaceAPI->EVSpace_Vector_iadd(self, other)
-#define EVSpace_Vector_isubtract(self, other)		EVSpaceAPI->EVSpace_Vector_isubtract(self, other)
-#define EVSpace_Vector_imultilpy(self, other)		EVSpaceAPI->EVSpace_Vector_imultiply(self, other)
-#define EVSpace_Vector_idivide(self, other)			EVSpaceAPI->EVSpace_Vector_idivide(self, other)
-#define EVSpace_Vector_negative(self)				EVSpaceAPI->EVspace_Vector_negative(self)
-#define EVSpace_Matrix_add(rhs, lhs)				EVSpaceAPI->EVSpace_Matrix_add(rhs, lhs)
-#define EVSpace_Matrix_subtract(rhs, lhs)			EVSpaceAPI->EVSpace_Matrix_subtract(rhs, lhs)
-#define EVSpace_Matrix_multiply_vector(rhs, lhs)	EVSpaceAPI->EVSpace_Matrix_multiply_vector(rhs, lhs)
-#define EVSpace_Matrix_multiply_matrix(rhs, lhs)	EVSpaceAPI->EVSpace_Matrix_multiply_matrix(rhs, lhs)
-#define EVSpace_Matrix_multiply_scalar(rhs, lhs)	EVSpaceAPI->EVSpace_Matrix_multiply_scalar(rhs, lhs)
-#define EVSpace_Matrix_divide(rhs, lhs)				EVSpaceAPI->EVSpace_Matrix_divide(rhs, lhs)
-#define EVSpace_Matrix_iadd(self, other)			EVSpaceAPI->EVSpace_Matrix_iadd(self, other)
-#define EVSpace_Matrix_isubtract(self, other)		EVSpaceAPI->EVSpace_Matrix_isubtract(self, other)
-#define EVSpace_Matrix_imultiply(self, other)		EVSpaceAPI->EVSpace_Matrix_imultiply(self, other)
-#define EVSpace_Matrix_idivide(self, other)			EVSpaceAPI->EVSpace_Matrix_idivide(self, other)
-#define EVSpace_Matrix_negative(self)				EVSpaceAPI->EVSpace_Matrix_negative(self)
+#define EVSpace_Vector_add(rhs, lhs)			\
+			EVSpaceAPI->EVSpace_Vector_add(rhs, lhs)
+#define EVSpace_Vector_subtract(rhs, lhs)		\
+			EVSpaceAPI->EVSpace_Vector_subtract(rhs, lhs)
+#define EVSpace_Vector_multiply(rhs, lhs)		\
+			EVSpaceAPI->EVSpace_Vector_multiply(rhs, lhs)
+#define EVSpace_Vector_divide(rhs, lhs)			\
+			EVSpaceAPI->EVSpace_Vector_divide(rhs, lhs)
+#define EVSpace_Vector_iadd(self, other)		\
+			EVSpaceAPI->EVSpace_Vector_iadd(self, other)
+#define EVSpace_Vector_isubtract(self, other)	\
+			EVSpaceAPI->EVSpace_Vector_isubtract(self, other)
+#define EVSpace_Vector_imultilpy(self, other)	\
+			EVSpaceAPI->EVSpace_Vector_imultiply(self, other)
+#define EVSpace_Vector_idivide(self, other)		\
+			EVSpaceAPI->EVSpace_Vector_idivide(self, other)
+#define EVSpace_Vector_negative(self)			\
+			EVSpaceAPI->EVspace_Vector_negative(self)
+#define EVSpace_Matrix_add(rhs, lhs)			\
+			EVSpaceAPI->EVSpace_Matrix_add(rhs, lhs)
+#define EVSpace_Matrix_subtract(rhs, lhs)		\
+			EVSpaceAPI->EVSpace_Matrix_subtract(rhs, lhs)
+#define EVSpace_Matrix_multiply_vector(rhs, lhs)\
+			EVSpaceAPI->EVSpace_Matrix_multiply_vector(rhs, lhs)
+#define EVSpace_Matrix_multiply_matrix(rhs, lhs)\
+			EVSpaceAPI->EVSpace_Matrix_multiply_matrix(rhs, lhs)
+#define EVSpace_Matrix_multiply_scalar(rhs, lhs)\
+			EVSpaceAPI->EVSpace_Matrix_multiply_scalar(rhs, lhs)
+#define EVSpace_Matrix_divide(rhs, lhs)			\
+			EVSpaceAPI->EVSpace_Matrix_divide(rhs, lhs)
+#define EVSpace_Matrix_iadd(self, other)		\
+			EVSpaceAPI->EVSpace_Matrix_iadd(self, other)
+#define EVSpace_Matrix_isubtract(self, other)	\
+			EVSpaceAPI->EVSpace_Matrix_isubtract(self, other)
+#define EVSpace_Matrix_imultiply(self, other)	\
+			EVSpaceAPI->EVSpace_Matrix_imultiply(self, other)
+#define EVSpace_Matrix_idivide(self, other)		\
+			EVSpaceAPI->EVSpace_Matrix_idivide(self, other)
+#define EVSpace_Matrix_negative(self)			\
+			EVSpaceAPI->EVSpace_Matrix_negative(self)
+
 /* vector class level methods */
 #define EVSpace_mag(self)			EVSpaceAPI->EVSpace_mag(self)
 #define EVSpace_mag_squared(self)	EVSpaceAPI->EVSpace_mag_squared(self)

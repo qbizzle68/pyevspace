@@ -8,7 +8,7 @@
 #include <evspace_matrix.h>
 
 // forward declaration
-static PyTypeObject EVSpace_RotationType;
+static PyTypeObject EVSpace_ReferenceFrameType;
 
 /* methods needed for construction */
 
@@ -133,10 +133,10 @@ _get_euler_matrix(const EVSpace_Order* order, const EVSpace_Angles* angles)
 /* constructor */
 
 static PyObject*
-_rotation_new(const EVSpace_Order* order, const EVSpace_Angles* angles, 
+_reference_frame_new(const EVSpace_Order* order, const EVSpace_Angles* angles, 
 	PyTypeObject* type)
 {
-	EVSpace_Rotation* rot = (EVSpace_Rotation*)type->tp_alloc(type, 0);
+	EVSpace_ReferenceFrame* rot = (EVSpace_ReferenceFrame*)type->tp_alloc(type, 0);
 	if (!rot)
 		return NULL;
 
@@ -318,7 +318,7 @@ _rotate_offset_from(const EVSpace_Matrix* matrix, const EVSpace_Vector* offset,
 
 
 static PyObject*
-rotation_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED(_))
+reference_frame_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED(_))
 {
 	PyObject* order = NULL, * angles = NULL;
 
@@ -336,18 +336,18 @@ rotation_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED(_))
 		return NULL;
 	}
 
-	return (PyObject*)_rotation_new((EVSpace_Order*)order,
+	return (PyObject*)_reference_frame_new((EVSpace_Order*)order,
 		(EVSpace_Angles*)angles, type);
 }
 
 static PyObject*
-rotation_angles_getter(PyObject* self, void* closure)
+reference_frame_angles_getter(PyObject* self, void* closure)
 {
-	return Py_NewRef((PyObject*)(((EVSpace_Rotation*)self)->angles));
+	return Py_NewRef((PyObject*)(((EVSpace_ReferenceFrame*)self)->angles));
 }
 
 static int
-rotation_angles_setter(EVSpace_Rotation* self, EVSpace_Angles* arg, void* closure)
+reference_frame_angles_setter(EVSpace_ReferenceFrame* self, EVSpace_Angles* arg, void* closure)
 {
 	if (!arg) {
 		PyErr_SetString(PyExc_ValueError,
@@ -384,7 +384,7 @@ rotation_angles_setter(EVSpace_Rotation* self, EVSpace_Angles* arg, void* closur
 #define ROTATION_ANGLE_GAMMA	2
 
 static PyObject*
-rotation_subangle_getter(EVSpace_Rotation* self, void* closure)
+reference_frame_subangle_getter(EVSpace_ReferenceFrame* self, void* closure)
 {
 	size_t which = (size_t)closure;
 	assert(which == ROTATION_ANGLE_ALPHA || which == ROTATION_ANGLE_BETA
@@ -402,7 +402,7 @@ rotation_subangle_getter(EVSpace_Rotation* self, void* closure)
 }
 
 static int
-rotation_subangle_setter(EVSpace_Rotation* self, PyObject* arg, void* closure)
+reference_frame_subangle_setter(EVSpace_ReferenceFrame* self, PyObject* arg, void* closure)
 {
 	size_t which = (size_t)closure;
 	assert(which == ROTATION_ANGLE_ALPHA || which == ROTATION_ANGLE_BETA
@@ -722,7 +722,7 @@ rotate_offset_from(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t siz
 }
 
 static PyObject*
-rotation_rotate_to(EVSpace_Rotation* self, PyObject* vector)
+reference_frame_rotate_to(EVSpace_ReferenceFrame* self, PyObject* vector)
 {
 	if (!Vector_Check(vector))
 	{
@@ -742,7 +742,7 @@ rotation_rotate_to(EVSpace_Rotation* self, PyObject* vector)
 }
 
 static PyObject*
-rotation_rotate_from(EVSpace_Rotation* self, PyObject* vector)
+reference_frame_rotate_from(EVSpace_ReferenceFrame* self, PyObject* vector)
 {
 	if (!Vector_Check(vector))
 	{
