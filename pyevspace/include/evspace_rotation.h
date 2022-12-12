@@ -283,7 +283,7 @@ _rotate_offset_to(const EVSpace_Matrix* matrix, const EVSpace_Vector* offset,
 		return NULL;
 	}
 
-	EVSpace_Vector* rtn = _subtract_vector_vector(rotated_vector, rotated_offset);
+	EVSpace_Vector* rtn = _vector_subtract(rotated_vector, rotated_offset);
 	Py_DECREF(transpose);
 	Py_DECREF(rotated_vector);
 	Py_DECREF(rotated_offset);
@@ -303,7 +303,7 @@ _rotate_offset_from(const EVSpace_Matrix* matrix, const EVSpace_Vector* offset,
 	if (!rotated_offset)
 		return NULL;
 
-	EVSpace_Vector* rotated_vector = _add_vector_vector(vector, rotated_offset);
+	EVSpace_Vector* rotated_vector = _vector_add(vector, rotated_offset);
 	Py_DECREF(rotated_offset);
 	if (!rotated_vector)
 		return NULL;

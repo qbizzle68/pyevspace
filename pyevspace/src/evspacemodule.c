@@ -32,8 +32,8 @@ static PySequenceMethods vector_as_sequence = {
 };
 
 static PyBufferProcs vector_buffer = {
-	.bf_getbuffer		= (getbufferproc)vector_buffer_get,
-	.bf_releasebuffer	= (releasebufferproc)buffer_release
+	.bf_getbuffer		= (getbufferproc)vector_get_buffer,
+	.bf_releasebuffer	= (releasebufferproc)vector_release_buffer
 };
 
 static PyMethodDef vector_methods[] = {
@@ -87,7 +87,7 @@ static PyMappingMethods matrix_as_mapping = {
 
 static PyBufferProcs matrix_buffer = {
 	.bf_getbuffer	= (getbufferproc)matrix_get_buffer,
-	.bf_releasebuffer	= (releasebufferproc)buffer_release
+	.bf_releasebuffer	= (releasebufferproc)vector_release_buffer
 };
 
 static PyMethodDef matrix_methods[] = {
@@ -245,15 +245,15 @@ EVSpace_CAPI* get_evspace_capi(void)
 	capi->Angles_New		= _angles_new;
 	capi->Order_New			= _order_new;
 
-	capi->EVSpace_Vector_add		= _add_vector_vector;
-	capi->EVSpace_Vector_subtract	= _subtract_vector_vector;
-	capi->EVSpace_Vector_multiply	= _multiply_vector_scalar;
-	capi->EVSpace_Vector_divide		= _divide_vector_scalar;
-	capi->EVSpace_Vector_iadd		= _iadd_vector_vector;
-	capi->EVSpace_Vector_isubtract	= _isubtract_vector_vector;
-	capi->EVSpace_Vector_imultiply	= _imultiply_vector_scalar;
-	capi->EVSpace_Vector_idivide	= _idivide_vector_scalar;
-	capi->EVSpace_Vector_negative	= _negative_vector;
+	capi->EVSpace_Vector_add		= _vector_add;
+	capi->EVSpace_Vector_subtract	= _vector_subtract;
+	capi->EVSpace_Vector_multiply	= _vector_multiply;
+	capi->EVSpace_Vector_divide		= _vector_divide;
+	capi->EVSpace_Vector_iadd		= _vector_iadd;
+	capi->EVSpace_Vector_isubtract	= _vector_isubtract;
+	capi->EVSpace_Vector_imultiply	= _vector_imultiply;
+	capi->EVSpace_Vector_idivide	= _vector_idivide;
+	capi->EVSpace_Vector_negative	= _vector_negative;
 
 	capi->EVSpace_Matrix_add				= _matrix_add;
 	capi->EVSpace_Matrix_subtract			= _matrix_subtract;
@@ -313,9 +313,9 @@ static PyMethodDef evspace_methods[] = {
 		PyDoc_STR("cross(lhs, rhs) -> cross product of two EVectors")},
 	{"norm", (PyCFunction)vector_norm, METH_FASTCALL,
 		PyDoc_STR("norm(vector) -> a normalized version of an EVector")},
-	{"vang", (PyCFunction)vector_vang, METH_FASTCALL,
+	{"vang", (PyCFunction)vector_angle, METH_FASTCALL,
 		PyDoc_STR("vang(from, to) -> the shortest angle between two EVector's")},
-	{"vxcl", (PyCFunction)vector_vxcl, METH_FASTCALL,
+	{"vxcl", (PyCFunction)vector_exclude, METH_FASTCALL,
 		PyDoc_STR("vxcl(vector, exclude) -> vector with exclude excluded from it")},
 	{"proj", (PyCFunction)vector_proj, METH_FASTCALL,
 		PyDoc_STR("proj(proj, onto) -> proj projected onto onto")},
