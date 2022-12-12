@@ -3,7 +3,7 @@
 #include <structmember.h> // PyMemberDef
 
 /* don't need the extra's for the C API */
-#define _EVSPACE_IMPL
+//#define _EVSPACE_IMPL
 #include <evspacemodule.h>
 #include <evspace_vector.h>
 #include <evspace_matrix.h>
@@ -253,6 +253,8 @@ EVSpace_CAPI* get_evspace_capi(void)
 
 	capi->VectorType = &EVSpace_VectorType;
 	capi->MatrixType = &EVSpace_MatrixType;
+	capi->AnglesType = &EVSpace_AnglesType;
+	capi->OrderType	 = &EVSpace_OrderType;
 
 	capi->Vector_FromArray	= _vector_from_array;
 	capi->Vector_StealArray	= _vector_steal_array;
