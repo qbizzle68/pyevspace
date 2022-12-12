@@ -269,4 +269,15 @@ order_set_item(EVSpace_Order* self, Py_ssize_t index, PyObject* value)
 	return 0;
 }
 
+static PyObject*
+order_reduce(const EVSpace_Order* self, PyObject* Py_UNUSED(_))
+{
+	return Py_BuildValue(
+		"(O(iii))",
+		Py_TYPE(self),
+		self->first,
+		self->second,
+		self->third);
+}
+
 #endif // EVSPACE_ANGLES_H

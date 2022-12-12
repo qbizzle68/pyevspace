@@ -134,7 +134,7 @@ static PyMemberDef angles_members[] = {
 
 static PyMethodDef angles_methods[] = {
 	{"__reduce__", (PyCFunction)angles_reduce, METH_NOARGS,
-		PyDoc_STR("__reduce__() -> (cls, state")},
+		PyDoc_STR("__reduce__() -> (cls, state)")},
 	{NULL}
 };
 
@@ -171,27 +171,32 @@ static PyMemberDef order_members[] = {
 	{NULL}
 };
 
+static PyMethodDef order_methods[] = {
+	{"__reduce__", (PyCFunction)order_reduce, METH_NOARGS,
+		PyDoc_STR("__reduce__() -> (cls, state)")},
+	{NULL}
+};
+
 PyDoc_STRVAR(order_doc, "simple class to hold the axis order of an Euler rotation");
 
 static PyTypeObject EVSpace_OrderType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	.tp_name = "pyevspace.order",
-	.tp_basicsize = sizeof(EVSpace_Order),
-	.tp_itemsize = 0,
-	.tp_repr = (reprfunc)order_repr,
-	.tp_as_sequence = &order_as_sequence,
-	.tp_str	= (reprfunc)order_str,
-	.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE,
-	.tp_doc = order_doc,
-	.tp_members = order_members,
-	.tp_new = (newfunc)order_new
+	.tp_name		= "pyevspace.order",
+	.tp_basicsize	= sizeof(EVSpace_Order),
+	.tp_itemsize	= 0,
+	.tp_repr		= (reprfunc)order_repr,
+	.tp_as_sequence	= &order_as_sequence,
+	.tp_str			= (reprfunc)order_str,
+	.tp_flags		= Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE,
+	.tp_doc			= order_doc,
+	.tp_methods		= order_methods,
+	.tp_members		= order_members,
+	.tp_new			= (newfunc)order_new
 };
 
 static PyMemberDef rotation_members[] = {
 	{"order", T_OBJECT_EX, offsetof(EVSpace_Rotation, order), READONLY,
 		"order of axes in the rotation"},
-	//{"angles", T_OBJECT_EX, offsetof(EVSpace_Rotation, angles), READONLY,
-		//"angles of the rotations"},
 	{"matrix", T_OBJECT_EX, offsetof(EVSpace_Rotation, matrix), READONLY,
 		"internal matrix describing the rotation"},
 	{NULL}
