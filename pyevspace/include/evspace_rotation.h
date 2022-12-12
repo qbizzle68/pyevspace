@@ -133,16 +133,17 @@ _get_euler_matrix(const EVSpace_Order* order, const EVSpace_Angles* angles)
 /* constructor */
 
 static PyObject*
-_reference_frame_new(const EVSpace_Order* order, const EVSpace_Angles* angles, 
-	PyTypeObject* type)
+_reference_frame_new(EVSpace_Order* order, EVSpace_Angles* angles, 
+	EVSpace_Vector* offset, PyTypeObject* type)
 {
 	EVSpace_ReferenceFrame* rot = (EVSpace_ReferenceFrame*)type->tp_alloc(type, 0);
 	if (!rot)
 		return NULL;
 
-	rot->order = (EVSpace_Order*)order;
-	rot->angles = (EVSpace_Angles*)angles;
+	rot->order = order;
+	rot->angles = angles;
 	rot->matrix = _get_euler_matrix(order, angles);
+	rot->offset = offset;
 
 	return (PyObject*)rot;
 }
@@ -318,11 +319,14 @@ _rotate_offset_from(const EVSpace_Matrix* matrix, const EVSpace_Vector* offset,
 
 
 static PyObject*
-reference_frame_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED(_))
+reference_frame_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 {
-	PyObject* order = NULL, * angles = NULL;
+	static char* kwlist[] = { "", "", "offset", NULL };
+	PyObject* order = NULL, * angles = NULL, * offset = NULL;
 
-	if (PyArg_ParseTuple(args, "OO", &order, &angles) < 0)
+	//if (PyArg_ParseTuple(args, "OO", &order, &angles) < 0)
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "OO|O", kwlist, 
+									&order, &angles, &offset) < 0)
 		return NULL;
 
 	if (!Order_Check(order)) {
@@ -337,7 +341,7 @@ reference_frame_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED(_))
 	}
 
 	return (PyObject*)_reference_frame_new((EVSpace_Order*)order,
-		(EVSpace_Angles*)angles, type);
+		(EVSpace_Angles*)angles, (EVSpace_Vector*)offset, type);
 }
 
 static PyObject*
@@ -443,6 +447,36 @@ reference_frame_subangle_setter(EVSpace_ReferenceFrame* self, PyObject* arg, voi
 	Py_INCREF(matrix);
 	self->matrix = matrix;
 	Py_XDECREF(tmp);
+
+	return 0;
+}
+
+static PyObject*
+reference_frame_offset_getter(EVSpace_ReferenceFrame* self, void* Py_UNUSED(_))
+{
+	return (PyObject*)self->offset;
+}
+
+static int
+reference_frame_offset_setter(EVSpace_ReferenceFrame* self, PyObject* arg, 
+	void* Py_UNUSED(_))
+{
+	if (!arg) {
+		PyErr_SetString(PyExc_ValueError,
+			"cannot delete angles attribute");
+		return -1;
+	}
+
+	if (!Vector_Check(arg)) {
+		PyErr_SetString(PyExc_TypeError,
+			"value must be pyevspace.Vector type");
+		return -1;
+	}
+
+	EVSpace_Vector* tmp = self->offset;
+	Py_INCREF(arg);
+	self->offset = (EVSpace_Vector*)arg;
+	Py_DECREF(tmp);
 
 	return 0;
 }
@@ -730,15 +764,23 @@ reference_frame_rotate_to(EVSpace_ReferenceFrame* self, PyObject* vector)
 			"argument must be pyevspace.Vector type");
 		return NULL;
 	}
-	
-	EVSpace_Matrix* transpose = _matrix_transpose(self->matrix);
-	if (!transpose)
-		return NULL;
 
-	EVSpace_Vector* rtn = _matrix_multiply_v(transpose,
-											 (EVSpace_Vector*)self);
-	Py_DECREF(transpose);
-	return (PyObject*)rtn;
+	if (self->offset) {
+		return (PyObject*)_rotate_offset_to(self->matrix, self->offset, 
+											(EVSpace_Vector*)vector);
+	}
+	else {
+		return (PyObject*)_rotate_matrix_to(self->matrix, 
+											(EVSpace_Vector*)vector);
+		/*EVSpace_Matrix* transpose = _matrix_transpose(self->matrix);
+		if (!transpose)
+			return NULL;
+
+		EVSpace_Vector* rtn = _matrix_multiply_v(transpose,
+												 (EVSpace_Vector*)self);
+		Py_DECREF(transpose);
+		return (PyObject*)rtn;*/
+	}
 }
 
 static PyObject*
@@ -751,9 +793,18 @@ reference_frame_rotate_from(EVSpace_ReferenceFrame* self, PyObject* vector)
 		return NULL;
 	}
 
-	EVSpace_Vector* rtn = _matrix_multiply_v(self->matrix,
-											 (EVSpace_Vector*)self);
-	return (PyObject*)rtn;
+	if (self->offset) {
+		return (PyObject*)_rotate_offset_from(self->matrix, self->offset, 
+											  (EVSpace_Vector*)vector);
+	}
+	else {
+		return (PyObject*)_matrix_multiply_v(self->matrix,
+											 (EVSpace_Vector*)vector);
+	}
+
+	//EVSpace_Vector* rtn = _matrix_multiply_v(self->matrix,
+											 //(EVSpace_Vector*)self);
+	//return (PyObject*)rtn;
 }
 
 #endif // EVSPACE_ROTATION_H

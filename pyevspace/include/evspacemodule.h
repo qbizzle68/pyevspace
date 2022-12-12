@@ -43,6 +43,7 @@ typedef struct {
 	EVSpace_Order* order;
 	EVSpace_Angles* angles;
 	EVSpace_Matrix* matrix;
+	EVSpace_Vector* offset;
 } EVSpace_ReferenceFrame;
 
 

@@ -194,7 +194,7 @@ static PyTypeObject EVSpace_OrderType = {
 	.tp_new			= (newfunc)order_new
 };
 
-static PyMemberDef rotation_members[] = {
+static PyMemberDef reference_frame_members[] = {
 	{"order", T_OBJECT_EX, offsetof(EVSpace_ReferenceFrame, order), READONLY,
 		"order of axes in the rotation"},
 	{"matrix", T_OBJECT_EX, offsetof(EVSpace_ReferenceFrame, matrix), READONLY,
@@ -202,20 +202,26 @@ static PyMemberDef rotation_members[] = {
 	{NULL}
 };
 
-static PyGetSetDef rotation_getset[] = {
-	{"angles", (getter)reference_frame_angles_getter, 
+static PyGetSetDef reference_frame_getset[] = {
+	{"angles", (getter)reference_frame_angles_getter,
 		(setter)reference_frame_angles_setter, 
 		"angles of the rotations", NULL},
-	{"alpha", (getter)reference_frame_subangle_getter, (setter)reference_frame_subangle_setter,
+	{"alpha", (getter)reference_frame_subangle_getter,
+		(setter)reference_frame_subangle_setter,
 		"alpha angle of the angles attribute", (void*)ROTATION_ANGLE_ALPHA},
-	{"beta", (getter)reference_frame_subangle_getter, (setter)reference_frame_subangle_setter,
+	{"beta", (getter)reference_frame_subangle_getter,
+		(setter)reference_frame_subangle_setter,
 		"beta angle of the angles attribute", (void*)ROTATION_ANGLE_BETA},
-	{"gamma", (getter)reference_frame_subangle_getter, (setter)reference_frame_subangle_setter,
+	{"gamma", (getter)reference_frame_subangle_getter,
+		(setter)reference_frame_subangle_setter,
 		"gamma angle of the angles attribute", (void*)ROTATION_ANGLE_GAMMA},
+	{"offset", (getter)reference_frame_offset_getter, 
+		(setter)reference_frame_offset_setter,
+		"offset of the reference frame origin", NULL},
 	{NULL}
 };
 
-static PyMethodDef rotation_methods[] = {
+static PyMethodDef reference_frame_methods[] = {
 	{"rotateTo", (PyCFunction)reference_frame_rotate_to, METH_O,
 		PyDoc_STR("rotate a vector from an intertial frame to this reference \
 			frame")},
@@ -234,9 +240,9 @@ static PyTypeObject EVSpace_ReferenceFrameType = {
 	.tp_itemsize	= 0,
 	.tp_flags		= Py_TPFLAGS_DEFAULT,
 	.tp_doc			= rotation_doc,
-	.tp_methods		= rotation_methods,
-	.tp_members		= rotation_members,
-	.tp_getset		= rotation_getset,
+	.tp_methods		= reference_frame_methods,
+	.tp_members		= reference_frame_members,
+	.tp_getset		= reference_frame_getset,
 	.tp_new			= (newfunc)reference_frame_new
 };
 
