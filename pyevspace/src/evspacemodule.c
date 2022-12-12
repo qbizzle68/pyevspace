@@ -242,6 +242,8 @@ EVSpace_CAPI* get_evspace_capi(void)
 	capi->Vector_StealArray	= _vector_steal_array;
 	capi->Matrix_FromArray	= _matrix_from_array;
 	capi->Matrix_StealArray	= _matrix_steal_array;
+	capi->Angles_New		= _angles_new;
+	capi->Order_New			= _order_new;
 
 	capi->EVSpace_Vector_add		= _add_vector_vector;
 	capi->EVSpace_Vector_subtract	= _subtract_vector_vector;

@@ -76,7 +76,7 @@ typedef struct {
 	EVSpace_Vector* (*Vector_StealArray)(double*, PyTypeObject*);
 	EVSpace_Matrix* (*Matrix_FromArray)(double*, PyTypeObject*);
 	EVSpace_Matrix* (*Matrix_StealArray)(double*, PyTypeObject*);
-	EVSpace_Angles* (*Angle_New)(double, double, double, PyTypeObject*);
+	EVSpace_Angles* (*Angles_New)(double, double, double, PyTypeObject*);
 	EVSpace_Order* (*Order_New)(EVSpace_Axis, EVSpace_Axis, EVSpace_Axis, PyTypeObject*);
 
 	/* vector number methods */
