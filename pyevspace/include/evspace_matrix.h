@@ -207,7 +207,7 @@ matrix_richcompare(EVSpace_Matrix* self, PyObject* other, int op)
 // capsule number methods
 
 static EVSpace_Matrix*
-add_matrix_matrix(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
+_matrix_add(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
 {
 	double* array = malloc(MATRIX_SIZE);
 	if (!array)
@@ -231,7 +231,7 @@ add_matrix_matrix(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
 }
 
 static EVSpace_Matrix*
-subtract_matrix_matrix(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
+_matrix_subtract(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
 {
 	double* array = malloc(MATRIX_SIZE);
 	if (!array)
@@ -255,7 +255,7 @@ subtract_matrix_matrix(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
 }
 
 static EVSpace_Matrix*
-multiply_matrix_scalar(const EVSpace_Matrix* mat, double scalar)
+_matrix_multiply_s(const EVSpace_Matrix* mat, double scalar)
 {
 	double* ans = malloc(MATRIX_SIZE);
 	if (!ans)
@@ -298,7 +298,7 @@ __multiply_matrix_vector_states(const double* mat, const double* vec,
 }
 
 static EVSpace_Vector*
-multiply_matrix_vector(const EVSpace_Matrix* mat, const EVSpace_Vector* vec)
+_matrix_multiply_v(const EVSpace_Matrix* mat, const EVSpace_Vector* vec)
 {
 	double* ans = malloc(3 * sizeof(double));
 	if (!ans)
@@ -314,7 +314,7 @@ multiply_matrix_vector(const EVSpace_Matrix* mat, const EVSpace_Vector* vec)
 }
 
 static EVSpace_Matrix*
-multiply_matrix_matrix(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
+_matrix_multiply_m(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
 {
 	double* ans = malloc(MATRIX_SIZE);
 	if (!ans)
@@ -335,7 +335,7 @@ multiply_matrix_matrix(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
 }
 
 static EVSpace_Matrix*
-divide_matrix_scalar(const EVSpace_Matrix* mat, double scalar)
+_matrix_divide(const EVSpace_Matrix* mat, double scalar)
 {
 	double* array = malloc(MATRIX_SIZE);
 	if (!array)
@@ -359,7 +359,7 @@ divide_matrix_scalar(const EVSpace_Matrix* mat, double scalar)
 }
 
 static void
-iadd_matrix_matrix(EVSpace_Matrix* self, const EVSpace_Matrix* other)
+_matrix_iadd(EVSpace_Matrix* self, const EVSpace_Matrix* other)
 {
 	Matrix_COMP(self, 0, 0) += Matrix_COMP(other, 0, 0);
 	Matrix_COMP(self, 0, 0) += Matrix_COMP(other, 0, 1);
@@ -373,7 +373,7 @@ iadd_matrix_matrix(EVSpace_Matrix* self, const EVSpace_Matrix* other)
 }
 
 static void
-isubtract_matrix_matrix(EVSpace_Matrix* self, const EVSpace_Matrix* other)
+_matrix_isubtract(EVSpace_Matrix* self, const EVSpace_Matrix* other)
 {
 	Matrix_COMP(self, 0, 0) -= Matrix_COMP(other, 0, 0);
 	Matrix_COMP(self, 0, 1) -= Matrix_COMP(other, 0, 1);
@@ -387,7 +387,7 @@ isubtract_matrix_matrix(EVSpace_Matrix* self, const EVSpace_Matrix* other)
 }
 
 static void
-imultiply_matrix_scalar(EVSpace_Matrix* mat, double scalar)
+_matrix_imultiply_s(EVSpace_Matrix* mat, double scalar)
 {
 	Matrix_COMP(mat, 0, 0) *= scalar;
 	Matrix_COMP(mat, 0, 1) *= scalar;
@@ -401,7 +401,7 @@ imultiply_matrix_scalar(EVSpace_Matrix* mat, double scalar)
 }
 
 static void
-idivide_matrix_scalar(EVSpace_Matrix* mat, double scalar)
+_matrix_idivide(EVSpace_Matrix* mat, double scalar)
 {
 	Matrix_COMP(mat, 0, 0) /= scalar;
 	Matrix_COMP(mat, 0, 1) /= scalar;
@@ -446,7 +446,7 @@ static PyObject*
 matrix_add(EVSpace_Matrix* lhs, PyObject* rhs)
 {
 	if (Matrix_Check(lhs) && Matrix_Check(rhs))
-		return (PyObject*)add_matrix_matrix(lhs, (EVSpace_Matrix*)rhs);
+		return (PyObject*)_matrix_add(lhs, (EVSpace_Matrix*)rhs);
 
 	Py_RETURN_NOTIMPLEMENTED;
 }
@@ -455,7 +455,7 @@ static PyObject*
 matrix_subtract(EVSpace_Matrix* lhs, PyObject* rhs)
 {
 	if (Matrix_Check(lhs) && Matrix_Check(rhs))
-		return (PyObject*)subtract_matrix_matrix(lhs, (EVSpace_Matrix*)rhs);
+		return (PyObject*)_matrix_subtract(lhs, (EVSpace_Matrix*)rhs);
 
 	Py_RETURN_NOTIMPLEMENTED;
 }
@@ -465,17 +465,17 @@ matrix_multiply(EVSpace_Matrix* self, PyObject* arg)
 {
 	if (Matrix_Check(self)) {
 		if (Vector_Check(arg))
-			return (PyObject*)multiply_matrix_vector(self, (EVSpace_Vector*)arg);
+			return (PyObject*)_matrix_multiply_v(self, (EVSpace_Vector*)arg);
 
 		if (Matrix_Check(arg))
-			return (PyObject*)multiply_matrix_matrix(self, (EVSpace_Matrix*)arg);
+			return (PyObject*)_matrix_multiply_m(self, (EVSpace_Matrix*)arg);
 
 		if (PyNumber_Check(arg)) {
 			double scalar = PyFloat_AsDouble(arg);
 			if (scalar == -1.0 && PyErr_Occurred())
 				return NULL;
 
-			return (PyObject*)multiply_matrix_scalar(self, scalar);
+			return (PyObject*)_matrix_multiply_s(self, scalar);
 		}
 	}
 
@@ -491,7 +491,7 @@ matrix_divide(EVSpace_Matrix* mat, PyObject* arg)
 			if (scalar == -1.0 && PyErr_Occurred())
 				return NULL;
 
-			return (PyObject*)divide_matrix_scalar(mat, scalar);
+			return (PyObject*)_matrix_divide(mat, scalar);
 		}
 	}
 
@@ -502,7 +502,7 @@ static PyObject*
 matrix_iadd(EVSpace_Matrix* self, PyObject* other)
 {
 	if (Matrix_Check(self) && Matrix_Check(other)) {
-		iadd_matrix_matrix(self, (EVSpace_Matrix*)other);
+		_matrix_iadd(self, (EVSpace_Matrix*)other);
 		return Py_NewRef(self);
 	}
 
@@ -513,7 +513,7 @@ static PyObject*
 matrix_isubtract(EVSpace_Matrix* self, PyObject* other)
 {
 	if (Matrix_Check(self) && Matrix_Check(other)) {
-		isubtract_matrix_matrix(self, (EVSpace_Matrix*)other);
+		_matrix_isubtract(self, (EVSpace_Matrix*)other);
 		return Py_NewRef(self);
 	}
 
@@ -529,7 +529,7 @@ matrix_imultiply(EVSpace_Matrix* mat, PyObject* arg)
 			if (scalar == -1.0 && PyErr_Occurred())
 				return NULL;
 
-			imultiply_matrix_scalar(mat, scalar);
+			_matrix_imultiply_s(mat, scalar);
 
 			return Py_NewRef(mat);
 		}
@@ -546,7 +546,7 @@ matrix_idivide(EVSpace_Matrix* mat, PyObject* arg)
 		if (scalar == -1.0 && PyErr_Occurred())
 			return NULL;
 
-		idivide_matrix_scalar(mat, scalar);
+		_matrix_idivide(mat, scalar);
 
 		return Py_NewRef(mat);
 	}
@@ -555,7 +555,7 @@ matrix_idivide(EVSpace_Matrix* mat, PyObject* arg)
 }
 
 static PyObject*
-negative_matrix(EVSpace_Matrix* self)
+matrix_negative(EVSpace_Matrix* self)
 {
 	if (Matrix_Check(self))
 		return (PyObject*)_matrix_negative(self);
@@ -650,7 +650,7 @@ matrix_set_item(EVSpace_Matrix* self, PyObject* indices, PyObject* value)
 /* type buffer functions */
 
 static int
-matrix_buffer_get(EVSpace_Matrix* obj, Py_buffer* view, int flags)
+matrix_get_buffer(EVSpace_Matrix* obj, Py_buffer* view, int flags)
 {
 	if (!view) {
 		PyErr_SetString(PyExc_ValueError, "NULL view in getbuffer");
@@ -688,7 +688,7 @@ matrix_buffer_get(EVSpace_Matrix* obj, Py_buffer* view, int flags)
 }
 
 static void
-matrix_buffer_release(EVSpace_Vector* obj, Py_buffer* view)
+matrix_release_buffer(EVSpace_Vector* obj, Py_buffer* view)
 {
 	if (view->internal != NULL) {
 		if (*((int*)view->internal) & BUFFER_RELEASE_SHAPE)
@@ -715,7 +715,7 @@ matrix_reduce(PyObject* self, PyObject* Py_UNUSED(_))
 // module level capsule functions
 
 static double
-_determinate(const EVSpace_Matrix* self)
+_matrix_determinate(const EVSpace_Matrix* self)
 {
 	double term_1 = Matrix_COMP(self, 0, 0)
 		* (Matrix_COMP(self, 1, 1) * Matrix_COMP(self, 2, 2)
@@ -733,7 +733,7 @@ _determinate(const EVSpace_Matrix* self)
 }
 
 static EVSpace_Matrix*
-_transpose(const EVSpace_Matrix* self)
+_matrix_transpose(const EVSpace_Matrix* self)
 {
 	double* array = malloc(MATRIX_SIZE);
 	if (!array)
@@ -774,7 +774,7 @@ matrix_determinate(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t siz
 		return NULL;
 	}
 
-	double det = _determinate((EVSpace_Matrix*)args[0]);
+	double det = _matrix_determinate((EVSpace_Matrix*)args[0]);
 
 	return PyFloat_FromDouble(det);
 }
@@ -793,7 +793,7 @@ matrix_transpose(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t size)
 		return NULL;
 	}
 
-	return (PyObject*)_transpose((EVSpace_Matrix*)args[0]);
+	return (PyObject*)_matrix_transpose((EVSpace_Matrix*)args[0]);
 }
 
 

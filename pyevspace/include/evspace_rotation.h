@@ -112,7 +112,7 @@ _get_euler_matrix(const EVSpace_Order* order, const EVSpace_Angles* angles)
 	}
 
 	EVSpace_Matrix* temp
-		= (EVSpace_Matrix*)multiply_matrix_matrix(first_matrix, second_matrix);
+		= (EVSpace_Matrix*)_matrix_multiply_m(first_matrix, second_matrix);
 	Py_DECREF(first_matrix);
 	Py_DECREF(second_matrix);
 	if (!temp) {
@@ -121,7 +121,7 @@ _get_euler_matrix(const EVSpace_Order* order, const EVSpace_Angles* angles)
 	}
 
 	EVSpace_Matrix* rtn
-		= (EVSpace_Matrix*)multiply_matrix_matrix(temp, third_matrix);
+		= (EVSpace_Matrix*)_matrix_multiply_m(temp, third_matrix);
 	Py_DECREF(third_matrix);
 	Py_DECREF(temp);
 
@@ -176,7 +176,7 @@ _get_matrix_from_to(const EVSpace_Order* order_from, const EVSpace_Angles* angle
 	}
 	__transpose_inplace(Matrix_DATA(to));
 
-	EVSpace_Matrix* rtn = multiply_matrix_matrix(to, from);
+	EVSpace_Matrix* rtn = _matrix_multiply_m(to, from);
 	Py_DECREF(from);
 	Py_DECREF(to);
 	return rtn;
@@ -195,7 +195,7 @@ _rotate_axis_to(EVSpace_Axis axis, double angle, const EVSpace_Vector* vector)
 
 	__transpose_inplace(Matrix_DATA(matrix));
 
-	EVSpace_Vector* rtn = multiply_matrix_vector(matrix, vector);
+	EVSpace_Vector* rtn = _matrix_multiply_v(matrix, vector);
 	Py_DECREF(matrix);
 	return rtn;
 }
@@ -207,7 +207,7 @@ _rotate_axis_from(EVSpace_Axis axis, double angle, const EVSpace_Vector* vector)
 	if (!matrix)
 		return NULL;
 
-	EVSpace_Vector* rtn = multiply_matrix_vector(matrix, vector);
+	EVSpace_Vector* rtn = _matrix_multiply_v(matrix, vector);
 	Py_DECREF(matrix);
 	return rtn;
 }
@@ -222,7 +222,7 @@ _rotate_euler_to(const EVSpace_Order* order, const EVSpace_Angles* angles,
 
 	__transpose_inplace(Matrix_DATA(matrix));
 
-	EVSpace_Vector* rtn = multiply_matrix_vector(matrix, vector);
+	EVSpace_Vector* rtn = _matrix_multiply_v(matrix, vector);
 	Py_DECREF(matrix);
 	return rtn;
 }
@@ -235,7 +235,7 @@ _rotate_euler_from(const EVSpace_Order* order, const EVSpace_Angles* angles,
 	if (!matrix)
 		return NULL;
 
-	EVSpace_Vector* rtn = multiply_matrix_vector(matrix, vector);
+	EVSpace_Vector* rtn = _matrix_multiply_v(matrix, vector);
 	Py_DECREF(matrix);
 	return rtn;
 }
@@ -243,11 +243,11 @@ _rotate_euler_from(const EVSpace_Order* order, const EVSpace_Angles* angles,
 static EVSpace_Vector*
 _rotate_matrix_to(const EVSpace_Matrix* matrix, const EVSpace_Vector* vector)
 {
-	EVSpace_Matrix* transpose = _transpose(matrix);
+	EVSpace_Matrix* transpose = _matrix_transpose(matrix);
 	if (!transpose)
 		return (EVSpace_Vector*)PyErr_NoMemory();
 
-	EVSpace_Vector* rtn = multiply_matrix_vector(transpose, vector);
+	EVSpace_Vector* rtn = _matrix_multiply_v(transpose, vector);
 	Py_DECREF(transpose);
 	return rtn;
 }
@@ -255,7 +255,7 @@ _rotate_matrix_to(const EVSpace_Matrix* matrix, const EVSpace_Vector* vector)
 static EVSpace_Vector*
 _rotate_matrix_from(const EVSpace_Matrix* matrix, const EVSpace_Vector* vector)
 {
-	return multiply_matrix_vector(matrix, vector);
+	return _matrix_multiply_v(matrix, vector);
 }
 
 
@@ -266,17 +266,17 @@ static EVSpace_Vector*
 _rotate_offset_to(const EVSpace_Matrix* matrix, const EVSpace_Vector* offset,
 	const EVSpace_Vector* vector)
 {
-	EVSpace_Matrix* transpose = _transpose(matrix);
+	EVSpace_Matrix* transpose = _matrix_transpose(matrix);
 	if (!transpose)
 		return NULL;
 
-	EVSpace_Vector* rotated_vector = multiply_matrix_vector(transpose, vector);
+	EVSpace_Vector* rotated_vector = _matrix_multiply_v(transpose, vector);
 	if (!rotated_vector) {
 		Py_DECREF(transpose);
 		return NULL;
 	}
 
-	EVSpace_Vector* rotated_offset = multiply_matrix_vector(transpose, offset);
+	EVSpace_Vector* rotated_offset = _matrix_multiply_v(transpose, offset);
 	if (!rotated_offset) {
 		Py_DECREF(transpose);
 		Py_DECREF(rotated_vector);
@@ -294,11 +294,11 @@ static EVSpace_Vector*
 _rotate_offset_from(const EVSpace_Matrix* matrix, const EVSpace_Vector* offset,
 	const EVSpace_Vector* vector)
 {
-	EVSpace_Matrix* transpose = _transpose(matrix);
+	EVSpace_Matrix* transpose = _matrix_transpose(matrix);
 	if (!transpose)
 		return NULL;
 
-	EVSpace_Vector* rotated_offset = multiply_matrix_vector(transpose, offset);
+	EVSpace_Vector* rotated_offset = _matrix_multiply_v(transpose, offset);
 	Py_DECREF(transpose);
 	if (!rotated_offset)
 		return NULL;
@@ -308,7 +308,7 @@ _rotate_offset_from(const EVSpace_Matrix* matrix, const EVSpace_Vector* offset,
 	if (!rotated_vector)
 		return NULL;
 
-	EVSpace_Vector* rtn = multiply_matrix_vector(matrix, rotated_vector);
+	EVSpace_Vector* rtn = _matrix_multiply_v(matrix, rotated_vector);
 	Py_DECREF(rotated_vector);
 	return rtn;
 }

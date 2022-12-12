@@ -72,7 +72,7 @@ static PyNumberMethods matrix_as_number = {
 	.nb_add				= (binaryfunc)matrix_add,
 	.nb_subtract		= (binaryfunc)matrix_subtract,
 	.nb_multiply		= (binaryfunc)matrix_multiply,
-	.nb_negative		= (unaryfunc)negative_matrix,
+	.nb_negative		= (unaryfunc)matrix_negative,
 	.nb_inplace_add		= (binaryfunc)matrix_iadd,
 	.nb_inplace_subtract = (binaryfunc)matrix_isubtract,
 	.nb_inplace_multiply = (binaryfunc)matrix_imultiply,
@@ -86,7 +86,7 @@ static PyMappingMethods matrix_as_mapping = {
 };
 
 static PyBufferProcs matrix_buffer = {
-	.bf_getbuffer	= (getbufferproc)matrix_buffer_get,
+	.bf_getbuffer	= (getbufferproc)matrix_get_buffer,
 	.bf_releasebuffer	= (releasebufferproc)buffer_release
 };
 
@@ -255,16 +255,16 @@ EVSpace_CAPI* get_evspace_capi(void)
 	capi->EVSpace_Vector_idivide	= _idivide_vector_scalar;
 	capi->EVSpace_Vector_negative	= _negative_vector;
 
-	capi->EVSpace_Matrix_add				= add_matrix_matrix;
-	capi->EVSpace_Matrix_subtract			= subtract_matrix_matrix;
-	capi->EVSpace_Matrix_multiply_vector	= multiply_matrix_vector;
-	capi->EVSpace_Matrix_multiply_matrix	= multiply_matrix_matrix;
-	capi->EVSpace_Matrix_multiply_scalar	= multiply_matrix_scalar;
-	capi->EVSpace_Matrix_divide				= divide_matrix_scalar;
-	capi->EVSpace_Matrix_iadd				= iadd_matrix_matrix;
-	capi->EVSpace_Matrix_isubtract			= isubtract_matrix_matrix;
-	capi->EVSpace_Matrix_imultiply_scalar	= imultiply_matrix_scalar;
-	capi->EVSpace_Matrix_idivide			= idivide_matrix_scalar;
+	capi->EVSpace_Matrix_add				= _matrix_add;
+	capi->EVSpace_Matrix_subtract			= _matrix_subtract;
+	capi->EVSpace_Matrix_multiply_vector	= _matrix_multiply_v;
+	capi->EVSpace_Matrix_multiply_matrix	= _matrix_multiply_m;
+	capi->EVSpace_Matrix_multiply_scalar	= _matrix_multiply_s;
+	capi->EVSpace_Matrix_divide				= _matrix_divide;
+	capi->EVSpace_Matrix_iadd				= _matrix_iadd;
+	capi->EVSpace_Matrix_isubtract			= _matrix_isubtract;
+	capi->EVSpace_Matrix_imultiply_scalar	= _matrix_imultiply_s;
+	capi->EVSpace_Matrix_idivide			= _matrix_idivide;
 	capi->EVSpace_Matrix_negative			= _matrix_negative;
 
 	capi->EVSpace_mag			= _vector_magnitude;
@@ -277,8 +277,8 @@ EVSpace_CAPI* get_evspace_capi(void)
 	capi->EVSpace_vang		= _vector_angle;
 	capi->EVSpace_vxcl		= _vector_exclude;
 	capi->EVSpace_proj		= _vector_projection;
-	capi->EVSpace_det		= _determinate;
-	capi->EVSpace_transpose	= _transpose;
+	capi->EVSpace_det		= _matrix_determinate;
+	capi->EVSpace_transpose	= _matrix_transpose;
 
 	capi->EVSpace_get_matrix	= _get_rotation_matrix;
 	capi->EVSpace_get_euler		= _get_euler_matrix;
