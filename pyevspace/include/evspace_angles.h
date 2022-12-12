@@ -13,7 +13,7 @@ static PyTypeObject EVSpace_AnglesType;
 static PyTypeObject EVSpace_OrderType;
 
 static EVSpace_Angles*
-_new_angles(double alpha, double beta, double gamma, PyTypeObject* type)
+_angles_new(double alpha, double beta, double gamma, PyTypeObject* type)
 {
 	EVSpace_Angles* angles = (EVSpace_Angles*)type->tp_alloc(type, 0);
 	if (!angles)
@@ -26,7 +26,7 @@ _new_angles(double alpha, double beta, double gamma, PyTypeObject* type)
 	return angles;
 }
 
-#define new_angle(a, b, g)	_new_angles(a, b, c, &EVSpace_AnglesType);
+#define new_angle(a, b, g)	_angles_new(a, b, c, &EVSpace_AnglesType);
 #define new_angle_empty		new_angles(0.0, 0.0, 0.0);
 
 static PyObject*
@@ -37,11 +37,11 @@ angles_new(PyTypeObject* type, PyObject* args, PyObject* PyUNUSED(_))
 	if (!PyArg_ParseTuple(args, "ddd", &alpha, &beta, &gamma) < 0)
 		return NULL;
 
-	return (PyObject*)_new_angles(alpha, beta, gamma, type);
+	return (PyObject*)_angles_new(alpha, beta, gamma, type);
 }
 
 static size_t
-angle_str_length(const EVSpace_Angles* angles)
+__angles_str_length(const EVSpace_Angles* angles)
 {
 	return snprintf(NULL, 0, "[%f, %f, %f]",
 		angles->alpha, angles->beta, angles->gamma);
@@ -50,7 +50,7 @@ angle_str_length(const EVSpace_Angles* angles)
 static PyObject*
 angles_str(const EVSpace_Angles* angles)
 {
-	const size_t length = angle_str_length(angles);
+	const size_t length = __angles_str_length(angles);
 
 	char* buffer = malloc(length + 1);
 	if (!buffer)
@@ -67,7 +67,7 @@ angles_str(const EVSpace_Angles* angles)
 static PyObject*
 angles_repr(const EVSpace_Angles* angles)
 {
-	const size_t length = angle_str_length(angles);
+	const size_t length = __angles_str_length(angles);
 
 	// 8 extra chars for name, 1 for null char
 	char* buffer = malloc(length + 9);
@@ -131,11 +131,12 @@ angles_set_item(EVSpace_Angles* self, Py_ssize_t index, PyObject* value)
 	return 0;
 }
 
+// dont think we ever used this
 // will expand an EVSpace_Order* to the axis for method calls
 #define ORDER_AS_AXIS(o)	o->first, o->second, o->third
 
 static EVSpace_Order*
-_new_order(EVSpace_Axis first, EVSpace_Axis second, EVSpace_Axis third, 
+_order_new(EVSpace_Axis first, EVSpace_Axis second, EVSpace_Axis third, 
 	PyTypeObject* type)
 {
 	EVSpace_Order* order = (EVSpace_Order*)type->tp_alloc(type, 0);
@@ -149,7 +150,7 @@ _new_order(EVSpace_Axis first, EVSpace_Axis second, EVSpace_Axis third,
 	return order;
 }
 
-#define new_order(f, s, t)		_new_order(f, s, t, &EVSpace_OrderType)
+#define new_order(f, s, t)		_order_new(f, s, t, &EVSpace_OrderType)
 
 static PyObject*
 order_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED(_))
@@ -161,11 +162,11 @@ order_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED(_))
 		return NULL;
 
 	// do we need to check the values of enum type?
-	return (PyObject*)_new_order(first, second, third, type);
+	return (PyObject*)_order_new(first, second, third, type);
 }
 
 static void
-order_axis_names(const EVSpace_Order* order, char* first, char* second, char* third)
+__order_axis_names(const EVSpace_Order* order, char* first, char* second, char* third)
 {
 	if (order->first == X_AXIS)
 		sprintf(first, "X_Axis");
@@ -197,7 +198,7 @@ order_str(const EVSpace_Order* order)
 	if (!buffer)
 		return NULL;
 
-	order_axis_names(order, first, second, third);
+	__order_axis_names(order, first, second, third);
 	sprintf(buffer, "[%s, %s, %s]", first, second, third);
 
 	PyObject* rtn = PyUnicode_FromString(buffer);
@@ -213,7 +214,7 @@ order_repr(const EVSpace_Order* order)
 	if (!buffer)
 		return NULL;
 
-	order_axis_names(order, first, second, third);
+	__order_axis_names(order, first, second, third);
 	sprintf(buffer, "order([%s, %s, %s])", first, second, third);
 
 	PyObject* rtn = PyUnicode_FromString(buffer);
