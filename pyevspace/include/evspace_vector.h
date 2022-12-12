@@ -8,16 +8,6 @@
 /* forward declaration */
 static PyTypeObject EVSpace_VectorType;
 
-#define Vector_X(o)			EVSpace_VECTOR_X(o)
-#define Vector_Y(o)			EVSpace_VECTOR_Y(o)
-#define Vector_Z(o)			EVSpace_VECTOR_Z(o)
-
-#define Vector_INDEX(v, i)	(v->data[i])
-
-#define Vector_DATA(o)		(o->data)
-#define PyVector_DATA(o)	(((EVSpace_Vector*)o)->data)
-
-#define Vector_SIZE			(3 * sizeof(double))
 
 /**
  *	\\ constructors \\

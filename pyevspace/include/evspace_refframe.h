@@ -1,6 +1,10 @@
 #ifndef EVSPACE_REFFRAME_H
 #define EVSPACE_REFFRAME_H
 
+#include <evspace_angles.h>
+#include <evspace_matrix.h>
+#include <evspace_vector.h>
+
 static EVSpace_Matrix*
 _get_x_rotation(double angle)
 {

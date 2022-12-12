@@ -3,10 +3,6 @@
 
 #include <Python.h>
 #include <evspacemodule.h>
-//#include <math.h>
-
-#define PI		3.14159265358979323846
-#define PI_2	1.57079632679489661923
 
 // forward declaration
 static PyTypeObject EVSpace_AnglesType;

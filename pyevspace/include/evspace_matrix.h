@@ -6,16 +6,9 @@
 #include <evspace_vector.h>
 #include <evspacemodule.h>
 
+
 // forward declaration
 static PyTypeObject EVSpace_MatrixType;
-
-#define RC_INDEX(r, c)			EVSpace_RC_INDEX(r, c)
-#define Matrix_COMP(o, r, c)	EVSpace_MATRIX_COMP(o, r, c)
-
-#define Matrix_DATA(o)			(o->data)
-#define PyMatrix_DATA(o)		(((EVSpace_Matrix*)o)->data)
-
-#define MATRIX_SIZE				9 * sizeof(double)
 
 
 // constructors 
@@ -32,7 +25,7 @@ _matrix_from_array(double* array, PyTypeObject* type)
 		return (EVSpace_Matrix*)PyErr_NoMemory();
 
 	if (array)
-		memcpy(Matrix_DATA(rtn), array, MATRIX_SIZE);
+		memcpy(Matrix_DATA(rtn), array, Matrix_SIZE);
 
 	return rtn;
 }
@@ -78,7 +71,7 @@ matrix_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED(_))
 		return NULL;
 	}
 
-	double* array = malloc(MATRIX_SIZE);
+	double* array = malloc(Matrix_SIZE);
 	if (!array)
 		return PyErr_NoMemory();
 
@@ -209,7 +202,7 @@ matrix_richcompare(EVSpace_Matrix* self, PyObject* other, int op)
 static EVSpace_Matrix*
 _matrix_add(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
 {
-	double* array = malloc(MATRIX_SIZE);
+	double* array = malloc(Matrix_SIZE);
 	if (!array)
 		return (EVSpace_Matrix*)PyErr_NoMemory();
 
@@ -233,7 +226,7 @@ _matrix_add(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
 static EVSpace_Matrix*
 _matrix_subtract(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
 {
-	double* array = malloc(MATRIX_SIZE);
+	double* array = malloc(Matrix_SIZE);
 	if (!array)
 		return (EVSpace_Matrix*)PyErr_NoMemory();
 
@@ -257,7 +250,7 @@ _matrix_subtract(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
 static EVSpace_Matrix*
 _matrix_multiply_s(const EVSpace_Matrix* mat, double scalar)
 {
-	double* ans = malloc(MATRIX_SIZE);
+	double* ans = malloc(Matrix_SIZE);
 	if (!ans)
 		return NULL;
 
@@ -316,7 +309,7 @@ _matrix_multiply_v(const EVSpace_Matrix* mat, const EVSpace_Vector* vec)
 static EVSpace_Matrix*
 _matrix_multiply_m(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
 {
-	double* ans = malloc(MATRIX_SIZE);
+	double* ans = malloc(Matrix_SIZE);
 	if (!ans)
 		return NULL;
 
@@ -337,7 +330,7 @@ _matrix_multiply_m(const EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
 static EVSpace_Matrix*
 _matrix_divide(const EVSpace_Matrix* mat, double scalar)
 {
-	double* array = malloc(MATRIX_SIZE);
+	double* array = malloc(Matrix_SIZE);
 	if (!array)
 		return NULL;
 
@@ -417,7 +410,7 @@ _matrix_idivide(EVSpace_Matrix* mat, double scalar)
 static EVSpace_Matrix*
 _matrix_negative(const EVSpace_Matrix* self)
 {
-	double* state = malloc(MATRIX_SIZE);
+	double* state = malloc(Matrix_SIZE);
 	if (!state)
 		return (EVSpace_Matrix*)PyErr_NoMemory();
 
@@ -673,7 +666,7 @@ matrix_get_buffer(EVSpace_Matrix* obj, Py_buffer* view, int flags)
 
 	view->obj = (PyObject*)obj;
 	view->buf = PyMatrix_DATA(obj);
-	view->len = MATRIX_SIZE;
+	view->len = Matrix_SIZE;
 	view->readonly = 0;
 	view->itemsize = sizeof(double);
 	view->format = "d";
@@ -735,7 +728,7 @@ _matrix_determinate(const EVSpace_Matrix* self)
 static EVSpace_Matrix*
 _matrix_transpose(const EVSpace_Matrix* self)
 {
-	double* array = malloc(MATRIX_SIZE);
+	double* array = malloc(Matrix_SIZE);
 	if (!array)
 		return (EVSpace_Matrix*)PyErr_NoMemory();
 
