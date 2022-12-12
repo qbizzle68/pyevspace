@@ -1,19 +1,19 @@
 from math import sqrt
 
-from pyevspace import EVector
+from pyevspace import Vector
 import unittest
 
 
 # class holding the vector tests
-class Test_evector(unittest.TestCase):
+class Test_vector(unittest.TestCase):
 
-    v111 = EVector((1, 1, 1))
-    v123 = EVector((1, 2, 3))
-    v123m = EVector((-1, -2, -3))
+    v111 = Vector((1, 1, 1))
+    v123 = Vector((1, 2, 3))
+    v123m = Vector((-1, -2, -3))
 
     def test_vector_add(self):
-        self.assertEqual(self.v111 + self.v123, EVector((2, 3, 4)))
-        self.assertEqual(self.v111 + self.v123m, EVector((0, -1, -2)))
+        self.assertEqual(self.v111 + self.v123, Vector((2, 3, 4)))
+        self.assertEqual(self.v111 + self.v123m, Vector((0, -1, -2)))
 
         with self.assertRaises(TypeError) as cm:
             self.v111 + 1
@@ -28,12 +28,12 @@ class Test_evector(unittest.TestCase):
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_vector_iadd(self):
-        v = EVector((1, 1, 1))
+        v = Vector((1, 1, 1))
         v += self.v123
-        self.assertEqual(v, EVector((2, 3, 4)))
-        v = EVector((-1, -2, -3))
+        self.assertEqual(v, Vector((2, 3, 4)))
+        v = Vector((-1, -2, -3))
         v += self.v123
-        self.assertEqual(v, EVector((0, 0, 0)))
+        self.assertEqual(v, Vector((0, 0, 0)))
 
         with self.assertRaises(TypeError) as cm:
             self.v111 += 1
@@ -48,8 +48,8 @@ class Test_evector(unittest.TestCase):
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_vector_subtract(self):
-        self.assertEqual(self.v123 - self.v111, EVector((0, 1, 2)))
-        self.assertEqual(self.v111 - self.v123, EVector((0, -1, -2)))
+        self.assertEqual(self.v123 - self.v111, Vector((0, 1, 2)))
+        self.assertEqual(self.v111 - self.v123, Vector((0, -1, -2)))
 
         with self.assertRaises(TypeError) as cm:
             self.v111 - 1
@@ -64,12 +64,12 @@ class Test_evector(unittest.TestCase):
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_vector_isubtract(self):
-        v = EVector((1, 1, 1))
+        v = Vector((1, 1, 1))
         v -= self.v123
-        self.assertEqual(v, EVector((0, -1, -2)))
-        v = EVector((1, 1, 1))
+        self.assertEqual(v, Vector((0, -1, -2)))
+        v = Vector((1, 1, 1))
         v -= self.v123m
-        self.assertEqual(v, EVector((2, 3, 4)))
+        self.assertEqual(v, Vector((2, 3, 4)))
 
         with self.assertRaises(TypeError) as cm:
             self.v111 -= 1
@@ -84,66 +84,66 @@ class Test_evector(unittest.TestCase):
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_vector_multiply(self):
-        self.assertEqual(self.v123 * 2, EVector((2, 4, 6)))
-        self.assertEqual(self.v123m * 0.5, EVector((-0.5, -1, -1.5)))
+        self.assertEqual(self.v123 * 2, Vector((2, 4, 6)))
+        self.assertEqual(self.v123m * 0.5, Vector((-0.5, -1, -1.5)))
 
         with self.assertRaises(TypeError) as cm:
             self.v111 * 'a'
         self.assertEqual(TypeError, type(cm.exception))
 
         with self.assertRaises(TypeError) as cm:
-            self.v111 * EVector()
+            self.v111 * Vector()
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_vector_imultiply(self):
-        v = EVector((1, 2, 3))
+        v = Vector((1, 2, 3))
         v *= 2
-        self.assertEqual(v, EVector((2, 4, 6)))
-        v = EVector((-1, -1, -1))
+        self.assertEqual(v, Vector((2, 4, 6)))
+        v = Vector((-1, -1, -1))
         v *= 0.5
-        self.assertEqual(v, EVector((-0.5, -0.5, -0.5)))
+        self.assertEqual(v, Vector((-0.5, -0.5, -0.5)))
 
         with self.assertRaises(TypeError) as cm:
             self.v111 *= 'a'
         self.assertEqual(TypeError, type(cm.exception))
 
         with self.assertRaises(TypeError) as cm:
-            self.v111 *= EVector()
+            self.v111 *= Vector()
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_vector_divide(self):
         self.assertEqual(self.v123 / 1, self.v123)
-        self.assertEqual(self.v123m / 0.1, EVector((-10, -20, -30)))
+        self.assertEqual(self.v123m / 0.1, Vector((-10, -20, -30)))
 
         with self.assertRaises(TypeError) as cm:
             self.v111 / 'a'
         self.assertEqual(TypeError, type(cm.exception))
 
         with self.assertRaises(TypeError) as cm:
-            self.v111 / EVector()
+            self.v111 / Vector()
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_vector_idivide(self):
-        v = EVector((1, 2, 3))
+        v = Vector((1, 2, 3))
         v /= 2
-        self.assertEqual(v, EVector((0.5, 1, 1.5)))
-        v = EVector((-1, -1, -1))
+        self.assertEqual(v, Vector((0.5, 1, 1.5)))
+        v = Vector((-1, -1, -1))
         v /= 0.5
-        self.assertEqual(v, EVector((-2, -2, -2)))
+        self.assertEqual(v, Vector((-2, -2, -2)))
 
         with self.assertRaises(TypeError) as cm:
             self.v111 /= 'a'
         self.assertEqual(TypeError, type(cm.exception))
 
         with self.assertRaises(TypeError) as cm:
-            self.v111 /= EVector()
+            self.v111 /= Vector()
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_vector_mag(self):
-        v = EVector((3, 4, 0))
+        v = Vector((3, 4, 0))
         self.assertEqual(v.mag(), 5)
         x = sqrt(1/3)
-        v = EVector((x, x, x))
+        v = Vector((x, x, x))
         self.assertEqual(v.mag(), 1)
 
         with self.assertRaises(TypeError) as cm:
@@ -160,12 +160,12 @@ class Test_evector(unittest.TestCase):
 
     def test_vector_normalize(self):
         x = sqrt(1/3)
-        v = EVector((x, x, x))
+        v = Vector((x, x, x))
         v.normalize()
-        self.assertEqual(v, EVector((x, x, x)))
-        v = EVector((3, 4, 0))
+        self.assertEqual(v, Vector((x, x, x)))
+        v = Vector((3, 4, 0))
         v.normalize()
-        self.assertEqual(v, EVector((0.6, 0.8, 0)))
+        self.assertEqual(v, Vector((0.6, 0.8, 0)))
 
         with self.assertRaises(TypeError) as cm:
             self.v111.normalize(1)
@@ -188,7 +188,7 @@ class Test_evector(unittest.TestCase):
             x = self.v111['a']
         self.assertEqual(TypeError, type(cm.exception))
 
-        v = EVector((1, 2, 3))
+        v = Vector((1, 2, 3))
         v[0] = 5
         self.assertEqual(v[0], 5)
         v[-1] = 68
@@ -207,7 +207,7 @@ class Test_evector(unittest.TestCase):
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_compare(self):
-        v = EVector((1, 2, 3))
+        v = Vector((1, 2, 3))
         self.assertEqual(v, self.v123)
         self.assertNotEqual(v, self.v111)
         self.assertTrue(v == self.v123)
@@ -220,7 +220,7 @@ class Test_evector(unittest.TestCase):
         sumValue = 0
         for i in range(10):
             sumValue += x
-        self.assertEqual(EVector((sumValue, 0, 0)), EVector((1, 0, 0)))
+        self.assertEqual(Vector((sumValue, 0, 0)), Vector((1, 0, 0)))
 
     def test_iterable(self):
         self.assertIn(1, self.v123)
@@ -234,7 +234,7 @@ class Test_evector(unittest.TestCase):
     def test_buffer(self):
         try:
             import numpy as np
-            v = EVector((1, 2, 3))
+            v = Vector((1, 2, 3))
             arr = np.asarray(v)
             v[2] = 5
             self.assertTrue(self.equality(v, arr))

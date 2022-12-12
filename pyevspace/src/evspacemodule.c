@@ -48,7 +48,7 @@ PyDoc_STRVAR(vector_doc, "Data type representing a 3 dimensional vector in a Euc
 
 static PyTypeObject EVSpace_VectorType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	.tp_name		= "pyevspace.EVector",
+	.tp_name		= "pyevspace.Vector",
 	.tp_basicsize	= sizeof(EVSpace_Vector),
 	.tp_itemsize	= 0,
 	.tp_repr		= (reprfunc)vector_repr,
@@ -100,7 +100,7 @@ PyDoc_STRVAR(matrix_doc, "Data type for a matrix in a Euclidean vector space.");
 
 static PyTypeObject EVSpace_MatrixType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	.tp_name		= "pyevspace.EMatrix",
+	.tp_name		= "pyevspace.Matrix",
 	.tp_basicsize	= sizeof(EVSpace_Matrix),
 	.tp_itemsize	= 0,
 	.tp_repr		= (reprfunc)matrix_repr,

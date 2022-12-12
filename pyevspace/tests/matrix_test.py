@@ -2,16 +2,16 @@ from pyevspace import *
 import unittest
 
 
-class Test_ematrix(unittest.TestCase):
+class Test_matrix(unittest.TestCase):
 
-    mi = EMatrix((1, 0, 0), (0, 1, 0), (0, 0, 1))
-    m123 = EMatrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
-    m147 = EMatrix((1, 4, 7), (2, 5, 8), (3, 6, 9))
-    v123 = EVector((1, 2, 3))
-    m2 = EMatrix((2, 4, 6), (8, 10, 12), (14, 16, 18))
+    mi = Matrix((1, 0, 0), (0, 1, 0), (0, 0, 1))
+    m123 = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+    m147 = Matrix((1, 4, 7), (2, 5, 8), (3, 6, 9))
+    v123 = Vector((1, 2, 3))
+    m2 = Matrix((2, 4, 6), (8, 10, 12), (14, 16, 18))
 
     def test_add(self):
-        ans = EMatrix((2, 6, 10), (6, 10, 14), (10, 14, 18))
+        ans = Matrix((2, 6, 10), (6, 10, 14), (10, 14, 18))
         self.assertEqual(self.m123 + self.m147, ans)
 
         with self.assertRaises(TypeError) as cm:
@@ -23,9 +23,9 @@ class Test_ematrix(unittest.TestCase):
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_iadd(self):
-        m = EMatrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+        m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
         m += self.m147
-        ans = EMatrix((2, 6, 10), (6, 10, 14), (10, 14, 18))
+        ans = Matrix((2, 6, 10), (6, 10, 14), (10, 14, 18))
         self.assertEqual(self.m123 + self.m147, ans)
 
         with self.assertRaises(TypeError) as cm:
@@ -37,7 +37,7 @@ class Test_ematrix(unittest.TestCase):
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_subtract(self):
-        ans = EMatrix((0, -2, -4), (2, 0, -2), (4, 2, 0))
+        ans = Matrix((0, -2, -4), (2, 0, -2), (4, 2, 0))
         self.assertEqual(self.m123 - self.m147, ans)
 
         with self.assertRaises(TypeError) as cm:
@@ -49,9 +49,9 @@ class Test_ematrix(unittest.TestCase):
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_isubtract(self):
-        m = EMatrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+        m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
         m -= self.m147
-        ans = EMatrix((0, -2, -4), (2, 0, -2), (4, 2, 0))
+        ans = Matrix((0, -2, -4), (2, 0, -2), (4, 2, 0))
         self.assertEqual(m, ans)
 
         with self.assertRaises(TypeError) as cm:
@@ -63,7 +63,7 @@ class Test_ematrix(unittest.TestCase):
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_scalar_multiply(self):
-        # ans = EMatrix((2, 4, 6), (8, 10, 12), (14, 16, 18))
+        # ans = Matrix((2, 4, 6), (8, 10, 12), (14, 16, 18))
         self.assertEqual(self.m123 * 2, self.m2)
         self.assertEqual(self.m123 * 2.0, self.m2)
 
@@ -76,36 +76,36 @@ class Test_ematrix(unittest.TestCase):
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_vector_multiply(self):
-        self.assertEqual(self.m123 * self.v123, EVector((14, 32, 50)))
+        self.assertEqual(self.m123 * self.v123, Vector((14, 32, 50)))
 
     def test_matrix_multiply(self):
-        ans = EMatrix((14, 32, 50), (32, 77, 122), (50, 122, 194))
+        ans = Matrix((14, 32, 50), (32, 77, 122), (50, 122, 194))
         self.assertEqual(self.m123 * self.m147, ans)
 
     def test_imultiply(self):
-        # ans = EMatrix((2, 4, 6), (8, 10, 12), (14, 16, 18))
-        m = EMatrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+        # ans = Matrix((2, 4, 6), (8, 10, 12), (14, 16, 18))
+        m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
         m *= 2
         self.assertEqual(m, self.m2)
-        m = EMatrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+        m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
         m *= 2.0
         self.assertEqual(m, self.m2)
 
     def test_divide(self):
-        ans = EMatrix((0.5, 1, 1.5), (2, 2.5, 3), (3.5, 4, 4.5))
+        ans = Matrix((0.5, 1, 1.5), (2, 2.5, 3), (3.5, 4, 4.5))
         self.assertEqual(self.m123 / 2, ans)
         self.assertEqual(self.m123 / 2.0, ans)
         self.assertEqual(self.m123 / 0.5, self.m2)
 
     def test_idivide(self):
-        ans = EMatrix((0.5, 1, 1.5), (2, 2.5, 3), (3.5, 4, 4.5))
-        m = EMatrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+        ans = Matrix((0.5, 1, 1.5), (2, 2.5, 3), (3.5, 4, 4.5))
+        m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
         m /= 2
         self.assertEqual(m, ans)
-        m = EMatrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+        m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
         m /= 2.0
         self.assertEqual(m, ans)
-        m = EMatrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+        m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
         m /= 0.5
         self.assertEqual(m, self.m2)
 
@@ -134,7 +134,7 @@ class Test_ematrix(unittest.TestCase):
         self.assertEqual(IndexError, type(cm.exception))
 
     def test_set(self):
-        m = EMatrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+        m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
         m[0, 0] = 42
         self.assertEqual(m[0, 0], 42)
 
@@ -163,7 +163,7 @@ class Test_ematrix(unittest.TestCase):
         self.assertEqual(IndexError, type(cm.exception))
 
     def test_compare(self):
-        m = EMatrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+        m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
         self.assertEqual(m, self.m123)
         self.assertNotEqual(m, self.m147)
         self.assertTrue(m == self.m123)
@@ -190,7 +190,7 @@ class Test_ematrix(unittest.TestCase):
     def test_buffer(self):
         try:
             import numpy as np
-            m = EMatrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+            m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
             mat = np.ndarray((3, 3), buffer=m)
             m[1, 1] = 10
             self.assertTrue(self.equality(m, mat))

@@ -1,12 +1,12 @@
 import unittest
-from vector_test import Test_evector
-from matrix_test import Test_ematrix
+from vector_test import Test_vector
+from matrix_test import Test_matrix
 from module_test import Test_evspace
 
 
 def get_suite():
 
-    testClasses = [Test_evector, Test_ematrix, Test_evspace]
+    testClasses = [Test_vector, Test_matrix, Test_evspace]
 
     loader = unittest.TestLoader()
 
