@@ -729,7 +729,7 @@ rotation_rotate_to(EVSpace_Rotation* self, PyObject* vector)
 	EVSpace_Vector* rtn = _matrix_multiply_v(transpose,
 											 (EVSpace_Vector*)self);
 	Py_DECREF(transpose);
-	return rtn;
+	return (PyObject*)rtn;
 }
 
 static PyObject*
@@ -744,7 +744,7 @@ rotation_rotate_from(EVSpace_Rotation* self, PyObject* vector)
 
 	EVSpace_Vector* rtn = _matrix_multiply_v(self->matrix,
 											 (EVSpace_Vector*)self);
-	return rtn;
+	return (PyObject*)rtn;
 }
 
 #endif // EVSPACE_ROTATION_H
