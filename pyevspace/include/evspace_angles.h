@@ -131,10 +131,6 @@ angles_set_item(EVSpace_Angles* self, Py_ssize_t index, PyObject* value)
 	return 0;
 }
 
-// dont think we ever used this
-// will expand an EVSpace_Order* to the axis for method calls
-#define ORDER_AS_AXIS(o)	o->first, o->second, o->third
-
 static EVSpace_Order*
 _order_new(EVSpace_Axis first, EVSpace_Axis second, EVSpace_Axis third, 
 	PyTypeObject* type)
