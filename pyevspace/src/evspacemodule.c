@@ -142,7 +142,7 @@ PyDoc_STRVAR(angles_doc, "data structure to hold the angles of an Euler rotation
 
 static PyTypeObject EVSpace_AnglesType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	.tp_name		= "pyevspace.angles",
+	.tp_name		= "pyevspace.Angles",
 	.tp_basicsize	= sizeof(EVSpace_Angles),
 	.tp_itemsize	= 0,
 	.tp_repr		= (reprfunc)angles_repr,
@@ -181,7 +181,7 @@ PyDoc_STRVAR(order_doc, "simple class to hold the axis order of an Euler rotatio
 
 static PyTypeObject EVSpace_OrderType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	.tp_name		= "pyevspace.order",
+	.tp_name		= "pyevspace.Order",
 	.tp_basicsize	= sizeof(EVSpace_Order),
 	.tp_itemsize	= 0,
 	.tp_repr		= (reprfunc)order_repr,
@@ -228,7 +228,7 @@ PyDoc_STRVAR(rotation_doc, "");
 
 static PyTypeObject EVSpace_RotationType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	.tp_name		= "pyevspace.rotation",
+	.tp_name		= "pyevspace.Rotation",
 	.tp_basicsize	= sizeof(EVSpace_Rotation),
 	.tp_itemsize	= 0,
 	.tp_flags		= Py_TPFLAGS_DEFAULT,
