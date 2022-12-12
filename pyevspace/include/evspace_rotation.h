@@ -712,4 +712,39 @@ rotate_offset_from(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t siz
 										  (EVSpace_Vector*)args[2]);
 }
 
+static PyObject*
+rotation_rotate_to(EVSpace_Rotation* self, PyObject* vector)
+{
+	if (!Vector_Check(vector))
+	{
+		PyErr_SetString(PyExc_TypeError,
+			"parameter 1 must be pyevspace.EVector type");
+		return NULL;
+	}
+	
+	EVSpace_Matrix* transpose = _matrix_transpose(self->matrix);
+	if (!transpose)
+		return NULL;
+
+	EVSpace_Vector* rtn = _matrix_multiply_v(transpose,
+											 (EVSpace_Vector*)self);
+	Py_DECREF(transpose);
+	return rtn;
+}
+
+static PyObject*
+rotation_rotate_from(EVSpace_Rotation* self, PyObject* vector)
+{
+	if (!Vector_Check(vector))
+	{
+		PyErr_SetString(PyExc_TypeError,
+			"parameter 1 must be pyevspace.EVector type");
+		return NULL;
+	}
+
+	EVSpace_Vector* rtn = _matrix_multiply_v(self->matrix,
+											 (EVSpace_Vector*)self);
+	return rtn;
+}
+
 #endif // EVSPACE_ROTATION_H

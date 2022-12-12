@@ -214,18 +214,29 @@ static PyGetSetDef rotation_getset[] = {
 	{NULL}
 };
 
+static PyMethodDef rotation_methods[] = {
+	{"rotateTo", (PyCFunction)rotation_rotate_to, METH_O,
+		PyDoc_STR("rotate a vector from an intertial frame to this reference \
+			frame")},
+	{"rotateFrom", (PyCFunction)rotation_rotate_from, METH_O,
+		PyDoc_STR("rotate a vector to an inertial frame from this reference \
+			frame")},
+	{NULL}
+};
+
 PyDoc_STRVAR(rotation_doc, "");
 
 static PyTypeObject EVSpace_RotationType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	.tp_name = "pyevspace.rotation",
-	.tp_basicsize = sizeof(EVSpace_Rotation),
-	.tp_itemsize = 0,
-	.tp_flags = Py_TPFLAGS_DEFAULT,
-	.tp_doc = rotation_doc,
-	.tp_members = rotation_members,
-	.tp_getset = rotation_getset,
-	.tp_new = (newfunc)rotation_new
+	.tp_name		= "pyevspace.rotation",
+	.tp_basicsize	= sizeof(EVSpace_Rotation),
+	.tp_itemsize	= 0,
+	.tp_flags		= Py_TPFLAGS_DEFAULT,
+	.tp_doc			= rotation_doc,
+	.tp_methods		= rotation_methods,
+	.tp_members		= rotation_members,
+	.tp_getset		= rotation_getset,
+	.tp_new			= (newfunc)rotation_new
 };
 
 
