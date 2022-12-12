@@ -17,7 +17,7 @@ __get_sequence_state(PyObject* arg, double* arr)
 	PyObject* fast_sequence = PySequence_Fast(arg, err);
 	if (!fast_sequence) {
 		if (PyErr_Occurred() == PyExc_TypeError)
-			PyErr_SetString(PyExc_TypeError, "parameter must be a sequence");
+			PyErr_SetString(PyExc_TypeError, "parameter must be a sequence type");
 		return -1;
 	}
 

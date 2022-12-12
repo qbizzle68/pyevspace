@@ -82,6 +82,7 @@ _get_rotation_matrix(EVSpace_Axis axis, double angle)
 	else if (axis == Z_AXIS)
 		return _get_z_rotation(angle);
 	else {
+		// todo: want this error to print with format "%_AXIS" with axis value
 		PyErr_Format(PyExc_ValueError,
 			"axis value (%i) must be in [0-2]", (int)axis);
 		return NULL;
@@ -326,12 +327,12 @@ rotation_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED(_))
 
 	if (!Order_Check(order)) {
 		PyErr_SetString(PyExc_TypeError,
-			"first argument must be pyevspace.order type");
+			"first argument must be pyevspace.Order type");
 		return NULL;
 	}
 	if (!Angles_Check(angles)) {
 		PyErr_SetString(PyExc_TypeError,
-			"second argument must be pyevspace.angle type");
+			"second argument must be pyevspace.Angles type");
 		return NULL;
 	}
 
@@ -356,7 +357,7 @@ rotation_angles_setter(EVSpace_Rotation* self, EVSpace_Angles* arg, void* closur
 
 	if (!Angles_Check(arg)) {
 		PyErr_SetString(PyExc_TypeError,
-			"value must be pyevspace.angles type");
+			"value must be pyevspace.Angles type");
 		return -1;
 	}
 
@@ -403,7 +404,6 @@ rotation_subangle_getter(EVSpace_Rotation* self, void* closure)
 static int
 rotation_subangle_setter(EVSpace_Rotation* self, PyObject* arg, void* closure)
 {
-	printf("in setter\n");
 	size_t which = (size_t)closure;
 	assert(which == ROTATION_ANGLE_ALPHA || which == ROTATION_ANGLE_BETA
 		|| which == ROTATION_ANGLE_GAMMA);
@@ -414,19 +414,20 @@ rotation_subangle_setter(EVSpace_Rotation* self, PyObject* arg, void* closure)
 		return -1;
 	}
 
-	printf("getting angle\n");
 	double angle = PyFloat_AsDouble(arg);
 	if (angle == -1.0 && PyErr_Occurred())
 		return -1;
-	printf("got angle\n");
 
 	double* angle_addr = NULL;
-	if (which == ROTATION_ANGLE_ALPHA)
+	if (which == ROTATION_ANGLE_ALPHA) {
 		angle_addr = &self->angles->alpha;
-	else if (which == ROTATION_ANGLE_BETA)
+	}
+	else if (which == ROTATION_ANGLE_BETA) {
 		angle_addr = &self->angles->beta;
-	else if (which == ROTATION_ANGLE_GAMMA)
+	}
+	else {
 		angle_addr = &self->angles->gamma;
+	}
 
 	double temp = *angle_addr;
 	*angle_addr = angle;
@@ -463,18 +464,19 @@ get_euler_matrix(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t size)
 {
 	if (size != 2) {
 		PyErr_Format(PyExc_TypeError,
-			"function takes exactly two arguments (%i given)", size);
+			"getMatrixEuler() expected exactly 2 arguments \
+				(%i given)", size);
 		return NULL;
 	}
 
 	if (!Order_Check(args[0])) {
 		PyErr_SetString(PyExc_TypeError,
-			"parameter 1 must be pyevspace.order type");
+			"first argument must be pyevspace.Order type");
 		return NULL;
 	}
 	if (!Angles_Check(args[1])) {
 		PyErr_SetString(PyExc_TypeError,
-			"parameter 2 must be pyevspace.angles type");
+			"second parameter must be pyevspace.Angles type");
 		return NULL;
 	}
 
@@ -487,28 +489,29 @@ get_matrix_from_to(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t siz
 {
 	if (size != 4) {
 		PyErr_Format(PyExc_TypeError,
-			"function takes exactly 4 arguments (%i given)", size);
+			"getMatrixFromTo() expected exactly 2 arguments \
+				(%i given)", size);
 		return NULL;
 	}
 
 	if (!Order_Check(args[0])) {
 		PyErr_SetString(PyExc_TypeError,
-			"argument 1 must be pyevspace.order type");
+			"first argument must be pyevspace.Order type");
 		return NULL;
 	}
 	if (!Angles_Check(args[1])) {
 		PyErr_SetString(PyExc_TypeError,
-			"argument 2 must be pyevspace.angle type");
+			"second argument must be pyevspace.Angles type");
 		return NULL;
 	}
 	if (!Order_Check(args[2])) {
 		PyErr_SetString(PyExc_TypeError,
-			"argument 3 must be pyevspace.order type");
+			"third argument must be pyevspace.Order type");
 		return NULL;
 	}
 	if (!Angles_Check(args[3])) {
 		PyErr_SetString(PyExc_TypeError,
-			"argument 4 must be pyevspace.angle type");
+			"fourth argument must be pyevspace.Angles type");
 		return NULL;
 	}
 
@@ -548,24 +551,25 @@ static PyObject*
 rotate_euler_to(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t size)
 {
 	if (size != 3) {
-		PyErr_Format(PyExc_TypeError, 
-			"function takes exactly 3 parameters (%i given)", size);
+		PyErr_Format(PyExc_TypeError,
+			"rotateEulerTo() expected exactly 3 arguments \
+			(%i given)", size);
 		return NULL;
 	}
 
 	if (!Order_Check(args[0])) {
-		PyErr_SetString(PyExc_TypeError, 
-			"parameter 1 must be pyevspace.order type");
+		PyErr_SetString(PyExc_TypeError,
+			"first argument must be pyevspace.Order type");
 		return NULL;
 	}
 	if (!Angles_Check(args[1])) {
 		PyErr_SetString(PyExc_TypeError,
-			"parameter 2 must be pyevspace.angles type");
+			"second argument must be pyevspace.Angles type");
 		return NULL;
 	}
 	if (!Vector_Check(args[2])) {
 		PyErr_SetString(PyExc_TypeError,
-			"parameter 3 must be pyevspace.EVector type");
+			"third argument must be pyevspace.Vector type");
 		return NULL;
 	}
 
@@ -579,23 +583,24 @@ rotate_euler_from(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t size
 {
 	if (size != 3) {
 		PyErr_Format(PyExc_TypeError,
-			"function takes exactly 3 parameters (%i given)", size);
+			"rotateEulerFrom() expected exactly 3 arguments \
+			(%i given)", size);
 		return NULL;
 	}
 
 	if (!Order_Check(args[0])) {
 		PyErr_SetString(PyExc_TypeError,
-			"parameter 1 must be pyevspace.order type");
+			"first argument must be pyevspace.Order type");
 		return NULL;
 	}
 	if (!Angles_Check(args[1])) {
 		PyErr_SetString(PyExc_TypeError,
-			"parameter 2 must be pyevspace.angles type");
+			"second argument must be pyevspace.Angles type");
 		return NULL;
 	}
 	if (!Vector_Check(args[2])) {
 		PyErr_SetString(PyExc_TypeError,
-			"parameter 3 must be pyevspace.EVector type");
+			"third argument must be pyevspace.Vector type");
 		return NULL;
 	}
 
@@ -608,19 +613,20 @@ static PyObject*
 rotate_matrix_to(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t size)
 {
 	if (size != 2) {
-		PyErr_Format(PyExc_TypeError, 
-			"function takes exactly 2 parameters (%i given)", size);
+		PyErr_Format(PyExc_TypeError,
+			"rotateMatrixTo() expected exactly 2 arguments \
+			(%i given)", size);
 		return NULL;
 	}
 
 	if (!Matrix_Check(args[0])) {
 		PyErr_SetString(PyExc_TypeError,
-			"parameter 1 must be pyevspace.EMatrix type");
+			"first parameter must be pyevspace.Matrix type");
 		return NULL;
 	}
 	if (!Vector_Check(args[1])) {
 		PyErr_SetString(PyExc_TypeError,
-			"parameter 2 must be pyevspace.EVector type");
+			"second parameter must be pyevspace.Vector type");
 		return NULL;
 	}
 
@@ -633,18 +639,19 @@ rotate_matrix_from(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t siz
 {
 	if (size != 2) {
 		PyErr_Format(PyExc_TypeError,
-			"function takes exactly 2 parameters (%i given)", size);
+			"rotateMatrixTo() expected exactly 2 arguments \
+			(%i given)", size);
 		return NULL;
 	}
 
 	if (!Matrix_Check(args[0])) {
 		PyErr_SetString(PyExc_TypeError,
-			"parameter 1 must be pyevspace.EMatrix type");
+			"first argument must be pyevspace.Matrix type");
 		return NULL;
 	}
 	if (!Vector_Check(args[1])) {
 		PyErr_SetString(PyExc_TypeError,
-			"parameter 2 must be pyevspace.EVector type");
+			"second argument must be pyevspace.Vector type");
 		return NULL;
 	}
 
@@ -657,23 +664,24 @@ rotate_offset_to(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t size)
 {
 	if (size != 3) {
 		PyErr_Format(PyExc_TypeError,
-			"function takes exactly 3 parameters (%i given)", size);
+			"rotateOffsetTo() expected exactly 3 arguments \
+			(%i given)", size);
 		return NULL;
 	}
 
 	if (!Matrix_Check(args[0])) {
 		PyErr_SetString(PyExc_TypeError,
-			"parameter 1 must be pyevspace.EMatrix type");
+			"first argument must be pyevspace.Matrix type");
 		return NULL;
 	}
 	if (!Vector_Check(args[1])) {
 		PyErr_SetString(PyExc_TypeError,
-			"parameter 2 must be pyevspace.EVector type");
+			"second argument must be pyevspace.Vector type");
 		return NULL;
 	}
 	if (!Vector_Check(args[2])) {
 		PyErr_SetString(PyExc_TypeError,
-			"parameter 3 must be pyevspace.EVector type");
+			"third argument must be pyevspace.Vector type");
 		return NULL;
 	}
 
@@ -687,23 +695,24 @@ rotate_offset_from(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t siz
 {
 	if (size != 3) {
 		PyErr_Format(PyExc_TypeError,
-			"function takes exactly 3 parameters (%i given)", size);
+			"rotateOffsetFrom() expected exactly 3 arguments \
+			(%i given)", size);
 		return NULL;
 	}
 
 	if (!Matrix_Check(args[0])) {
 		PyErr_SetString(PyExc_TypeError,
-			"parameter 1 must be pyevspace.EMatrix type");
+			"first argument must be pyevspace.Matrix type");
 		return NULL;
 	}
 	if (!Vector_Check(args[1])) {
 		PyErr_SetString(PyExc_TypeError,
-			"parameter 2 must be pyevspace.EVector type");
+			"second argument must be pyevspace.Vector type");
 		return NULL;
 	}
 	if (!Vector_Check(args[2])) {
 		PyErr_SetString(PyExc_TypeError,
-			"parameter 3 must be pyevspace.EVector type");
+			"third argument must be pyevspace.Vector type");
 		return NULL;
 	}
 
@@ -718,7 +727,7 @@ rotation_rotate_to(EVSpace_Rotation* self, PyObject* vector)
 	if (!Vector_Check(vector))
 	{
 		PyErr_SetString(PyExc_TypeError,
-			"parameter 1 must be pyevspace.EVector type");
+			"argument must be pyevspace.Vector type");
 		return NULL;
 	}
 	
@@ -738,7 +747,7 @@ rotation_rotate_from(EVSpace_Rotation* self, PyObject* vector)
 	if (!Vector_Check(vector))
 	{
 		PyErr_SetString(PyExc_TypeError,
-			"parameter 1 must be pyevspace.EVector type");
+			"argument must be pyevspace.Vector type");
 		return NULL;
 	}
 

@@ -73,8 +73,8 @@ matrix_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED(_))
 	if (none_count == 3)
 		return (PyObject*)new_matrix_empty;
 	else if (none_count != 0) {
-		PyErr_Format(PyExc_TypeError, "function takes either\
-			zero or three arguments (%i given)", 3 - none_count);
+		PyErr_Format(PyExc_TypeError,
+			"Matrix() expected 3 arguments (%i given)", 3 - none_count);
 		return NULL;
 	}
 
@@ -765,12 +765,13 @@ matrix_determinate(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t siz
 {
 	if (size != 1) {
 		PyErr_Format(PyExc_TypeError,
-			"det() takes exactly one argument (%i given)", size);
+			"det() expected exactly 1 argument (%i given)", size);
 		return NULL;
 	}
 
 	if (!Matrix_Check(args[0])) {
-		PyErr_SetString(PyExc_TypeError, "argument must be EMatrix type");
+		PyErr_SetString(PyExc_TypeError, 
+			"argument must be pyevspace.Matrix type");
 		return NULL;
 	}
 
@@ -784,12 +785,13 @@ matrix_transpose(PyObject* Py_UNUSED(_), PyObject* const* args, Py_ssize_t size)
 {
 	if (size != 1) {
 		PyErr_Format(PyExc_TypeError,
-			"transpose() takes exactly one argument (%i given)", size);
+			"transpose() expected exactly 1 argument (%i given)", size);
 		return NULL;
 	}
 
 	if (!Matrix_Check(args[0])) {
-		PyErr_SetString(PyExc_TypeError, "argument must be EMatrix type");
+		PyErr_SetString(PyExc_TypeError,
+			"argument must be pyevspace.Matrix type");
 		return NULL;
 	}
 

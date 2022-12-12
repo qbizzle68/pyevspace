@@ -246,7 +246,9 @@ order_set_item(EVSpace_Order* self, Py_ssize_t index, PyObject* value)
 		return -1;
 
 	if (val < 0 || val > 2) {
-		PyErr_SetString(PyExc_ValueError, "value must be 0, 1, or 2");
+		PyErr_SetString(PyExc_ValueError,
+			"value must be pyevspace.X_AXIS, \
+			pyevspace.Y_AXIS or pyevspace.Z_AXIS");
 		return -1;
 	}
 

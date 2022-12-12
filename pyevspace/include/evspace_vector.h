@@ -458,7 +458,7 @@ vector_get_item(EVSpace_Vector* self, Py_ssize_t index)
 	if (index < 0 || index > 2) {
 		PyErr_Format(
 			PyExc_IndexError,
-			"index (%i) must be in the interval [0-2]",
+			"index (%i) must be in [0-2]",
 			index);
 		return NULL;
 	}
@@ -472,7 +472,7 @@ vector_set_item(EVSpace_Vector* self, Py_ssize_t index, PyObject* arg)
 	if (index < 0 || index > 2) {
 		PyErr_Format(
 			PyExc_IndexError,
-			"index (%i) must be in interval [0-2]",
+			"index (%i) must be in [0-2]",
 			index);
 		return -1;
 	}
@@ -581,7 +581,7 @@ vector_magnitude(EVSpace_Vector* self, PyObject* Py_UNUSED)
 	if (!Vector_Check(self)) {
 		PyErr_SetString(
 			PyExc_TypeError,
-			"calling object must be EVector type");
+			"calling object must be Vector type");
 		return NULL;
 	}
 
@@ -594,7 +594,7 @@ vector_magnitude_square(EVSpace_Vector* self, PyObject* Py_UNUSED)
 	if (!Vector_Check(self)) {
 		PyErr_SetString(
 			PyExc_TypeError,
-			"calling object must be EVector type");
+			"calling object must be Vector type");
 		return NULL;
 	}
 
@@ -607,7 +607,7 @@ vector_normalize(EVSpace_Vector* self, PyObject* Py_UNUSED)
 	if (!Vector_Check(self)) {
 		PyErr_SetString(
 			PyExc_TypeError,
-			"calling object must be EVector type");
+			"calling object must be Vector type");
 		return NULL;
 	}
 
@@ -722,16 +722,19 @@ static PyObject*
 vector_dot(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size)
 {
 	if (size != 2) {
-		PyErr_Format(PyExc_TypeError, "dot() takes exactly 2 arguments (%i given)", size);
+		PyErr_Format(PyExc_TypeError,
+			"dot() expected exactly 2 arguments (%i given)", size);
 		return NULL;
 	}
 
 	if (!Vector_Check(args[0])) {
-		PyErr_SetString(PyExc_TypeError, "first argument must be EVector type");
+		PyErr_SetString(PyExc_TypeError,
+			"first argument must be Vector type");
 		return NULL;
 	}
 	else if (!Vector_Check(args[1])) {
-		PyErr_SetString(PyExc_TypeError, "second argument must be EVector type");
+		PyErr_SetString(PyExc_TypeError, 
+			"second argument must be Vector type");
 		return NULL;
 	}
 
@@ -744,16 +747,19 @@ static PyObject*
 vector_cross(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size)
 {
 	if (size != 2) {
-		PyErr_Format(PyExc_TypeError, "cross() takes exactly two arguments (%i given)", size);
+		PyErr_Format(PyExc_TypeError,
+			"cross() expected exactly 2 arguments (%i given)", size);
 		return NULL;
 	}
 
 	if (!Vector_Check(args[0])) {
-		PyErr_SetString(PyExc_TypeError, "first argument must be EVector type");
+		PyErr_SetString(PyExc_TypeError, 
+			"first argument must be Vector type");
 		return NULL;
 	}
 	else if (!Vector_Check(args[1])) {
-		PyErr_SetString(PyExc_TypeError, "second argument must be EVector type");
+		PyErr_SetString(PyExc_TypeError, 
+			"second argument must be Vector type");
 		return NULL;
 	}
 
@@ -765,12 +771,14 @@ static PyObject*
 vector_norm(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size)
 {
 	if (size != 1) {
-		PyErr_Format(PyExc_TypeError, "norm() takes exactly one argument (%i given)", size);
+		PyErr_Format(PyExc_TypeError, 
+			"norm() expected exactly 1 argument (%i given)", size);
 		return NULL;
 	}
 
 	if (!Vector_Check(args[0])) {
-		PyErr_SetString(PyExc_TypeError, "argument must be EVector type");
+		PyErr_SetString(PyExc_TypeError, 
+			"argument must be Vector type");
 		return NULL;
 	}
 
@@ -781,16 +789,19 @@ static PyObject*
 vector_angle(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size)
 {
 	if (size != 2) {
-		PyErr_Format(PyExc_TypeError, "vang() takes exactly one argument (%i given)", size);
+		PyErr_Format(PyExc_TypeError, 
+			"vang() expected exactly 1 argument (%i given)", size);
 		return NULL;
 	}
 
 	if (!Vector_Check(args[0])) {
-		PyErr_SetString(PyExc_TypeError, "first argument must be EVector type");
+		PyErr_SetString(PyExc_TypeError, 
+			"first argument must be Vector type");
 		return NULL;
 	}
 	else if (!Vector_Check(args[1])) {
-		PyErr_SetString(PyExc_TypeError, "second argument must be EVector type");
+		PyErr_SetString(PyExc_TypeError, 
+			"second argument must be Vector type");
 		return NULL;
 	}
 
@@ -803,19 +814,19 @@ static PyObject*
 vector_exclude(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size)
 {
 	if (size != 2) {
-		PyErr_SetString(PyExc_TypeError, 
-			"vxcl() takes exactly one argument");
+		PyErr_Format(PyExc_TypeError, 
+			"vxcl() expected exactly 1 argument (%i given)", size);
 		return NULL;
 	}
 
 	if (!Vector_Check(args[0])) {
 		PyErr_SetString(PyExc_TypeError, 
-			"first argument must be EVector type");
+			"first argument must be Vector type");
 		return NULL;
 	}
 	else if (!Vector_Check(args[1])) {
 		PyErr_SetString(PyExc_TypeError, 
-			"second argument must be EVector type");
+			"second argument must be Vector type");
 		return NULL;
 	}
 
@@ -827,19 +838,19 @@ static PyObject*
 vector_proj(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size)
 {
 	if (size != 2) {
-		PyErr_SetString(PyExc_TypeError, 
-			"proj() takes exactly two arguments");
+		PyErr_Format(PyExc_TypeError, 
+			"proj() expected exactly 2 arguments (%i given)", size);
 		return NULL;
 	}
 
 	if (!Vector_Check(args[0])) {
 		PyErr_SetString(PyExc_TypeError, 
-			"first argument must be EVector type");
+			"first argument must be Vector type");
 		return NULL;
 	}
 	if (!Vector_Check(args[1])) {
 		PyErr_SetString(PyExc_TypeError, 
-			"second argument must be EVector type");
+			"second argument must be Vector type");
 		return NULL;
 	}
 
