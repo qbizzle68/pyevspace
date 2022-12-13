@@ -145,7 +145,7 @@ vector_repr(const EVSpace_Vector* self)
 		return PyErr_NoMemory();
 
 	// don't need snprintf since we know how many bytes to write
-	sprintf(buffer, "EVector([%g, %g, %g])",
+	sprintf(buffer, "Vector([%g, %g, %g])",
 		Vector_X(self), Vector_Y(self), Vector_Z(self));
 
 	PyObject* rtn = PyUnicode_FromString(buffer);

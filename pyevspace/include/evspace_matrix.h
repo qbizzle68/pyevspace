@@ -151,7 +151,7 @@ matrix_repr(const EVSpace_Matrix* self)
 	if (!buffer)
 		return PyErr_NoMemory();
 
-	sprintf(buffer, "EMatrix([[%g, %g, %g]\n\t[%g, %g, %g] \
+	sprintf(buffer, "Matrix([[%g, %g, %g]\n\t[%g, %g, %g] \
 		\n\t[%g, %g, %g]])",
 		Matrix_COMP(self, 0, 0), Matrix_COMP(self, 0, 1),
 		Matrix_COMP(self, 0, 2), Matrix_COMP(self, 1, 0),
