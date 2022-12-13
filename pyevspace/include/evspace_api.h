@@ -207,6 +207,7 @@
 			EVSpaceAPI->EVSpace_Vector_idivide(self, other)
 #define EVSpace_Vector_negative(self)			\
 			EVSpaceAPI->EVspace_Vector_negative(self)
+
 #define EVSpace_Matrix_add(rhs, lhs)			\
 			EVSpaceAPI->EVSpace_Matrix_add(rhs, lhs)
 #define EVSpace_Matrix_subtract(rhs, lhs)		\
@@ -230,11 +231,10 @@
 #define EVSpace_Matrix_negative(self)			\
 			EVSpaceAPI->EVSpace_Matrix_negative(self)
 
-/* vector class level methods */
 #define EVSpace_mag(self)			EVSpaceAPI->EVSpace_mag(self)
 #define EVSpace_mag_squared(self)	EVSpaceAPI->EVSpace_mag_squared(self)
 #define EVSpace_normalize(self)		EVSpaceAPI->EVSpace_normalize(self)
-/* module level methods */
+
 #define EVSpace_dot(lhs, rhs)		EVSpaceAPI->EVSpace_dot(lhs, rhs)
 #define EVSpace_cross(lhs, rhs)		EVSpaceAPI->EVSpace_cross(lhs, rhs)
 #define EVSpace_norm(self)			EVSpaceAPI->EVSpace_norm(self)
@@ -243,6 +243,20 @@
 #define EVSpace_proj(proj, onto)	EVSpaceAPI->EVSpace_proj(proj, onto)
 #define EVSpace_det(lhs)			EVSpaceAPI->EVSpace_det(lhs)
 #define EVSpace_transpose(self)		EVSpaceAPI->EVSpace_transpose(self)
+
+#define EVSpace_get_matrix(ax, ag)	= EVSpace_API->EVSpace_get_matrix(ax, ag)
+#define EVSpace_get_euler(o, a)		= EVSpace_API->EVSpace_get_euler(o, a)
+#define EVSpace_from_to(of, af, ot, at) \
+							= EVSpace_API->EVSpace_from_to(of, af, ot, at)
+
+#define EVSpace_axis_to(ax, ag, v)	 = EVSpaceAPI->EVSpace_axis_to(ax, ag, v)
+#define EVSpace_axis_from(ax, ag, v) = EVSpaceAPI->EVSpace_axis_from(ax, ag, v)
+#define EVSpace_euler_to(o, a, v)	 = EVSpaceAPI->EVSpace_euler_to(o, a, v)
+#define EVSpace_euler_from(o, a, v)  = EVSpaceAPI->EVSpace_euler_from(o, a, v)
+#define EVSpace_matrix_to(m, v)		 = EVSpaceAPI->EVSpace_matrix_to(m, v)
+#define EVSpace_matrix_from(m, v)	 = EVSpaceAPI->EVSpace_matrix_from(m, v)
+#define EVSpace_offset_to(m, o, v)	 = EVSpaceAPI->EVSpace_offset_to(m, o, v)
+#define EVSpace_offset_from(m, o, v) = EVSpaceAPI->EVSpace_offset_from(m, o, v)
 
 #endif // !defined(_EVSPACE_IMPL)
 
