@@ -1,4 +1,5 @@
 from math import sqrt
+from typing import Type
 
 from pyevspace import Vector
 import unittest
@@ -10,6 +11,97 @@ class Test_vector(unittest.TestCase):
     v111 = Vector((1, 1, 1))
     v123 = Vector((1, 2, 3))
     v123m = Vector((-1, -2, -3))
+
+    def test_vector_add(self):
+        # test if non iterable in constructor
+        with self.assertRaises(TypeError) as cm:
+            Vector(1, 2, 3)
+        self.assertEqual(TypeError, type(cm.exception))
+
+        # test iterable less than length 3
+        with self.assertRaises(TypeError) as cm:
+            Vector((1, 2))
+        self.assertEqual(TypeError, type(cm.exception))
+
+        # test iterable more than length 3
+        with self.assertRaises(TypeError) as cm:
+            Vector((1, 2, 3, 4))
+        self.assertEqual(TypeError, type(cm.exception))
+
+        # test non numeric value in each index
+        with self.assertRaises(TypeError) as cm:
+            Vector(('a', 1, 2))
+        self.assertEqual(TypeError, type(cm.exception))
+
+        with self.assertRaises(TypeError) as cm:
+            Vector((0, 'a', 2))
+        self.assertEqual(TypeError, type(cm.exception))
+
+        with self.assertRaises(TypeError) as cm:
+            Vector((0, 1, 'a'))
+        self.assertEqual(TypeError, type(cm.exception))
+
+        # test empty constructor
+        self.assertEqual(Vector(), Vector((0, 0, 0)))
+
+        # test non list or tuple sequence
+        d = {0: 'a', 1: 'b', 2: 'c'}
+        self.assertEqual(Vector((0, 1, 2)), Vector(d))
+
+    def test_vector_str(self):
+        # test int only vectors
+        self.assertEqual(str(self.v123), '[1, 2, 3]')
+
+        # test float integer only vectors
+        self.assertEqual(str(Vector((1.0, 2.0, 3.0))), '[1, 2, 3]')
+
+        # test float only vectors
+        self.assertEqual(str(Vector((1.1, 2.2, 3.3))), '[1.1, 2.2, 3.3]')
+
+        # test border of scientific notation
+        self.assertEqual(str(Vector((123456.1234, 1234567.891, 0.123456))),
+                         '[123456, 1.23457e+06, 0.123456]')
+        self.assertEqual(str(Vector((0.0001234567, 0.00001234567, 0.000001234567))),
+                         '[0.000123457, 1.23457e-05, 1.23457e-06]')
+
+    def test_vector_repr(self):
+        # test int only vectors
+        self.assertEqual(repr(self.v123), 'Vector([1, 2, 3])')
+
+        # test float integer only vectors
+        self.assertEqual(repr(Vector((1.0, 2.0, 3.0))), 'Vector([1, 2, 3])')
+
+        # test float only vectors
+        self.assertEqual(repr(Vector((1.1, 2.2, 3.3))), 'Vector([1.1, 2.2, 3.3])')
+
+        # test border of scientific notation
+        self.assertEqual(repr(Vector((123456.1234, 1234567.891, 0.123456))),
+                         'Vector([123456, 1.23457e+06, 0.123456])')
+        self.assertEqual(repr(Vector((0.0001234567, 0.00001234567, 0.000001234567))),
+                         'Vector([0.000123457, 1.23457e-05, 1.23457e-06])')
+
+    def test_vector_iter(self):
+        # test __iter__() by checking __next__() values
+        itr = iter(self.v123)
+        n = next(itr)
+        self.assertEqual(n, 1.0)
+        n = next(itr)
+        self.assertEqual(n, 2.0)
+        n = next(itr)
+        self.assertEqual(n, 3.0)
+        
+        # test length of iteration is correct
+        with self.assertRaises(StopIteration) as cm:
+            n = next(itr)
+        self.assertEqual(StopIteration, type(cm.exception))
+
+        # test with generation
+        ls = [i for i in self.v123]
+        self.assertEqual(ls, [1.0, 2.0, 3.0])
+        
+        # test in operator
+        self.assertIn(1, self.v123)
+        self.assertNotIn(0, self.v123)
 
     def test_vector_add(self):
         self.assertEqual(self.v111 + self.v123, Vector((2, 3, 4)))
@@ -222,26 +314,18 @@ class Test_vector(unittest.TestCase):
             sumValue += x
         self.assertEqual(Vector((sumValue, 0, 0)), Vector((1, 0, 0)))
 
-    def test_iterable(self):
-        self.assertIn(1, self.v123)
-        self.assertNotIn(0, self.v123)
-
     def equality(self, vector, array):
         return (vector[0] == array[0] and 
                 vector[1] == array[1] and 
                 vector[2] == array[2])
 
     def test_buffer(self):
-        try:
-            import numpy as np
-            v = Vector((1, 2, 3))
-            arr = np.asarray(v)
-            v[2] = 5
-            self.assertTrue(self.equality(v, arr))
-            arr[2] = 68
-            self.assertTrue(self.equality(v, arr))
-        except ImportError:
-            print("could not import numpy, unable to test buffer procs")
+        v = Vector((1, 2, 3))
+        view = memoryview(v)
+        v[2] = 5
+        self.assertEqual(v, Vector((1, 2, 5)))
+        view[2] = 68
+        self.assertEqual(v, Vector((1, 2, 68)))
 
 
 
