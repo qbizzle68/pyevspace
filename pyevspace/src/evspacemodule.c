@@ -9,6 +9,7 @@
 #include <evspace_matrix.h>
 #include <evspace_angles.h>
 #include <evspace_rotation.h>
+#include <evspace_refframe.h>
 
 
 /* EVSpace_VectorType definition */
