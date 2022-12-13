@@ -680,16 +680,6 @@ matrix_get_buffer(EVSpace_Matrix* obj, Py_buffer* view, int flags)
 	return 0;
 }
 
-static void
-matrix_release_buffer(EVSpace_Vector* obj, Py_buffer* view)
-{
-	if (view->internal != NULL) {
-		if (*((int*)view->internal) & BUFFER_RELEASE_SHAPE)
-			free(view->shape);
-		free(view->internal);
-	}
-}
-
 
 
 /* class methods */

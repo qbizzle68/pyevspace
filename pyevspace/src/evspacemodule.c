@@ -34,7 +34,7 @@ static PySequenceMethods vector_as_sequence = {
 
 static PyBufferProcs vector_buffer = {
 	.bf_getbuffer		= (getbufferproc)vector_get_buffer,
-	.bf_releasebuffer	= (releasebufferproc)vector_release_buffer
+	.bf_releasebuffer	= (releasebufferproc)release_buffer
 };
 
 static PyMethodDef vector_methods[] = {
@@ -88,7 +88,7 @@ static PyMappingMethods matrix_as_mapping = {
 
 static PyBufferProcs matrix_buffer = {
 	.bf_getbuffer	= (getbufferproc)matrix_get_buffer,
-	.bf_releasebuffer	= (releasebufferproc)vector_release_buffer
+	.bf_releasebuffer	= (releasebufferproc)release_buffer
 };
 
 static PyMethodDef matrix_methods[] = {

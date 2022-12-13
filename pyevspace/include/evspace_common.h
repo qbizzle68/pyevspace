@@ -93,4 +93,14 @@ __double_almost_eq(double a, double b)
 	return 0;
 }
 
+static void
+release_buffer(PyObject* obj, Py_buffer* view)
+{
+	if (view->internal != NULL) {
+		if (*((int*)view->internal) & BUFFER_RELEASE_SHAPE)
+			free(view->shape);
+		free(view->internal);
+	}
+}
+
 #endif // __EVSPACE_COMMON_H
