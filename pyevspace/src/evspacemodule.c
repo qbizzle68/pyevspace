@@ -3,7 +3,7 @@
 #include <structmember.h> // PyMemberDef
 
 /* don't need the extra's for the C API */
-//#define _EVSPACE_IMPL
+#define _EVSPACE_IMPL
 #include <evspacemodule.h>
 #include <evspace_vector.h>
 #include <evspace_matrix.h>
@@ -455,7 +455,7 @@ _pyevspace_exec(PyObject* module)
 
 	double mat[9] = { 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 };
 	dict = EVSpace_MatrixType.tp_dict;
-	PYEVSPACE_ADD_DICT(dict, "I", (PyObject*)new_matrix(mat));
+	PYEVSPACE_ADD_DICT(dict, "id", (PyObject*)new_matrix(mat));
 
 	if (PyModule_AddIntConstant(module, "X_AXIS", X_AXIS) < 0)
 		return -1;
