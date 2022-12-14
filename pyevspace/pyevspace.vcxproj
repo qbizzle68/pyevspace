@@ -184,6 +184,7 @@
     <None Include="examples\creating.py" />
     <None Include="examples\methods.py" />
     <None Include="examples\__init__.py" />
+    <None Include="tests\angles_test.py" />
     <None Include="tests\matrix_test.py" />
     <None Include="tests\module_test.py" />
     <None Include="tests\pyevspace_tests.py" />
