@@ -13,21 +13,21 @@ class Test_vector(unittest.TestCase):
     v123 = Vector((1, 2, 3))
     v123m = Vector((-1, -2, -3))
 
-    def test_vector_add(self):
+    def test_vector_new(self):
         # test if non iterable in constructor
         with self.assertRaises(TypeError) as cm:
             Vector(1, 2, 3)
         self.assertEqual(TypeError, type(cm.exception))
 
         # test iterable less than length 3
-        with self.assertRaises(TypeError) as cm:
+        with self.assertRaises(ValueError) as cm:
             Vector((1, 2))
-        self.assertEqual(TypeError, type(cm.exception))
+        self.assertEqual(ValueError, type(cm.exception))
 
         # test iterable more than length 3
-        with self.assertRaises(TypeError) as cm:
+        with self.assertRaises(ValueError) as cm:
             Vector((1, 2, 3, 4))
-        self.assertEqual(TypeError, type(cm.exception))
+        self.assertEqual(ValueError, type(cm.exception))
 
         # test non numeric value in each index
         with self.assertRaises(TypeError) as cm:

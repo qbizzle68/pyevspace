@@ -151,8 +151,7 @@ matrix_repr(const EVSpace_Matrix* self)
 	if (!buffer)
 		return PyErr_NoMemory();
 
-	sprintf(buffer, "Matrix([[%g, %g, %g]\n\t[%g, %g, %g] \
-		\n\t[%g, %g, %g]])",
+	sprintf(buffer, "Matrix([[%g, %g, %g]\n\t[%g, %g, %g]\n\t[%g, %g, %g]])",
 		Matrix_COMP(self, 0, 0), Matrix_COMP(self, 0, 1),
 		Matrix_COMP(self, 0, 2), Matrix_COMP(self, 1, 0),
 		Matrix_COMP(self, 1, 1), Matrix_COMP(self, 1, 2),
@@ -525,6 +524,21 @@ matrix_imultiply(EVSpace_Matrix* mat, PyObject* arg)
 			_matrix_imultiply_s(mat, scalar);
 
 			return Py_NewRef(mat);
+		}
+
+		// Python will fall back to 'mat = mat * arg' when NotImplemented is 
+		// returned, so we must force the TypeError here.
+		if (Vector_Check(arg)) {
+			PyErr_SetString(PyExc_TypeError,
+				"unsupported operand type(s) for *=: 'pyevspace.Matrix'"
+				" and 'pyevspace.Vector'");
+			return NULL;
+		}
+		if (Matrix_Check(arg)) {
+			PyErr_SetString(PyExc_TypeError,
+				"unsupported operand type(s) for *=: 'pyevspace.Matrix'"
+				" and 'pyevspace.Matrix'");
+			return NULL;
 		}
 	}
 
