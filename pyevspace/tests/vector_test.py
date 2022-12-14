@@ -3,6 +3,7 @@ from typing import Type
 
 from pyevspace import Vector
 import unittest
+import pickle
 
 
 # class holding the vector tests
@@ -81,7 +82,7 @@ class Test_vector(unittest.TestCase):
                          'Vector([0.000123457, 1.23457e-05, 1.23457e-06])')
 
     def test_vector_iter(self):
-        # test __iter__() by checking __next__() values
+        # test __iter__() by checking next() values
         itr = iter(self.v123)
         n = next(itr)
         self.assertEqual(n, 1.0)
@@ -104,9 +105,11 @@ class Test_vector(unittest.TestCase):
         self.assertNotIn(0, self.v123)
 
     def test_vector_add(self):
+        # test addition operator
         self.assertEqual(self.v111 + self.v123, Vector((2, 3, 4)))
         self.assertEqual(self.v111 + self.v123m, Vector((0, -1, -2)))
 
+        # test exceptions on types
         with self.assertRaises(TypeError) as cm:
             self.v111 + 1
         self.assertEqual(TypeError, type(cm.exception))
@@ -120,6 +123,7 @@ class Test_vector(unittest.TestCase):
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_vector_iadd(self):
+        # test inplace addition
         v = Vector((1, 1, 1))
         v += self.v123
         self.assertEqual(v, Vector((2, 3, 4)))
@@ -127,6 +131,7 @@ class Test_vector(unittest.TestCase):
         v += self.v123
         self.assertEqual(v, Vector((0, 0, 0)))
 
+        # test exception on types
         with self.assertRaises(TypeError) as cm:
             self.v111 += 1
         self.assertEqual(TypeError, type(cm.exception))
@@ -140,9 +145,11 @@ class Test_vector(unittest.TestCase):
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_vector_subtract(self):
+        # test subtraction operator
         self.assertEqual(self.v123 - self.v111, Vector((0, 1, 2)))
         self.assertEqual(self.v111 - self.v123, Vector((0, -1, -2)))
 
+        # test exception on types
         with self.assertRaises(TypeError) as cm:
             self.v111 - 1
         self.assertEqual(TypeError, type(cm.exception))
@@ -156,6 +163,7 @@ class Test_vector(unittest.TestCase):
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_vector_isubtract(self):
+        # test inplace subtraction operator
         v = Vector((1, 1, 1))
         v -= self.v123
         self.assertEqual(v, Vector((0, -1, -2)))
@@ -163,6 +171,7 @@ class Test_vector(unittest.TestCase):
         v -= self.v123m
         self.assertEqual(v, Vector((2, 3, 4)))
 
+        # test exception on types
         with self.assertRaises(TypeError) as cm:
             self.v111 -= 1
         self.assertEqual(TypeError, type(cm.exception))
@@ -176,9 +185,11 @@ class Test_vector(unittest.TestCase):
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_vector_multiply(self):
+        # test scalar multiplication operator
         self.assertEqual(self.v123 * 2, Vector((2, 4, 6)))
         self.assertEqual(self.v123m * 0.5, Vector((-0.5, -1, -1.5)))
 
+        # test exception on types
         with self.assertRaises(TypeError) as cm:
             self.v111 * 'a'
         self.assertEqual(TypeError, type(cm.exception))
@@ -188,6 +199,7 @@ class Test_vector(unittest.TestCase):
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_vector_imultiply(self):
+        # test inplace scalar multiplication operator
         v = Vector((1, 2, 3))
         v *= 2
         self.assertEqual(v, Vector((2, 4, 6)))
@@ -195,6 +207,7 @@ class Test_vector(unittest.TestCase):
         v *= 0.5
         self.assertEqual(v, Vector((-0.5, -0.5, -0.5)))
 
+        # test exception on types
         with self.assertRaises(TypeError) as cm:
             self.v111 *= 'a'
         self.assertEqual(TypeError, type(cm.exception))
@@ -204,9 +217,11 @@ class Test_vector(unittest.TestCase):
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_vector_divide(self):
+        # test division operator
         self.assertEqual(self.v123 / 1, self.v123)
         self.assertEqual(self.v123m / 0.1, Vector((-10, -20, -30)))
 
+        # test exception on types
         with self.assertRaises(TypeError) as cm:
             self.v111 / 'a'
         self.assertEqual(TypeError, type(cm.exception))
@@ -216,6 +231,7 @@ class Test_vector(unittest.TestCase):
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_vector_idivide(self):
+        # test inplace division operator
         v = Vector((1, 2, 3))
         v /= 2
         self.assertEqual(v, Vector((0.5, 1, 1.5)))
@@ -223,6 +239,7 @@ class Test_vector(unittest.TestCase):
         v /= 0.5
         self.assertEqual(v, Vector((-2, -2, -2)))
 
+        # test exception on types
         with self.assertRaises(TypeError) as cm:
             self.v111 /= 'a'
         self.assertEqual(TypeError, type(cm.exception))
@@ -232,25 +249,30 @@ class Test_vector(unittest.TestCase):
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_vector_mag(self):
+        # test magnitude computation is correct
         v = Vector((3, 4, 0))
         self.assertEqual(v.mag(), 5)
         x = sqrt(1/3)
         v = Vector((x, x, x))
         self.assertEqual(v.mag(), 1)
 
+        # test exception on types
         with self.assertRaises(TypeError) as cm:
             self.v111.mag(1)
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_vector_mag2(self):
+        # test mag2 computation is correct
         self.assertEqual(self.v123.mag2(), 14)
         self.assertEqual(self.v123m.mag2(), 14)
 
+        # test exception on types
         with self.assertRaises(TypeError) as cm:
             self.v111.mag2(1)
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_vector_normalize(self):
+        # test normalize computation
         x = sqrt(1/3)
         v = Vector((x, x, x))
         v.normalize()
@@ -259,15 +281,18 @@ class Test_vector(unittest.TestCase):
         v.normalize()
         self.assertEqual(v, Vector((0.6, 0.8, 0)))
 
+        # test exception on types
         with self.assertRaises(TypeError) as cm:
             self.v111.normalize(1)
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_vector_sequence(self):
+        # test sequence get and length operate correctly
         self.assertEqual(len(self.v111), 3)
         self.assertEqual(self.v123[0], 1)
         self.assertEqual(self.v123[-1], 3)
 
+        # test exception on index range
         with self.assertRaises(IndexError) as cm:
             x = self.v111[3]
         self.assertEqual(IndexError, type(cm.exception))
@@ -276,16 +301,19 @@ class Test_vector(unittest.TestCase):
             x = self.v111[-4]
         self.assertEqual(IndexError, type(cm.exception))
 
+        # test exception on index type
         with self.assertRaises(TypeError) as cm:
             x = self.v111['a']
         self.assertEqual(TypeError, type(cm.exception))
 
+        # test sequence setitem operates correctly
         v = Vector((1, 2, 3))
         v[0] = 5
         self.assertEqual(v[0], 5)
         v[-1] = 68
         self.assertEqual(v[2], 68)
 
+        # test exception on index range
         with self.assertRaises(IndexError) as cm:
             self.v111[3] = 5
         self.assertEqual(IndexError, type(cm.exception))
@@ -294,11 +322,13 @@ class Test_vector(unittest.TestCase):
             self.v111[-4] = 5
         self.assertEqual(IndexError, type(cm.exception))
 
+        # test exception on index type
         with self.assertRaises(TypeError) as cm:
             self.v111[0] = 'a'
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_compare(self):
+        # test equality and inequality operators
         v = Vector((1, 2, 3))
         self.assertEqual(v, self.v123)
         self.assertNotEqual(v, self.v111)
@@ -307,7 +337,7 @@ class Test_vector(unittest.TestCase):
         self.assertFalse(v == self.v111)
         self.assertFalse(v != self.v123)
 
-        # very small values test
+        # check equality of very very small values
         x = 0.1
         sumValue = 0
         for i in range(10):
@@ -320,12 +350,32 @@ class Test_vector(unittest.TestCase):
                 vector[2] == array[2])
 
     def test_buffer(self):
+        # test buffer correctly passes correct memory
         v = Vector((1, 2, 3))
         view = memoryview(v)
         v[2] = 5
         self.assertEqual(v, Vector((1, 2, 5)))
         view[2] = 68
         self.assertEqual(v, Vector((1, 2, 68)))
+        
+        # test correct size of memory buffer
+        with self.assertRaises(IndexError) as cm:
+            tmp = view[3]
+        self.assertEqual(IndexError, type(cm.exception))
+
+        # test correct data type interpretation by memoryview
+        with self.assertRaises(TypeError) as cm:
+            view[0] = 'a'
+        self.assertEqual(TypeError, type(cm.exception))
+
+    def test_pickle(self):
+        # test creating bytes from pickle
+        #   (test succeeds by not raises exception)
+        buf = pickle.dumps(self.v123);
+
+        # test validity of exported bytes and creation of object with pickle
+        v = pickle.loads(buf);
+        self.assertEqual(v, self.v123)
 
 
 
