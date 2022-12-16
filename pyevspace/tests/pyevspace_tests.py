@@ -1,8 +1,8 @@
 import unittest
-from vector_test import Test_vector
-from matrix_test import Test_matrix
-from module_test import Test_evspace
-from angles_test import Test_angles
+from .vector_test import Test_vector
+from .matrix_test import Test_matrix
+from .module_test import Test_evspace
+from .angles_test import Test_angles
 
 
 def get_suite():
