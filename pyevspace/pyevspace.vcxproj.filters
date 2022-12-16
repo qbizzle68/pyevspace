@@ -18,15 +18,6 @@
     <ClCompile Include="src\evspacemodule.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\evspace_common.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\evspace_vector.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\evspace_matrix.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\evspacemodule.h">
@@ -41,6 +32,18 @@
     <ClInclude Include="include\evspace_matrix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\evspace_angles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\evspace_api.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\evspace_rotation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\evspace_refframe.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="tests\__init__.py" />
@@ -53,5 +56,7 @@
     <None Include="examples\arithmetic.py" />
     <None Include="examples\creating.py" />
     <None Include="examples\methods.py" />
+    <None Include="tests\angles_test.py" />
+    <None Include="tests\rotation_test.py" />
   </ItemGroup>
 </Project>
