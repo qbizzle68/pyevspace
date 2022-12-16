@@ -366,6 +366,12 @@ rotate_axis_to(PyObject* Py_UNUSED(_), PyObject* args)
 	if (!PyArg_ParseTuple(args, "idO", &axis, &angle, &vector))
 		return NULL;
 
+	if (!Vector_Check(vector)) {
+		PyErr_SetString(PyExc_TypeError,
+			"third argument must be pyevspace.Vector type");
+		return NULL;
+	}
+
 	return (PyObject*)_rotate_axis_to(axis, angle, vector);
 }
 
@@ -378,6 +384,12 @@ rotate_axis_from(PyObject* Py_UNUSED(_), PyObject* args)
 
 	if (!PyArg_ParseTuple(args, "idO", &axis, &angle, &vector))
 		return NULL;
+
+	if (!Vector_Check(vector)) {
+		PyErr_SetString(PyExc_TypeError,
+			"third argument must be pyevspace.Vector type");
+		return NULL;
+	}
 
 	return (PyObject*)_rotate_axis_from(axis, angle, vector);
 }
