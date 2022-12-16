@@ -398,3 +398,45 @@ rotation_euler_answers = {
     ZXZ: rotation_ZXZ_answers,
     ZYZ: rotation_ZYZ_answers
 }
+
+rotation_axis_to_answers = {
+    X_AXIS:
+        {
+            X_AXIS: Vector.e1,
+            Y_AXIS: -Vector.e3,
+            Z_AXIS: Vector.e2
+        },
+    Y_AXIS:
+        {
+            X_AXIS: Vector.e3,
+            Y_AXIS: Vector.e2,
+            Z_AXIS: -Vector.e1
+        },
+    Z_AXIS:
+        {
+            X_AXIS: -Vector.e2,
+            Y_AXIS: Vector.e1,
+            Z_AXIS: Vector.e3
+        }
+}
+
+rotation_axis_from_answers = {
+    X_AXIS:
+        {
+            X_AXIS: Vector.e1,
+            Y_AXIS: Vector.e3,
+            Z_AXIS: -Vector.e2
+        },
+    Y_AXIS:
+        {
+            X_AXIS: -Vector.e3,
+            Y_AXIS: Vector.e2,
+            Z_AXIS: Vector.e1
+        },
+    Z_AXIS:
+        {
+            X_AXIS: Vector.e2,
+            Y_AXIS: -Vector.e1,
+            Z_AXIS: Vector.e3
+        }
+}
