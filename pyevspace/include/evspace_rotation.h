@@ -287,8 +287,9 @@ get_rotation_matrix(PyObject* Py_UNUSED(_), PyObject* args)
 	EVSpace_Axis axis;
 	double angle = 0;
 
-	if (PyArg_ParseTuple(args, "id", &(int)axis, &angle) < 0)
+	if (!PyArg_ParseTuple(args, "id", &(int)axis, &angle)) {
 		return NULL;
+	}
 
 	return (PyObject*)_get_rotation_matrix(axis, angle);
 }
