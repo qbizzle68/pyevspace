@@ -149,7 +149,6 @@ class Test_rotation(unittest.TestCase):
                 msg = f'rotate euler to, order: {order}, axis tested: {axis}'
                 ans = orderDict[axis]
                 self.assertTrue(self.vector_equal(vec, ans), msg)
-        print("here")
 
         # test type exceptions
         #   invalid order type
@@ -163,6 +162,30 @@ class Test_rotation(unittest.TestCase):
         #   invalid vector type
         with self.assertRaises(TypeError) as cm:
             rotateEulerTo(XYZ, angs90, 1)
+        self.assertEqual(TypeError, type(cm.exception))
+
+    def test_euler_from(self):
+        # test euler rotate by checking where basis vectors map to in 90 degree rotations
+        angs90 = Angles(pi/2, pi/2, pi/2)
+        for order, orderDict in rotation_euler_from_answers.items():
+            for axis in self.axes:
+                vec = rotateEulerFrom(order, angs90, self.vectors[axis])
+                msg = f'rotate euler from, order: {order}, axis tested: {axis}'
+                ans = orderDict[axis]
+                self.assertTrue(self.vector_equal(vec, ans), msg)
+
+        # test type exceptions
+        #   invalid order type
+        with self.assertRaises(TypeError) as cm:
+            rotateEulerFrom('a', angs90, Vector())
+        self.assertEqual(TypeError, type(cm.exception))
+        #   invalid angles type
+        with self.assertRaises(TypeError) as cm:
+            rotateEulerFrom(XYZ, 'a', Vector())
+        self.assertEqual(TypeError, type(cm.exception))
+        #   invalid vector type
+        with self.assertRaises(TypeError) as cm:
+            rotateEulerFrom(XYZ, angs90, 1)
         self.assertEqual(TypeError, type(cm.exception))
 
 if __name__ == '__main__':
