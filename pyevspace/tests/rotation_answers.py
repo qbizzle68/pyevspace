@@ -590,3 +590,153 @@ rotation_euler_from_answers = {
             Z_AXIS: Vector.e2
         }
 }
+
+rotation_offset_to_answers = {
+    XYZ:
+        {
+            X_AXIS: Vector((-1, 1, 0)),
+            Y_AXIS: Vector((-1, 0, -1)),
+            Z_AXIS: Vector((0, 1, -1))
+        },
+    XZY:
+        {
+            X_AXIS: Vector((-1, 0, -1)),
+            Y_AXIS: Vector((0, 1, -1)),
+            Z_AXIS: Vector((-1, 1, 0))
+        },
+    YXZ:
+        {
+            X_AXIS: Vector((0, -1, 1)),
+            Y_AXIS: Vector((-1, -1, 0)),
+            Z_AXIS: Vector((-1, 0, 1))
+        },
+    YZX:
+        {
+            X_AXIS: Vector((-1, 0, 1)),
+            Y_AXIS: Vector((0, -1, 1)),
+            Z_AXIS: Vector((-1, -1, 0))
+        },
+    ZXY:
+        {
+            X_AXIS: Vector((0, -1, -1)),
+            Y_AXIS: Vector((1, -1, 0)),
+            Z_AXIS: Vector((1, 0, -1))
+        },
+    ZYX:
+        {
+            X_AXIS: Vector((1, -1, 0)),
+            Y_AXIS: Vector((1, 0, -1)),
+            Z_AXIS: Vector((0, -1, -1))
+        },
+    XYX:
+        {
+            X_AXIS: Vector((-1, 0, 1)),
+            Y_AXIS: Vector((0, -1, 1)),
+            Z_AXIS: Vector((-1, -1, 0))
+        },
+    XZX:
+        {
+            X_AXIS: Vector((-1, 1, 0)),
+            Y_AXIS: Vector((-1, 0, -1)),
+            Z_AXIS: Vector((0, 1, -1))
+        },
+    YXY:
+        {
+            X_AXIS: Vector((-1, 0, 1)),
+            Y_AXIS: Vector((0, -1, 1)),
+            Z_AXIS: Vector((-1, -1, 0))
+        },
+    YZY:
+        {
+            X_AXIS: Vector((0, -1, -1)),
+            Y_AXIS: Vector((1, -1, 0)),
+            Z_AXIS: Vector((1, 0, -1))
+        },
+    ZXZ:
+        {
+            X_AXIS: Vector((-1, 1, 0)),
+            Y_AXIS: Vector((-1, 0, -1)),
+            Z_AXIS: Vector((0, 1, -1))
+        },
+    ZYZ:
+        {
+            X_AXIS: Vector((0, -1, -1)),
+            Y_AXIS: Vector((1, -1, 0)),
+            Z_AXIS: Vector((1, 0, -1))
+        }
+}
+
+rotation_offset_from_answers = {
+    XYZ:
+        {
+            X_AXIS: Vector((1, 1, 2)),
+            Y_AXIS: Vector((1, 0, 1)),
+            Z_AXIS: Vector((2, 1, 1))
+        },
+    XZY:
+        {
+            X_AXIS: Vector((1, 2, 1)),
+            Y_AXIS: Vector((0, 1, 1)),
+            Z_AXIS: Vector((1, 1, 2))
+        },
+    YXZ:
+        {
+            X_AXIS: Vector((2, 1, 1)),
+            Y_AXIS: Vector((1, 1, 2)),
+            Z_AXIS: Vector((1, 0, 1))
+        },
+    YZX:
+        {
+            X_AXIS: Vector((1, 2, 1)),
+            Y_AXIS: Vector((2, 1, 1)),
+            Z_AXIS: Vector((1, 1, 0))
+        },
+    ZXY:
+        {
+            X_AXIS: Vector((0, 1, 1)),
+            Y_AXIS: Vector((1, 1, 2)),
+            Z_AXIS: Vector((1, 2, 1))
+        },
+    ZYX:
+        {
+            X_AXIS: Vector((1, 1, 0)),
+            Y_AXIS: Vector((1, 2, 1)),
+            Z_AXIS: Vector((2, 1, 1))
+        },
+    XYX:
+        {
+            X_AXIS: Vector((1, 2, 1)),
+            Y_AXIS: Vector((2, 1, 1)),
+            Z_AXIS: Vector((1, 1, 0))
+        },
+    XZX:
+        {
+            X_AXIS: Vector((1, 1, 2)),
+            Y_AXIS: Vector((1, 0, 1)),
+            Z_AXIS: Vector((2, 1, 1))
+        },
+    YXY:
+        {
+            X_AXIS: Vector((1, 2, 1)),
+            Y_AXIS: Vector((2, 1, 1)),
+            Z_AXIS: Vector((1, 1, 0))
+        },
+    YZY:
+        {
+            X_AXIS: Vector((0, 1, 1)),
+            Y_AXIS: Vector((1, 1, 2)),
+            Z_AXIS: Vector((1, 2, 1))
+        },
+    ZXZ:
+        {
+            X_AXIS: Vector((1, 1, 2)),
+            Y_AXIS: Vector((1, 0, 1)),
+            Z_AXIS: Vector((2, 1, 1))
+        },
+    ZYZ:
+        {
+            X_AXIS: Vector((0, 1, 1)),
+            Y_AXIS: Vector((1, 1, 2)),
+            Z_AXIS: Vector((1, 2, 1))
+        }
+}
