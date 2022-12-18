@@ -67,23 +67,45 @@ _vector_steal_array(double* arr, PyTypeObject* type)
 static PyObject*
 vector_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED)
 {
-	PyObject* parameter = Py_None;
+	PyObject* parameter = NULL;
+	double x = 0, y = 0, z = 0;
 
-	// constructor arg is optional (allows init to zero)
+	Py_ssize_t tuple_size = PyTuple_GET_SIZE(args);
+	if (tuple_size == 0) {
+		return (PyObject*)new_vector_empty;
+	}
+
+	/* constructor arg is optional (allows init to zero)
 	if (!PyArg_ParseTuple(args, "|O", &parameter))
 		return NULL;
 
 	if (Py_IsNone(parameter))
-		return (PyObject*)new_vector_empty;
+		return (PyObject*)new_vector_empty;*/
 
 	double* arr = (double*)malloc(Vector_SIZE);
 	if (!arr)
 		return PyErr_NoMemory();
 
-	if (__get_sequence_state(parameter, arr) < 0) {
-		free(arr);
+	if (tuple_size == 1) {
+		if (!PyArg_ParseTuple(args, "O", &parameter)) {
+			return NULL;
+		}
+
+		if (__get_sequence_state(parameter, arr) < 0) {
+			free(arr);
+			return NULL;
+		}
+
+	//	return (PyObject*)_vector_steal_array(arr, type);
+	}
+	else if (!PyArg_ParseTuple(args, "ddd", arr, arr+1, arr+2)) {
 		return NULL;
 	}
+
+	/*if (__get_sequence_state(parameter, arr) < 0) {
+		free(arr);
+		return NULL;
+	}*/
 
 	return (PyObject*)_vector_steal_array(arr, type);
 }

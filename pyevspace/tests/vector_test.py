@@ -15,10 +15,10 @@ class TestVector(unittest.TestCase):
     v34 = Vector((3, 4, 0))
 
     def test_vector_new(self):
-        # test if non-iterable in constructor
-        msg = 'Vector() constructor non-iterable TypeError'
-        with self.assertRaises(TypeError, msg=msg):
-            Vector(1, 2, 3)
+        # test all vector constructors
+        ans = Vector()
+        ans = Vector(1, 2, 3)
+        ans = Vector((1, 2, 3))
 
         # test iterable less than length 3
         msg = 'Vector() constructor iterable length < 3 ValueError'
