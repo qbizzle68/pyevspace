@@ -1,5 +1,6 @@
 from math import sin, cos, pi
-from pyevspace import *
+from pyevspace import Matrix, Vector, X_AXIS, Y_AXIS, Z_AXIS, XYZ, XZY, YXZ, YZX, ZXY, ZYX, XYX, XZX, \
+    YXY, YZY, ZXZ, ZYZ
 
 so = cos(pi / 4)    # cos and sin of forty-five
 
@@ -763,7 +764,7 @@ rotation_from_XZY_to = {
     YZX: Matrix((1, 0, 0), (0, -1, 0), (0, 0, -1)),
     ZXY: Matrix((0, 1, 0), (0, 0, 1), (1, 0, 0)),
     ZYX: Matrix((0, 0, -1), (1, 0, 0), (0, -1, 0)),
-    XYX: Matrix((1, 0 ,0), (0, -1, 0), (0, 0, -1)),
+    XYX: Matrix((1, 0, 0), (0, -1, 0), (0, 0, -1)),
     XZX: Matrix((0, 0, 1), (-1, 0, 0), (0, -1, 0)),
     YXY: Matrix((1, 0, 0), (0, -1, 0), (0, 0, -1)),
     YZY: Matrix((0, 1, 0), (0, 0, 1), (1, 0, 0)),
