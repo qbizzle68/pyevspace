@@ -1,3 +1,5 @@
+from copy import copy
+
 from pyevspace import Matrix, Vector, det, transpose
 import unittest
 import pickle
@@ -316,6 +318,13 @@ class TestMatrix(unittest.TestCase):
         m = pickle.loads(buf)
         msg = 'matrix pickle'
         self.assertEqual(m, self.m123, msg=msg)
+
+        # test copy module use of __reduce__()
+        cpy = copy(self.m123)
+        msg = 'matrix copy from copy module'
+        self.assertEqual(cpy, self.m123, msg)
+        msg = 'matrix copy is not same object'
+        self.assertIsNot(cpy, self.m123, msg)
 
     def test_matrix_determinate(self):
         # test det with non-invertible matrix

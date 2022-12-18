@@ -1,3 +1,5 @@
+from copy import copy
+
 from pyevspace import Angles, Order
 import unittest
 import pickle
@@ -41,6 +43,13 @@ class TestAngles(unittest.TestCase):
         a = pickle.loads(b)
         msg = 'angles pickle'
         self.assertTrue(self.angleEquality(a, Angles(1, 2, 3)), msg=msg)
+
+        # test copy module's use of __reduce__()
+        cpy = copy(self.angs)
+        msg = 'angles copy from copy module'
+        self.assertEqual(cpy, self.angs, msg=msg)
+        msg = 'angles copy not same object'
+        self.assertIsNot(cpy, self.angs, msg=msg)
 
     def test_angle_get(self):
         # test __getitem__
@@ -142,6 +151,13 @@ class TestAngles(unittest.TestCase):
         o = pickle.loads(b)
         msg = 'order pickle'
         self.assertTrue(o[0] == 0 and o[1] == 1 and o[2] == 2, msg=msg)
+
+        # test copy module's use of __reduce__()
+        cpy = copy(self.o)
+        msg = 'order copy from copy module'
+        self.assertEqual(cpy, self.o, msg=msg)
+        msg = 'order copy not same object'
+        self.assertIsNot(cpy, self.o, msg=msg)
 
 
 if __name__ == '__main__':

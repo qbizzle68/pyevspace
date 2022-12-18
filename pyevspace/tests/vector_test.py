@@ -1,3 +1,4 @@
+from copy import copy
 from math import sqrt, pi
 
 from pyevspace import Vector, dot, cross, norm, vang, vxcl, proj
@@ -399,6 +400,13 @@ class TestVector(unittest.TestCase):
         # test validity of exported bytes and creation of object with pickle
         v = pickle.loads(buf)
         self.assertEqual(v, self.v123, msg='vector pickle')
+
+        # test copy module's use of __reduce__()
+        cpy = copy(self.v123)
+        msg = 'vector copy from copy module'
+        self.assertEqual(cpy, self.v123, msg=msg)
+        msg = 'vector copy not same object'
+        self.assertIsNot(cpy, self.v123, msg=msg)
 
     def test_vector_dot(self):
         # test dot operator computations
