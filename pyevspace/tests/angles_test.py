@@ -1,11 +1,9 @@
-from re import I
-from typing import Type
-from pyevspace import *
+from pyevspace import Angles, Order
 import unittest
 import pickle
 
 
-class Test_angles(unittest.TestCase):
+class TestAngles(unittest.TestCase):
     angs = Angles(1, 2, 3)
     o = Order(0, 1, 2)
 
@@ -16,19 +14,23 @@ class Test_angles(unittest.TestCase):
 
     def test_angles_str(self):
         # test int values in string
-        self.assertEqual(str(self.angs), '[1.000000, 2.000000, 3.000000]')
+        msg = 'angles str() expected output'
+        self.assertEqual(str(self.angs), '[1.000000, 2.000000, 3.000000]',
+                         msg=msg)
 
         # test float values in string
         a = Angles(1.1, 2.2, 3.3)
-        self.assertEqual(str(a), '[1.100000, 2.200000, 3.300000]')
+        self.assertEqual(str(a), '[1.100000, 2.200000, 3.300000]', msg=msg)
 
     def test_angles_repr(self):
         # test int values in repr
-        self.assertEqual(repr(self.angs), 'angles([1.000000, 2.000000, 3.000000])')
+        msg = 'angles repr() expected output'
+        self.assertEqual(repr(self.angs), 'angles([1.000000, 2.000000, 3.000000])',
+                         msg=msg)
 
         # test float values in repr
         a = Angles(1.1, 2.2, 3.3)
-        self.assertEqual(repr(a), 'angles([1.100000, 2.200000, 3.300000])')
+        self.assertEqual(repr(a), 'angles([1.100000, 2.200000, 3.300000])',msg=msg)
 
     def test_angles_pickle(self):
         # test if Angles can be pickled
@@ -37,93 +39,99 @@ class Test_angles(unittest.TestCase):
 
         # test creating Angles from bytes
         a = pickle.loads(b)
-        self.assertTrue(self.angleEquality(a, Angles(1, 2, 3)))
+        msg = 'angles pickle'
+        self.assertTrue(self.angleEquality(a, Angles(1, 2, 3)), msg=msg)
 
     def test_angle_get(self):
         # test __getitem__
-        self.assertEqual(self.angs[0], 1)
-        self.assertEqual(self.angs[1], 2)
-        self.assertEqual(self.angs[2], 3)
+        msg = 'angles getitem'
+        self.assertEqual(self.angs[0], 1, msg=msg)
+        self.assertEqual(self.angs[1], 2, msg=msg)
+        self.assertEqual(self.angs[2], 3, msg=msg)
 
         # test exceptions of index ranges
-        with self.assertRaises(IndexError) as cm:
-            self.angs[3]
-        self.assertEqual(IndexError, type(cm.exception))
+        msg = 'angles getitem index IndexError'
+        with self.assertRaises(IndexError, msg=msg):
+            ans = self.angs[3]
 
-        with self.assertRaises(IndexError) as cm:
-            self.angs[-4]
-        self.assertEqual(IndexError, type(cm.exception))
+        with self.assertRaises(IndexError, msg=msg):
+            ans = self.angs[-4]
 
         # test exception of index types
-        with self.assertRaises(TypeError) as cm:
-            self.angs['a']
-        self.assertEqual(TypeError, type(cm.exception))
+        msg = 'angles getitem index TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            ans = self.angs['a']
 
     def test_angle_set(self):
         # test __setitem__
         a = Angles(1, 2, 3)
         a[0] = 1.1
-        self.assertTrue(self.angleEquality(a, Angles(1.1, 2, 3)))
+        msg = 'angles setitem'
+        self.assertTrue(self.angleEquality(a, Angles(1.1, 2, 3)), msg=msg)
 
         # test exceptions of index ranges
-        with self.assertRaises(IndexError) as cm:
+        msg = 'angles setitem index IndexError'
+        with self.assertRaises(IndexError, msg=msg):
             self.angs[3] = 0
-        self.assertEqual(IndexError, type(cm.exception))
 
         # test exceptions of index types
-        with self.assertRaises(TypeError) as cm:
-            self.angs['a']
-        self.assertEqual(TypeError, type(cm.exception))
+        msg = 'angles setitem index TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            ans = self.angs['a']
 
     def test_order_str(self):
         # test str with each axis in each index
         o = Order(0, 1, 2)
-        self.assertEqual(str(o), '[X_Axis, Y_Axis, Z_Axis]')
+        msg = 'order str() expected output'
+        self.assertEqual(str(o), '[X_Axis, Y_Axis, Z_Axis]', msg=msg)
         o = Order(1, 2, 0)
-        self.assertEqual(str(o), '[Y_Axis, Z_Axis, X_Axis]')
+        self.assertEqual(str(o), '[Y_Axis, Z_Axis, X_Axis]', msg=msg)
         o = Order(2, 0, 1)
-        self.assertEqual(str(o), '[Z_Axis, X_Axis, Y_Axis]')
+        self.assertEqual(str(o), '[Z_Axis, X_Axis, Y_Axis]', msg=msg)
 
     def test_order_repr(self):
         # test repr with each axis in each index
+        msg = 'order repr() expected output'
         o = Order(0, 1, 2)
-        self.assertEqual(repr(o), 'order([X_Axis, Y_Axis, Z_Axis])')
+        self.assertEqual(repr(o), 'order([X_Axis, Y_Axis, Z_Axis])', msg=msg)
         o = Order(1, 2, 0)
-        self.assertEqual(repr(o), 'order([Y_Axis, Z_Axis, X_Axis])')
+        self.assertEqual(repr(o), 'order([Y_Axis, Z_Axis, X_Axis])', msg=msg)
         o = Order(2, 0, 1)
-        self.assertEqual(repr(o), 'order([Z_Axis, X_Axis, Y_Axis])')
+        self.assertEqual(repr(o), 'order([Z_Axis, X_Axis, Y_Axis])', msg=msg)
 
     def test_order_get(self):
         # test __getitem__
-        self.assertEqual(self.o[0], 0)
-        self.assertEqual(self.o[1], 1)
-        self.assertEqual(self.o[2], 2)
+        msg = 'order getitem'
+        self.assertEqual(self.o[0], 0, msg=msg)
+        self.assertEqual(self.o[1], 1, msg=msg)
+        self.assertEqual(self.o[2], 2, msg=msg)
 
         # test exceptions of index range
-        with self.assertRaises(IndexError) as cm:
-            self.o[3]
-        self.assertEqual(IndexError, type(cm.exception))
+        msg = 'order getitem index IndexError'
+        with self.assertRaises(IndexError, msg=msg):
+            ans = self.o[3]
 
         # test exception of index type
-        with self.assertRaises(TypeError) as cm:
-            self.o['a']
-        self.assertEqual(TypeError, type(cm.exception))
+        msg = 'order getitem index TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            ans = self.o['a']
 
     def test_order_set(self):
         # test __setitem__
         o = Order(0, 1, 2)
         o[0] = 1
-        self.assertEqual(o[0], 1)
+        msg = 'order setitem'
+        self.assertEqual(o[0], 1, msg=msg)
 
         # test exception of index range
-        with self.assertRaises(IndexError) as cm:
+        msg = 'order setitem index IndexError'
+        with self.assertRaises(IndexError, msg=msg):
             o[3] = 0
-        self.assertEqual(IndexError, type(cm.exception))
 
         # test exception of index type
-        with self.assertRaises(TypeError) as cm:
+        msg = 'order setitem index TypeError'
+        with self.assertRaises(TypeError, msg=msg):
             o['a'] = 0
-        self.assertEqual(TypeError, type(cm.exception))
 
     def test_order_pickle(self):
         # test if Order can be pickled
@@ -132,7 +140,8 @@ class Test_angles(unittest.TestCase):
 
         # test building Order from bytes
         o = pickle.loads(b)
-        self.assertTrue(o[0] == 0 and o[1] == 1 and o[2] == 2)
+        msg = 'order pickle'
+        self.assertTrue(o[0] == 0 and o[1] == 1 and o[2] == 2, msg=msg)
 
 
 if __name__ == '__main__':
