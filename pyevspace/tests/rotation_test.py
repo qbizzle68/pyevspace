@@ -49,7 +49,7 @@ class Test_rotation(unittest.TestCase):
         self.assertEqual(TypeError, type(cm.exception))
 
     def test_euler_matrix(self):
-        # test euler rotation for each euler order and eqch quadrant
+        # test euler rotation for each euler order and each quadrant
         for order in self.orders:
             for ang, ans in zip(self.angles, rotation_euler_answers[order]):
                 angs = Angles(ang, ang, ang)
@@ -65,6 +65,37 @@ class Test_rotation(unittest.TestCase):
         #   invalid type for angles argument
         with self.assertRaises(TypeError, msg='getMatrixEuler angles arg TypeError') as cm:
             getMatrixEuler(XYZ, 7)
+        self.assertEqual(TypeError, type(cm.exception))
+
+    def test_from_to_matrix(self):
+        # test from each frame to each frame
+        angs90 = Angles(pi/2, pi/2, pi/2)
+        for orderFrom, frameMap in rotation_from_to_answers.items():
+            fromStr = str(orderFrom)
+            fromLabel = f'{fromStr[1]}{fromStr[9]}{fromStr[17]}'
+            for orderTo, ans in frameMap.items():
+                mat = getMatrixFromTo(orderFrom, angs90, orderTo, angs90)
+                toStr = str(orderTo)
+                toLabel = f'{toStr[1]}{toStr[9]}{toStr[17]}'
+                msg = f'rotation matrix from to: from order: {fromLabel}, to order: {toLabel}'
+                self.assertTrue(self.matrix_equal(mat, ans), msg)
+
+        # test invalid argument types
+        #   invalid type for orderFrom argument
+        with self.assertRaises(TypeError, msg='getMatrixFromTo orderFrom arg TypeError') as cm:
+            getMatrixFromTo(0, angs90, XYZ, angs90)
+        self.assertEqual(TypeError, type(cm.exception))
+        #   invalid type for anglesFrom argument
+        with self.assertRaises(TypeError, msg='getMatrixFromTo anglesFrom arg TypeError') as cm:
+            getMatrixFromTo(XYZ, 0, XYZ, angs90)
+        self.assertEqual(TypeError, type(cm.exception))
+        #   invalid type for orderTo argument
+        with self.assertRaises(TypeError, msg='getMatrixFromTo orderTo arg TypeError') as cm:
+            getMatrixFromTo(XYZ, angs90, 0, angs90)
+        self.assertEqual(TypeError, type(cm.exception))
+        #   invalid type for anglesTo argument
+        with self.assertRaises(TypeError, msg='getMatrixFromTo anglesTo arg TypeError') as cm:
+            getMatrixFromTo(XYZ, angs90, XYZ, 0)
         self.assertEqual(TypeError, type(cm.exception))
 
     def vector_equal(self, lhs, rhs, epsilon=eps):

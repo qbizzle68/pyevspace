@@ -740,3 +740,198 @@ rotation_offset_from_answers = {
             Z_AXIS: Vector((1, 2, 1))
         }
 }
+
+rotation_from_XYZ_to = {
+    XYZ: Matrix((1, 0, 0), (0, 1, 0), (0, 0, 1)),
+    XZY: Matrix((0, -1, 0), (0, 0, -1), (1, 0, 0)),
+    YXZ: Matrix((0, 0, 1), (1, 0, 0), (0, 1, 0)),
+    YZX: Matrix((0, -1, 0), (0, 0, 1), (-1, 0, 0)),
+    ZXY: Matrix((0, 0, -1), (1, 0, 0), (0, -1, 0)),
+    ZYX: Matrix((-1, 0, 0), (0, -1, 0), (0, 0, 1)),
+    XYX: Matrix((0, -1, 0), (0, 0, 1), (-1, 0, 0)),
+    XZX: Matrix((1, 0, 0), (0, 1, 0), (0, 0, 1)),
+    YXY: Matrix((0, -1, 0), (0, 0, 1), (-1, 0, 0)),
+    YZY: Matrix((0, 0, -1), (1, 0, 0), (0, -1, 0)),
+    ZXZ: Matrix((1, 0, 0), (0, 1, 0), (0, 0, 1)),
+    ZYZ: Matrix((0, 0, -1), (1, 0, 0), (0, -1, 0))
+}
+
+rotation_from_XZY_to = {
+    XYZ: Matrix((0, 0, 1), (-1, 0, 0), (0, -1, 0)),
+    XZY: Matrix((1, 0, 0), (0, 1, 0), (0, 0, 1)),
+    YXZ: Matrix((0, -1, 0), (0, 0, 1), (-1, 0, 0)),
+    YZX: Matrix((1, 0, 0), (0, -1, 0), (0, 0, -1)),
+    ZXY: Matrix((0, 1, 0), (0, 0, 1), (1, 0, 0)),
+    ZYX: Matrix((0, 0, -1), (1, 0, 0), (0, -1, 0)),
+    XYX: Matrix((1, 0 ,0), (0, -1, 0), (0, 0, -1)),
+    XZX: Matrix((0, 0, 1), (-1, 0, 0), (0, -1, 0)),
+    YXY: Matrix((1, 0, 0), (0, -1, 0), (0, 0, -1)),
+    YZY: Matrix((0, 1, 0), (0, 0, 1), (1, 0, 0)),
+    ZXZ: Matrix((0, 0, 1), (-1, 0, 0), (0, -1, 0)),
+    ZYZ: Matrix((0, 1, 0), (0, 0, 1), (1, 0, 0))
+}
+
+rotation_from_YXZ_to = {
+    XYZ: Matrix((0, 1, 0), (0, 0, 1), (1, 0, 0)),
+    XZY: Matrix((0, 0, -1), (-1, 0, 0), (0, 1, 0)),
+    YXZ: Matrix((1, 0, 0), (0, 1, 0), (0, 0, 1)),
+    YZX: Matrix((0, 0, -1), (1, 0, 0), (0, -1, 0)),
+    ZXY: Matrix((-1, 0, 0), (0, 1, 0), (0, 0, -1)),
+    ZYX: Matrix((0, -1, 0), (0, 0, -1), (1, 0, 0)),
+    XYX: Matrix((0, 0, -1), (1, 0, 0), (0, -1, 0)),
+    XZX: Matrix((0, 1, 0), (0, 0, 1), (1, 0, 0)),
+    YXY: Matrix((0, 0, -1), (1, 0, 0), (0, -1, 0)),
+    YZY: Matrix((-1, 0, 0), (0, 1, 0), (0, 0, -1)),
+    ZXZ: Matrix((0, 1, 0), (0, 0, 1), (1, 0, 0)),
+    ZYZ: Matrix((-1, 0, 0), (0, 1, 0), (0, 0, -1))
+}
+
+rotation_from_YZX_to = {
+    XYZ: Matrix((0, 0, -1), (-1, 0, 0), (0, 1, 0)),
+    XZY: Matrix((1, 0, 0), (0, -1, 0), (0, 0, -1)),
+    YXZ: Matrix((0, 1, 0), (0, 0, -1), (-1, 0, 0)),
+    YZX: Matrix((1, 0, 0), (0, 1, 0), (0, 0, 1)),
+    ZXY: Matrix((0, -1, 0), (0, 0, -1), (1, 0, 0)),
+    ZYX: Matrix((0, 0, 1), (1, 0, 0), (0, 1, 0)),
+    XYX: Matrix((1, 0, 0), (0, 1, 0), (0, 0, 1)),
+    XZX: Matrix((0, 0, -1), (-1, 0, 0), (0, 1, 0)),
+    YXY: Matrix((1, 0, 0), (0, 1, 0), (0, 0, 1)),
+    YZY: Matrix((0, -1, 0), (0, 0, -1), (1, 0, 0)),
+    ZXZ: Matrix((0, 0, -1), (-1, 0, 0), (0, 1, 0)),
+    ZYZ: Matrix((0, -1, 0), (0, 0, -1), (1, 0, 0))
+}
+
+rotation_from_ZXY_to = {
+    XYZ: Matrix((0, 1, 0), (0, 0, -1), (-1, 0, 0)),
+    XZY: Matrix((0, 0, 1), (1, 0, 0), (0, 1, 0)),
+    YXZ: Matrix((-1, 0, 0), (0, 1, 0), (0, 0, -1)),
+    YZX: Matrix((0, 0, 1), (-1, 0, 0), (0, -1, 0)),
+    ZXY: Matrix((1, 0, 0), (0, 1, 0), (0, 0, 1)),
+    ZYX: Matrix((0, -1, 0), (0, 0, 1), (-1, 0, 0)),
+    XYX: Matrix((0, 0, 1), (-1, 0, 0), (0, -1, 0)),
+    XZX: Matrix((0, 1, 0), (0, 0, -1), (-1, 0, 0)),
+    YXY: Matrix((0, 0, 1), (-1, 0, 0), (0, -1, 0)),
+    YZY: Matrix((1, 0, 0), (0, 1, 0), (0, 0, 1)),
+    ZXZ: Matrix((0, 1, 0), (0, 0, -1), (-1, 0, 0)),
+    ZYZ: Matrix((1, 0, 0), (0, 1, 0), (0, 0, 1))
+}
+
+rotation_from_ZYX_to = {
+    XYZ: Matrix((-1, 0, 0), (0, -1, 0), (0, 0, 1)),
+    XZY: Matrix((0, 1, 0), (0, 0, -1), (-1, 0, 0)),
+    YXZ: Matrix((0, 0, 1), (-1, 0, 0), (0, -1, 0)),
+    YZX: Matrix((0, 1, 0), (0, 0, 1), (1, 0, 0)),
+    ZXY: Matrix((0, 0, -1), (-1, 0, 0), (0, 1, 0)),
+    ZYX: Matrix.id,
+    XYX: Matrix((0, 1, 0), (0, 0, 1), (1, 0, 0)),
+    XZX: Matrix((-1, 0, 0), (0, -1, 0), (0, 0, 1)),
+    YXY: Matrix((0, 1, 0), (0, 0, 1), (1, 0, 0)),
+    YZY: Matrix((0, 0, -1), (-1, 0, 0), (0, 1, 0)),
+    ZXZ: Matrix((-1, 0, 0), (0, -1, 0), (0, 0, 1)),
+    ZYZ: Matrix((0, 0, -1), (-1, 0, 0), (0, 1, 0))
+}
+
+rotation_from_XYX_to = {
+    XYZ: Matrix((0, 0, -1), (-1, 0, 0), (0, 1, 0)),
+    XZY: Matrix((1, 0, 0), (0, -1, 0), (0, 0, -1)),
+    YXZ: Matrix((0, 1, 0), (0, 0, -1), (-1, 0, 0)),
+    YZX: Matrix.id,
+    ZXY: Matrix((0, -1, 0), (0, 0, -1), (1, 0, 0)),
+    ZYX: Matrix((0, 0, 1), (1, 0, 0), (0, 1, 0)),
+    XYX: Matrix.id,
+    XZX: Matrix((0, 0, -1), (-1, 0, 0), (0, 1, 0)),
+    YXY: Matrix.id,
+    YZY: Matrix((0, -1, 0), (0, 0, -1), (1, 0, 0)),
+    ZXZ: Matrix((0, 0, -1), (-1, 0, 0), (0, 1, 0)),
+    ZYZ: Matrix((0, -1, 0), (0, 0, -1), (1, 0, 0))
+}
+
+rotation_from_XZX_to = {
+    XYZ: Matrix.id,
+    XZY: Matrix((0, -1, 0), (0, 0, -1), (1, 0, 0)),
+    YXZ: Matrix((0, 0, 1), (1, 0, 0), (0, 1, 0)),
+    YZX: Matrix((0, -1, 0), (0, 0, 1), (-1, 0, 0)),
+    ZXY: Matrix((0, 0, -1), (1, 0, 0), (0, -1, 0)),
+    ZYX: Matrix((-1, 0, 0), (0, -1, 0), (0, 0, 1)),
+    XYX: Matrix((0, -1, 0), (0, 0, 1), (-1, 0, 0)),
+    XZX: Matrix.id,
+    YXY: Matrix((0, -1, 0), (0, 0, 1), (-1, 0, 0)),
+    YZY: Matrix((0, 0, -1), (1, 0, 0), (0, -1, 0)),
+    ZXZ: Matrix.id,
+    ZYZ: Matrix((0, 0, -1), (1, 0, 0), (0, -1, 0))
+}
+
+rotation_from_YXY_to = {
+    XYZ: Matrix((0, 0, -1), (-1, 0, 0), (0, 1, 0)),
+    XZY: Matrix((1, 0, 0), (0, -1, 0), (0, 0, -1)),
+    YXZ: Matrix((0, 1, 0), (0, 0, -1), (-1, 0, 0)),
+    YZX: Matrix((1, 0, 0), (0, 1, 0), (0, 0, 1)),
+    ZXY: Matrix((0, -1, 0), (0, 0, -1), (1, 0, 0)),
+    ZYX: Matrix((0, 0, 1), (1, 0, 0), (0, 1, 0)),
+    XYX: Matrix.id,
+    XZX: Matrix((0, 0, -1), (-1, 0, 0), (0, 1, 0)),
+    YXY: Matrix.id,
+    YZY: Matrix((0, -1, 0), (0, 0, -1), (1, 0, 0)),
+    ZXZ: Matrix((0, 0, -1), (-1, 0, 0), (0, 1, 0)),
+    ZYZ: Matrix((0, -1, 0), (0, 0, -1), (1, 0, 0))
+}
+
+rotation_from_YZY_to = {
+    XYZ: Matrix((0, 1, 0), (0, 0, -1), (-1, 0, 0)),
+    XZY: Matrix((0, 0, 1), (1, 0, 0), (0, 1, 0)),
+    YXZ: Matrix((-1, 0, 0), (0, 1, 0), (0, 0, -1)),
+    YZX: Matrix((0, 0, 1), (-1, 0, 0), (0, -1, 0)),
+    ZXY: Matrix.id,
+    ZYX: Matrix((0, -1, 0), (0, 0, 1), (-1, 0, 0)),
+    XYX: Matrix((0, 0, 1), (-1, 0, 0), (0, -1, 0)),
+    XZX: Matrix((0, 1, 0), (0, 0, -1), (-1, 0, 0)),
+    YXY: Matrix((0, 0, 1), (-1, 0, 0), (0, -1, 0)),
+    YZY: Matrix.id,
+    ZXZ: Matrix((0, 1, 0), (0, 0, -1), (-1, 0, 0)),
+    ZYZ: Matrix.id
+}
+
+rotation_from_ZXZ_to = {
+    XYZ: Matrix.id,
+    XZY: Matrix((0, -1, 0), (0, 0, -1), (1, 0, 0)),
+    YXZ: Matrix((0, 0, 1), (1, 0, 0), (0, 1, 0)),
+    YZX: Matrix((0, -1, 0), (0, 0, 1), (-1, 0, 0)),
+    ZXY: Matrix((0, 0, -1), (1, 0, 0), (0, -1, 0)),
+    ZYX: Matrix((-1, 0, 0), (0, -1, 0), (0, 0, 1)),
+    XYX: Matrix((0, -1, 0), (0, 0, 1), (-1, 0, 0)),
+    XZX: Matrix.id,
+    YXY: Matrix((0, -1, 0), (0, 0, 1), (-1, 0, 0)),
+    YZY: Matrix((0, 0, -1), (1, 0, 0), (0, -1, 0)),
+    ZXZ: Matrix.id,
+    ZYZ: Matrix((0, 0, -1), (1, 0, 0), (0, -1, 0))
+}
+
+rotation_from_ZYZ_to = {
+    XYZ: Matrix((0, 1, 0), (0, 0, -1), (-1, 0, 0)),
+    XZY: Matrix((0, 0, 1), (1, 0, 0), (0, 1, 0)),
+    YXZ: Matrix((-1, 0, 0), (0, 1, 0), (0, 0, -1)),
+    YZX: Matrix((0, 0, 1), (-1, 0, 0), (0, -1, 0)),
+    ZXY: Matrix.id,
+    ZYX: Matrix((0, -1, 0), (0, 0, 1), (-1, 0, 0)),
+    XYX: Matrix((0, 0, 1), (-1, 0, 0), (0, -1, 0)),
+    XZX: Matrix((0, 1, 0), (0, 0, -1), (-1, 0, 0)),
+    YXY: Matrix((0, 0, 1), (-1, 0, 0), (0, -1, 0)),
+    YZY: Matrix.id,
+    ZXZ: Matrix((0, 1, 0), (0, 0, -1), (-1, 0, 0)),
+    ZYZ: Matrix.id
+}
+
+rotation_from_to_answers = {
+    XYZ: rotation_from_XYZ_to,
+    XZY: rotation_from_XZY_to,
+    YXZ: rotation_from_YXZ_to,
+    YZX: rotation_from_YZX_to,
+    ZXY: rotation_from_ZXY_to,
+    ZYX: rotation_from_ZYX_to,
+    XYX: rotation_from_XYX_to,
+    XZX: rotation_from_XZX_to,
+    YXY: rotation_from_YXY_to,
+    YZY: rotation_from_YZY_to,
+    ZXZ: rotation_from_ZXZ_to,
+    ZYZ: rotation_from_ZYZ_to
+}
