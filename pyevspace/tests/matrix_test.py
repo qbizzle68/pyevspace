@@ -284,7 +284,8 @@ class TestMatrix(unittest.TestCase):
         self.assertTrue(m != self.m147, msg='matrix compare != true')
         self.assertFalse(m != self.m123, msg='matrix compare != false')
 
-    def equality(self, matrix, array):
+    @staticmethod
+    def equality(matrix, array):
         return (matrix[0, 0] == array[0, 0]
                 and matrix[0, 1] == array[0, 1]
                 and matrix[0, 2] == array[0, 2]
@@ -340,7 +341,6 @@ class TestMatrix(unittest.TestCase):
 
     def test_matrix_transpose(self):
         # test transpose expected values
-        # ans = Matrix((1, 4, 7), (2, 5, 8), (3, 6, 9))
         msg = 'matrix transpose expected output'
         self.assertEqual(transpose(self.m123), self.m147, msg=msg)
 
