@@ -30,7 +30,11 @@ angles_new(PyTypeObject* type, PyObject* args, PyObject* PyUNUSED(_))
 {
 	double alpha, beta, gamma;
 
-	if (!PyArg_ParseTuple(args, "ddd", &alpha, &beta, &gamma) < 0)
+	if (PyTuple_GET_SIZE(args) == 0) {
+		return (PyObject*)_angles_new(0.0, 0.0, 0.0, type);
+	}
+
+	if (!PyArg_ParseTuple(args, "ddd", &alpha, &beta, &gamma))
 		return NULL;
 
 	return (PyObject*)_angles_new(alpha, beta, gamma, type);
