@@ -462,7 +462,7 @@ class TestVector(unittest.TestCase):
         with self.assertRaises(TypeError, msg=msg):
             norm(1)
 
-    def test_vang_test(self):
+    def test_vector_vang(self):
         # test vang computation values
         msg = 'vector angle'
         self.assertAlmostEqual(vang(Vector((1, 1, 0)), Vector((1, 0, 0))),
