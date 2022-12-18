@@ -1,4 +1,4 @@
-from pyevspace import Matrix, Vector
+from pyevspace import Matrix, Vector, det, transpose
 import unittest
 import pickle
 
@@ -315,6 +315,47 @@ class TestMatrix(unittest.TestCase):
         m = pickle.loads(buf)
         msg = 'matrix pickle'
         self.assertEqual(m, self.m123, msg=msg)
+
+    def test_matrix_determinate(self):
+        # test det with non-invertible matrix
+        msg = 'matrix determinate expected output'
+        self.assertEqual(det(self.m123), 0, msg=msg)
+
+        # test det with-invertible matrix
+        m = Matrix((2, 6, 4), (7, 3, 1), (8, 0, 0))
+        self.assertEqual(det(m), -48, msg=msg)
+
+        # test exception from types
+        msg = 'det() argument length < 2 TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            det()
+
+        msg = 'det() argument length > 2 TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            det(self.v123, self.v123)
+
+        msg = 'det() argument TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            det(7)
+
+    def test_matrix_transpose(self):
+        # test transpose expected values
+        # ans = Matrix((1, 4, 7), (2, 5, 8), (3, 6, 9))
+        msg = 'matrix transpose expected output'
+        self.assertEqual(transpose(self.m123), self.m147, msg=msg)
+
+        # test exception from types
+        msg = 'transpose() argument length < 1 TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            transpose()
+
+        msg = 'transpose() argument length > 1 TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            transpose(self.m123, self.m123)
+
+        msg = 'transpose() argument TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            transpose(5)
 
 
 if __name__ == '__main__':
