@@ -1,6 +1,6 @@
-from math import sqrt
+from math import sqrt, pi
 
-from pyevspace import Vector
+from pyevspace import Vector, dot, cross, norm, vang, vxcl, proj
 import unittest
 import pickle
 
@@ -11,6 +11,7 @@ class TestVector(unittest.TestCase):
     v111 = Vector((1, 1, 1))
     v123 = Vector((1, 2, 3))
     v123m = Vector((-1, -2, -3))
+    v34 = Vector((3, 4, 0))
 
     def test_vector_new(self):
         # test if non-iterable in constructor
@@ -398,6 +399,130 @@ class TestVector(unittest.TestCase):
         # test validity of exported bytes and creation of object with pickle
         v = pickle.loads(buf)
         self.assertEqual(v, self.v123, msg='vector pickle')
+
+    def test_vector_dot(self):
+        # test dot operator computations
+        msg = 'vector dot product'
+        self.assertEqual(dot(self.v123, self.v34), 11, msg=msg)
+        msg = 'vector dot equal to mag2()'
+        self.assertEqual(dot(self.v123, self.v123), self.v123.mag2(), msg=msg)
+
+        # test exceptions from types
+        msg = 'dot() argument number < 2 TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            dot(self.v123)
+
+        msg = 'dot() argument number > 2 TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            dot(self.v123, self.v123, self.v123)
+
+        msg = 'dot() lhs argument TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            dot(self.v123, 0)
+
+    def test_vector_cross(self):
+        # test cross operator computations
+        msg = 'vector cross product'
+        self.assertEqual(cross(self.v123, self.v34), Vector((-12, 9, -2)), msg=msg)
+        self.assertEqual(cross(self.v34, self.v123), Vector((12, -9, 2)), msg=msg)
+
+        # test exception from types
+        msg = 'cross() argument length < 2 TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            cross(self.v123)
+
+        msg = 'cross() argument length > 2 TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            cross(self.v123, self.v123, self.v123)
+
+        msg = 'cross() argument TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            cross(self.v123, 1.0)
+
+    def test_vector_norm(self):
+        # test norm operator computations
+        msg = 'vector norm'
+        self.assertEqual(norm(self.v34), Vector((0.6, 0.8, 0)), msg=msg)
+        self.assertEqual(norm(self.v34 * -1), Vector((-0.6, -0.8, 0)), msg=msg)
+        v = Vector((1, 2, 3))
+        v.normalize()
+        msg = 'vector norm() same output as .normalize()'
+        self.assertEqual(norm(self.v123), v, msg=msg)
+
+        # test exception from types
+        msg = 'norm() no argument TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            norm()
+
+        msg = 'norm() argument length > 1 TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            norm(self.v123, self.v123)
+
+        msg = 'norm() argument TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            norm(1)
+
+    def test_vang_test(self):
+        # test vang computation values
+        msg = 'vector angle'
+        self.assertAlmostEqual(vang(Vector((1, 1, 0)), Vector((1, 0, 0))),
+                               pi / 4, 6, msg=msg)
+        self.assertAlmostEqual(vang(Vector((1, 0, 0)), Vector((0, 1, 0))),
+                               pi / 2, 6, msg=msg)
+
+        # test exception from types
+        msg = 'vang() argument length < 2 TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            vang(self.v123)
+
+        msg = 'vang() argument length > 2 TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            vang(self.v123, self.v123, self.v123)
+        
+        msg = 'vang() argument TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            vang(2)
+
+    def test_vector_exclude(self):
+        # test vxcl computation values
+        msg = 'vector exclude'
+        self.assertEqual(vxcl(Vector((1, 1, 0)), Vector((0, 1, 0))),
+                         Vector((1, 0, 0)), msg=msg)
+        self.assertEqual(vxcl(Vector((1, 2, 0)), Vector((0, 1, 0))),
+                         Vector((1, 0, 0)), msg=msg)
+
+        # test exception from types
+        msg = 'vxcl() argument length < 2 TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            vang(self.v123)
+
+        msg = 'vxcl() argument length > 2 TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            vang(self.v123, self.v123, self.v123)
+
+        msg = 'vxcl() argument TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            vang(5)
+
+    def test_vector_projection(self):
+        # test proj computation values
+        msg = 'vector projection'
+        self.assertEqual(proj(Vector((1, 1, 7)), Vector((1, 1, 1))),
+                         Vector((3, 3, 3)), msg=msg)
+        self.assertEqual(proj(Vector.e1, Vector.e2), Vector(), msg=msg)
+
+        # test exception from types
+        msg = 'proj() argument TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            proj(3, 'a')
+
+        msg = 'proj() argument length < 2 TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            proj(self.v123)
+
+        msg = 'proj() argument length > 2 TypeError'
+        with self.assertRaises(TypeError, msg=msg):
+            proj(self.v123, self.v123, self.v123)
 
 
 if __name__ == '__main__':

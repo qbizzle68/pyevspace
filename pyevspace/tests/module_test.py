@@ -1,6 +1,6 @@
 from math import pi
 
-from pyevspace import *
+from pyevspace import Vector, Matrix, dot, cross, norm, vang, vxcl, proj, det, transpose
 import unittest
 
 
@@ -10,26 +10,29 @@ class Test_evspace(unittest.TestCase):
     v34 = Vector((3, 4, 0))
     m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
 
-    def test_dot(self):
+    def test_module_dot(self):
         # test dot operator computations
-        self.assertEqual(dot(self.v, self.v34), 11)
-        self.assertEqual(dot(self.v, self.v), self.v.mag2())
+        msg = 'vector dot product'
+        self.assertEqual(dot(self.v, self.v34), 11, msg=msg)
+        msg = 'vector dot equal to mag2()'
+        self.assertEqual(dot(self.v, self.v), self.v.mag2(), msg=msg)
 
         # test exceptions from types
-        with self.assertRaises(TypeError) as cm:
+        msg = 'dot() argument number < 2 TypeError'
+        with self.assertRaises(TypeError, msg=msg):
             dot(self.v)
-        self.assertEqual(TypeError, type(cm.exception))
 
-        with self.assertRaises(TypeError) as cm:
+        msg = 'dot() argument number > 2 TypeError'
+        with self.assertRaises(TypeError, msg=msg):
             dot(self.v, self.v, self.v)
-        self.assertEqual(TypeError, type(cm.exception))
 
-        with self.assertRaises(TypeError) as cm:
+        msg = 'dot() lhs argument TypeError'
+        with self.assertRaises(TypeError, msg=msg):
             dot(self.v, 0)
-        self.assertEqual(TypeError, type(cm.exception))
 
-    def test_cross(self):
+    def test_module_cross(self):
         # test cross operator computations
+        msg = 'vector cross '
         self.assertEqual(cross(self.v, self.v34), Vector((-12, 9, -2)))
         self.assertEqual(cross(self.v34, self.v), Vector((12, -9, 2)))
 
