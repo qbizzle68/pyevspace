@@ -35,8 +35,8 @@ refframe_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 	PyObject* order = NULL, * angles = NULL, * offset = NULL;
 
 	//if (PyArg_ParseTuple(args, "OO", &order, &angles) < 0)
-	if (PyArg_ParseTupleAndKeywords(args, kwds, "OO|$O", kwlist, 
-									&order, &angles, &offset) < 0)
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO|$O", kwlist, 
+									&order, &angles, &offset))
 		return NULL;
 
 	if (!Order_Check(order)) {
