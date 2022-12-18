@@ -47,7 +47,8 @@ class TestAngles(unittest.TestCase):
         # test copy module's use of __reduce__()
         cpy = copy(self.angs)
         msg = 'angles copy from copy module'
-        self.assertEqual(cpy, self.angs, msg=msg)
+        self.assertTrue(cpy[0] == self.angs[0] and cpy[1] == self.angs[1] and
+                        cpy[2] == self.angs[2], msg=msg)
         msg = 'angles copy not same object'
         self.assertIsNot(cpy, self.angs, msg=msg)
 
@@ -155,7 +156,8 @@ class TestAngles(unittest.TestCase):
         # test copy module's use of __reduce__()
         cpy = copy(self.o)
         msg = 'order copy from copy module'
-        self.assertEqual(cpy, self.o, msg=msg)
+        self.assertTrue(cpy[0] == self.o[0] and cpy[1] == self.o[1] and
+                        cpy[2] == self.o[2], msg=msg)
         msg = 'order copy not same object'
         self.assertIsNot(cpy, self.o, msg=msg)
 
