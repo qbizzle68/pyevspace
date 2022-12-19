@@ -20,10 +20,17 @@ _reference_frame_new(EVSpace_Order* order, EVSpace_Angles* angles,
 	if (!rot)
 		return NULL;
 
-	rot->order = order;
-	rot->angles = angles;
 	rot->matrix = _get_euler_matrix(order, angles);
+	if (!rot->matrix) {
+		return NULL;
+	}
+	Py_INCREF(rot->matrix);
+	rot->order = order;
+	Py_INCREF(rot->order);
+	rot->angles = angles;
+	Py_INCREF(rot->angles);
 	rot->offset = offset;
+	Py_XINCREF(rot->offset);
 
 	return (PyObject*)rot;
 }
@@ -49,15 +56,22 @@ refframe_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 			"second argument must be pyevspace.Angles type");
 		return NULL;
 	}
+	if (offset) {
+		if (!Vector_Check(offset)) {
+			PyErr_SetString(PyExc_TypeError,
+				"offset argument must be pyevspace.Vector type");
+			return NULL;
+		}
+	}
 
 	return (PyObject*)_reference_frame_new((EVSpace_Order*)order,
 		(EVSpace_Angles*)angles, (EVSpace_Vector*)offset, type);
 }
 
 static PyObject*
-refframe_angles_getter(PyObject* self, void* closure)
+refframe_angles_getter(EVSpace_ReferenceFrame* self, void* closure)
 {
-	return Py_NewRef((PyObject*)(((EVSpace_ReferenceFrame*)self)->angles));
+	return Py_NewRef(self->angles);
 }
 
 static int
