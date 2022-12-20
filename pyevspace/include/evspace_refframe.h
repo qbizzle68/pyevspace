@@ -24,7 +24,7 @@ _reference_frame_new(EVSpace_Order* order, EVSpace_Angles* angles,
 	if (!rot->matrix) {
 		return NULL;
 	}
-	Py_INCREF(rot->matrix);
+	//Py_INCREF(rot->matrix);
 	rot->order = order;
 	Py_INCREF(rot->order);
 	rot->angles = angles;
@@ -181,7 +181,7 @@ static PyObject*
 refframe_offset_getter(EVSpace_ReferenceFrame* self, void* Py_UNUSED(_))
 {
 	if (self->offset) {
-		return (PyObject*)self->offset;
+		return Py_NewRef(self->offset);
 	}
 	else {
 		Py_RETURN_NONE;
@@ -192,12 +192,6 @@ static int
 refframe_offset_setter(EVSpace_ReferenceFrame* self, PyObject* arg, 
 	void* Py_UNUSED(_))
 {
-	if (!arg) {
-		PyErr_SetString(PyExc_ValueError,
-			"cannot delete angles attribute");
-		return -1;
-	}
-
 	if (!Vector_Check(arg)) {
 		PyErr_SetString(PyExc_TypeError,
 			"value must be pyevspace.Vector type");
@@ -205,9 +199,9 @@ refframe_offset_setter(EVSpace_ReferenceFrame* self, PyObject* arg,
 	}
 
 	EVSpace_Vector* tmp = self->offset;
-	Py_INCREF(arg);
+	Py_XINCREF(arg);
 	self->offset = (EVSpace_Vector*)arg;
-	Py_DECREF(tmp);
+	Py_XDECREF(tmp);
 
 	return 0;
 }
