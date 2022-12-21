@@ -456,11 +456,11 @@ static PyObject*
 matrix_multiply(EVSpace_Matrix* self, PyObject* arg)
 {
 	if (Matrix_Check(self)) {
-		if (Vector_Check(arg))
+		/*if (Vector_Check(arg))
 			return (PyObject*)_matrix_multiply_v(self, (EVSpace_Vector*)arg);
 
 		if (Matrix_Check(arg))
-			return (PyObject*)_matrix_multiply_m(self, (EVSpace_Matrix*)arg);
+			return (PyObject*)_matrix_multiply_m(self, (EVSpace_Matrix*)arg);*/
 
 		if (PyNumber_Check(arg)) {
 			double scalar = PyFloat_AsDouble(arg);
@@ -468,6 +468,22 @@ matrix_multiply(EVSpace_Matrix* self, PyObject* arg)
 				return NULL;
 
 			return (PyObject*)_matrix_multiply_s(self, scalar);
+		}
+	}
+
+	Py_RETURN_NOTIMPLEMENTED;
+}
+
+static PyObject*
+matrix_mat_multiply(EVSpace_Matrix* self, PyObject* arg)
+{
+	if (Matrix_Check(self)) {
+		if (Vector_Check(arg)) {
+			return (PyObject*)_matrix_multiply_v(self, (EVSpace_Vector*)arg);
+		}
+
+		if (Matrix_Check(arg)) {
+			return (PyObject*)_matrix_multiply_m(self, (EVSpace_Matrix*)arg);
 		}
 	}
 
@@ -543,6 +559,15 @@ matrix_imultiply(EVSpace_Matrix* mat, PyObject* arg)
 	}
 
 	Py_RETURN_NOTIMPLEMENTED;
+}
+
+static PyObject*
+matrix_mat_imultiply(EVSpace_Matrix* mat, PyObject* arg)
+{
+	PyErr_Format(PyExc_TypeError,
+		"unsupported operant types(s) for *=: 'pyevspace.Matrix'"
+		" and '%s'", arg->ob_type->tp_name);
+	return NULL;
 }
 
 static PyObject*

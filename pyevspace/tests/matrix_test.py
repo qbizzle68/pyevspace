@@ -144,13 +144,13 @@ class TestMatrix(unittest.TestCase):
     def test_matrix_vector_multiply(self):
         # test vector multiplication computations
         msg = 'matrix multiply matrix and vector'
-        self.assertEqual(self.m123 * self.v123, Vector((14, 32, 50)), msg=msg)
+        self.assertEqual(self.m123 @ self.v123, Vector((14, 32, 50)), msg=msg)
 
     def test_matrix_multiply(self):
         # test matrix multiplication computations
         ans = Matrix((14, 32, 50), (32, 77, 122), (50, 122, 194))
         msg = 'matrix multiply two matrices'
-        self.assertEqual(self.m123 * self.m147, ans, msg=msg)
+        self.assertEqual(self.m123 @ self.m147, ans, msg=msg)
 
     def test_matrix_imultiply(self):
         # test inplace scalar multiplication computations
@@ -165,10 +165,10 @@ class TestMatrix(unittest.TestCase):
         # test exception from types
         msg = 'matrix imultiply rhs argument TypeError'
         with self.assertRaises(TypeError, msg=msg):
-            self.m123 *= self.v123
+            self.m123 @= self.v123
 
         with self.assertRaises(TypeError, msg=msg):
-            self.m123 *= m
+            self.m123 @= m
 
     def test_matrix_divide(self):
         # test scalar division computations

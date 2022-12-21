@@ -78,7 +78,9 @@ static PyNumberMethods matrix_as_number = {
 	.nb_inplace_subtract = (binaryfunc)matrix_isubtract,
 	.nb_inplace_multiply = (binaryfunc)matrix_imultiply,
 	.nb_true_divide		= (binaryfunc)matrix_divide,
-	.nb_inplace_true_divide = (binaryfunc)matrix_idivide
+	.nb_inplace_true_divide = (binaryfunc)matrix_idivide,
+	.nb_matrix_multiply = (binaryfunc)matrix_mat_multiply,
+	.nb_inplace_matrix_multiply = (binaryfunc)matrix_mat_imultiply
 };
 
 static PyMappingMethods matrix_as_mapping = {
