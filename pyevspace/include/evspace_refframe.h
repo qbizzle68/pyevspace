@@ -192,7 +192,7 @@ static int
 refframe_offset_setter(EVSpace_ReferenceFrame* self, PyObject* arg, 
 	void* Py_UNUSED(_))
 {
-	if (!Vector_Check(arg)) {
+	if (arg && !Vector_Check(arg)) {
 		PyErr_SetString(PyExc_TypeError,
 			"value must be pyevspace.Vector type");
 		return -1;
