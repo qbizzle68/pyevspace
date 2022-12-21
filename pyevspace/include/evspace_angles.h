@@ -74,7 +74,7 @@ angles_repr(const EVSpace_Angles* angles)
 	if (!buffer)
 		return NULL;
 
-	sprintf(buffer, "angles([%f, %f, %f])", angles->alpha,
+	sprintf(buffer, "Angles(%f, %f, %f)", angles->alpha,
 		angles->beta, angles->gamma);
 
 	PyObject* rtn = PyUnicode_FromString(buffer);
@@ -211,7 +211,7 @@ order_repr(const EVSpace_Order* order)
 		return NULL;
 
 	__order_axis_names(order, first, second, third);
-	sprintf(buffer, "order([%s, %s, %s])", first, second, third);
+	sprintf(buffer, "Order(%s, %s, %s)", first, second, third);
 
 	PyObject* rtn = PyUnicode_FromString(buffer);
 	free(buffer);
