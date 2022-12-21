@@ -279,10 +279,10 @@ _refframe_from_frame(const EVSpace_ReferenceFrame* self,
 	EVSpace_Vector *tmp, *rtn;
 
 	if (frame->offset) {
-		tmp = _rotate_offset_to(frame->matrix, frame->offset, vector);
+		tmp = _rotate_offset_from(frame->matrix, frame->offset, vector);
 	}
 	else {
-		tmp = _rotate_matrix_to(frame->matrix, vector);
+		tmp = _rotate_matrix_from(frame->matrix, vector);
 	}
 
 	if (!tmp) {
@@ -290,10 +290,10 @@ _refframe_from_frame(const EVSpace_ReferenceFrame* self,
 	}
 
 	if (self->offset) {
-		rtn = _rotate_offset_from(self->matrix, self->offset, tmp);
+		rtn = _rotate_offset_to(self->matrix, self->offset, tmp);
 	}
 	else {
-		rtn = _rotate_matrix_from(self->matrix, tmp);
+		rtn = _rotate_matrix_to(self->matrix, tmp);
 	}
 
 	Py_DECREF(tmp);
