@@ -306,27 +306,40 @@
 <h2>Constructor<a class="headerlink" href="#constructor" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pyevspace.Matrix">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">Matrix</span></span><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param"><span class="n"><span class="pre">initializer</span></span></em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.Matrix" title="Permalink to this definition">#</a></dt>
-<dd><p>Create an <a class="reference internal" href="#pyevspace.Matrix" title="pyevspace.Matrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code></a> object with initial values from
-<cite>initializer</cite>, or zero if <cite>initializer</cite> is omitted.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>initializer</strong> (<em>iterable</em>) – <p>an iterable object of length three
-whose values are iterable objects of length three with
-<a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a> values</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">initializer</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">Matrix</span><span class="p">(</span><span class="n">initializer</span><span class="p">)</span>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">Matrix</span></span><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param"><span class="n"><span class="pre">initializer0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initializer1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initializer2</span></span></em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.Matrix" title="Permalink to this definition">#</a></dt>
+<dd><p>Create a <a class="reference internal" href="#pyevspace.Matrix" title="pyevspace.Matrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code></a> object to initialized values.</p>
+<p>Matrix can be initialized with optional initializer list, with each
+initializer representing a row of the matrix values. If using
+initializer list, all three arguments must be present. If no arguments
+are used, the initial values default to zero.</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">row0</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">row1</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">row2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">Matrix</span><span class="p">(</span><span class="n">row0</span><span class="p">,</span> <span class="n">row1</span><span class="p">,</span> <span class="n">row2</span><span class="p">)</span>
 </pre></div>
 </div>
-</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>initializer0</strong> (<em>iterable</em>) – an iterable object of length three
+whose values are <a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a> types (<cite>initializer1</cite>
+and <cite>initializer2</cite> must also be set)</p></li>
+<li><p><strong>initializer1</strong> (<em>iterable</em>) – an iterable object of length three
+whose values are <a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a> types (<cite>initializer0</cite>
+and <cite>initializer2</cite> must also be set)</p></li>
+<li><p><strong>initializer2</strong> (<em>iterable</em>) – an iterable object of length three
+whose values are <a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a> types (<cite>initializer0</cite>
+and <cite>initializer1</cite> must also be set)</p></li>
+</ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>TypeError</strong> – if <cite>initializer</cite> or any value of <cite>initializer</cite> is
-not an iterable</p></li>
-<li><p><strong>TypeError</strong> – if any value of a subiterable is not a
+<li><p><strong>TypeError</strong> – if any initializer is not an iterable</p></li>
+<li><p><strong>TypeError</strong> – if any value of an initializer is not a
 <a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a> type</p></li>
-<li><p><strong>ValueError</strong> – if <cite>initializer</cite> or any of the subiterables of
+<li><p><strong>ValueError</strong> – if <cite>initializer</cite> or any of the sub-iterables of
 <cite>initializer</cite> are not exactly length three</p></li>
 </ul>
 </dd>
@@ -368,7 +381,7 @@ not an iterable</p></li>
 <dd class="field-odd"><p><a class="reference internal" href="#pyevspace.Matrix" title="pyevspace.Matrix">Matrix</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#pyevspace.Matrix" title="pyevspace.Matrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code></a> type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not a <a class="reference internal" href="#pyevspace.Matrix" title="pyevspace.Matrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code></a> type</p>
 </dd>
 </dl>
 </dd></dl>
@@ -388,7 +401,7 @@ not an iterable</p></li>
 <dd class="field-odd"><p><a class="reference internal" href="#pyevspace.Matrix" title="pyevspace.Matrix">Matrix</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#pyevspace.Matrix" title="pyevspace.Matrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code></a> type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not a <a class="reference internal" href="#pyevspace.Matrix" title="pyevspace.Matrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code></a> type</p>
 </dd>
 </dl>
 </dd></dl>
@@ -465,7 +478,7 @@ type</p>
 <dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#pyevspace.Matrix" title="pyevspace.Matrix"><em>Matrix</em></a>) – the matrix to add to self</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#pyevspace.Matrix" title="pyevspace.Matrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code></a> type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not a <a class="reference internal" href="#pyevspace.Matrix" title="pyevspace.Matrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code></a> type</p>
 </dd>
 </dl>
 </dd></dl>
@@ -479,7 +492,7 @@ type</p>
 <dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#pyevspace.Matrix" title="pyevspace.Matrix"><em>Matrix</em></a>) – the matrix to subtract from self</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#pyevspace.Matrix" title="pyevspace.Matrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code></a> type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not a <a class="reference internal" href="#pyevspace.Matrix" title="pyevspace.Matrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code></a> type</p>
 </dd>
 </dl>
 </dd></dl>
@@ -490,7 +503,7 @@ type</p>
 <dd><p>Inplace standard scalar multiplication.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to multilpy each element of self by</p>
+<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to multiply each element of self by</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>
@@ -510,6 +523,22 @@ type</p>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>
 type</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyevspace.Matrix..__repr__">
+<span class="sig-prename descclassname"><span class="pre">Matrix..</span></span><span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.Matrix..__repr__" title="Permalink to this definition">#</a></dt>
+<dd><p>Returns a string representation of self, representative of a constructor
+call with the component values of the matrix. The format fo the components
+follows the same as <a class="reference internal" href="#pyevspace.Matrix.__str__" title="pyevspace.Matrix.__str__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Matrix.__str__()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a string representation of self</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
@@ -561,7 +590,7 @@ list of lists.</p>
 <dd class="field-odd"><p>bool</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#pyevspace.Matrix" title="pyevspace.Matrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code></a> type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>other</cite> is not a <a class="reference internal" href="#pyevspace.Matrix" title="pyevspace.Matrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code></a> type</p>
 </dd>
 </dl>
 </dd></dl>
@@ -578,7 +607,7 @@ list of lists.</p>
 <dd class="field-even"><p>bool</p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>TypeError</strong> – if <cite>other</cite> is not an <a class="reference internal" href="#pyevspace.Matrix" title="pyevspace.Matrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code></a> type</p>
+<dd class="field-odd"><p><strong>TypeError</strong> – if <cite>other</cite> is not a <a class="reference internal" href="#pyevspace.Matrix" title="pyevspace.Matrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code></a> type</p>
 </dd>
 </dl>
 </dd></dl>
@@ -590,10 +619,10 @@ list of lists.</p>
 <h2>Mapping Protocol<a class="headerlink" href="#mapping-protocol" title="Permalink to this heading">#</a></h2>
 <p>The mapping protocol allows for accessing and mutating components of the
 matrix. This allows for the square bracket notation, similar to the
-sequence protocol. The indeces are the row and column of the component
-you wish to access. A <code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code> is raised if either index is
-not an integer, and a <code class="xref py py-exc docutils literal notranslate"><span class="pre">IndexError</span></code> is raised if either index is
-not in the interval [0, 2].</p>
+sequence protocol of a <a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector"><code class="xref py py-class docutils literal notranslate"><span class="pre">Vector</span></code></a>. The indices are the row and
+column of the component you wish to access. A <code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code> is
+raised if either index is not an integer, and an <code class="xref py py-exc docutils literal notranslate"><span class="pre">IndexError</span></code> is
+raised if either index is not in the interval [0, 2].</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">Matrix</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
 <span class="go">5.0</span>
@@ -610,6 +639,34 @@ not in the interval [0, 2].</p>
 <span class="gt">Traceback (most recent call last):</span>
   File <span class="nb">&quot;&lt;stdin&gt;&quot;</span>, line <span class="m">1</span>, in <span class="n">&lt;module&gt;</span>
 <span class="gr">TypeError</span>: <span class="n">&#39;float&#39; object cannot be interpreted as an integer</span>
+</pre></div>
+</div>
+<p>A single argument using square bracket notation allows access to a row
+of a <a class="reference internal" href="#pyevspace.Matrix" title="pyevspace.Matrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code></a>. Because the matrix type is basically a data
+array, there is no Python type that represents a row of the matrix type.
+The closest thing would be a <code class="xref py py-class docutils literal notranslate"><span class="pre">memoryview</span></code> object, which gives
+access to the memory buffer of the desired row of the matrix.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">Matrix</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">row1</span> <span class="o">=</span> <span class="n">matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">row1List</span> <span class="o">=</span> <span class="n">row1</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">row1List</span>
+<span class="go">[4.0, 5.0, 6.0]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">row1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">12.3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
+<span class="go">[[1, 2, 3]</span>
+<span class="go">[4, 12.3, 6]</span>
+<span class="go">[7, 8, 9]]</span>
+</pre></div>
+</div>
+<p>While this provides a way of quickly accessing an entire row of data,
+it’s not the most efficient way to change a value of a matrix since a
+buffer object has to be created first. The ordinary mapping protocol
+should be used in this case:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">Matrix</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># faster</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># slower</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
 </pre></div>
 </div>
 </section>
@@ -793,6 +850,15 @@ NumPy.</p>
      <code class="docutils literal notranslate">
       <span class="pre">
        Matrix.__itruediv__()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pyevspace.Matrix..__repr__">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Matrix..__repr__()
       </span>
      </code>
     </a>
