@@ -165,25 +165,25 @@ static void
 __order_axis_names(const EVSpace_Order* order, char* first, char* second, char* third)
 {
 	if (order->first == X_AXIS)
-		sprintf(first, "X_Axis");
+		sprintf(first, "X_AXIS");
 	else if (order->first == Y_AXIS)
-		sprintf(first, "Y_Axis");
+		sprintf(first, "Y_AXIS");
 	else if (order->first == Z_AXIS)
-		sprintf(first, "Z_Axis");
+		sprintf(first, "Z_AXIS");
 
 	if (order->second == X_AXIS)
-		sprintf(second, "X_Axis");
+		sprintf(second, "X_AXIS");
 	else if (order->second == Y_AXIS)
-		sprintf(second, "Y_Axis");
+		sprintf(second, "Y_AXIS");
 	else if (order->second == Z_AXIS)
-		sprintf(second, "Z_Axis");
+		sprintf(second, "Z_AXIS");
 
 	if (order->third == X_AXIS)
-		sprintf(third, "X_Axis");
+		sprintf(third, "X_AXIS");
 	else if (order->third == Y_AXIS)
-		sprintf(third, "Y_Axis");
+		sprintf(third, "Y_AXIS");
 	else if (order->third == Z_AXIS)
-		sprintf(third, "Z_Axis");
+		sprintf(third, "Z_AXIS");
 }
 
 static PyObject*
