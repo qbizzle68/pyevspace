@@ -14,14 +14,28 @@ Constructor
 
 .. py:class:: Vector([{x, y, z | initializer}])
 
-    Create a :class:`Vector` object with initial values directly, from an
-    iterable, or to zero if both are omitted.
+    Create a :class:`Vector` object and initialize components.
 
+    A vector can be constructed directly by setting the x, y and z components,
+    from an iterable object of length three, or to zero if all arguments are omitted.
+    If initializing the components directly all components must be set. If
+    initializing from an iterable the iterable must be the only parameter.
+    All components will be set to zero if all arguments are omitted.
+
+    :param numeric x: value to initialize the x-component to (the `y` and `z`
+        parameters must also be filled when initializing directly)
+    :param numeric y: value to initialize the y-component to (the `x` and `z`
+        parameters must also be filled when initializing directly)
+    :param numeric z: value to initialize the z-component to (the `x` and `y`
+        parameters must also be filled when initializing directly)
     :param iterable initializer: an iterable object of length three with
-        :ref:`numeric <numeric-def>` values
-    :raises TypeError: if `initializer` is not an iterable
+        :ref:`numeric <numeric-def>` values (this must be the only parameter when
+        initializing from an iterable)
+    :raises TypeError: if `x`, `y`, `z` or `initializer` is not an iterable
     :raises TypeError: if a value of `initializer` is not a
         :ref:`numeric <numeric-def>` type
+    :raises TypeError: if exactly three direct initializers aren't used or iterable
+        is not the only argument
     :raises ValueError: if `initializer` does not have a length of
         exactly three
 
@@ -33,7 +47,7 @@ Attributes
     Elementary vector that represents the x-axis of the standard
     basis. **This value should not be edited.**
 
-    :value: :python:`Vector((1, 0, 0))`
+    :value: :python:`Vector(1, 0, 0)`
     :type: Vector
 
 .. py:attribute:: Vector.e2
@@ -41,7 +55,7 @@ Attributes
     Elementary vector that represents the y-axis of the standard
     basis. **This value should not be edited.**
 
-    :value: :python:`Vector((0, 1, 0))`
+    :value: :python:`Vector(0, 1, 0)`
     :type: Vector
 
 .. py:attribute:: Vector.e3
@@ -49,7 +63,7 @@ Attributes
     Elementary vector that represents the z-axis of the standard
     basis. **This value should not be edited.**
 
-    :value: :python:`Vector((0, 0, 1))`
+    :value: :python:`Vector(0, 0, 1)`
     :type: Vector
 
 Arithmetic Operators
@@ -95,9 +109,9 @@ Arithmetic Operators
 
 .. py:method:: Vector.__neg__()
 
-    Negates each component of self.
+    Negates each component of a vector.
 
-    :return: the negative of self
+    :return: the negative of a vector
     :rtype: Vector
 
 .. py:method:: Vector.__iadd__(other)
@@ -131,6 +145,15 @@ Arithmetic Operators
     :type scalar: :ref:`numeric <numeric-def>`
     :raises TypeError: if `scalar` is not a :ref:`numeric <numeric-def>`
         type
+
+.. py:method:: Vector.__repr__()
+
+    Returns a string representation of self, representative of a constructor
+    call with the component values of the vector. The format fo the components
+    follows the same as :py:meth:`Vector.__str__()`.
+
+    :return: a string representation of self
+    :rtype: str
 
 .. py:method:: Vector.__str__()
 
@@ -208,7 +231,7 @@ Vector Operators
 .. py:method:: Vector.normalize()
 
     Normalizes the vector by dividing each element by the magnitude
-    of the vector. This results in a vector with lengh equal to one.
+    of the vector. This results in a vector with length equal to one.
 
     :return: None
 
@@ -261,25 +284,12 @@ Sequence Protocol
 Iterator Protocol
 -----------------
 
-The iterator protocol for the :class:`Vector` type is not managed
-through a separate iterator type but within the class itself.
-
 .. py:method:: Vector.__iter__()
 
-    Returns a reference to self and sets an internal counter to
-    zero.
+    Returns an iterator object for the vector.
 
-    :return: a reference to self
+    :return: an iterator for a vector
     :rtype: :class:`Vector`
-
-.. py:method:: Vector.__next__()
-
-    Returns the index of the internal counter before incrementing
-    the counter.
-
-    :return: the next component of the :class:`Vector`
-    :rtype: float
-    :raises StopIteration: when the internal counter reaches three
 
 Buffer Protocol
 ---------------

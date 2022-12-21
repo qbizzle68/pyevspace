@@ -309,18 +309,33 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="pyevspace.Vector">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">Vector</span></span><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param"><span class="n"><span class="pre">{x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span> <span class="pre">|</span> <span class="pre">initializer}</span></span></em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.Vector" title="Permalink to this definition">#</a></dt>
-<dd><p>Create a <a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector"><code class="xref py py-class docutils literal notranslate"><span class="pre">Vector</span></code></a> object with initial values directly, from an
-iterable, or to zero if both are omitted.</p>
+<dd><p>Create a <a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector"><code class="xref py py-class docutils literal notranslate"><span class="pre">Vector</span></code></a> object and initialize components.</p>
+<p>A vector can be constructed directly by setting the x, y and z components,
+from an iterable object of length three, or to zero if all arguments are omitted.
+If initializing the components directly all components must be set. If
+initializing from an iterable the iterable must be the only parameter.
+All components will be set to zero if all arguments are omitted.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>initializer</strong> (<em>iterable</em>) – an iterable object of length three with
-<a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a> values</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>numeric</em>) – value to initialize the x-component to (the <cite>y</cite> and <cite>z</cite>
+parameters must also be filled when initializing directly)</p></li>
+<li><p><strong>y</strong> (<em>numeric</em>) – value to initialize the y-component to (the <cite>x</cite> and <cite>z</cite>
+parameters must also be filled when initializing directly)</p></li>
+<li><p><strong>z</strong> (<em>numeric</em>) – value to initialize the z-component to (the <cite>x</cite> and <cite>y</cite>
+parameters must also be filled when initializing directly)</p></li>
+<li><p><strong>initializer</strong> (<em>iterable</em>) – an iterable object of length three with
+<a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a> values (this must be the only parameter when
+initializing from an iterable)</p></li>
+</ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>TypeError</strong> – if <cite>initializer</cite> is not an iterable</p></li>
+<li><p><strong>TypeError</strong> – if <cite>x</cite>, <cite>y</cite>, <cite>z</cite> or <cite>initializer</cite> is not an iterable</p></li>
 <li><p><strong>TypeError</strong> – if a value of <cite>initializer</cite> is not a
 <a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a> type</p></li>
+<li><p><strong>TypeError</strong> – if exactly three direct initializers aren’t used or iterable
+is not the only argument</p></li>
 <li><p><strong>ValueError</strong> – if <cite>initializer</cite> does not have a length of
 exactly three</p></li>
 </ul>
@@ -338,7 +353,7 @@ exactly three</p></li>
 basis. <strong>This value should not be edited.</strong></p>
 <dl class="field-list simple">
 <dt class="field-odd">Value<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="code highlight python docutils literal highlight-python"><span class="n">Vector</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span></code></p>
+<dd class="field-odd"><p><code class="code highlight python docutils literal highlight-python"><span class="n">Vector</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></code></p>
 </dd>
 <dt class="field-even">Type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector">Vector</a></p>
@@ -353,7 +368,7 @@ basis. <strong>This value should not be edited.</strong></p>
 basis. <strong>This value should not be edited.</strong></p>
 <dl class="field-list simple">
 <dt class="field-odd">Value<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="code highlight python docutils literal highlight-python"><span class="n">Vector</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span></code></p>
+<dd class="field-odd"><p><code class="code highlight python docutils literal highlight-python"><span class="n">Vector</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></code></p>
 </dd>
 <dt class="field-even">Type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector">Vector</a></p>
@@ -368,7 +383,7 @@ basis. <strong>This value should not be edited.</strong></p>
 basis. <strong>This value should not be edited.</strong></p>
 <dl class="field-list simple">
 <dt class="field-odd">Value<span class="colon">:</span></dt>
-<dd class="field-odd"><p><code class="code highlight python docutils literal highlight-python"><span class="n">Vector</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span></code></p>
+<dd class="field-odd"><p><code class="code highlight python docutils literal highlight-python"><span class="n">Vector</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></code></p>
 </dd>
 <dt class="field-even">Type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector">Vector</a></p>
@@ -462,10 +477,10 @@ basis. <strong>This value should not be edited.</strong></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pyevspace.Vector.__neg__">
 <span class="sig-prename descclassname"><span class="pre">Vector.</span></span><span class="sig-name descname"><span class="pre">__neg__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.Vector.__neg__" title="Permalink to this definition">#</a></dt>
-<dd><p>Negates each component of self.</p>
+<dd><p>Negates each component of a vector.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>the negative of self</p>
+<dd class="field-odd"><p>the negative of a vector</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector">Vector</a></p>
@@ -527,6 +542,22 @@ type</p>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>
 type</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyevspace.Vector.__repr__">
+<span class="sig-prename descclassname"><span class="pre">Vector.</span></span><span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.Vector.__repr__" title="Permalink to this definition">#</a></dt>
+<dd><p>Returns a string representation of self, representative of a constructor
+call with the component values of the vector. The format fo the components
+follows the same as <a class="reference internal" href="#pyevspace.Vector.__str__" title="pyevspace.Vector.__str__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Vector.__str__()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a string representation of self</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
@@ -655,7 +686,7 @@ avoid rounding errors.</p>
 <dt class="sig sig-object py" id="pyevspace.Vector.normalize">
 <span class="sig-prename descclassname"><span class="pre">Vector.</span></span><span class="sig-name descname"><span class="pre">normalize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.Vector.normalize" title="Permalink to this definition">#</a></dt>
 <dd><p>Normalizes the vector by dividing each element by the magnitude
-of the vector. This results in a vector with lengh equal to one.</p>
+of the vector. This results in a vector with length equal to one.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>None</p>
@@ -741,37 +772,16 @@ type</p></li>
 </section>
 <section id="iterator-protocol">
 <h2>Iterator Protocol<a class="headerlink" href="#iterator-protocol" title="Permalink to this heading">#</a></h2>
-<p>The iterator protocol for the <a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector"><code class="xref py py-class docutils literal notranslate"><span class="pre">Vector</span></code></a> type is not managed
-through a separate iterator type but within the class itself.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pyevspace.Vector.__iter__">
 <span class="sig-prename descclassname"><span class="pre">Vector.</span></span><span class="sig-name descname"><span class="pre">__iter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.Vector.__iter__" title="Permalink to this definition">#</a></dt>
-<dd><p>Returns a reference to self and sets an internal counter to
-zero.</p>
+<dd><p>Returns an iterator object for the vector.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>a reference to self</p>
+<dd class="field-odd"><p>an iterator for a vector</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector"><code class="xref py py-class docutils literal notranslate"><span class="pre">Vector</span></code></a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="pyevspace.Vector.__next__">
-<span class="sig-prename descclassname"><span class="pre">Vector.</span></span><span class="sig-name descname"><span class="pre">__next__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.Vector.__next__" title="Permalink to this definition">#</a></dt>
-<dd><p>Returns the index of the internal counter before incrementing
-the counter.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>the next component of the <a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector"><code class="xref py py-class docutils literal notranslate"><span class="pre">Vector</span></code></a></p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>float</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>StopIteration</strong> – when the internal counter reaches three</p>
 </dd>
 </dl>
 </dd></dl>
@@ -967,6 +977,15 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pyevspace.Vector.__repr__">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Vector.__repr__()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#pyevspace.Vector.__str__">
      <code class="docutils literal notranslate">
       <span class="pre">
@@ -1089,15 +1108,6 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
      <code class="docutils literal notranslate">
       <span class="pre">
        Vector.__iter__()
-      </span>
-     </code>
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#pyevspace.Vector.__next__">
-     <code class="docutils literal notranslate">
-      <span class="pre">
-       Vector.__next__()
       </span>
      </code>
     </a>
