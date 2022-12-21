@@ -27,12 +27,12 @@ class TestAngles(unittest.TestCase):
     def test_angles_repr(self):
         # test int values in repr
         msg = 'angles repr() expected output'
-        self.assertEqual(repr(self.angs), 'angles([1.000000, 2.000000, 3.000000])',
+        self.assertEqual(repr(self.angs), 'Angles(1.000000, 2.000000, 3.000000)',
                          msg=msg)
 
         # test float values in repr
         a = Angles(1.1, 2.2, 3.3)
-        self.assertEqual(repr(a), 'angles([1.100000, 2.200000, 3.300000])',msg=msg)
+        self.assertEqual(repr(a), 'Angles(1.100000, 2.200000, 3.300000)',msg=msg)
 
     def test_angles_pickle(self):
         # test if Angles can be pickled
@@ -93,21 +93,21 @@ class TestAngles(unittest.TestCase):
         # test str with each axis in each index
         o = Order(0, 1, 2)
         msg = 'order str() expected output'
-        self.assertEqual(str(o), '[X_Axis, Y_Axis, Z_Axis]', msg=msg)
+        self.assertEqual(str(o), '[X_AXIS, Y_AXIS, Z_AXIS]', msg=msg)
         o = Order(1, 2, 0)
-        self.assertEqual(str(o), '[Y_Axis, Z_Axis, X_Axis]', msg=msg)
+        self.assertEqual(str(o), '[Y_AXIS, Z_AXIS, X_AXIS]', msg=msg)
         o = Order(2, 0, 1)
-        self.assertEqual(str(o), '[Z_Axis, X_Axis, Y_Axis]', msg=msg)
+        self.assertEqual(str(o), '[Z_AXIS, X_AXIS, Y_AXIS]', msg=msg)
 
     def test_order_repr(self):
         # test repr with each axis in each index
         msg = 'order repr() expected output'
         o = Order(0, 1, 2)
-        self.assertEqual(repr(o), 'order([X_Axis, Y_Axis, Z_Axis])', msg=msg)
+        self.assertEqual(repr(o), 'Order(X_AXIS, Y_AXIS, Z_AXIS)', msg=msg)
         o = Order(1, 2, 0)
-        self.assertEqual(repr(o), 'order([Y_Axis, Z_Axis, X_Axis])', msg=msg)
+        self.assertEqual(repr(o), 'Order(Y_AXIS, Z_AXIS, X_AXIS)', msg=msg)
         o = Order(2, 0, 1)
-        self.assertEqual(repr(o), 'order([Z_Axis, X_Axis, Y_Axis])', msg=msg)
+        self.assertEqual(repr(o), 'Order(Z_AXIS, X_AXIS, Y_AXIS)', msg=msg)
 
     def test_order_get(self):
         # test __getitem__

@@ -127,7 +127,7 @@ class TestMatrix(unittest.TestCase):
         with self.assertRaises(TypeError, msg=msg):
             self.m123 -= 'a'
 
-    def test_scalar_multiply(self):
+    def test_matrix_scalar_multiply(self):
         # test matrix scalar multiplication computations
         msg = 'matrix multiply scalar'
         self.assertEqual(self.m123 * 2, self.m2, msg=msg)
@@ -141,7 +141,7 @@ class TestMatrix(unittest.TestCase):
         with self.assertRaises(TypeError, msg=msg):
             ans = self.m123 * 'a'
 
-    def test_vector_multiply(self):
+    def test_matrix_vector_multiply(self):
         # test vector multiplication computations
         msg = 'matrix multiply matrix and vector'
         self.assertEqual(self.m123 * self.v123, Vector((14, 32, 50)), msg=msg)

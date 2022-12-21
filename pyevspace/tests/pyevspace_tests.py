@@ -1,14 +1,15 @@
 import unittest
 from .vector_test import TestVector
 from .matrix_test import TestMatrix
-# from .module_test import Test_evspace
 from .angles_test import TestAngles
 from .rotation_test import TestRotation
+from .refframe_test import TestReferenceFrame
 
 
 def get_suite():
 
-    testClasses = [TestVector, TestMatrix, TestAngles, TestRotation]
+    testClasses = [TestVector, TestMatrix, TestAngles, TestRotation,
+                   TestReferenceFrame]
 
     loader = unittest.TestLoader()
 
