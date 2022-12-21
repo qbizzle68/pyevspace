@@ -6,5 +6,5 @@ PyEVSpace API
 	:maxdepth: 3
 	
 	pyevspace
-	evector
-	ematrix
+	vector
+	matrix

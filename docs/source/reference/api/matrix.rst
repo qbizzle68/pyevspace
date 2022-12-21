@@ -1,7 +1,7 @@
 .. include:: /global.rst
 
 =====================
-EMatrix API Reference
+Matrix API Reference
 =====================
 
 .. currentmodule:: pyevspace
@@ -12,19 +12,19 @@ EMatrix API Reference
 Constructor
 -----------
 
-.. py:class:: EMatrix([initializer])
+.. py:class:: Matrix([initializer])
 
-	Create an :class:`EMatrix` object with initial values from
+	Create an :class:`Matrix` object with initial values from
 	`initializer`, or zero if `initializer` is omitted.
 
 	:param iterable initializer: an iterable object of length three
-		whose values are iterable objects of length three with 
+		whose values are iterable objects of length three with
 		:ref:`numeric <numeric-def>` values
-		
+
 		.. code-block:: python
-			
+
 			>>> initializer = ((1, 2, 3), (4, 5, 6), (7, 8, 9))
-			>>> matrix = EMatrix(initializer)
+			>>> matrix = Matrix(initializer)
 
 	:raises TypeError: if `initializer` or any value of `initializer` is
 		not an iterable
@@ -36,82 +36,82 @@ Constructor
 Attributes
 ----------
 
-.. py:attribute:: EMatrix.I
+.. py:attribute:: Matrix.I
 
 	Identity matrix. **This value should not be edited.**
 
-	:value: :python:`EMatrix((1, 0, 0), (0, 1, 0), (0, 0, 1))`
-	:type: EMatrix
+	:value: :python:`Matrix((1, 0, 0), (0, 1, 0), (0, 0, 1))`
+	:type: Matrix
 
 Arithmetic Operators
 --------------------
 
-.. py:method:: EMatrix.__add__(other)
+.. py:method:: Matrix.__add__(other)
 
 	Standard matrix addition of two matrices.
 
-	:param EMatrix other: the matrix to be added to self
+	:param Matrix other: the matrix to be added to self
 	:return: the matrix sum of self and `other`
-	:rtype: EMatrix
-	:raises TypeError: if `other` is not an :class:`EMatrix` type
+	:rtype: Matrix
+	:raises TypeError: if `other` is not an :class:`Matrix` type
 
-.. py:method:: EMatrix.__sub__(other)
+.. py:method:: Matrix.__sub__(other)
 
 	Standard matrix subtraction of two matrices.
 
-	:param EMatrix other: the matrix to be subtracted from self
+	:param Matrix other: the matrix to be subtracted from self
 	:return: the matrix difference of self and `other`
-	:rtype: EMatrix
-	:raises TypeError: if `other` is not an :class:`EMatrix` type
+	:rtype: Matrix
+	:raises TypeError: if `other` is not an :class:`Matrix` type
 
-.. py:method:: EMatrix.__mul__(other)
+.. py:method:: Matrix.__mul__(other)
 
 	Standard multiplication depending on the type of `other`:
 
 		- :ref:`numeric <numeric-def>` - standard scalar multiplication
 		- :class:`EVector` - left-hand matrix multiplication of a vector
-		- :class:`EMatrix` - matrix multiplication of a matrix
+		- :class:`Matrix` - matrix multiplication of a matrix
 
 	:param other: the object to multiply self by
-	:type other: :ref:`numeric <numeric-def>` | EVector | EMatrix
+	:type other: :ref:`numeric <numeric-def>` | EVector | Matrix
 	:return: the product of self and `other`
-	:rtype: EVector or EMatrix
-	:raises TypeError: if other is not a :ref:`numeric <numeric-def>`, 
-		:class:`EVector` or :class:`EMatrix` type
+	:rtype: EVector or Matrix
+	:raises TypeError: if other is not a :ref:`numeric <numeric-def>`,
+		:class:`EVector` or :class:`Matrix` type
 
-.. py:method:: EMatrix.__truediv__(scalar)
+.. py:method:: Matrix.__truediv__(scalar)
 
 	Standard scalar division.
 
 	:param scalar: the scalar to divide each component of self by
 	:type scalar: :ref:`numeric <numeric-def>`
 	:return: the scalar quotient
-	:rtype: EMatrix
-	:raises TypeError: if `scalar` is not a :ref:`numeric <numeric-def>` 
+	:rtype: Matrix
+	:raises TypeError: if `scalar` is not a :ref:`numeric <numeric-def>`
 		type
 
-.. py:method:: EMatrix.__neg__()
+.. py:method:: Matrix.__neg__()
 
 	Negates each component of self.
 
 	:return: the negative of self
-	:rtype: EMatrix
+	:rtype: Matrix
 
-.. py:method:: EMatrix.__iadd__(other)
+.. py:method:: Matrix.__iadd__(other)
 
 	Inplace standard vector addition.
 
-	:param EMatrix other: the matrix to add to self
-	:raises TypeError: if `other` is not an :class:`EMatrix` type
+	:param Matrix other: the matrix to add to self
+	:raises TypeError: if `other` is not an :class:`Matrix` type
 
-.. py:method:: EMatrix.__isub__(other)
+.. py:method:: Matrix.__isub__(other)
 
 	Inplace standard vector subtraction.
 
-	:param EMatrix other: the matrix to subtract from self
-	:raises TypeError: if `other` is not an :class:`EMatrix` type
+	:param Matrix other: the matrix to subtract from self
+	:raises TypeError: if `other` is not an :class:`Matrix` type
 
-.. py:method:: EMatrix.__imul__(scalar)
+.. py:method:: Matrix.__imul__(scalar)
 
 	Inplace standard scalar multiplication.
 
@@ -120,7 +120,7 @@ Arithmetic Operators
 	:raises TypeError: if `scalar` is not a :ref:`numeric <numeric-def>`
 		type
 
-.. py:method:: EMatrix.__itruediv__(scalar)
+.. py:method:: Matrix.__itruediv__(scalar)
 
 	Inplace standard scalar division.
 
@@ -129,7 +129,7 @@ Arithmetic Operators
 	:raises TypeError: if `scalar` is not a :ref:`numeric <numeric-def>`
 		type
 
-.. py:method:: EMatrix.__str__()
+.. py:method:: Matrix.__str__()
 
 	Returns a string representation of self, formatted similarly to a
 	list of lists.
@@ -137,7 +137,7 @@ Arithmetic Operators
 	:return: a string representation of self
 	:rtype: str
 
-.. py:method:: EMatrix.__reduce__()
+.. py:method:: Matrix.__reduce__()
 
 	Allows support for pickling.
 
@@ -147,24 +147,24 @@ Arithmetic Operators
 Logical Operators
 -----------------
 
-.. py:method:: EMatrix.__eq__(other)
+.. py:method:: Matrix.__eq__(other)
 
 	Compares each component of two matrices for equality.
 
-	:param EMatrix other: The matrix to compare to self
+	:param Matrix other: The matrix to compare to self
 	:return: True if each component of `other` and self are equivalent
 	:rtype: bool
-	:raises TypeError: if `other` is not an :class:`EMatrix` type
+	:raises TypeError: if `other` is not an :class:`Matrix` type
 
-.. py:method:: EMatrix.__ne__(other)
+.. py:method:: Matrix.__ne__(other)
 
 	Compares each component of two matrices for an inequality.
 
 	:return: True if any component of `other` and self are not equivalent
 	:rtype: bool
-	:raises TypeError: if `other` is not an :class:`EMatrix` type
+	:raises TypeError: if `other` is not an :class:`Matrix` type
 
-All other logic operators are not implemented and will raise a 
+All other logic operators are not implemented and will raise a
 :py:exc:`TypeError`.
 
 Mapping Protocol
@@ -178,8 +178,8 @@ not an integer, and a :py:exc:`IndexError` is raised if either index is
 not in the interval [0, 2].
 
 .. code-block:: python
-	
-	>>> matrix = EMatrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+
+	>>> matrix = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
 	>>> matrix[1, 1]
 	5.0
 	>>> matrix[0, 2] = 11
@@ -199,13 +199,13 @@ not in the interval [0, 2].
 Buffer Protocol
 ---------------
 
-The :class:`EMatrix` class supports the buffer protocol and can be used
+The :class:`Matrix` class supports the buffer protocol and can be used
 by other objects which also support the buffer interface. For example
 it can be used to instantiate a :py:class:`memoryview` object
 
 .. code-block:: python
 
-	>>> matrix = EMatrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+	>>> matrix = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
 	>>> view = memoryview(matrix)
 	>>> view[1, 1] = 1.69
 	>>> print(matrix)
@@ -218,7 +218,7 @@ NumPy.
 
 .. code-block:: python
 
-	>>> matrix = EMatrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+	>>> matrix = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
 	>>> array = np.ndarray((3, 3), buffer=matrix)
 	>>> array[0, 1] = 3.14
 	>>> print(matrix)

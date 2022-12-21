@@ -30,10 +30,10 @@ To use the module simply import the pyevspace module into your project:
 from pyevspace import *
 
 # create vector
-vec = EVector((1, 2, 3))
+vec = Vector(1, 2, 3)
 
 # create matrix from sequences
-mat = EMatrix((1, 3, 2), (7, 4, 3), (8, 4, 2))
+mat = Matrix((1, 3, 2), (7, 4, 3), (8, 4, 2))
 
 # rotate vector
 rotated = mat * vec
@@ -43,15 +43,15 @@ However, if you don't wish to overpopulate the namespace, you can import the mod
 ```python
 import pyevspace as evs
 
-vec = evs.EVector()
+vec = evs.Vector()
 ```
 
 ## Examples
 
 ### Examples of numeric operators
 ```python
-v1 = EVector((1, 2, 3))
-v2 = EVector((4, 5, 6))
+v1 = Vector(1, 2, 3)
+v2 = Vector(4, 5, 6)
 
 print(v1 * 2)
 # prints [2, 4, 6]
@@ -65,9 +65,9 @@ print(v1 - v2)
 
 ### Examples of vector and matrix operators
 ```python
-v1 = EVector((1, 2, 3))
-v2 = EVector((4, 5, 6))
-m1 = EMatrix( EVector(4, 2, 3), EVector(8, 5, 2), EVector(4, 2, 1) )
+v1 = Vector(1, 2, 3)
+v2 = Vector(4, 5, 6)
+m1 = Matrix(Vector(4, 2, 3), Vector(8, 5, 2), Vector(4, 2, 1))
 
 print(dot(v1, v2))
 # prints 32.0
@@ -101,8 +101,8 @@ print(transpose(m1))
 - `mag2()` square of the magnitude of a vector
 - `normalize()` normalizes a vector
 - `copy()` creates a deep copy of the vector
-- `[0]` gets the first comonent of a vector
-- `[1] = 4` sets the second comonent of a vector to 4
+- `[0]` gets the first component of a vector
+- `[1] = 4` sets the second component of a vector to 4
 
 `EMatrix` operators:
 - `+` addition (other `EMatrix`)

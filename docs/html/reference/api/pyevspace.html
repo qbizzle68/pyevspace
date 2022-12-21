@@ -41,7 +41,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'reference/api/pyevspace';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="EVector API Reference" href="evector.html" />
+    <link rel="next" title="Vector API Reference" href="vector.html" />
     <link rel="prev" title="PyEVSpace API" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="docsearch:language" content="en">
@@ -249,8 +249,8 @@
     <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">PyEVSpace API</a><input checked class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">PyEVSpace Documentation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="evector.html">EVector API Reference</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ematrix.html">EMatrix API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vector.html">Vector API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matrix.html">Matrix API Reference</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../c-api/index.html">C API</a></li>
@@ -288,8 +288,8 @@
   <section id="module-pyevspace">
 <span id="pyevspace-documentation"></span><h1>PyEVSpace Documentation<a class="headerlink" href="#module-pyevspace" title="Permalink to this heading">#</a></h1>
 <p>The pyevspace module defines a vector and a matrix type to define a Euclidean
-vector space within Python projects. The EVector allows you to represent physical
-quantites like positions, velocities, accelerations and forces. The EMatrix type
+vector space within Python projects. The Vector allows you to represent physical
+quantites like positions, velocities, accelerations and forces. The Matrix type
 allows us to represent idealized reference frames and to create linear
 transformations, most usefully pure rotations to move vectors between reference
 frames. A handful of module level functions for manipulating vectors and matrices
@@ -316,7 +316,7 @@ either a <code class="xref py py-class docutils literal notranslate"><span class
 <h2>Available Types<a class="headerlink" href="#available-types" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">EVector</span></span></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">Vector</span></span></dt>
 <dd><p>A three-dimensional array object meant to represent a physical vector in
 a Euclidean vector space. The internal data buffer is a C type double,
 which supports <a class="reference internal" href="#numeric-def"><span class="std std-ref">numeric</span></a> types.</p>
@@ -324,7 +324,7 @@ which supports <a class="reference internal" href="#numeric-def"><span class="st
 
 <dl class="py class">
 <dt class="sig sig-object py">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">EMatrix</span></span></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">Matrix</span></span></dt>
 <dd><p>A three by three-dimensional array object mean to represent a linear
 transformation of physical vectors in a Euclidean vector space. The
 internal data buffer is a C type <code class="code highlight c docutils literal highlight-c"><span class="kt">double</span><span class="w"></span></code>, which supports
@@ -344,8 +344,8 @@ is not significant as <code class="code highlight python docutils literal highli
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>lhs</strong> (<a class="reference internal" href="evector.html#pyevspace.EVector" title="pyevspace.EVector"><em>EVector</em></a>) – left-hand side of the operation</p></li>
-<li><p><strong>rhs</strong> (<a class="reference internal" href="evector.html#pyevspace.EVector" title="pyevspace.EVector"><em>EVector</em></a>) – right-hand side of the operation</p></li>
+<li><p><strong>lhs</strong> (<a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – left-hand side of the operation</p></li>
+<li><p><strong>rhs</strong> (<a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – right-hand side of the operation</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -355,7 +355,7 @@ is not significant as <code class="code highlight python docutils literal highli
 <dd class="field-odd"><p>float</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>lhs</cite> or <cite>rhs</cite> is not EVector type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>lhs</cite> or <cite>rhs</cite> is not Vector type</p>
 </dd>
 </dl>
 </dd></dl>
@@ -366,10 +366,10 @@ is not significant as <code class="code highlight python docutils literal highli
 <dd><p>Computes the cross product between two vectors. A left-handed
 coordiante frame is used. If a right-handed cross product is needed,
 simply negate the answer.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">left_cross</span> <span class="o">=</span> <span class="n">cross</span><span class="p">(</span><span class="n">EVector</span><span class="o">.</span><span class="n">e1</span><span class="p">,</span> <span class="n">EVector</span><span class="o">.</span><span class="n">e2</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">left_cross</span> <span class="o">=</span> <span class="n">cross</span><span class="p">(</span><span class="n">Vector</span><span class="o">.</span><span class="n">e1</span><span class="p">,</span> <span class="n">Vector</span><span class="o">.</span><span class="n">e2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">left_cross</span><span class="p">)</span>
 <span class="go">[0, 0, 1]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">right_cross</span> <span class="o">=</span> <span class="o">-</span><span class="n">cross</span><span class="p">(</span><span class="n">EVector</span><span class="o">.</span><span class="n">e1</span><span class="p">,</span> <span class="n">EVector</span><span class="o">.</span><span class="n">e2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">right_cross</span> <span class="o">=</span> <span class="o">-</span><span class="n">cross</span><span class="p">(</span><span class="n">Vector</span><span class="o">.</span><span class="n">e1</span><span class="p">,</span> <span class="n">Vector</span><span class="o">.</span><span class="n">e2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">right_cross</span><span class="p">)</span>
 <span class="go">[0, 0, -1]</span>
 </pre></div>
@@ -377,18 +377,18 @@ simply negate the answer.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>lhs</strong> (<a class="reference internal" href="evector.html#pyevspace.EVector" title="pyevspace.EVector"><em>EVector</em></a>) – left-hand side of the operation</p></li>
-<li><p><strong>rhs</strong> (<a class="reference internal" href="evector.html#pyevspace.EVector" title="pyevspace.EVector"><em>EVector</em></a>) – right-hand side of the operation</p></li>
+<li><p><strong>lhs</strong> (<a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – left-hand side of the operation</p></li>
+<li><p><strong>rhs</strong> (<a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – right-hand side of the operation</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>the cross product of lhs and rhs</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="evector.html#pyevspace.EVector" title="pyevspace.EVector">EVector</a></p>
+<dd class="field-odd"><p><a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector">Vector</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>lhs</cite> or <cite>rhs</cite> is not EVector type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>lhs</cite> or <cite>rhs</cite> is not Vector type</p>
 </dd>
 </dl>
 </dd></dl>
@@ -397,9 +397,9 @@ simply negate the answer.</p>
 <dt class="sig sig-object py" id="pyevspace.norm">
 <span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">norm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.norm" title="Permalink to this definition">#</a></dt>
 <dd><p>Returns a normalized version of <cite>vector</cite>. This creates a new vector, as
-opposed to the ‘inplace’ normalize method provided by the EVector class.
-See (<a class="reference internal" href="evector.html#pyevspace.EVector.normalize" title="pyevspace.EVector.normalize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">EVector.normalize()</span></code></a>).</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">vector1</span> <span class="o">=</span> <span class="n">EVector</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+opposed to the ‘inplace’ normalize method provided by the Vector class.
+See (<a class="reference internal" href="vector.html#pyevspace.Vector.normalize" title="pyevspace.Vector.normalize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Vector.normalize()</span></code></a>).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">vector1</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">vector2</span> <span class="o">=</span> <span class="n">norm</span><span class="p">(</span><span class="n">vector1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">vector1</span><span class="o">.</span><span class="n">normalize</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">vector1</span><span class="p">)</span>
@@ -410,16 +410,16 @@ See (<a class="reference internal" href="evector.html#pyevspace.EVector.normaliz
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>vector</strong> (<a class="reference internal" href="evector.html#pyevspace.EVector" title="pyevspace.EVector"><em>EVector</em></a>) – the vector to find the normal of</p>
+<dd class="field-odd"><p><strong>vector</strong> (<a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – the vector to find the normal of</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>the normalized version of <cite>vector</cite></p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="evector.html#pyevspace.EVector" title="pyevspace.EVector">EVector</a></p>
+<dd class="field-odd"><p><a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector">Vector</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>vector</cite> is not EVector type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>vector</cite> is not Vector type</p>
 </dd>
 </dl>
 </dd></dl>
@@ -432,8 +432,8 @@ definition of the vector dot product to compute. Since
 v1 * v2 = |v1|*|v2|*cos(theta), the dot product of v1 and v2,
 and the magnitude of v1 and v2 is all we need to compute the angle
 between the two vectors.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lhs</span> <span class="o">=</span> <span class="n">EVector</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">rhs</span> <span class="o">=</span> <span class="n">EVector</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">))</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lhs</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rhs</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">acos</span><span class="p">(</span><span class="n">dot</span><span class="p">(</span><span class="n">lhs</span><span class="p">,</span> <span class="n">rhs</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">lhs</span><span class="o">.</span><span class="n">mag</span><span class="p">()</span> <span class="o">*</span> <span class="n">rhs</span><span class="o">.</span><span class="n">mag</span><span class="p">()))</span>
 <span class="go">1.6204458893289022</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">vang</span><span class="p">(</span><span class="n">lhs</span><span class="p">,</span> <span class="n">rhs</span><span class="p">)</span>
@@ -449,8 +449,8 @@ always the one that is returned.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>lhs</strong> (<a class="reference internal" href="evector.html#pyevspace.EVector" title="pyevspace.EVector"><em>EVector</em></a>) – left-hand side of the operation</p></li>
-<li><p><strong>rhs</strong> (<a class="reference internal" href="evector.html#pyevspace.EVector" title="pyevspace.EVector"><em>EVector</em></a>) – right-hand side of the operation</p></li>
+<li><p><strong>lhs</strong> (<a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – left-hand side of the operation</p></li>
+<li><p><strong>rhs</strong> (<a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – right-hand side of the operation</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -467,15 +467,15 @@ always the one that is returned.</p>
 <span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">vxcl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.vxcl" title="Permalink to this definition">#</a></dt>
 <dd><p>Excludes all portions of one vector from another. This results in a linearly
 independent vector to <cite>exclude</cite>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ones</span> <span class="o">=</span> <span class="n">EVector</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">excl</span> <span class="o">=</span> <span class="n">vxcl</span><span class="p">(</span><span class="n">ones</span><span class="p">,</span> <span class="n">EVector</span><span class="o">.</span><span class="n">e1</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ones</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">excl</span> <span class="o">=</span> <span class="n">vxcl</span><span class="p">(</span><span class="n">ones</span><span class="p">,</span> <span class="n">Vector</span><span class="o">.</span><span class="n">e1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">excl</span><span class="p">)</span>
 <span class="go">[0, 1, 1]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dot</span><span class="p">(</span><span class="n">excl</span><span class="p">,</span> <span class="n">EVector</span><span class="o">.</span><span class="n">e1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dot</span><span class="p">(</span><span class="n">excl</span><span class="p">,</span> <span class="n">Vector</span><span class="o">.</span><span class="n">e1</span><span class="p">)</span>
 <span class="go">0.0</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vector</span> <span class="o">=</span> <span class="n">EVector</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vector_excl</span> <span class="o">=</span> <span class="n">EVector</span><span class="p">((</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">excl2</span> <span class="o">=</span> <span class="n">vxcl</span><span class="p">(</span><span class="n">vector</span><span class="p">,</span> <span class="n">EVector</span><span class="o">.</span><span class="n">e2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vector</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vector_excl</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">((</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">excl2</span> <span class="o">=</span> <span class="n">vxcl</span><span class="p">(</span><span class="n">vector</span><span class="p">,</span> <span class="n">Vector</span><span class="o">.</span><span class="n">e2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">excl2</span><span class="p">)</span>
 <span class="go">[-0.2, 0.4, 1]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dot</span><span class="p">(</span><span class="n">excl2</span><span class="p">,</span> <span class="n">vector_excl</span><span class="p">)</span>
@@ -487,15 +487,15 @@ normal vector is <cite>exculde</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>vector</strong> (<a class="reference internal" href="evector.html#pyevspace.EVector" title="pyevspace.EVector"><em>EVector</em></a>) – vector to exclude from</p></li>
-<li><p><strong>exclude</strong> (<a class="reference internal" href="evector.html#pyevspace.EVector" title="pyevspace.EVector"><em>EVector</em></a>) – vector to exclude from <cite>vector</cite></p></li>
+<li><p><strong>vector</strong> (<a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – vector to exclude from</p></li>
+<li><p><strong>exclude</strong> (<a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – vector to exclude from <cite>vector</cite></p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><cite>vector</cite> with all portions of <cite>exclude</cite> removed from its direction</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="evector.html#pyevspace.EVector" title="pyevspace.EVector">EVector</a></p>
+<dd class="field-odd"><p><a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector">Vector</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -510,13 +510,13 @@ normal vector is <cite>exculde</cite>.</p>
 invertible i.e. the determinate is non-zero.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>matrix</strong> (<a class="reference internal" href="ematrix.html#pyevspace.EMatrix" title="pyevspace.EMatrix"><em>EMatrix</em></a>) – matrix to compute the determinate of</p>
+<dd class="field-odd"><p><strong>matrix</strong> (<a class="reference internal" href="matrix.html#pyevspace.Matrix" title="pyevspace.Matrix"><em>Matrix</em></a>) – matrix to compute the determinate of</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>determinate of <cite>matrix</cite></p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="ematrix.html#pyevspace.EMatrix" title="pyevspace.EMatrix">EMatrix</a></p>
+<dd class="field-odd"><p><a class="reference internal" href="matrix.html#pyevspace.Matrix" title="pyevspace.Matrix">Matrix</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -529,13 +529,13 @@ flipped matrix by switching its rows and columns. Therefore if T is the
 transpose of M, <code class="code highlight python docutils literal highlight-python"><span class="n">M</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="n">T</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>matrix</strong> (<a class="reference internal" href="ematrix.html#pyevspace.EMatrix" title="pyevspace.EMatrix"><em>EMatrix</em></a>) – the matrix to transpose</p>
+<dd class="field-odd"><p><strong>matrix</strong> (<a class="reference internal" href="matrix.html#pyevspace.Matrix" title="pyevspace.Matrix"><em>Matrix</em></a>) – the matrix to transpose</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>the transpose of <cite>matrix</cite></p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="ematrix.html#pyevspace.EMatrix" title="pyevspace.EMatrix">EMatrix</a></p>
+<dd class="field-odd"><p><a class="reference internal" href="matrix.html#pyevspace.Matrix" title="pyevspace.Matrix">Matrix</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -559,10 +559,10 @@ transpose of M, <code class="code highlight python docutils literal highlight-py
           <p class="prev-next-title">PyEVSpace API</p>
       </div>
   </a>
-  <a class='right-next' id="next-link" href="evector.html" title="next page">
+  <a class='right-next' id="next-link" href="vector.html" title="next page">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">EVector API Reference</p>
+      <p class="prev-next-title">Vector API Reference</p>
   </div>
   <i class="fa-solid fa-angle-right"></i>
   </a>

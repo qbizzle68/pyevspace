@@ -293,55 +293,55 @@
 <p>As of this writing (0.0.11) the module is pretty small, so importing
 all (<code class="code highlight python docutils literal highlight-python"><span class="o">*</span></code>) doesn’t add much to the importing namespace, however
 it is still best practice to only import exactly what you need.</p>
-<section id="creating-an-evector">
-<h3>Creating an <code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code><a class="headerlink" href="#creating-an-evector" title="Permalink to this heading">#</a></h3>
-<p>An EVector is created from any iterable with exactly three values. The
+<section id="creating-an-vector">
+<h3>Creating an <code class="xref py py-class docutils literal notranslate"><span class="pre">Vector</span></code><a class="headerlink" href="#creating-an-vector" title="Permalink to this heading">#</a></h3>
+<p>a Vector is created from any iterable with exactly three values. The
 simplest way is to use a tuple of values</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">vector</span> <span class="o">=</span> <span class="n">EVector</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">vector</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># don&#39;t forget the second pair of parenthesis</span>
 </pre></div>
 </div>
 <p>Of course any iterable will work, including lists and even an
-<code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">vector</span> <span class="o">=</span> <span class="n">EVector</span><span class="p">([</span><span class="mf">2.1</span><span class="p">,</span> <span class="mf">6.5</span><span class="p">,</span> <span class="mf">101.3</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vector</span> <span class="o">=</span> <span class="n">EVector</span><span class="p">(</span><span class="n">EVector</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)))</span>
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Vector</span></code></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">vector</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">([</span><span class="mf">2.1</span><span class="p">,</span> <span class="mf">6.5</span><span class="p">,</span> <span class="mf">101.3</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vector</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">Vector</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)))</span>
 </pre></div>
 </div>
 <p>An empty vector, or a vector of zeros can be created without any
 parameters to the constructor</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">vector</span> <span class="o">=</span> <span class="n">EVector</span><span class="p">()</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">vector</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span>
 <span class="go">[0, 0, 0]</span>
 </pre></div>
 </div>
 </section>
-<section id="creating-an-ematrix">
-<h3>Creating an <code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code><a class="headerlink" href="#creating-an-ematrix" title="Permalink to this heading">#</a></h3>
-<p>An <code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code> is created similarly to an <code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code>, but
+<section id="creating-an-matrix">
+<h3>Creating an <code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code><a class="headerlink" href="#creating-an-matrix" title="Permalink to this heading">#</a></h3>
+<p>An <code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code> is created similarly to an <code class="xref py py-class docutils literal notranslate"><span class="pre">Vector</span></code>, but
 instead of taking an iterable with exactly three values, it takes three
 of them. Each of the iterables cooresponds to the row of the matrix it
 represents.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">EMatrix</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">Matrix</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
 <span class="go">[[1, 2, 3]</span>
 <span class="go">[4, 5, 6]</span>
 <span class="go">[7, 8, 9]]</span>
 </pre></div>
 </div>
-<p>Again, any iterable will work, including lists and <code class="xref py py-class docutils literal notranslate"><span class="pre">EVectors</span></code></p>
+<p>Again, any iterable will work, including lists and <code class="xref py py-class docutils literal notranslate"><span class="pre">Vectors</span></code></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tp</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ls</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vec</span> <span class="o">=</span> <span class="n">EVector</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">EMatrix</span><span class="p">(</span><span class="n">tp</span><span class="p">,</span> <span class="n">ls</span><span class="p">,</span> <span class="n">vec</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vec</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">Matrix</span><span class="p">(</span><span class="n">tp</span><span class="p">,</span> <span class="n">ls</span><span class="p">,</span> <span class="n">vec</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
 <span class="go">[[1, 2, 3]</span>
 <span class="go">[2, 4, 6]</span>
 <span class="go">[3, 6, 9]]</span>
 </pre></div>
 </div>
-<p>An empty <code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code> can also be created without passing any
+<p>An empty <code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code> can also be created without passing any
 parameters into the constructor</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">EMatrix</span><span class="p">()</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">Matrix</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
 <span class="go">[[0, 0, 0]</span>
 <span class="go">[0, 0, 0]</span>
@@ -351,26 +351,26 @@ parameters into the constructor</p>
 </section>
 <section id="arithmetic-operations">
 <h3>Arithmetic Operations<a class="headerlink" href="#arithmetic-operations" title="Permalink to this heading">#</a></h3>
-<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code> supports vector addition and subtraction as well
+<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">Vector</span></code> supports vector addition and subtraction as well
 as scalar multiplication and division.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># vector addition</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">EVector</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span> <span class="o">+</span> <span class="n">EVector</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">Vector</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span> <span class="o">+</span> <span class="n">Vector</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">)))</span>
 <span class="go">[6, 8, 10]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># vector subtraction</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">EVector</span><span class="p">((</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span> <span class="o">-</span> <span class="n">EVector</span><span class="p">((</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">7</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">Vector</span><span class="p">((</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span> <span class="o">-</span> <span class="n">Vector</span><span class="p">((</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">7</span><span class="p">)))</span>
 <span class="go">[-3, 6, -2]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># scalar multiplication</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">EVector</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span> <span class="o">*</span> <span class="mf">1.5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">Vector</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span> <span class="o">*</span> <span class="mf">1.5</span><span class="p">)</span>
 <span class="go">[4.5, 9, 13.5]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># scalar division</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">EVector</span><span class="p">((</span><span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span> <span class="o">/</span> <span class="mf">0.5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">Vector</span><span class="p">((</span><span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span> <span class="o">/</span> <span class="mf">0.5</span><span class="p">)</span>
 <span class="go">[14, 4, 16]</span>
 </pre></div>
 </div>
-<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code> supports matrix addition and subtraction as well
+<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code> supports matrix addition and subtraction as well
 as scalar multiplication and division.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">matrix1</span> <span class="o">=</span> <span class="n">EMatrix</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix2</span> <span class="o">=</span> <span class="n">EMatrix</span><span class="p">((</span><span class="mi">9</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">matrix1</span> <span class="o">=</span> <span class="n">Matrix</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix2</span> <span class="o">=</span> <span class="n">Matrix</span><span class="p">((</span><span class="mi">9</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># matrix addition</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">matrix1</span> <span class="o">+</span> <span class="n">matrix2</span><span class="p">)</span>
 <span class="go">[[10, 10, 10]</span>
@@ -393,25 +393,25 @@ as scalar multiplication and division.</p>
 <span class="go">[1, 0.666667, 0.333333]]</span>
 </pre></div>
 </div>
-<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code> also supports left-hand matrix multiplication of
-<code class="xref py py-class docutils literal notranslate"><span class="pre">EVectors</span></code>. The <code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code> acts as a linear transformation
-of the <code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code>.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">EMatrix</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vector</span> <span class="o">=</span> <span class="n">EVector</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code> also supports left-hand matrix multiplication of
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Vectors</span></code>. The <code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code> acts as a linear transformation
+of the <code class="xref py py-class docutils literal notranslate"><span class="pre">Vector</span></code>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">Matrix</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vector</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># matrix multiplication</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">matrix</span> <span class="o">*</span> <span class="n">vector</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
 <span class="go">[14, 32, 50]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-<span class="go">&lt;class &#39;pyevspace.EVector&#39;&gt;</span>
+<span class="go">&lt;class &#39;pyevspace.Vector&#39;&gt;</span>
 </pre></div>
 </div>
 <p>Multiple linear transforms can also be compounded via matrix
 multiplication.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># 90 degree rotation around x-axis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix1</span> <span class="o">=</span> <span class="n">EMatrix</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix1</span> <span class="o">=</span> <span class="n">Matrix</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># 90 degree rotation around y-axis</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix2</span> <span class="o">=</span> <span class="n">EMatrix</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix2</span> <span class="o">=</span> <span class="n">Matrix</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># equivalent transormation equal to a 90 degree rotation around</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># the x-axis, followed by a 90 degree rotation around the y-axis</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">compound</span> <span class="o">=</span> <span class="n">matrix2</span> <span class="o">*</span> <span class="n">matrix1</span>
@@ -422,12 +422,12 @@ multiplication.</p>
 </pre></div>
 </div>
 </section>
-<section id="other-evector-operators">
-<h3>Other <code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code> Operators<a class="headerlink" href="#other-evector-operators" title="Permalink to this heading">#</a></h3>
-<p>There are other vector like operators for the <code class="xref py py-class docutils literal notranslate"><span class="pre">EVector</span></code> class,
+<section id="other-vector-operators">
+<h3>Other <code class="xref py py-class docutils literal notranslate"><span class="pre">Vector</span></code> Operators<a class="headerlink" href="#other-vector-operators" title="Permalink to this heading">#</a></h3>
+<p>There are other vector like operators for the <code class="xref py py-class docutils literal notranslate"><span class="pre">Vector</span></code> class,
 include magnitude, norm, and dot and cross products.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">vector1</span> <span class="o">=</span> <span class="n">EVector</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vector2</span> <span class="o">=</span> <span class="n">EVector</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">vector1</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vector2</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># magnitude of a vector</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">vector1</span><span class="o">.</span><span class="n">mag</span><span class="p">()</span>
 <span class="go">3.7416573867739413</span>
@@ -443,11 +443,11 @@ include magnitude, norm, and dot and cross products.</p>
 </pre></div>
 </div>
 </section>
-<section id="other-ematrix-operators">
-<h3>Other <code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code> Operators<a class="headerlink" href="#other-ematrix-operators" title="Permalink to this heading">#</a></h3>
-<p>There are also two other operators for the <code class="xref py py-class docutils literal notranslate"><span class="pre">EMatrix</span></code> : transpose
+<section id="other-matrix-operators">
+<h3>Other <code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code> Operators<a class="headerlink" href="#other-matrix-operators" title="Permalink to this heading">#</a></h3>
+<p>There are also two other operators for the <code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code> : transpose
 and determinate.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">EMatrix</span><span class="p">((</span><span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">Matrix</span><span class="p">((</span><span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># matrix transpose</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">transpose</span><span class="p">(</span><span class="n">matrix</span><span class="p">))</span>
 <span class="go">[[7, 5, 6]</span>
@@ -509,21 +509,21 @@ types and methods of the package.</p>
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#creating-an-evector">
+    <a class="reference internal nav-link" href="#creating-an-vector">
      Creating an
      <code class="xref py py-class docutils literal notranslate">
       <span class="pre">
-       EVector
+       Vector
       </span>
      </code>
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#creating-an-ematrix">
+    <a class="reference internal nav-link" href="#creating-an-matrix">
      Creating an
      <code class="xref py py-class docutils literal notranslate">
       <span class="pre">
-       EMatrix
+       Matrix
       </span>
      </code>
     </a>
@@ -534,22 +534,22 @@ types and methods of the package.</p>
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#other-evector-operators">
+    <a class="reference internal nav-link" href="#other-vector-operators">
      Other
      <code class="xref py py-class docutils literal notranslate">
       <span class="pre">
-       EVector
+       Vector
       </span>
      </code>
      Operators
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#other-ematrix-operators">
+    <a class="reference internal nav-link" href="#other-matrix-operators">
      Other
      <code class="xref py py-class docutils literal notranslate">
       <span class="pre">
-       EMatrix
+       Matrix
       </span>
      </code>
      Operators
