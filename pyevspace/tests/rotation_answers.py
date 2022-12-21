@@ -1,6 +1,7 @@
 from math import sin, cos, pi
-from pyevspace import Matrix, Vector, X_AXIS, Y_AXIS, Z_AXIS, XYZ, XZY, YXZ, YZX, ZXY, ZYX, XYX, XZX, \
-    YXY, YZY, ZXZ, ZYZ, Order
+from pyevspace import Matrix, Vector, X_AXIS, Y_AXIS, Z_AXIS, XYZ, XZY, YXZ, \
+    YZX, ZXY, ZYX, XYX, XZX, YXY, YZY, ZXZ, ZYZ, Order, rotateOffsetFrom, \
+    rotateOffsetTo, Angles, getMatrixEuler, rotateMatrixFrom
 
 so = cos(pi / 4)  # cos and sin of forty-five
 
@@ -939,21 +940,24 @@ rotation_from_to_answers = {
 
 _vectors = [Vector.e1, Vector.e2, Vector.e3]
 _vectors_neg = [-Vector.e1, -Vector.e2, -Vector.e3]
+
+
 def make_dict(d):
     rtn = {}
     for order, matrix in d.items():
-        subd = {}
+        subDict = {}
         rows = [Vector(matrix[0]), Vector(matrix[1]), Vector(matrix[2])]
         for i in range(3):
             try:
-                id = rows.index(_vectors[i])
+                ind = rows.index(_vectors[i])
                 ls = _vectors
             except ValueError:
-                id = rows.index(_vectors_neg[i])
+                ind = rows.index(_vectors_neg[i])
                 ls = _vectors_neg
-            subd[i] = ls[id]
-        rtn[order] = subd
+            subDict[i] = ls[ind]
+        rtn[order] = subDict
     return rtn
+
 
 rotation_refframe_from_XYZ_to = make_dict(rotation_from_XYZ_to)
 rotation_refframe_from_XZY_to = make_dict(rotation_from_XZY_to)
@@ -981,4 +985,49 @@ rotation_refframe_from_to_answers = {
     YZY: rotation_refframe_from_YZY_to,
     ZXZ: rotation_refframe_from_ZXZ_to,
     ZYZ: rotation_refframe_from_ZYZ_to
+}
+
+_orders = [XYZ, XZY, YXZ, YZX, ZXY, ZYX, XYX, XZX, YXY, YZY, ZXZ, ZYZ]
+
+
+def make_dict2(orderFrom, offset):
+    rtnDict = {}
+    angs90 = Angles(pi/2, pi/2, pi/2)
+    matFrom = getMatrixEuler(orderFrom, angs90)
+    for orderTo in _orders:
+        matTo = getMatrixEuler(orderTo, angs90)
+        axisDict = {}
+        for i in range(3):
+            tmp = rotateMatrixFrom(matFrom, _vectors[i])
+            axisDict[i] = rotateOffsetTo(matTo, offset, tmp)
+        rtnDict[orderTo] = axisDict
+    return rtnDict
+
+offset = Vector(1, 1, 1)
+rotation_refframe_from_XYZ_to_offset = make_dict2(XYZ, offset)
+rotation_refframe_from_XZY_to_offset = make_dict2(XZY, offset)
+rotation_refframe_from_YXZ_to_offset = make_dict2(YXZ, offset)
+rotation_refframe_from_YZX_to_offset = make_dict2(YZX, offset)
+rotation_refframe_from_ZXY_to_offset = make_dict2(ZXY, offset)
+rotation_refframe_from_ZYX_to_offset = make_dict2(ZYX, offset)
+rotation_refframe_from_XYX_to_offset = make_dict2(XYX, offset)
+rotation_refframe_from_XZX_to_offset = make_dict2(XZX, offset)
+rotation_refframe_from_YXY_to_offset = make_dict2(YXY, offset)
+rotation_refframe_from_YZY_to_offset = make_dict2(YZY, offset)
+rotation_refframe_from_ZXZ_to_offset = make_dict2(ZXZ, offset)
+rotation_refframe_from_ZYZ_to_offset = make_dict2(ZYZ, offset)
+
+rotation_refframe_from_to_offset_answers = {
+    XYZ: rotation_refframe_from_XYZ_to_offset,
+    XZY: rotation_refframe_from_XZY_to_offset,
+    YXZ: rotation_refframe_from_YXZ_to_offset,
+    YZX: rotation_refframe_from_YZX_to_offset,
+    ZXY: rotation_refframe_from_ZXY_to_offset,
+    ZYX: rotation_refframe_from_ZYX_to_offset,
+    XYX: rotation_refframe_from_XYX_to_offset,
+    XZX: rotation_refframe_from_XZX_to_offset,
+    YXY: rotation_refframe_from_YXY_to_offset,
+    YZY: rotation_refframe_from_YZY_to_offset,
+    ZXZ: rotation_refframe_from_ZXZ_to_offset,
+    ZYZ: rotation_refframe_from_ZYZ_to_offset
 }
