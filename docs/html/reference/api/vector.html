@@ -295,11 +295,12 @@
 <li><p><a class="reference internal" href="#constructor" id="id2">Constructor</a></p></li>
 <li><p><a class="reference internal" href="#attributes" id="id3">Attributes</a></p></li>
 <li><p><a class="reference internal" href="#arithmetic-operators" id="id4">Arithmetic Operators</a></p></li>
-<li><p><a class="reference internal" href="#logical-operators" id="id5">Logical Operators</a></p></li>
-<li><p><a class="reference internal" href="#vector-operators" id="id6">Vector Operators</a></p></li>
-<li><p><a class="reference internal" href="#sequence-protocol" id="id7">Sequence Protocol</a></p></li>
-<li><p><a class="reference internal" href="#iterator-protocol" id="id8">Iterator Protocol</a></p></li>
-<li><p><a class="reference internal" href="#buffer-protocol" id="id9">Buffer Protocol</a></p></li>
+<li><p><a class="reference internal" href="#module-methods" id="id5">Module Methods</a></p></li>
+<li><p><a class="reference internal" href="#logical-operators" id="id6">Logical Operators</a></p></li>
+<li><p><a class="reference internal" href="#vector-operators" id="id7">Vector Operators</a></p></li>
+<li><p><a class="reference internal" href="#sequence-protocol" id="id8">Sequence Protocol</a></p></li>
+<li><p><a class="reference internal" href="#iterator-protocol" id="id9">Iterator Protocol</a></p></li>
+<li><p><a class="reference internal" href="#buffer-protocol" id="id10">Buffer Protocol</a></p></li>
 </ul>
 </li>
 </ul>
@@ -590,6 +591,193 @@ their string representations.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-methods">
+<h2>Module Methods<a class="headerlink" href="#module-methods" title="Permalink to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyevspace.dot">
+<span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">dot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lhs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rhs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.dot" title="Permalink to this definition">#</a></dt>
+<dd><p>Computes the dot product between two vectors. The order of arguments
+is not significant as <code class="code highlight python docutils literal highlight-python"><span class="n">dot</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span> <span class="o">==</span> <span class="n">dot</span><span class="p">(</span><span class="n">v2</span><span class="p">,</span> <span class="n">v1</span><span class="p">)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lhs</strong> (<a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – left-hand side of the operation</p></li>
+<li><p><strong>rhs</strong> (<a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – right-hand side of the operation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the dot product lhs and rhs</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>lhs</cite> or <cite>rhs</cite> is not Vector type</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyevspace.cross">
+<span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">cross</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lhs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rhs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.cross" title="Permalink to this definition">#</a></dt>
+<dd><p>Computes the cross product between two vectors. A left-handed
+coordinate frame is used. If a right-handed cross product is needed,
+simply negate the answer.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">left_cross</span> <span class="o">=</span> <span class="n">cross</span><span class="p">(</span><span class="n">Vector</span><span class="o">.</span><span class="n">e1</span><span class="p">,</span> <span class="n">Vector</span><span class="o">.</span><span class="n">e2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">left_cross</span><span class="p">)</span>
+<span class="go">[0, 0, 1]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">right_cross</span> <span class="o">=</span> <span class="o">-</span><span class="n">cross</span><span class="p">(</span><span class="n">Vector</span><span class="o">.</span><span class="n">e1</span><span class="p">,</span> <span class="n">Vector</span><span class="o">.</span><span class="n">e2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">right_cross</span><span class="p">)</span>
+<span class="go">[0, 0, -1]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lhs</strong> (<a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – left-hand side of the operation</p></li>
+<li><p><strong>rhs</strong> (<a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – right-hand side of the operation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the cross product of lhs and rhs</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector">Vector</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>lhs</cite> or <cite>rhs</cite> is not Vector type</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyevspace.norm">
+<span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">norm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.norm" title="Permalink to this definition">#</a></dt>
+<dd><p>Returns a normalized version of <cite>vector</cite>. This creates a new vector, as
+opposed to the ‘inplace’ normalize method provided by the Vector class.
+See (<a class="reference internal" href="#pyevspace.Vector.normalize" title="pyevspace.Vector.normalize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Vector.normalize()</span></code></a>).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">vector1</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vector2</span> <span class="o">=</span> <span class="n">norm</span><span class="p">(</span><span class="n">vector1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vector1</span><span class="o">.</span><span class="n">normalize</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">vector1</span><span class="p">)</span>
+<span class="go">[0.267261, 0.534522, 0.801784]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">vector2</span><span class="p">)</span>
+<span class="go">[0.267261, 0.534522, 0.801784]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>vector</strong> (<a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – the vector to find the normal of</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the normalized version of <cite>vector</cite></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector">Vector</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>vector</cite> is not Vector type</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyevspace.vang">
+<span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">vang</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lhs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rhs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.vang" title="Permalink to this definition">#</a></dt>
+<dd><p>Computes the shortest angle between two vectors. This relies on the
+definition of the vector dot product to compute. Since
+v1 * v2 = |v1|*|v2|*cos(theta), the dot product of v1 and v2,
+and the magnitude of v1 and v2 is all we need to compute the angle
+between the two vectors.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lhs</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rhs</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">acos</span><span class="p">(</span><span class="n">dot</span><span class="p">(</span><span class="n">lhs</span><span class="p">,</span> <span class="n">rhs</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">lhs</span><span class="o">.</span><span class="n">mag</span><span class="p">()</span> <span class="o">*</span> <span class="n">rhs</span><span class="o">.</span><span class="n">mag</span><span class="p">()))</span>
+<span class="go">1.6204458893289022</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vang</span><span class="p">(</span><span class="n">lhs</span><span class="p">,</span> <span class="n">rhs</span><span class="p">)</span>
+<span class="go">1.6204458893289022</span>
+</pre></div>
+</div>
+<p>In the plane of the two vectors, two angles can be computed between them.
+Only enough information is able to determine these angles, not which one
+is necessarily desired. Therefore, the smallest of these two angles is
+always the one that is returned.</p>
+<p>The order of arguments is not significant, so <code class="code highlight python docutils literal highlight-python"><span class="n">vang</span><span class="p">(</span><span class="n">lhs</span><span class="p">,</span> <span class="n">rhs</span><span class="p">)</span>
+<span class="o">==</span> <span class="n">vang</span><span class="p">(</span><span class="n">rhs</span><span class="p">,</span> <span class="n">lhs</span><span class="p">)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lhs</strong> (<a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – left-hand side of the operation</p></li>
+<li><p><strong>rhs</strong> (<a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – right-hand side of the operation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the angle between <cite>lhs</cite> and <cite>rhs</cite> in radians</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyevspace.vxcl">
+<span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">vxcl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.vxcl" title="Permalink to this definition">#</a></dt>
+<dd><p>Excludes all portions of one vector from another. This results in a linearly
+independent vector to <cite>exclude</cite>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ones</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">excl</span> <span class="o">=</span> <span class="n">vxcl</span><span class="p">(</span><span class="n">ones</span><span class="p">,</span> <span class="n">Vector</span><span class="o">.</span><span class="n">e1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">excl</span><span class="p">)</span>
+<span class="go">[0, 1, 1]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dot</span><span class="p">(</span><span class="n">excl</span><span class="p">,</span> <span class="n">Vector</span><span class="o">.</span><span class="n">e1</span><span class="p">)</span>
+<span class="go">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vector</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vector_excl</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">((</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">excl2</span> <span class="o">=</span> <span class="n">vxcl</span><span class="p">(</span><span class="n">vector</span><span class="p">,</span> <span class="n">Vector</span><span class="o">.</span><span class="n">e2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">excl2</span><span class="p">)</span>
+<span class="go">[-0.2, 0.4, 1]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dot</span><span class="p">(</span><span class="n">excl2</span><span class="p">,</span> <span class="n">vector_excl</span><span class="p">)</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+<p>This effectively produces the projection of <cite>vector</cite> onto the plane whose
+normal vector is <cite>exclude</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vector</strong> (<a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – vector to exclude from</p></li>
+<li><p><strong>exclude</strong> (<a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – vector to exclude from <cite>vector</cite></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><cite>vector</cite> with all portions of <cite>exclude</cite> removed from its direction</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector">Vector</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyevspace.proj">
+<span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">proj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">onto</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.proj" title="Permalink to this definition">#</a></dt>
+<dd><p>Projects one vector onto another.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vector</strong> (<a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – vector to project</p></li>
+<li><p><strong>onto</strong> (<a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – vector to project <cite>vector</cite> onto</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><cite>vector</cite> projected onto <cite>onto</cite></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector">Vector</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -999,6 +1187,67 @@ example it can be used to instantiate a <code class="xref py py-class docutils l
      <code class="docutils literal notranslate">
       <span class="pre">
        Vector.__reduce__()
+      </span>
+     </code>
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-methods">
+   Module Methods
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pyevspace.dot">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       dot()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pyevspace.cross">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       cross()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pyevspace.norm">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       norm()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pyevspace.vang">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       vang()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pyevspace.vxcl">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       vxcl()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pyevspace.proj">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       proj()
       </span>
      </code>
     </a>
