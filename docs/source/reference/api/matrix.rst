@@ -163,6 +163,28 @@ Arithmetic Operators
     :return: a tuple used for reconstructing self's state
     :rtype: tuple
 
+Module Methods
+--------------
+
+.. function:: det(matrix)
+
+    Computes the determinate of a matrix. Useful for determining if a matrix is
+    invertible i.e. the determinate is non-zero.
+
+    :param Matrix matrix: matrix to compute the determinate of
+    :return: determinate of `matrix`
+    :rtype: Matrix
+
+.. function:: transpose(matrix)
+
+    Returns the transpose of `matrix`. The transpose of a matrix is simply a
+    flipped matrix by switching its rows and columns. Therefore if T is the
+    transpose of M, :python:`M[i, j] == T[j, i]`.
+
+    :param Matrix matrix: the matrix to transpose
+    :return: the transpose of `matrix`
+    :rtype: Matrix
+
 Logical Operators
 -----------------
 

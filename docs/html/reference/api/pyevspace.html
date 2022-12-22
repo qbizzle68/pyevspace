@@ -339,43 +339,6 @@ internal data buffer is a C type <code class="code highlight c docutils literal 
 </section>
 <section id="matrix">
 <h3>Matrix<a class="headerlink" href="#matrix" title="Permalink to this heading">#</a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="pyevspace.det">
-<span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">det</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.det" title="Permalink to this definition">#</a></dt>
-<dd><p>Computes the determinate of a matrix. Useful for determining if a matrix is
-invertible i.e. the determinate is non-zero.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>matrix</strong> (<a class="reference internal" href="matrix.html#pyevspace.Matrix" title="pyevspace.Matrix"><em>Matrix</em></a>) – matrix to compute the determinate of</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>determinate of <cite>matrix</cite></p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="matrix.html#pyevspace.Matrix" title="pyevspace.Matrix">Matrix</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="pyevspace.transpose">
-<span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">transpose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.transpose" title="Permalink to this definition">#</a></dt>
-<dd><p>Returns the transpose of <cite>matrix</cite>. The transpose of a matrix is simply a
-flipped matrix by switching its rows and columns. Therefore if T is the
-transpose of M, <code class="code highlight python docutils literal highlight-python"><span class="n">M</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="n">T</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>matrix</strong> (<a class="reference internal" href="matrix.html#pyevspace.Matrix" title="pyevspace.Matrix"><em>Matrix</em></a>) – the matrix to transpose</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>the transpose of <cite>matrix</cite></p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="matrix.html#pyevspace.Matrix" title="pyevspace.Matrix">Matrix</a></p>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 </section>
 </section>
@@ -437,26 +400,6 @@ transpose of M, <code class="code highlight python docutils literal highlight-py
     <a class="reference internal nav-link" href="#matrix">
      Matrix
     </a>
-    <ul class="nav section-nav flex-column">
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#pyevspace.det">
-       <code class="docutils literal notranslate">
-        <span class="pre">
-         det()
-        </span>
-       </code>
-      </a>
-     </li>
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#pyevspace.transpose">
-       <code class="docutils literal notranslate">
-        <span class="pre">
-         transpose()
-        </span>
-       </code>
-      </a>
-     </li>
-    </ul>
    </li>
   </ul>
  </li>
