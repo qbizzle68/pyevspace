@@ -46,7 +46,7 @@ Constructor
 Attributes
 ----------
 
-.. py:attribute:: Matrix.I
+.. py:attribute:: Matrix.id
 
     Identity matrix. **This value should not be edited.**
 

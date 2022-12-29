@@ -8,3 +8,4 @@ PyEVSpace API
 	pyevspace
 	vector
 	matrix
+	rotation
