@@ -17,14 +17,14 @@ _reference_frame_new(EVSpace_Order* order, EVSpace_Angles* angles,
     EVSpace_Vector* offset, PyTypeObject* type)
 {
     EVSpace_ReferenceFrame* rot = (EVSpace_ReferenceFrame*)type->tp_alloc(type, 0);
-    if (!rot)
+    if (!rot) {
         return NULL;
+    }
 
     rot->matrix = _get_euler_matrix(order, angles);
     if (!rot->matrix) {
         return NULL;
     }
-    //Py_INCREF(rot->matrix);
     rot->order = order;
     Py_INCREF(rot->order);
     rot->angles = angles;
@@ -41,31 +41,33 @@ refframe_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
     static char* kwlist[] = { "", "", "offset", NULL };
     PyObject* order = NULL, * angles = NULL, * offset = NULL;
 
-    //if (PyArg_ParseTuple(args, "OO", &order, &angles) < 0)
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO|$O", kwlist, 
-                                    &order, &angles, &offset))
+                                     &order, &angles, &offset))
+    {
         return NULL;
+    }
 
     if (!Order_Check(order)) {
         PyErr_SetString(PyExc_TypeError,
-            "first argument must be pyevspace.Order type");
+                        "first argument must be pyevspace.Order type");
         return NULL;
     }
     if (!Angles_Check(angles)) {
         PyErr_SetString(PyExc_TypeError,
-            "second argument must be pyevspace.Angles type");
+                        "second argument must be pyevspace.Angles type");
         return NULL;
     }
     if (offset) {
         if (!Vector_Check(offset)) {
             PyErr_SetString(PyExc_TypeError,
-                "offset argument must be pyevspace.Vector type");
+                            "offset argument must be pyevspace.Vector type");
             return NULL;
         }
     }
 
     return (PyObject*)_reference_frame_new((EVSpace_Order*)order,
-        (EVSpace_Angles*)angles, (EVSpace_Vector*)offset, type);
+                                           (EVSpace_Angles*)angles,
+                                           (EVSpace_Vector*)offset, type);
 }
 
 static PyObject*
@@ -76,24 +78,25 @@ refframe_angles_getter(EVSpace_ReferenceFrame* self, void* closure)
 
 static int
 refframe_angles_setter(EVSpace_ReferenceFrame* self, EVSpace_Angles* arg, 
-    void* closure)
+                       void* closure)
 {
     if (!arg) {
         PyErr_SetString(PyExc_ValueError,
-            "cannot delete angles attribute");
+                        "cannot delete angles attribute");
         return -1;
     }
 
     if (!Angles_Check(arg)) {
         PyErr_SetString(PyExc_TypeError,
-            "value must be pyevspace.Angles type");
+                        "value must be pyevspace.Angles type");
         return -1;
     }
 
-    EVSpace_Matrix* matrix
-        = (EVSpace_Matrix*)_get_euler_matrix(self->order, arg);
-    if (!matrix)
+    EVSpace_Matrix*
+    matrix = (EVSpace_Matrix*)_get_euler_matrix(self->order, arg);
+    if (!matrix) {
         return -1;
+    }
 
     PyObject* tmp = (PyObject*)self->angles;
     Py_INCREF(arg);
@@ -108,45 +111,49 @@ refframe_angles_setter(EVSpace_ReferenceFrame* self, EVSpace_Angles* arg,
     return 0;
 }
 
-#define ROTATION_ANGLE_ALPHA	0
-#define ROTATION_ANGLE_BETA		1
-#define ROTATION_ANGLE_GAMMA	2
+#define ROTATION_ANGLE_ALPHA    0
+#define ROTATION_ANGLE_BETA	    1
+#define ROTATION_ANGLE_GAMMA    2
 
 static PyObject*
 refframe_subangle_getter(EVSpace_ReferenceFrame* self, void* closure)
 {
     size_t which = (size_t)closure;
-    assert(which == ROTATION_ANGLE_ALPHA || which == ROTATION_ANGLE_BETA
-        || which == ROTATION_ANGLE_GAMMA);
+    assert(which == ROTATION_ANGLE_ALPHA || which == ROTATION_ANGLE_BETA ||
+           which == ROTATION_ANGLE_GAMMA);
 
     double angle = 0.0;
-    if (which == ROTATION_ANGLE_ALPHA)
+    if (which == ROTATION_ANGLE_ALPHA) {
         angle = self->angles->alpha;
-    else if (which == ROTATION_ANGLE_BETA)
+    }
+    else if (which == ROTATION_ANGLE_BETA) {
         angle = self->angles->beta;
-    else if (which == ROTATION_ANGLE_GAMMA)
+    }
+    else if (which == ROTATION_ANGLE_GAMMA) {
         angle = self->angles->gamma;
+    }
 
     return PyFloat_FromDouble(angle);
 }
 
 static int
 refframe_subangle_setter(EVSpace_ReferenceFrame* self, PyObject* arg, 
-    void* closure)
+                         void* closure)
 {
     size_t which = (size_t)closure;
-    assert(which == ROTATION_ANGLE_ALPHA || which == ROTATION_ANGLE_BETA
-        || which == ROTATION_ANGLE_GAMMA);
+    assert(which == ROTATION_ANGLE_ALPHA || which == ROTATION_ANGLE_BETA ||
+           which == ROTATION_ANGLE_GAMMA);
 
     if (!arg) {
         PyErr_SetString(PyExc_ValueError,
-            "cannot delete angles attribute");
+                        "cannot delete angles attribute");
         return -1;
     }
 
     double angle = PyFloat_AsDouble(arg);
-    if (angle == -1.0 && PyErr_Occurred())
+    if (angle == -1.0 && PyErr_Occurred()) {
         return -1;
+    }
 
     double* angle_addr = NULL;
     if (which == ROTATION_ANGLE_ALPHA) {
@@ -190,11 +197,11 @@ refframe_offset_getter(EVSpace_ReferenceFrame* self, void* Py_UNUSED(_))
 
 static int
 refframe_offset_setter(EVSpace_ReferenceFrame* self, PyObject* arg, 
-    void* Py_UNUSED(_))
+                       void* Py_UNUSED(_))
 {
     if (arg && !Vector_Check(arg)) {
         PyErr_SetString(PyExc_TypeError,
-            "value must be pyevspace.Vector type");
+                        "value must be pyevspace.Vector type");
         return -1;
     }
 
@@ -211,7 +218,7 @@ refframe_rotate_to(EVSpace_ReferenceFrame* self, PyObject* vector)
 {
     if (!Vector_Check(vector)) {
         PyErr_SetString(PyExc_TypeError,
-            "argument must be pyevspace.Vector type");
+                        "argument must be pyevspace.Vector type");
         return NULL;
     }
 
@@ -230,7 +237,7 @@ refframe_rotate_from(EVSpace_ReferenceFrame* self, PyObject* vector)
 {
     if (!Vector_Check(vector)) {
         PyErr_SetString(PyExc_TypeError,
-            "argument must be pyevspace.Vector type");
+                        "argument must be pyevspace.Vector type");
         return NULL;
     }
 
@@ -245,8 +252,9 @@ refframe_rotate_from(EVSpace_ReferenceFrame* self, PyObject* vector)
 }
 
 static EVSpace_Vector*
-_refframe_to_frame(const EVSpace_ReferenceFrame* self, 
-    const EVSpace_ReferenceFrame* frame, const EVSpace_Vector* vector)
+_refframe_to_frame(const EVSpace_ReferenceFrame* self,
+                   const EVSpace_ReferenceFrame* frame,
+                   const EVSpace_Vector* vector)
 {
     EVSpace_Vector *tmp, *rtn;
 
@@ -274,7 +282,8 @@ _refframe_to_frame(const EVSpace_ReferenceFrame* self,
 
 static EVSpace_Vector*
 _refframe_from_frame(const EVSpace_ReferenceFrame* self,
-    const EVSpace_ReferenceFrame* frame, const EVSpace_Vector* vector)
+                     const EVSpace_ReferenceFrame* frame,
+                     const EVSpace_Vector* vector)
 {
     EVSpace_Vector *tmp, *rtn;
 
@@ -322,13 +331,14 @@ refframe_to_frame(EVSpace_ReferenceFrame* self, PyObject* const* args,
         return NULL;
     }
 
-    return (PyObject*)_refframe_to_frame(self, (EVSpace_ReferenceFrame*)args[0], 
-        (EVSpace_Vector*)args[1]);
+    return (PyObject*)_refframe_to_frame(self,
+                                         (EVSpace_ReferenceFrame*)args[0],
+                                         (EVSpace_Vector*)args[1]);
 }
 
 static PyObject*
 refframe_from_frame(EVSpace_ReferenceFrame* self, PyObject* const* args,
-    Py_ssize_t size)
+                    Py_ssize_t size)
 {
     if (size != 2) {
         PyErr_Format(PyExc_TypeError,
@@ -348,8 +358,9 @@ refframe_from_frame(EVSpace_ReferenceFrame* self, PyObject* const* args,
         return NULL;
     }
 
-    return (PyObject*)_refframe_from_frame(self, (EVSpace_ReferenceFrame*)args[0], 
-        (EVSpace_Vector*)args[1]);
+    return (PyObject*)_refframe_from_frame(self,
+                                           (EVSpace_ReferenceFrame*)args[0],
+                                           (EVSpace_Vector*)args[1]);
 }
 
 #endif // EVSPACE_ROTATION_H

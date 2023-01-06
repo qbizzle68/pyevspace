@@ -12,8 +12,9 @@ static EVSpace_Angles*
 _angles_new(double alpha, double beta, double gamma, PyTypeObject* type)
 {
     EVSpace_Angles* angles = (EVSpace_Angles*)type->tp_alloc(type, 0);
-    if (!angles)
+    if (!angles) {
         return NULL;
+    }
 
     angles->alpha = alpha;
     angles->beta = beta;
@@ -44,7 +45,7 @@ static size_t
 __angles_str_length(const EVSpace_Angles* angles)
 {
     return snprintf(NULL, 0, "[%f, %f, %f]",
-        angles->alpha, angles->beta, angles->gamma);
+                    angles->alpha, angles->beta, angles->gamma);
 }
 
 static PyObject*
@@ -53,11 +54,12 @@ angles_str(const EVSpace_Angles* angles)
     const size_t length = __angles_str_length(angles);
 
     char* buffer = malloc(length + 1);
-    if (!buffer)
+    if (!buffer) {
         return NULL;
+    }
 
     sprintf(buffer, "[%f, %f, %f]", angles->alpha,
-        angles->beta, angles->gamma);
+            angles->beta, angles->gamma);
 
     PyObject* rtn = PyUnicode_FromString(buffer);
     free(buffer);
@@ -71,11 +73,12 @@ angles_repr(const EVSpace_Angles* angles)
 
     // 8 extra chars for name, 1 for null char
     char* buffer = malloc(length + 9);
-    if (!buffer)
+    if (!buffer) {
         return NULL;
+    }
 
     sprintf(buffer, "Angles(%f, %f, %f)", angles->alpha,
-        angles->beta, angles->gamma);
+            angles->beta, angles->gamma);
 
     PyObject* rtn = PyUnicode_FromString(buffer);
     free(buffer);
@@ -85,26 +88,26 @@ angles_repr(const EVSpace_Angles* angles)
 static PyObject*
 angles_reduce(const EVSpace_Angles* self, PyObject* Py_UNUSED(_))
 {
-    return Py_BuildValue(
-        "(O(ddd))",
-        Py_TYPE(self),
-        self->alpha,
-        self->beta,
-        self->gamma);
+    return Py_BuildValue("(O(ddd))", Py_TYPE(self), self->alpha, self->beta,
+                         self->gamma);
 }
 
 static PyObject*
 angles_get_item(const EVSpace_Angles* self, Py_ssize_t index)
 {
-    if (index == 0)
+    if (index == 0) {
         return PyFloat_FromDouble(self->alpha);
-    else if (index == 1)
+    }
+    else if (index == 1) {
         return PyFloat_FromDouble(self->beta);
-    else if (index == 2)
+    }
+    else if (index == 2) {
         return PyFloat_FromDouble(self->gamma);
+    }
     else {
-        PyErr_Format(PyExc_IndexError,
-            "index (%i) must be in [0-2]", index);
+        PyErr_Format(PyExc_IndexError, 
+                     "index (%i) must be in [0-2]",
+                     index);
         return NULL;
     }
 }
@@ -113,18 +116,23 @@ static int
 angles_set_item(EVSpace_Angles* self, Py_ssize_t index, PyObject* value)
 {
     double dbl_value = PyFloat_AsDouble(value);
-    if (dbl_value == -1.0 && PyErr_Occurred())
+    if (dbl_value == -1.0 && PyErr_Occurred()) {
         return -1;
+    }
 
-    if (index == 0)
+    if (index == 0) {
         self->alpha = dbl_value;
-    else if (index == 1)
+    }
+    else if (index == 1) {
         self->beta = dbl_value;
-    else if (index == 2)
+    }
+    else if (index == 2) {
         self->gamma = dbl_value;
+    }
     else {
         PyErr_Format(PyExc_IndexError,
-            "index (%i) must be in [0-2]", index);
+                     "index (%i) must be in [0-2]",
+                     index);
         return -1;
     }
 
@@ -132,12 +140,13 @@ angles_set_item(EVSpace_Angles* self, Py_ssize_t index, PyObject* value)
 }
 
 static EVSpace_Order*
-_order_new(EVSpace_Axis first, EVSpace_Axis second, EVSpace_Axis third, 
-    PyTypeObject* type)
+_order_new(EVSpace_Axis first, EVSpace_Axis second, EVSpace_Axis third,
+           PyTypeObject* type)
 {
     EVSpace_Order* order = (EVSpace_Order*)type->tp_alloc(type, 0);
-    if (!order)
+    if (!order) {
         return NULL;
+    }
 
     order->first = first;
     order->second = second;
@@ -146,16 +155,17 @@ _order_new(EVSpace_Axis first, EVSpace_Axis second, EVSpace_Axis third,
     return order;
 }
 
-#define new_order(f, s, t)		_order_new(f, s, t, &EVSpace_OrderType)
+#define new_order(f, s, t)      _order_new(f, s, t, &EVSpace_OrderType)
 
 static PyObject*
 order_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED(_))
 {
     EVSpace_Axis first, second, third;
 
-    if (PyArg_ParseTuple(args, "iii",
-        (int*)&first, (int*)&second, (int*)&third) < 0)
+    if (PyArg_ParseTuple(args, "iii", (int*)&first, (int*)&second, 
+                         (int*)&third) < 0) {
         return NULL;
+    }
 
     // do we need to check the values of enum type?
     return (PyObject*)_order_new(first, second, third, type);
@@ -164,35 +174,46 @@ order_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED(_))
 static void
 __order_axis_names(const EVSpace_Order* order, char* first, char* second, char* third)
 {
-    if (order->first == X_AXIS)
+    if (order->first == X_AXIS) {
         sprintf(first, "X_AXIS");
-    else if (order->first == Y_AXIS)
+    }
+    else if (order->first == Y_AXIS) {
         sprintf(first, "Y_AXIS");
-    else if (order->first == Z_AXIS)
+    }
+    else if (order->first == Z_AXIS) {
         sprintf(first, "Z_AXIS");
+    }
 
-    if (order->second == X_AXIS)
+    if (order->second == X_AXIS) {
         sprintf(second, "X_AXIS");
-    else if (order->second == Y_AXIS)
+    }
+    else if (order->second == Y_AXIS) {
         sprintf(second, "Y_AXIS");
-    else if (order->second == Z_AXIS)
+    }
+    else if (order->second == Z_AXIS) {
         sprintf(second, "Z_AXIS");
+    }
 
-    if (order->third == X_AXIS)
+    if (order->third == X_AXIS) {
         sprintf(third, "X_AXIS");
-    else if (order->third == Y_AXIS)
+    }
+    else if (order->third == Y_AXIS) {
         sprintf(third, "Y_AXIS");
-    else if (order->third == Z_AXIS)
+    }
+    else if (order->third == Z_AXIS) {
         sprintf(third, "Z_AXIS");
+    }
 }
 
 static PyObject*
 order_str(const EVSpace_Order* order)
 {
     char first[7], second[7], third[7];
+
     char* buffer = malloc(25);
-    if (!buffer)
+    if (!buffer) {
         return NULL;
+    }
 
     __order_axis_names(order, first, second, third);
     sprintf(buffer, "[%s, %s, %s]", first, second, third);
@@ -206,9 +227,11 @@ static PyObject*
 order_repr(const EVSpace_Order* order)
 {
     char first[7], second[7], third[7];
+
     char* buffer = malloc(32);
-    if (!buffer)
+    if (!buffer) {
         return NULL;
+    }
 
     __order_axis_names(order, first, second, third);
     sprintf(buffer, "Order(%s, %s, %s)", first, second, third);
@@ -223,15 +246,19 @@ order_get_item(EVSpace_Order* self, Py_ssize_t index)
 {
     EVSpace_Axis rtn;
 
-    if (index == 0)
+    if (index == 0) {
         rtn = self->first;
-    else if (index == 1)
+    }
+    else if (index == 1) {
         rtn = self->second;
-    else if (index == 2)
+    }
+    else if (index == 2) {
         rtn = self->third;
+    }
     else {
         PyErr_Format(PyExc_IndexError,
-            "index (%i) must be in [0-2]", index);
+                     "index (%i) must be in [0-2]", 
+                     index);
         return NULL;
     }
 
@@ -242,25 +269,30 @@ static int
 order_set_item(EVSpace_Order* self, Py_ssize_t index, PyObject* value)
 {
     int val = PyLong_AsLong(value);
-    if (val == -1.0 && PyErr_Occurred())
-        return -1;
-
-    if (val < 0 || val > 2) {
-        PyErr_SetString(PyExc_ValueError,
-            "value must be pyevspace.X_AXIS, \
-            pyevspace.Y_AXIS or pyevspace.Z_AXIS");
+    if (val == -1.0 && PyErr_Occurred()) {
         return -1;
     }
 
-    if (index == 0)
+    if (val < 0 || val > 2) {
+        PyErr_SetString(PyExc_ValueError,
+                        "value must be pyevspace.X_AXIS, "
+                        "pyevspace.Y_AXIS or pyevspace.Z_AXIS");
+        return -1;
+    }
+
+    if (index == 0) {
         self->first = (EVSpace_Axis)val;
-    else if (index == 1)
+    }
+    else if (index == 1) {
         self->second = (EVSpace_Axis)val;
-    else if (index == 2)
+    }
+    else if (index == 2) {
         self->third = (EVSpace_Axis)val;
+    }
     else {
         PyErr_Format(PyExc_IndexError,
-            "index (%i) must be in [0-2]", index);
+                     "index (%i) must be in [0-2]", 
+                     index);
         return -1;
     }
 
@@ -270,12 +302,8 @@ order_set_item(EVSpace_Order* self, Py_ssize_t index, PyObject* value)
 static PyObject*
 order_reduce(const EVSpace_Order* self, PyObject* Py_UNUSED(_))
 {
-    return Py_BuildValue(
-        "(O(iii))",
-        Py_TYPE(self),
-        self->first,
-        self->second,
-        self->third);
+    return Py_BuildValue("(O(iii))", Py_TYPE(self), self->first, self->second,
+                         self->third);
 }
 
 #endif // EVSPACE_ANGLES_H
