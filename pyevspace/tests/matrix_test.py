@@ -55,14 +55,14 @@ class TestMatrix(unittest.TestCase):
         # test int only matrix
         msg = 'matrix repr() int'
         self.assertEqual(repr(self.m123),
-                         'Matrix([[1, 2, 3]\n\t[4, 5, 6]\n\t[7, 8, 9]])',
+                         'Matrix([1, 2, 3]\n    [4, 5, 6]\n    [7, 8, 9])',
                          msg=msg)
 
         # test float
         msg = 'matrix repr() float'
         self.assertEqual(
             repr(Matrix((1.1, 2.2, 3.3), (4.4, 5.5, 6.6), (7.7, 8.8, 9.9))),
-            'Matrix([[1.1, 2.2, 3.3]\n\t[4.4, 5.5, 6.6]\n\t[7.7, 8.8, 9.9]])',
+            'Matrix([1.1, 2.2, 3.3]\n    [4.4, 5.5, 6.6]\n    [7.7, 8.8, 9.9])',
             msg=msg)
 
     def test_matrix_add(self):

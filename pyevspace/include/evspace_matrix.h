@@ -155,14 +155,15 @@ matrix_repr(const EVSpace_Matrix* self)
 {
     const int buffer_size = __matrix_string_length(self);
 
+    // 6 chars for type name, 8 for spaces, 1 for null char
     // 9 chars for type name, 2 chars for tabs, 1 for null char
-    char* buffer = malloc(buffer_size + 12);
+    char* buffer = malloc(buffer_size + 15);
     if (!buffer) {
         return PyErr_NoMemory();
     }
 
     sprintf(buffer, 
-            "Matrix([[%g, %g, %g]\n\t[%g, %g, %g]\n\t[%g, %g, %g]])",
+            "Matrix([%g, %g, %g]\n    [%g, %g, %g]\n    [%g, %g, %g])",
             Matrix_COMP(self, 0, 0), Matrix_COMP(self, 0, 1),
             Matrix_COMP(self, 0, 2), Matrix_COMP(self, 1, 0),
             Matrix_COMP(self, 1, 1), Matrix_COMP(self, 1, 2),
