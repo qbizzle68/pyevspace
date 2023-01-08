@@ -252,6 +252,7 @@
 <li class="toctree-l2"><a class="reference internal" href="vector.html">Vector API Reference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="matrix.html">Matrix API Reference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rotation.html">Rotation API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="refframe.html">ReferenceFrame API Reference</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../c-api/index.html">C API</a></li>
@@ -400,14 +401,47 @@
 <li class="toctree-l2"><a class="reference internal" href="rotation.html#generating-rotation-matrices">Generating Rotation Matrices</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rotation.html#rotating-vectors">Rotating Vectors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rotation.html#rotation-types">Rotation Types</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.X_AXIS"><code class="docutils literal notranslate"><span class="pre">X_AXIS</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.Y_AXIS"><code class="docutils literal notranslate"><span class="pre">Y_AXIS</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.Z_AXIS"><code class="docutils literal notranslate"><span class="pre">Z_AXIS</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.Order"><code class="docutils literal notranslate"><span class="pre">Order</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#enumerated-axes">Enumerated Axes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#order">Order</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#angles">Angles</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="rotation.html#matrix-generator-methods">Matrix Generator Methods</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.getMatrixAxis"><code class="docutils literal notranslate"><span class="pre">getMatrixAxis()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.getMatrixEuler"><code class="docutils literal notranslate"><span class="pre">getMatrixEuler()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.getMatrixFromTo"><code class="docutils literal notranslate"><span class="pre">getMatrixFromTo()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rotation.html#rotation-methods">Rotation Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.rotateAxisFrom"><code class="docutils literal notranslate"><span class="pre">rotateAxisFrom()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.rotateAxisTo"><code class="docutils literal notranslate"><span class="pre">rotateAxisTo()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.rotateEulerFrom"><code class="docutils literal notranslate"><span class="pre">rotateEulerFrom()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.rotateEulerTo"><code class="docutils literal notranslate"><span class="pre">rotateEulerTo()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.rotateMatrixFrom"><code class="docutils literal notranslate"><span class="pre">rotateMatrixFrom()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.rotateMatrixTo"><code class="docutils literal notranslate"><span class="pre">rotateMatrixTo()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.rotateOffsetFrom"><code class="docutils literal notranslate"><span class="pre">rotateOffsetFrom()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.rotateOffsetTo"><code class="docutils literal notranslate"><span class="pre">rotateOffsetTo()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="refframe.html">ReferenceFrame API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="refframe.html#pyevspace.ReferenceFrame"><code class="docutils literal notranslate"><span class="pre">ReferenceFrame</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="refframe.html#attributes">Attributes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="refframe.html#pyevspace.ReferenceFrame.order"><code class="docutils literal notranslate"><span class="pre">ReferenceFrame.order</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="refframe.html#pyevspace.ReferenceFrame.matrix"><code class="docutils literal notranslate"><span class="pre">ReferenceFrame.matrix</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="refframe.html#pyevspace.ReferenceFrame.angles"><code class="docutils literal notranslate"><span class="pre">ReferenceFrame.angles</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="refframe.html#pyevspace.ReferenceFrame.alpha"><code class="docutils literal notranslate"><span class="pre">ReferenceFrame.alpha</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="refframe.html#pyevspace.ReferenceFrame.beta"><code class="docutils literal notranslate"><span class="pre">ReferenceFrame.beta</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="refframe.html#pyevspace.ReferenceFrame.gamma"><code class="docutils literal notranslate"><span class="pre">ReferenceFrame.gamma</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="refframe.html#pyevspace.ReferenceFrame.offset"><code class="docutils literal notranslate"><span class="pre">ReferenceFrame.offset</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="refframe.html#instance-methods">Instance Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="refframe.html#pyevspace.ReferenceFrame.rotateTo"><code class="docutils literal notranslate"><span class="pre">ReferenceFrame.rotateTo()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="refframe.html#pyevspace.ReferenceFrame.rotateFrom"><code class="docutils literal notranslate"><span class="pre">ReferenceFrame.rotateFrom()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="refframe.html#pyevspace.ReferenceFrame.rotateToFrame"><code class="docutils literal notranslate"><span class="pre">ReferenceFrame.rotateToFrame()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="refframe.html#pyevspace.ReferenceFrame.rotateFromFrame"><code class="docutils literal notranslate"><span class="pre">ReferenceFrame.rotateFromFrame()</span></code></a></li>
 </ul>
 </li>
 </ul>

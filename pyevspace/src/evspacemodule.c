@@ -278,25 +278,25 @@ static PyGetSetDef reference_frame_getset[] = {
 
 static PyMethodDef reference_frame_methods[] = {
     {"rotateTo", (PyCFunction)refframe_rotate_to, METH_O,
-     PyDoc_STR("rotate a vectof rom an inertial frame to this reference "
-               "frame")},
+     PyDoc_STR("rotateTo(vector) -> Vector\n\nRotate vector from an "
+               "inertial frame to this reference frame.")},
 
     {"rotateFrom", (PyCFunction)refframe_rotate_from, METH_O,
-     PyDoc_STR("rotate a vector to an inertial frame from this reference "
-               "frame")},
+     PyDoc_STR("rotateFrom(vector) -> Vector\n\nRotate vector to an inertial "
+               "frame from this reference frame.")},
 
     {"rotateToFrame", (PyCFunction)refframe_to_frame, METH_FASTCALL,
-     PyDoc_STR("rotate a vector from this frame to another reference "
-               "frame")},
+     PyDoc_STR("rotateToFrame(frame, vector) -> Vector\n\nRotate vector from "
+               "this reference frame to frame.")},
 
     {"rotateFromFrame", (PyCFunction)refframe_from_frame, METH_FASTCALL,
-     PyDoc_STR("rotate a vector from another frame to this reference "
-               "frame")},
+     PyDoc_STR("rotateFromFrame(frame, vector) -> Vector\n\nRotate vector "
+               "from frame to this reference frame")},
 
     {NULL}
 };
 
-PyDoc_STRVAR(reference_frame_doc, "ReferenceFrame(order, angles[, offset])\n\
+PyDoc_STRVAR(reference_frame_doc, "ReferenceFrame(order, angles[, *, offset])\n\
 \n\
 The order and angles parameters are required and order should be one of the \
 default Order type instances provided by pyevspace. Angles needs to be in \

@@ -295,14 +295,12 @@ all (<code class="code highlight python docutils literal highlight-python"><span
 it is still best practice to only import exactly what you need.</p>
 <section id="creating-an-vector">
 <h3>Creating an <code class="xref py py-class docutils literal notranslate"><span class="pre">Vector</span></code><a class="headerlink" href="#creating-an-vector" title="Permalink to this heading">#</a></h3>
-<p>a Vector is created from any iterable with exactly three values. The
-simplest way is to use a tuple of values</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">vector</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># don&#39;t forget the second pair of parenthesis</span>
+<p>A vector is created directly by passing the constructor the x, y and z
+components.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">vector</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Of course any iterable will work, including lists and even an
-<code class="xref py py-class docutils literal notranslate"><span class="pre">Vector</span></code></p>
+<p>An iterable can also be used, even another <code class="xref py py-class docutils literal notranslate"><span class="pre">Vector</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">vector</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">([</span><span class="mf">2.1</span><span class="p">,</span> <span class="mf">6.5</span><span class="p">,</span> <span class="mf">101.3</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">vector</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">Vector</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)))</span>
 </pre></div>
@@ -318,9 +316,9 @@ parameters to the constructor</p>
 <section id="creating-an-matrix">
 <h3>Creating an <code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code><a class="headerlink" href="#creating-an-matrix" title="Permalink to this heading">#</a></h3>
 <p>An <code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code> is created similarly to an <code class="xref py py-class docutils literal notranslate"><span class="pre">Vector</span></code>, but
-instead of taking an iterable with exactly three values, it takes three
-of them. Each of the iterables cooresponds to the row of the matrix it
-represents.</p>
+instead of taking a single iterable with exactly three values, it
+takes three of them. Each of the iterables cooresponds to the row
+of the matrix it represents.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">Matrix</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
 <span class="go">[[1, 2, 3]</span>

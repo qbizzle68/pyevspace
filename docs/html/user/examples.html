@@ -286,6 +286,53 @@
 <h1>PyEVSpace User Guide<a class="headerlink" href="#pyevspace-user-guide" title="Permalink to this heading">#</a></h1>
 <section id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this heading">#</a></h2>
+<section id="example-1">
+<h3>Example #1<a class="headerlink" href="#example-1" title="Permalink to this heading">#</a></h3>
+<p>How to find the vector that points from vector1 to vector2:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">from1To2</span> <span class="o">=</span> <span class="n">vector2</span> <span class="o">-</span> <span class="n">vector1</span>
+</pre></div>
+</div>
+</section>
+<section id="example-2">
+<h3>Example #2<a class="headerlink" href="#example-2" title="Permalink to this heading">#</a></h3>
+<p>How to set a vector’s length without changing its direction:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">length</span> <span class="o">=</span> <span class="mf">6.734</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vector</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># new vector</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">newVector</span> <span class="o">=</span> <span class="n">norm</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span> <span class="o">*</span> <span class="n">length</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># change vector</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">normalize</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vector</span> <span class="o">*=</span> <span class="n">length</span>
+</pre></div>
+</div>
+</section>
+<section id="example-3">
+<h3>Example #3<a class="headerlink" href="#example-3" title="Permalink to this heading">#</a></h3>
+<p>Rotate vector to another reference frame</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">angles</span> <span class="o">=</span> <span class="n">Angles</span><span class="p">(</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">5.74</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">matrix</span> <span class="o">=</span> <span class="n">getMatrixEuler</span><span class="p">(</span><span class="n">XYX</span><span class="p">,</span> <span class="n">angles</span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># &#39;manually&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rotatedVector</span> <span class="o">=</span> <span class="n">transpose</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span> <span class="o">*</span> <span class="n">vector</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># using pyevspace methods</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rotatedVector</span> <span class="o">=</span> <span class="n">rotateMatrixTo</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="n">vector</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># can also do without intermediate matrix</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rotatedVector</span> <span class="o">=</span> <span class="n">rotateEulerTo</span><span class="p">(</span><span class="n">XYX</span><span class="p">,</span> <span class="n">angles</span><span class="p">,</span> <span class="n">vector</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="example-4">
+<h3>Example #4<a class="headerlink" href="#example-4" title="Permalink to this heading">#</a></h3>
+<p>Same as example #3 but with a ReferenceFrame object</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">angles</span> <span class="o">=</span> <span class="n">Angles</span><span class="p">(</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">5.74</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">refFrame</span> <span class="o">=</span> <span class="n">ReferenceFrame</span><span class="p">(</span><span class="n">XYX</span><span class="p">,</span> <span class="n">angles</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rotatedVector</span> <span class="o">=</span> <span class="n">refFrame</span><span class="o">.</span><span class="n">rotateTo</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 </section>
 </section>
 
@@ -331,6 +378,28 @@
   <a class="reference internal nav-link" href="#examples">
    Examples
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#example-1">
+     Example #1
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#example-2">
+     Example #2
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#example-3">
+     Example #3
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#example-4">
+     Example #4
+    </a>
+   </li>
+  </ul>
  </li>
 </ul>
 

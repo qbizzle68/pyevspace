@@ -41,7 +41,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'reference/api/rotation';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="C API" href="../c-api/index.html" />
+    <link rel="next" title="ReferenceFrame API Reference" href="refframe.html" />
     <link rel="prev" title="Matrix API Reference" href="matrix.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="docsearch:language" content="en">
@@ -252,6 +252,7 @@
 <li class="toctree-l2"><a class="reference internal" href="vector.html">Vector API Reference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="matrix.html">Matrix API Reference</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">Rotation API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="refframe.html">ReferenceFrame API Reference</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../c-api/index.html">C API</a></li>
@@ -291,12 +292,29 @@
 <nav class="contents" id="table-of-contents">
 <p class="topic-title">Table of Contents</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#rotation-api-reference" id="id1">Rotation API Reference</a></p>
+<li><p><a class="reference internal" href="#rotation-api-reference" id="id3">Rotation API Reference</a></p>
 <ul>
-<li><p><a class="reference internal" href="#generating-rotation-matrices" id="id2">Generating Rotation Matrices</a></p></li>
-<li><p><a class="reference internal" href="#rotating-vectors" id="id3">Rotating Vectors</a></p></li>
-<li><p><a class="reference internal" href="#rotation-types" id="id4">Rotation Types</a></p></li>
-<li><p><a class="reference internal" href="#matrix-generator-methods" id="id5">Matrix Generator Methods</a></p></li>
+<li><p><a class="reference internal" href="#generating-rotation-matrices" id="id4">Generating Rotation Matrices</a></p></li>
+<li><p><a class="reference internal" href="#rotating-vectors" id="id5">Rotating Vectors</a></p></li>
+<li><p><a class="reference internal" href="#rotation-types" id="id6">Rotation Types</a></p>
+<ul>
+<li><p><a class="reference internal" href="#enumerated-axes" id="id7">Enumerated Axes</a></p></li>
+<li><p><a class="reference internal" href="#order" id="id8">Order</a></p>
+<ul>
+<li><p><a class="reference internal" href="#attributes" id="id9">Attributes</a></p></li>
+<li><p><a class="reference internal" href="#instance-methods" id="id10">Instance Methods</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#angles" id="id11">Angles</a></p>
+<ul>
+<li><p><a class="reference internal" href="#id1" id="id12">Attributes</a></p></li>
+<li><p><a class="reference internal" href="#id2" id="id13">Instance Methods</a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#matrix-generator-methods" id="id14">Matrix Generator Methods</a></p></li>
+<li><p><a class="reference internal" href="#rotation-methods" id="id15">Rotation Methods</a></p></li>
 </ul>
 </li>
 </ul>
@@ -326,11 +344,11 @@ rotation matrices.</p>
 <td><p>Rotation around a single axis</p></td>
 <td><p><a class="reference external" href="https://en.wikipedia.org/wiki/Rotation_matrix#In_three_dimensions">Rotation Matrix</a></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">getMatrixEuler()</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyevspace.getMatrixEuler" title="pyevspace.getMatrixEuler"><code class="xref py py-meth docutils literal notranslate"><span class="pre">getMatrixEuler()</span></code></a></p></td>
 <td><p>Three axis Euler rotation</p></td>
 <td><p><a class="reference external" href="https://en.wikipedia.org/wiki/Euler_angles">Euler Rotation</a></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">getMatrixFromTo()</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyevspace.getMatrixFromTo" title="pyevspace.getMatrixFromTo"><code class="xref py py-meth docutils literal notranslate"><span class="pre">getMatrixFromTo()</span></code></a></p></td>
 <td><p>From one reference frame to another</p></td>
 <td><p>—</p></td>
 </tr>
@@ -358,37 +376,37 @@ reference frame is the identity matrix: <a class="reference internal" href="matr
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotateAxisFrom()</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyevspace.rotateAxisFrom" title="pyevspace.rotateAxisFrom"><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotateAxisFrom()</span></code></a></p></td>
 <td><p>The axis and angle specified</p></td>
 <td><p>An inertial reference frame</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotateAxisTo()</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyevspace.rotateAxisTo" title="pyevspace.rotateAxisTo"><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotateAxisTo()</span></code></a></p></td>
 <td><p>An inertial reference frame</p></td>
 <td><p>The axis and angle specified</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotateEulerFrom()</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyevspace.rotateEulerFrom" title="pyevspace.rotateEulerFrom"><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotateEulerFrom()</span></code></a></p></td>
 <td><p>The frame resulting from the
 order and angles specified</p></td>
 <td><p>An inertial reference frame</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotateEulerTo()</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyevspace.rotateEulerTo" title="pyevspace.rotateEulerTo"><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotateEulerTo()</span></code></a></p></td>
 <td><p>An inertial reference frame</p></td>
 <td><p>The frame resulting from the
 order and angles specified</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotateMatrixFrom()</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyevspace.rotateMatrixFrom" title="pyevspace.rotateMatrixFrom"><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotateMatrixFrom()</span></code></a></p></td>
 <td><p>The frame described by the matrix</p></td>
 <td><p>An inertial reference frame</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotateMatrixTo()</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyevspace.rotateMatrixTo" title="pyevspace.rotateMatrixTo"><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotateMatrixTo()</span></code></a></p></td>
 <td><p>An inertial reference frame</p></td>
 <td><p>The frame described by the matrix</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotateOffsetFrom()</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyevspace.rotateOffsetFrom" title="pyevspace.rotateOffsetFrom"><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotateOffsetFrom()</span></code></a></p></td>
 <td><p>The offset frame specified</p></td>
 <td><p>An inertial reference frame</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotateOffsetTo()</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyevspace.rotateOffsetTo" title="pyevspace.rotateOffsetTo"><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotateOffsetTo()</span></code></a></p></td>
 <td><p>An inertial reference frame</p></td>
 <td><p>The offset frame specified</p></td>
 </tr>
@@ -397,6 +415,11 @@ order and angles specified</p></td>
 </section>
 <section id="rotation-types">
 <h2>Rotation Types<a class="headerlink" href="#rotation-types" title="Permalink to this heading">#</a></h2>
+<section id="enumerated-axes">
+<h3>Enumerated Axes<a class="headerlink" href="#enumerated-axes" title="Permalink to this heading">#</a></h3>
+<p>A few types are needed to help describe an Euler rotation. An Euler rotation
+consists of an order of axes about which consecutive axis rotations occur,
+and the angles by which they’re rotated.</p>
 <p>To specify an axis around which a rotation occurs, there are three
 enumerated constants.</p>
 <dl class="py data">
@@ -441,9 +464,9 @@ enumerated constants.</p>
 </dl>
 </dd></dl>
 
-<p>A few types are needed to help describe an Euler rotation. An Euler rotation
-consists of an order of axes about which consecutive axis rotations occur,
-and the angles by which they’re rotated.</p>
+</section>
+<section id="order">
+<h3>Order<a class="headerlink" href="#order" title="Permalink to this heading">#</a></h3>
 <p>There are 12 unique Euler rotation orders, which are already defined, so it
 is unlikely to need to instantiate another <a class="reference internal" href="#pyevspace.Order" title="pyevspace.Order"><code class="xref py py-class docutils literal notranslate"><span class="pre">Order</span></code></a> object, however
 the class is still documented below.</p>
@@ -465,6 +488,8 @@ easier to read.</p>
 </dl>
 </dd></dl>
 
+<section id="attributes">
+<h4>Attributes<a class="headerlink" href="#attributes" title="Permalink to this heading">#</a></h4>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pyevspace.Order.first">
 <span class="sig-prename descclassname"><span class="pre">Order.</span></span><span class="sig-name descname"><span class="pre">first</span></span><a class="headerlink" href="#pyevspace.Order.first" title="Permalink to this definition">#</a></dt>
@@ -498,6 +523,9 @@ easier to read.</p>
 </dl>
 </dd></dl>
 
+</section>
+<section id="instance-methods">
+<h4>Instance Methods<a class="headerlink" href="#instance-methods" title="Permalink to this heading">#</a></h4>
 <dl class="py method">
 <dt class="sig sig-object py" id="pyevspace.Order.__len__">
 <span class="sig-prename descclassname"><span class="pre">Order.</span></span><span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.Order.__len__" title="Permalink to this definition">#</a></dt>
@@ -525,6 +553,12 @@ easier to read.</p>
 <li><p><strong>TypeError</strong> – if index is not an int type</p></li>
 <li><p><strong>IndexError</strong> – if index is not in [0, 2]</p></li>
 </ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the indexed axis</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
 </dd>
 </dl>
 </dd></dl>
@@ -580,12 +614,440 @@ order object for copying and pickling.</p>
 </dd></dl>
 
 </section>
+</section>
+<section id="angles">
+<h3>Angles<a class="headerlink" href="#angles" title="Permalink to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyevspace.Angles">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">Angles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.Angles" title="Permalink to this definition">#</a></dt>
+<dd><p>A class to hold the angles that correspond to the axes in the
+<a class="reference internal" href="#pyevspace.Order" title="pyevspace.Order"><code class="xref py py-class docutils literal notranslate"><span class="pre">Order</span></code></a> type. The angle corresponds to the respective
+axis in its associated order object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>alpha</strong> (<em>float</em>) – the angle in radians around the first axis</p></li>
+<li><p><strong>beta</strong> (<em>float</em>) – the angle in radians around the second axis</p></li>
+<li><p><strong>gamma</strong> (<em>float</em>) – the angle in radians around the third axis</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<section id="id1">
+<h4>Attributes<a class="headerlink" href="#id1" title="Permalink to this heading">#</a></h4>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyevspace.Angles.alpha">
+<span class="sig-prename descclassname"><span class="pre">Angles.</span></span><span class="sig-name descname"><span class="pre">alpha</span></span><a class="headerlink" href="#pyevspace.Angles.alpha" title="Permalink to this definition">#</a></dt>
+<dd><p>The first angle of a rotation.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyevspace.Angles.beta">
+<span class="sig-prename descclassname"><span class="pre">Angles.</span></span><span class="sig-name descname"><span class="pre">beta</span></span><a class="headerlink" href="#pyevspace.Angles.beta" title="Permalink to this definition">#</a></dt>
+<dd><p>The second angle of a rotation.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyevspace.Angles.gamma">
+<span class="sig-prename descclassname"><span class="pre">Angles.</span></span><span class="sig-name descname"><span class="pre">gamma</span></span><a class="headerlink" href="#pyevspace.Angles.gamma" title="Permalink to this definition">#</a></dt>
+<dd><p>The third angle of a rotation.</p>
+</dd></dl>
+
+</section>
+<section id="id2">
+<h4>Instance Methods<a class="headerlink" href="#id2" title="Permalink to this heading">#</a></h4>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyevspace.Angles.__len__">
+<span class="sig-prename descclassname"><span class="pre">Angles.</span></span><span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.Angles.__len__" title="Permalink to this definition">#</a></dt>
+<dd><p>Returns the lengh of the angles for sequencing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>always returns 3</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyevspace.Angles.__getitem__">
+<span class="sig-prename descclassname"><span class="pre">Angles.</span></span><span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.Angles.__getitem__" title="Permalink to this definition">#</a></dt>
+<dd><p>Returns the indexed angle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>index</strong> (<em>int</em>) – the index of the angle to get</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>TypeError</strong> – if index is not an int type</p></li>
+<li><p><strong>IndexError</strong> – if index is not in [0, 2]</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the indexed angle</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyevspace.Angles.__setitem__">
+<span class="sig-prename descclassname"><span class="pre">Angles.</span></span><span class="sig-name descname"><span class="pre">__setitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.Angles.__setitem__" title="Permalink to this definition">#</a></dt>
+<dd><p>Sets the indexed angle to value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>index</strong> (<em>int</em>) – the index of the angle to get</p></li>
+<li><p><strong>value</strong> (<em>float</em>) – the value to set the angle in radians</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>TypeError</strong> – if index is not an int type or value is not a
+numeric type</p></li>
+<li><p><strong>IndexError</strong> – if index is not in [0, 2]</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyevspace.Angles.__repr__">
+<span class="sig-prename descclassname"><span class="pre">Angles.</span></span><span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.Angles.__repr__" title="Permalink to this definition">#</a></dt>
+<dd><p>Converts the angles to a string representation, representative
+of a constructor call.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a string representation of the angles</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyevspace.Angles.__str__">
+<span class="sig-prename descclassname"><span class="pre">Angles.</span></span><span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.Angles.__str__" title="Permalink to this definition">#</a></dt>
+<dd><p>Converts the angles to a string representation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a string representation of the angles</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyevspace.Angles.__reduce__">
+<span class="sig-prename descclassname"><span class="pre">Angles.</span></span><span class="sig-name descname"><span class="pre">__reduce__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.Angles.__reduce__" title="Permalink to this definition">#</a></dt>
+<dd><p>Returns a tuple of objects capable of reconstructing an
+angles object for copying and pickling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a tuple with the constructor and angles</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+</section>
 <section id="matrix-generator-methods">
 <h2>Matrix Generator Methods<a class="headerlink" href="#matrix-generator-methods" title="Permalink to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="pyevspace.getMatrixAxis">
 <span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">getMatrixAxis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.getMatrixAxis" title="Permalink to this definition">#</a></dt>
 <dd><p>Creates a matrix that describes a rotation around an axis by an angle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axis</strong> (<em>int</em>) – axis of rotation, should be one of the defined
+enumerated axes</p></li>
+<li><p><strong>angle</strong> (<em>numeric</em>) – angle of rotation in radians</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>TypeError</strong> – if axis is not an int or angle is not a numeric type</p></li>
+<li><p><strong>ValueError</strong> – if axis is not in [0-2]</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the rotation matrix</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="matrix.html#pyevspace.Matrix" title="pyevspace.Matrix">Matrix</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyevspace.getMatrixEuler">
+<span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">getMatrixEuler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angles</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.getMatrixEuler" title="Permalink to this definition">#</a></dt>
+<dd><p>Creates a matrix that describes an Euler rotation by its order and the
+associated angles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>order</strong> (<a class="reference internal" href="#pyevspace.Order" title="pyevspace.Order"><em>Order</em></a>) – the Euler order of rotation</p></li>
+<li><p><strong>angles</strong> (<a class="reference internal" href="#pyevspace.Angles" title="pyevspace.Angles"><em>Angles</em></a>) – the angles associated with the order axes</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – if order is not an Order type or angles is not an
+Angles type</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the rotation matrix</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="matrix.html#pyevspace.Matrix" title="pyevspace.Matrix">Matrix</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyevspace.getMatrixFromTo">
+<span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">getMatrixFromTo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orderFrom</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anglesFrom</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orderTo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anglesTo</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.getMatrixFromTo" title="Permalink to this definition">#</a></dt>
+<dd><p>Creates a matrix that describes a rotation between two reference frames,
+where each frame is defined as an Euler rotation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>orderFrom</strong> (<a class="reference internal" href="#pyevspace.Order" title="pyevspace.Order"><em>Order</em></a>) – the Euler order of the reference frame moving from</p></li>
+<li><p><strong>anglesFrom</strong> (<a class="reference internal" href="#pyevspace.Angles" title="pyevspace.Angles"><em>Angles</em></a>) – the angles for the reference frame moving from</p></li>
+<li><p><strong>orderTo</strong> (<a class="reference internal" href="#pyevspace.Order" title="pyevspace.Order"><em>Order</em></a>) – the Euler order of the reference frame moving to</p></li>
+<li><p><strong>anglesTo</strong> (<a class="reference internal" href="#pyevspace.Angles" title="pyevspace.Angles"><em>Angles</em></a>) – the angles for the reference frame moving to</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – if orderFrom or orderTo are not Order types, or
+anglesFrom or anglesTo are not Angles types</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the rotation matrix</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="matrix.html#pyevspace.Matrix" title="pyevspace.Matrix">Matrix</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="rotation-methods">
+<h2>Rotation Methods<a class="headerlink" href="#rotation-methods" title="Permalink to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyevspace.rotateAxisFrom">
+<span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">rotateAxisFrom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.rotateAxisFrom" title="Permalink to this definition">#</a></dt>
+<dd><p>Rotates a vector from a reference frame defined by an axis rotation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axis</strong> (<em>int</em>) – axis of rotation, should be one of the defined
+enumerated axes</p></li>
+<li><p><strong>angle</strong> (<em>float</em>) – angle of rotation in radians</p></li>
+<li><p><strong>vector</strong> (<a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – vector to rotate</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>TypeError</strong> – if axis is not an int, angle is not a float or
+vector is not a Vector type</p></li>
+<li><p><strong>ValueError</strong> – if axis is not in [0, 2]</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the rotated vector</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector">Vector</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyevspace.rotateAxisTo">
+<span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">rotateAxisTo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.rotateAxisTo" title="Permalink to this definition">#</a></dt>
+<dd><p>Rotates a vector to a reference frame defined by an axis rotation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axis</strong> (<em>int</em>) – axis of rotation, should be one of the defined
+enumerated axes</p></li>
+<li><p><strong>angle</strong> (<em>float</em>) – angle of rotation in radians</p></li>
+<li><p><strong>vector</strong> (<a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – vector to rotate</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>TypeError</strong> – if axis is not an int, angle is not a float or
+vector is not a Vector type</p></li>
+<li><p><strong>ValueError</strong> – if axis is not in [0, 2]</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the rotated vector</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector">Vector</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyevspace.rotateEulerFrom">
+<span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">rotateEulerFrom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.rotateEulerFrom" title="Permalink to this definition">#</a></dt>
+<dd><p>Rotates a vector from a reference frame defined by an Euler rotation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>order</strong> (<a class="reference internal" href="#pyevspace.Order" title="pyevspace.Order"><em>Order</em></a>) – the Euler order of rotation</p></li>
+<li><p><strong>angles</strong> (<a class="reference internal" href="#pyevspace.Angles" title="pyevspace.Angles"><em>Angles</em></a>) – the angles associated with the order axes</p></li>
+<li><p><strong>vector</strong> (<a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – the vector to rotate</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – if order is not an Order type, angles are not an
+Angles type or vector is not a Vector type</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the rotated vector</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector">Vector</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyevspace.rotateEulerTo">
+<span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">rotateEulerTo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.rotateEulerTo" title="Permalink to this definition">#</a></dt>
+<dd><p>Rotates a vector to a reference frame defined by an Euler rotation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>order</strong> (<a class="reference internal" href="#pyevspace.Order" title="pyevspace.Order"><em>Order</em></a>) – the Euler order of rotation</p></li>
+<li><p><strong>angles</strong> (<a class="reference internal" href="#pyevspace.Angles" title="pyevspace.Angles"><em>Angles</em></a>) – the angles associated with the order axes</p></li>
+<li><p><strong>vector</strong> (<a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – the vector to rotate</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – if order is not an Order type, angles are not an
+Angles type or vector is not a Vector type</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the rotated vector</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector">Vector</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyevspace.rotateMatrixFrom">
+<span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">rotateMatrixFrom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.rotateMatrixFrom" title="Permalink to this definition">#</a></dt>
+<dd><p>Rotates a vector from a reference frame defined by a rotation matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>matrix</strong> (<a class="reference internal" href="matrix.html#pyevspace.Matrix" title="pyevspace.Matrix"><em>Matrix</em></a>) – the rotation matrix</p></li>
+<li><p><strong>vector</strong> (<a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – the vector to rotate</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – if matrix is not a Matrix type or vector is not
+a Vector type</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the rotated vector</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector">Vector</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyevspace.rotateMatrixTo">
+<span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">rotateMatrixTo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.rotateMatrixTo" title="Permalink to this definition">#</a></dt>
+<dd><p>Rotates a vector to a reference frame defined by a rotation matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>matrix</strong> (<a class="reference internal" href="matrix.html#pyevspace.Matrix" title="pyevspace.Matrix"><em>Matrix</em></a>) – the rotation matrix</p></li>
+<li><p><strong>vector</strong> (<a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – the vector to rotate</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – if matrix is not a Matrix type or vector is not
+a Vector type</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the rotated vector</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector">Vector</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyevspace.rotateOffsetFrom">
+<span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">rotateOffsetFrom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.rotateOffsetFrom" title="Permalink to this definition">#</a></dt>
+<dd><p>Rotates a vector from an offset reference frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>matrix</strong> (<a class="reference internal" href="matrix.html#pyevspace.Matrix" title="pyevspace.Matrix"><em>Matrix</em></a>) – the rotation matrix</p></li>
+<li><p><strong>vector</strong> (<a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – the vector to rotate</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – if matrix is not a Matrix type or offset and vector
+are not Vector types</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the rotated vector:</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector">Vector</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyevspace.rotateOffsetTo">
+<span class="sig-prename descclassname"><span class="pre">pyevspace.</span></span><span class="sig-name descname"><span class="pre">rotateOffsetTo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.rotateOffsetTo" title="Permalink to this definition">#</a></dt>
+<dd><p>Rotates a vector to an offset reference frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>matrix</strong> (<a class="reference internal" href="matrix.html#pyevspace.Matrix" title="pyevspace.Matrix"><em>Matrix</em></a>) – the rotation matrix</p></li>
+<li><p><strong>vector</strong> (<a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector"><em>Vector</em></a>) – the vector to rotate</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – if matrix is not a Matrix type or offset and vector
+are not Vector types</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>the rotated vector:</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="vector.html#pyevspace.Vector" title="pyevspace.Vector">Vector</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -606,10 +1068,10 @@ order object for copying and pickling.</p>
           <p class="prev-next-title">Matrix API Reference</p>
       </div>
   </a>
-  <a class='right-next' id="next-link" href="../c-api/index.html" title="next page">
+  <a class='right-next' id="next-link" href="refframe.html" title="next page">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">C API</p>
+      <p class="prev-next-title">ReferenceFrame API Reference</p>
   </div>
   <i class="fa-solid fa-angle-right"></i>
   </a>
@@ -645,121 +1107,258 @@ order object for copying and pickling.</p>
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#pyevspace.X_AXIS">
-     <code class="docutils literal notranslate">
-      <span class="pre">
-       X_AXIS
-      </span>
-     </code>
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#pyevspace.Y_AXIS">
-     <code class="docutils literal notranslate">
-      <span class="pre">
-       Y_AXIS
-      </span>
-     </code>
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#pyevspace.Z_AXIS">
-     <code class="docutils literal notranslate">
-      <span class="pre">
-       Z_AXIS
-      </span>
-     </code>
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#pyevspace.Order">
-     <code class="docutils literal notranslate">
-      <span class="pre">
-       Order
-      </span>
-     </code>
+    <a class="reference internal nav-link" href="#enumerated-axes">
+     Enumerated Axes
     </a>
     <ul class="nav section-nav flex-column">
      <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#pyevspace.Order.first">
+      <a class="reference internal nav-link" href="#pyevspace.X_AXIS">
        <code class="docutils literal notranslate">
         <span class="pre">
-         Order.first
+         X_AXIS
         </span>
        </code>
       </a>
      </li>
      <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#pyevspace.Order.second">
+      <a class="reference internal nav-link" href="#pyevspace.Y_AXIS">
        <code class="docutils literal notranslate">
         <span class="pre">
-         Order.second
+         Y_AXIS
         </span>
        </code>
       </a>
      </li>
      <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#pyevspace.Order.third">
+      <a class="reference internal nav-link" href="#pyevspace.Z_AXIS">
        <code class="docutils literal notranslate">
         <span class="pre">
-         Order.third
+         Z_AXIS
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#order">
+     Order
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#pyevspace.Order">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Order
         </span>
        </code>
       </a>
      </li>
      <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#pyevspace.Order.__len__">
+      <a class="reference internal nav-link" href="#attributes">
+       Attributes
+      </a>
+      <ul class="nav section-nav flex-column">
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#pyevspace.Order.first">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           Order.first
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#pyevspace.Order.second">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           Order.second
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#pyevspace.Order.third">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           Order.third
+          </span>
+         </code>
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#instance-methods">
+       Instance Methods
+      </a>
+      <ul class="nav section-nav flex-column">
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#pyevspace.Order.__len__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           Order.__len__()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#pyevspace.Order.__getitem__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           Order.__getitem__()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#pyevspace.Order.__setitem__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           Order.__setitem__()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#pyevspace.Order.__repr__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           Order.__repr__()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#pyevspace.Order.__str__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           Order.__str__()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#pyevspace.Order.__reduce__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           Order.__reduce__()
+          </span>
+         </code>
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#angles">
+     Angles
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#pyevspace.Angles">
        <code class="docutils literal notranslate">
         <span class="pre">
-         Order.__len__()
+         Angles
         </span>
        </code>
       </a>
      </li>
      <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#pyevspace.Order.__getitem__">
-       <code class="docutils literal notranslate">
-        <span class="pre">
-         Order.__getitem__()
-        </span>
-       </code>
+      <a class="reference internal nav-link" href="#id1">
+       Attributes
       </a>
+      <ul class="nav section-nav flex-column">
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#pyevspace.Angles.alpha">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           Angles.alpha
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#pyevspace.Angles.beta">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           Angles.beta
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#pyevspace.Angles.gamma">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           Angles.gamma
+          </span>
+         </code>
+        </a>
+       </li>
+      </ul>
      </li>
      <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#pyevspace.Order.__setitem__">
-       <code class="docutils literal notranslate">
-        <span class="pre">
-         Order.__setitem__()
-        </span>
-       </code>
+      <a class="reference internal nav-link" href="#id2">
+       Instance Methods
       </a>
-     </li>
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#pyevspace.Order.__repr__">
-       <code class="docutils literal notranslate">
-        <span class="pre">
-         Order.__repr__()
-        </span>
-       </code>
-      </a>
-     </li>
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#pyevspace.Order.__str__">
-       <code class="docutils literal notranslate">
-        <span class="pre">
-         Order.__str__()
-        </span>
-       </code>
-      </a>
-     </li>
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#pyevspace.Order.__reduce__">
-       <code class="docutils literal notranslate">
-        <span class="pre">
-         Order.__reduce__()
-        </span>
-       </code>
-      </a>
+      <ul class="nav section-nav flex-column">
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#pyevspace.Angles.__len__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           Angles.__len__()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#pyevspace.Angles.__getitem__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           Angles.__getitem__()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#pyevspace.Angles.__setitem__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           Angles.__setitem__()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#pyevspace.Angles.__repr__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           Angles.__repr__()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#pyevspace.Angles.__str__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           Angles.__str__()
+          </span>
+         </code>
+        </a>
+       </li>
+       <li class="toc-h5 nav-item toc-entry">
+        <a class="reference internal nav-link" href="#pyevspace.Angles.__reduce__">
+         <code class="docutils literal notranslate">
+          <span class="pre">
+           Angles.__reduce__()
+          </span>
+         </code>
+        </a>
+       </li>
+      </ul>
      </li>
     </ul>
    </li>
@@ -775,6 +1374,103 @@ order object for copying and pickling.</p>
      <code class="docutils literal notranslate">
       <span class="pre">
        getMatrixAxis()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pyevspace.getMatrixEuler">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       getMatrixEuler()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pyevspace.getMatrixFromTo">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       getMatrixFromTo()
+      </span>
+     </code>
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#rotation-methods">
+   Rotation Methods
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pyevspace.rotateAxisFrom">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       rotateAxisFrom()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pyevspace.rotateAxisTo">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       rotateAxisTo()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pyevspace.rotateEulerFrom">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       rotateEulerFrom()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pyevspace.rotateEulerTo">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       rotateEulerTo()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pyevspace.rotateMatrixFrom">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       rotateMatrixFrom()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pyevspace.rotateMatrixTo">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       rotateMatrixTo()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pyevspace.rotateOffsetFrom">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       rotateOffsetFrom()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#pyevspace.rotateOffsetTo">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       rotateOffsetTo()
       </span>
      </code>
     </a>

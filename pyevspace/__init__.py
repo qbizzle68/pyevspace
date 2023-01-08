@@ -3,14 +3,9 @@
 """
 
 try:
-    with open('README.md', 'r') as f:
-        readme = f.read()
-
-    __doc__ += readme
-except Exception:
-    pass
-
-try:
     from _pyevspace import *
+    _extension_import = True
 except ImportError:
-    print("unable to import extension module '_pyevspace' (ignore if building extension)")
+    _extension_import = False
+
+__version__ = '0.0.12'

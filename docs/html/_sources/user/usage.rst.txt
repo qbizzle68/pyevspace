@@ -18,16 +18,14 @@ it is still best practice to only import exactly what you need.
 
 Creating an :class:`Vector`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-a Vector is created from any iterable with exactly three values. The
-simplest way is to use a tuple of values
+A vector is created directly by passing the constructor the x, y and z
+components.
 
 .. code-block:: python
-	
-	>>> vector = Vector((1, 2, 3))
-	>>> # don't forget the second pair of parenthesis
 
-Of course any iterable will work, including lists and even an 
-:class:`Vector`
+	>>> vector = Vector(1, 2, 3)
+
+An iterable can also be used, even another :class:`Vector`.
 
 .. code-block:: python
 
@@ -45,10 +43,10 @@ parameters to the constructor
 
 Creating an :class:`Matrix`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-An :class:`Matrix` is created similarly to an :class:`Vector`, but 
-instead of taking an iterable with exactly three values, it takes three 
-of them. Each of the iterables cooresponds to the row of the matrix it 
-represents.
+An :class:`Matrix` is created similarly to an :class:`Vector`, but
+instead of taking a single iterable with exactly three values, it
+takes three of them. Each of the iterables cooresponds to the row
+of the matrix it represents.
 
 .. code-block:: python
 
