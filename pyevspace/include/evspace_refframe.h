@@ -12,7 +12,7 @@
 static PyTypeObject EVSpace_ReferenceFrameType;
 
 
-static PyObject*
+static EVSpace_ReferenceFrame*
 _reference_frame_new(EVSpace_Order* order, EVSpace_Angles* angles, 
     EVSpace_Vector* offset, PyTypeObject* type)
 {
@@ -32,7 +32,7 @@ _reference_frame_new(EVSpace_Order* order, EVSpace_Angles* angles,
     rot->offset = offset;
     Py_XINCREF(rot->offset);
 
-    return (PyObject*)rot;
+    return rot;
 }
 
 static PyObject*
@@ -213,6 +213,32 @@ refframe_offset_setter(EVSpace_ReferenceFrame* self, PyObject* arg,
     return 0;
 }
 
+static EVSpace_Vector*
+_refframe_rotate_to(const EVSpace_Matrix* matrix,
+                    const EVSpace_Vector* vector,
+                    const EVSpace_Vector* offset)
+{
+    if (offset) {
+        return _rotate_offset_to(matrix, offset, vector);
+    }
+    else {
+        return _rotate_matrix_to(matrix, vector);
+    }
+}
+
+static EVSpace_Vector*
+_refframe_rotate_from(const EVSpace_Matrix* matrix,
+                      const EVSpace_Vector* vector,
+                      const EVSpace_Vector* offset)
+{
+    if (offset) {
+        return _rotate_offset_from(matrix, offset, vector);
+    }
+    else {
+        return _matrix_multiply_v(matrix, vector);
+    }
+}
+
 static PyObject*
 refframe_rotate_to(EVSpace_ReferenceFrame* self, PyObject* vector)
 {
@@ -222,14 +248,9 @@ refframe_rotate_to(EVSpace_ReferenceFrame* self, PyObject* vector)
         return NULL;
     }
 
-    if (self->offset) {
-        return (PyObject*)_rotate_offset_to(self->matrix, self->offset, 
-                                            (EVSpace_Vector*)vector);
-    }
-    else {
-        return (PyObject*)_rotate_matrix_to(self->matrix, 
-                                            (EVSpace_Vector*)vector);
-    }
+    return (PyObject*)_refframe_rotate_to(self->matrix, 
+                                          (EVSpace_Vector*)vector, 
+                                          self->offset);
 }
 
 static PyObject*
@@ -241,14 +262,9 @@ refframe_rotate_from(EVSpace_ReferenceFrame* self, PyObject* vector)
         return NULL;
     }
 
-    if (self->offset) {
-        return (PyObject*)_rotate_offset_from(self->matrix, self->offset, 
-                                              (EVSpace_Vector*)vector);
-    }
-    else {
-        return (PyObject*)_matrix_multiply_v(self->matrix,
-                                             (EVSpace_Vector*)vector);
-    }
+    return (PyObject*)_refframe_rotate_from(self->matrix,
+                                            (EVSpace_Vector*)vector,
+                                            self->offset);
 }
 
 static EVSpace_Vector*

@@ -58,5 +58,7 @@
     <None Include="examples\methods.py" />
     <None Include="tests\angles_test.py" />
     <None Include="tests\rotation_test.py" />
+    <None Include="tests\refframe_test.py" />
+    <None Include="tests\rotation_answers.py" />
   </ItemGroup>
 </Project>

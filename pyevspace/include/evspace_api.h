@@ -72,6 +72,7 @@ typedef struct {
     PyTypeObject* AnglesType;
     PyTypeObject* OrderType;
     PyTypeObject* RotationType;
+    PyTypeObject* RefFrameType;
 
     /* constructors */
     EVSpace_Vector* (*Vector_FromArray)(double*, PyTypeObject*);
@@ -79,8 +80,10 @@ typedef struct {
     EVSpace_Matrix* (*Matrix_FromArray)(double*, PyTypeObject*);
     EVSpace_Matrix* (*Matrix_StealArray)(double*, PyTypeObject*);
     EVSpace_Angles* (*Angles_New)(double, double, double, PyTypeObject*);
-    EVSpace_Order* (*Order_New)(EVSpace_Axis, EVSpace_Axis, EVSpace_Axis,
-                                PyTypeObject*);
+    EVSpace_Order*  (*Order_New)(EVSpace_Axis, EVSpace_Axis, EVSpace_Axis,
+                                 PyTypeObject*);
+    EVSpace_ReferenceFrame* (*RefFrame_New)(EVSpace_Order*, EVSpace_Angles*,
+                                            EVSpace_Vector*, PyTypeObject*);
 
     /* vector number methods */
     EVSpace_Vector* (*EVSpace_Vector_add)(const EVSpace_Vector*,
@@ -175,6 +178,20 @@ typedef struct {
     EVSpace_Vector* (*EVSpace_offset_from)(const EVSpace_Matrix*, 
                                            const EVSpace_Vector*,
                                            const EVSpace_Vector*);
+
+    /* reference frame methods */
+    EVSpace_Vector* (*EVSpace_ref_to)(const EVSpace_Matrix*,
+                                      const EVSpace_Vector*,
+                                      const EVSpace_Vector*);
+    EVSpace_Vector* (*EVSpace_ref_from)(const EVSpace_Matrix*,
+                                        const EVSpace_Vector*,
+                                        const EVSpace_Vector*);
+    EVSpace_Vector* (*EVSpace_ref_to_ref)(const EVSpace_ReferenceFrame*,
+                                          const EVSpace_ReferenceFrame*,
+                                          const EVSpace_Vector*);
+    EVSpace_Vector* (*EVSpace_ref_from_ref)(const EVSpace_ReferenceFrame*,
+                                            const EVSpace_ReferenceFrame*,
+                                            const EVSpace_Vector*);
 
 } EVSpace_CAPI;
 

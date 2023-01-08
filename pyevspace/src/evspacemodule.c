@@ -332,6 +332,7 @@ EVSpace_CAPI* get_evspace_capi(void)
     capi->MatrixType    = &EVSpace_MatrixType;
     capi->AnglesType    = &EVSpace_AnglesType;
     capi->OrderType     = &EVSpace_OrderType;
+    capi->RefFrameType  = &EVSpace_ReferenceFrameType;
 
     capi->Vector_FromArray  = _vector_from_array;
     capi->Vector_StealArray = _vector_steal_array;
@@ -339,6 +340,7 @@ EVSpace_CAPI* get_evspace_capi(void)
     capi->Matrix_StealArray = _matrix_steal_array;
     capi->Angles_New        = _angles_new;
     capi->Order_New         = _order_new;
+    capi->RefFrame_New      = _reference_frame_new;
 
     capi->EVSpace_Vector_add        = _vector_add;
     capi->EVSpace_Vector_subtract   = _vector_subtract;
@@ -387,6 +389,11 @@ EVSpace_CAPI* get_evspace_capi(void)
     capi->EVSpace_matrix_from   = _rotate_matrix_from;
     capi->EVSpace_offset_to     = _rotate_offset_to;
     capi->EVSpace_offset_from   = _rotate_offset_from;
+
+    capi->EVSpace_ref_to        = _refframe_rotate_to;
+    capi->EVSpace_ref_from      = _refframe_rotate_from;
+    capi->EVSpace_ref_to_ref    = _refframe_to_frame;
+    capi->EVSpace_ref_from_ref  = _refframe_from_frame;
 
     return capi;
 }

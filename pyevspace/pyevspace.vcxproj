@@ -188,6 +188,8 @@
     <None Include="tests\matrix_test.py" />
     <None Include="tests\module_test.py" />
     <None Include="tests\pyevspace_tests.py" />
+    <None Include="tests\refframe_test.py" />
+    <None Include="tests\rotation_answers.py" />
     <None Include="tests\rotation_test.py" />
     <None Include="tests\vector_test.py" />
     <None Include="tests\__init__.py" />
