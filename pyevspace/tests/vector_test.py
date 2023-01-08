@@ -1,7 +1,7 @@
 from copy import copy
 from math import sqrt, pi
 
-from pyevspace import Vector, dot, cross, norm, vang, vxcl, proj
+from pyevspace import Vector, Matrix, dot, cross, norm, vang, vxcl, proj
 import unittest
 import pickle
 
@@ -207,6 +207,11 @@ class TestVector(unittest.TestCase):
         self.assertEqual(self.v123 * 2, Vector((2, 4, 6)), msg=msg)
         self.assertEqual(self.v123m * 0.5, Vector((-0.5, -1, -1.5)), msg=msg)
 
+        # test vector multiplication operator
+        msg = 'vector multiply matrix'
+        mat = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+        self.assertEqual(self.v123 @ mat, Vector(30, 36, 42), msg=msg)
+
         # test exception on types
         msg = 'vector multiply rhs argument TypeError'
         with self.assertRaises(TypeError, msg=msg):
@@ -214,6 +219,9 @@ class TestVector(unittest.TestCase):
 
         with self.assertRaises(TypeError, msg=msg):
             self.v111 * Vector()
+
+        with self.assertRaises(TypeError, msg=msg):
+            self.v123 @ 4
 
     def test_vector_imultiply(self):
         # test inplace scalar multiplication operator
@@ -232,6 +240,9 @@ class TestVector(unittest.TestCase):
 
         with self.assertRaises(TypeError, msg=msg):
             self.v111 *= Vector()
+
+        with self.assertRaises(TypeError, msg=msg):
+            self.v123 @= Matrix()
 
     def test_vector_divide(self):
         # test division operator

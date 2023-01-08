@@ -8,6 +8,11 @@
 /* forward declaration */
 static PyTypeObject EVSpace_VectorType;
 
+// need the matrix type if it isn't declared yet
+#ifndef EVSPACE_MATRIX_H
+static PyTypeObject EVSpace_MatrixType;
+#endif
+
 
 /**
  *	\\ constructors \\
@@ -269,6 +274,45 @@ _vector_multiply(const EVSpace_Vector* vector, double scalar)
     return rtn;
 }
 
+static void
+__multiply_matrix_vector_left(const double* mat, const double* vec,
+                              double* ans)
+{
+    assert(ans != NULL);
+
+    ans[0] = mat[EVSpace_RC_INDEX(0, 0)] * vec[0] +
+        mat[EVSpace_RC_INDEX(1, 0)] * vec[1] +
+        mat[EVSpace_RC_INDEX(2, 0)] * vec[2];
+
+    ans[1] = mat[EVSpace_RC_INDEX(0, 1)] * vec[0] +
+        mat[EVSpace_RC_INDEX(1, 1)] * vec[1] +
+        mat[EVSpace_RC_INDEX(2, 1)] * vec[2];
+
+    ans[2] = mat[EVSpace_RC_INDEX(0, 2)] * vec[0] +
+        mat[EVSpace_RC_INDEX(1, 2)] * vec[1] +
+        mat[EVSpace_RC_INDEX(2, 2)] * vec[2];
+}
+
+static EVSpace_Vector*
+_vector_multiply_matrix(const EVSpace_Vector* vector,
+                        const EVSpace_Matrix* matrix)
+{
+    double* arr = malloc(Vector_SIZE);
+    if (!arr) {
+        return (EVSpace_Vector*)PyErr_NoMemory();
+    }
+
+    __multiply_matrix_vector_left(Matrix_DATA(matrix), Vector_DATA(vector),
+                              arr);
+
+    EVSpace_Vector* rtn = _vector_steal_array(arr, &EVSpace_VectorType);
+    if (!rtn) {
+        free(arr);
+    }
+
+    return rtn;
+}
+
 static EVSpace_Vector*
 _vector_divide(const EVSpace_Vector* vector, double scalar)
 {
@@ -381,6 +425,19 @@ vector_multiply(EVSpace_Vector* lhs, PyObject* rhs)
 }
 
 static PyObject*
+vector_multiply_matrix(EVSpace_Vector* lhs, PyObject* rhs)
+{
+    if (Vector_Check(lhs)) {
+        if (Matrix_Check(rhs)) {
+            return (PyObject*)_vector_multiply_matrix(lhs,
+                                                      (EVSpace_Matrix*)rhs);
+        }
+    }
+
+    Py_RETURN_NOTIMPLEMENTED;
+}
+
+static PyObject*
 vector_divide(EVSpace_Vector* lhs, PyObject* rhs)
 {
     if (Vector_Check(lhs)) {
@@ -432,6 +489,17 @@ vector_imultiply(EVSpace_Vector* self, PyObject* other)
     }
 
     Py_RETURN_NOTIMPLEMENTED;
+}
+
+static PyObject*
+vector_mat_imultiply(EVSpace_Matrix* mat, PyObject* arg)
+{
+    // Python will fall back to 'self = self * other' when NotImplemented
+    // is returned, so we must force the TypeError here.
+    PyErr_SetString(PyExc_TypeError,
+                    "unsupported operand type(s) for @=: 'pyevspace.Vector'"
+                    " and 'pyevspace.Matrix'");
+    return NULL;
 }
 
 static PyObject*

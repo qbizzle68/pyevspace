@@ -91,6 +91,8 @@ typedef struct {
     EVSpace_Vector* (*EVSpace_Vector_subtract)(const EVSpace_Vector*,
                                                const EVSpace_Vector*);
     EVSpace_Vector* (*EVSpace_Vector_multiply)(const EVSpace_Vector*, double);
+    EVSpace_Vector* (*EVSpace_Vector_multiply_matrix)(const EVSpace_Vector*,
+                                                      const EVSpace_Matrix*);
     EVSpace_Vector* (*EVSpace_Vector_divide)(const EVSpace_Vector*, double);
     void (*EVSpace_Vector_iadd)(EVSpace_Vector*, const EVSpace_Vector*);
     void (*EVSpace_Vector_isubtract)(EVSpace_Vector*, const EVSpace_Vector*);
@@ -232,6 +234,8 @@ static EVSpace_CAPI* EVSpaceAPI = NULL;
             EVSpaceAPI->EVSpace_Vector_subtract(rhs, lhs)
 #define EVSpace_Vector_multiply(rhs, lhs)       \
             EVSpaceAPI->EVSpace_Vector_multiply(rhs, lhs)
+#define EVSpace_Vector_multiply_matrix(rhs, lhs)\
+            EVSpaceAPI->EVSpace_Vector_multiply_matrix(rhs, lhs)
 #define EVSpace_Vector_divide(rhs, lhs)         \
             EVSpaceAPI->EVSpace_Vector_divide(rhs, lhs)
 #define EVSpace_Vector_iadd(self, other)        \

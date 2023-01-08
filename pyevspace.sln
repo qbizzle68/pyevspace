@@ -44,7 +44,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "api", "api", "{9C9921A2-239
 	ProjectSection(SolutionItems) = preProject
 		docs\source\reference\api\index.rst = docs\source\reference\api\index.rst
 		docs\source\reference\api\matrix.rst = docs\source\reference\api\matrix.rst
-		docs\source\reference\api\pyevspace.rst = docs\source\reference\api\pyevspace.rst
 		docs\source\reference\api\refframe.rst = docs\source\reference\api\refframe.rst
 		docs\source\reference\api\rotation.rst = docs\source\reference\api\rotation.rst
 		docs\source\reference\api\vector.rst = docs\source\reference\api\vector.rst

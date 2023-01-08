@@ -23,7 +23,9 @@ static PyNumberMethods vector_as_number = {
     .nb_inplace_subtract    = (binaryfunc)vector_isubtract,
     .nb_inplace_multiply    = (binaryfunc)vector_imultiply,
     .nb_true_divide         = (binaryfunc)vector_divide,
-    .nb_inplace_true_divide = (binaryfunc)vector_idivide
+    .nb_inplace_true_divide = (binaryfunc)vector_idivide,
+    .nb_matrix_multiply     = (binaryfunc)vector_multiply_matrix,
+    .nb_inplace_matrix_multiply = (binaryfunc)vector_mat_imultiply
 };
 
 static PySequenceMethods vector_as_sequence = {
@@ -345,6 +347,7 @@ EVSpace_CAPI* get_evspace_capi(void)
     capi->EVSpace_Vector_add        = _vector_add;
     capi->EVSpace_Vector_subtract   = _vector_subtract;
     capi->EVSpace_Vector_multiply   = _vector_multiply;
+    capi->EVSpace_Vector_multiply_matrix = _vector_multiply_matrix;
     capi->EVSpace_Vector_divide     = _vector_divide;
     capi->EVSpace_Vector_iadd       = _vector_iadd;
     capi->EVSpace_Vector_isubtract  = _vector_isubtract;
