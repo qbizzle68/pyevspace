@@ -8,4 +8,4 @@ try:
 except ImportError:
     _extension_import = False
 
-__version__ = '0.0.12'
+__version__ = '0.0.12.1'
