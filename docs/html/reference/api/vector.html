@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Vector API Reference &#8212; PyEVSpace 0.0.11 documentation</title>
+    <title>Vector API Reference &#8212; PyEVSpace 0.0.12 documentation</title>
   
   
   
@@ -98,7 +98,7 @@
 
   
   
-    <p class="title logo__title">PyEVSpace 0.0.11 documentation</p>
+    <p class="title logo__title">PyEVSpace 0.0.12 documentation</p>
   
 </a>
     
@@ -252,7 +252,7 @@
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">Vector API Reference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="matrix.html">Matrix API Reference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rotation.html">Rotation API Reference</a></li>
-<li class="toctree-l2"><a class="reference internal" href="refframe.html">Reference Frame API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="refframe.html">ReferenceFrame API Reference</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../c-api/index.html">C API</a></li>
@@ -328,7 +328,7 @@ parameters must also be filled when initializing directly)</p></li>
 <li><p><strong>z</strong> (<em>numeric</em>) – value to initialize the z-component to (the <cite>x</cite> and <cite>y</cite>
 parameters must also be filled when initializing directly)</p></li>
 <li><p><strong>initializer</strong> (<em>iterable</em>) – an iterable object of length three with
-<a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a> values (this must be the only parameter when
+<a class="reference internal" href="../index.html#numeric-def"><span class="std std-ref">numeric</span></a> values (this must be the only parameter when
 initializing from an iterable)</p></li>
 </ul>
 </dd>
@@ -336,7 +336,7 @@ initializing from an iterable)</p></li>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>TypeError</strong> – if <cite>x</cite>, <cite>y</cite>, <cite>z</cite> or <cite>initializer</cite> is not an iterable</p></li>
 <li><p><strong>TypeError</strong> – if a value of <cite>initializer</cite> is not a
-<a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a> type</p></li>
+<a class="reference internal" href="../index.html#numeric-def"><span class="std std-ref">numeric</span></a> type</p></li>
 <li><p><strong>TypeError</strong> – if exactly three direct initializers aren’t used or iterable
 is not the only argument</p></li>
 <li><p><strong>ValueError</strong> – if <cite>initializer</cite> does not have a length of
@@ -443,7 +443,7 @@ basis. <strong>This value should not be edited.</strong></p>
 <dd><p>Standard scalar multiplication.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to multiply each element of self by</p>
+<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="../index.html#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to multiply each element of self by</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>the scalar product</p>
@@ -452,7 +452,7 @@ basis. <strong>This value should not be edited.</strong></p>
 <dd class="field-odd"><p><a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector">Vector</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a> type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="../index.html#numeric-def"><span class="std std-ref">numeric</span></a> type</p>
 </dd>
 </dl>
 </dd></dl>
@@ -463,7 +463,7 @@ basis. <strong>This value should not be edited.</strong></p>
 <dd><p>Standard scalar division.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to divide each element of self by</p>
+<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="../index.html#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to divide each element of self by</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>the scalar quotient</p>
@@ -472,7 +472,7 @@ basis. <strong>This value should not be edited.</strong></p>
 <dd class="field-odd"><p><a class="reference internal" href="#pyevspace.Vector" title="pyevspace.Vector">Vector</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a> type</p>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="../index.html#numeric-def"><span class="std std-ref">numeric</span></a> type</p>
 </dd>
 </dl>
 </dd></dl>
@@ -525,10 +525,10 @@ basis. <strong>This value should not be edited.</strong></p>
 <dd><p>Inplace standard scalar multiplication.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to multiply each element of self by</p>
+<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="../index.html#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to multiply each element of self by</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="../index.html#numeric-def"><span class="std std-ref">numeric</span></a>
 type</p>
 </dd>
 </dl>
@@ -540,10 +540,10 @@ type</p>
 <dd><p>Inplace standard scalar division.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to divide each element of self by</p>
+<dd class="field-odd"><p><strong>scalar</strong> (<a class="reference internal" href="../index.html#numeric-def"><span class="std std-ref">numeric</span></a>) – the scalar to divide each element of self by</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>
+<dd class="field-even"><p><strong>TypeError</strong> – if <cite>scalar</cite> is not a <a class="reference internal" href="../index.html#numeric-def"><span class="std std-ref">numeric</span></a>
 type</p>
 </dd>
 </dl>
@@ -941,7 +941,7 @@ int</p></li>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>TypeError</strong> – if <cite>index</cite> is not or cannot be converted to an
 int</p></li>
-<li><p><strong>TypeError</strong> – if <cite>value</cite> is not a <a class="reference internal" href="pyevspace.html#numeric-def"><span class="std std-ref">numeric</span></a>
+<li><p><strong>TypeError</strong> – if <cite>value</cite> is not a <a class="reference internal" href="../index.html#numeric-def"><span class="std std-ref">numeric</span></a>
 type</p></li>
 <li><p><strong>ValueError</strong> – if <cite>index</cite> is not in the interval [0, 2]</p></li>
 </ul>
