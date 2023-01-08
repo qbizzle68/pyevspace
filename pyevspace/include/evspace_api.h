@@ -218,7 +218,12 @@ static EVSpace_CAPI* EVSpaceAPI = NULL;
             EVSpaceAPI->Matrix_FromArray(arr, EVSpaceAPI->MatrixType)
 #define Matrix_StealArray(arr)      \
             EVSpaceAPI->Matrix_StealArray(arr, EVSpaceAPI->MatrixType)
-#define Angles_New()
+#define Angles_New(a, b, g)         \
+            EVSpaceAPI->Angles_New(a, b, g, EVSpaceAPI->AnglesType)
+#define Order_New(o, a)             \
+            EVSpaceAPI->Order_New(o, a, EVSpaceAPI->OrderType)
+#define RefFrame_New(o, a, v)       \
+            EVSpaceAPI->RefFrame_New(o, a, v, EVSpaceAPI->RefFrameType)
 
 /* macros for C API */
 #define EVSpace_Vector_add(rhs, lhs)            \
@@ -289,6 +294,11 @@ static EVSpace_CAPI* EVSpaceAPI = NULL;
 #define EVSpace_matrix_from(m, v)    = EVSpaceAPI->EVSpace_matrix_from(m, v)
 #define EVSpace_offset_to(m, o, v)   = EVSpaceAPI->EVSpace_offset_to(m, o, v)
 #define EVSpace_offset_from(m, o, v) = EVSpaceAPI->EVSpace_offset_from(m, o, v)
+
+#define EVSpace_ref_to(m, v, o)     = EVSpaceAPI->EVSpace_ref_to(m, v, o)
+#define EVSpace_ref_from(m, v, o)   = EVSpaceAPI->EVSpace_ref_from(m, v, o)
+#define EVSpace_ref_to_ref(f, t, v) = EVSpaceAPI->EVSpace_ref_to_ref(f, t, v)
+#define EVSpace_ref_from_ref(f, t, v) = EVSpaceAPI->EVSpace_ref_from_ref(f, t, v)
 
 #endif // !defined(_EVSPACE_IMPL)
 
