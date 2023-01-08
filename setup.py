@@ -1,13 +1,22 @@
 from setuptools import setup, Extension
 
-# dont set description (its set in _pyevspace) and set long_description to what's inside README.md
-#import pyevspace
-#description, long_description = pyevspace.__doc__.split('\n', 1)
-version = '0.0.12.1'
+def initTxt():
+    with open('pyevspace/__init__.py', 'r') as f:
+        txt = f.readlines()
+
+    description = txt[0][4:-1]
+    version = txt[-1].split(' ', 4)[2][1:-1]
+
+    return description, version
+
+    #versionLine = txt[-1]
+    #return versionLine.split(' ', 4)[2][1:-1]
 
 def readme():
     with open('README.md', 'r') as f:
         return f.read()
+
+description, __version__ = initTxt()
 
 ext_modules = [Extension(
     '_pyevspace',
@@ -16,12 +25,10 @@ ext_modules = [Extension(
 )]
 
 setup(name='pyevspace',
-      #version=pyevspace.__version__,
-      version=version,
+      version=__version__,
       author='Quinton Barnes',
       author_email='devqbizzle68@gmail.com',
-      #description=description,
-      #long_description=long_description.strip(),
+      description=description,
       long_description=readme(),
       long_description_content_type='text/markdown',
       license='MIT',

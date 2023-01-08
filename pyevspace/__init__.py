@@ -1,11 +1,9 @@
-"""Module for a 3-dimensional Euclidean vector space with a vector and matrix type as well as necessary methods to use them.
+""" A Python 3-dimensional Euclidean vector space.
 
 """
 
-try:
-    from _pyevspace import *
-    _extension_import = True
-except ImportError:
-    _extension_import = False
+#   long description currently is README.md
 
-__version__ = '0.0.12.1'
+from _pyevspace import *
+
+__version__ = '0.0.12.3'    # do not add a new line after the version string
