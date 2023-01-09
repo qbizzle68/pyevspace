@@ -71,7 +71,6 @@ typedef struct {
     PyTypeObject* MatrixType;
     PyTypeObject* AnglesType;
     PyTypeObject* OrderType;
-    PyTypeObject* RotationType;
     PyTypeObject* RefFrameType;
 
     /* constructors */
