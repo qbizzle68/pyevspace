@@ -181,11 +181,9 @@ typedef struct {
                                            const EVSpace_Vector*);
 
     /* reference frame methods */
-    EVSpace_Vector* (*EVSpace_ref_to)(const EVSpace_Matrix*,
-                                      const EVSpace_Vector*,
+    EVSpace_Vector* (*EVSpace_ref_to)(const EVSpace_ReferenceFrame*,
                                       const EVSpace_Vector*);
-    EVSpace_Vector* (*EVSpace_ref_from)(const EVSpace_Matrix*,
-                                        const EVSpace_Vector*,
+    EVSpace_Vector* (*EVSpace_ref_from)(const EVSpace_ReferenceFrame*,
                                         const EVSpace_Vector*);
     EVSpace_Vector* (*EVSpace_ref_to_ref)(const EVSpace_ReferenceFrame*,
                                           const EVSpace_ReferenceFrame*,

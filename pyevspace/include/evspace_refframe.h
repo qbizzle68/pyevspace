@@ -214,28 +214,26 @@ refframe_offset_setter(EVSpace_ReferenceFrame* self, PyObject* arg,
 }
 
 static EVSpace_Vector*
-_refframe_rotate_to(const EVSpace_Matrix* matrix,
-                    const EVSpace_Vector* vector,
-                    const EVSpace_Vector* offset)
+_refframe_rotate_to(const EVSpace_ReferenceFrame* frame,
+                    const EVSpace_Vector* vector)
 {
-    if (offset) {
-        return _rotate_offset_to(matrix, offset, vector);
+    if (frame->offset) {
+        return _rotate_offset_to(frame->matrix, frame->offset, vector);
     }
     else {
-        return _rotate_matrix_to(matrix, vector);
+        return _rotate_matrix_to(frame->matrix, vector);
     }
 }
 
 static EVSpace_Vector*
-_refframe_rotate_from(const EVSpace_Matrix* matrix,
-                      const EVSpace_Vector* vector,
-                      const EVSpace_Vector* offset)
+_refframe_rotate_from(const EVSpace_ReferenceFrame* frame,
+                      const EVSpace_Vector* vector)
 {
-    if (offset) {
-        return _rotate_offset_from(matrix, offset, vector);
+    if (frame->offset) {
+        return _rotate_offset_from(frame->matrix, frame->offset, vector);
     }
     else {
-        return _matrix_multiply_v(matrix, vector);
+        return _matrix_multiply_v(frame->matrix, vector);
     }
 }
 
@@ -248,9 +246,7 @@ refframe_rotate_to(EVSpace_ReferenceFrame* self, PyObject* vector)
         return NULL;
     }
 
-    return (PyObject*)_refframe_rotate_to(self->matrix, 
-                                          (EVSpace_Vector*)vector, 
-                                          self->offset);
+    return (PyObject*)_refframe_rotate_to(self, (EVSpace_Vector*)vector);
 }
 
 static PyObject*
@@ -262,9 +258,7 @@ refframe_rotate_from(EVSpace_ReferenceFrame* self, PyObject* vector)
         return NULL;
     }
 
-    return (PyObject*)_refframe_rotate_from(self->matrix,
-                                            (EVSpace_Vector*)vector,
-                                            self->offset);
+    return (PyObject*)_refframe_rotate_from(self, (EVSpace_Vector*)vector);
 }
 
 static EVSpace_Vector*
