@@ -380,6 +380,8 @@ Instance Methods
     :return: a tuple with the constructor and angles
     :rtype: tuple
 
+.. _mat-gen-label:
+
 Matrix Generator Methods
 ------------------------
 
@@ -420,6 +422,8 @@ Matrix Generator Methods
         anglesFrom or anglesTo are not Angles types
     :return: the rotation matrix
     :rtype: Matrix
+
+.. _rotate-meth-label:
 
 Rotation Methods
 ----------------

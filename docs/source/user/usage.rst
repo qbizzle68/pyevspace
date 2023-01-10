@@ -2,7 +2,7 @@ PyEVSpace User Guide
 ====================
 
 .. role:: python(code)
-	:language: python
+    :language: python
 
 Usage
 -----
@@ -10,39 +10,35 @@ To use the module simply import pyevspace into your project
 
 .. code-block:: python
 
-	import pyevspace as evs
+    import pyevspace as evs
 
-As of this writing (|version|) the module is pretty small, so importing
-all (:python:`*`) doesn't add much to the importing namespace, however
-it is still best practice to only import exactly what you need.
-
-Creating an :class:`Vector`
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Creating a :py:class:`Vector`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 A vector is created directly by passing the constructor the x, y and z
 components.
 
 .. code-block:: python
 
-	>>> vector = Vector(1, 2, 3)
+    >>> vector = Vector(1, 2, 3)
 
 An iterable can also be used, even another :class:`Vector`.
 
 .. code-block:: python
 
-	>>> vector = Vector([2.1, 6.5, 101.3])
-	>>> vector = Vector(Vector((4, 5, 6)))
+    >>> vector = Vector([2.1, 6.5, 101.3])
+    >>> vector = Vector(Vector((4, 5, 6)))
 
 An empty vector, or a vector of zeros can be created without any
 parameters to the constructor
 
 .. code-block:: python
 
-	>>> vector = Vector()
-	>>> print(vector)
-	[0, 0, 0]
+    >>> vector = Vector()
+    >>> print(vector)
+    [0, 0, 0]
 
-Creating an :class:`Matrix`
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Creating a :py:class:`Matrix`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 An :class:`Matrix` is created similarly to an :class:`Vector`, but
 instead of taking a single iterable with exactly three values, it
 takes three of them. Each of the iterables cooresponds to the row
@@ -50,154 +46,140 @@ of the matrix it represents.
 
 .. code-block:: python
 
-	>>> matrix = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
-	>>> print(matrix)
-	[[1, 2, 3]
-	[4, 5, 6]
-	[7, 8, 9]]
+    >>> matrix = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+    >>> print(matrix)
+    [[1, 2, 3]
+    [4, 5, 6]
+    [7, 8, 9]]
 
 Again, any iterable will work, including lists and :class:`Vectors`
 
 .. code-block:: python
 
-	>>> tp = (1, 2, 3)
-	>>> ls = [2, 4, 6]
-	>>> vec = Vector((3, 6, 9))
-	>>> matrix = Matrix(tp, ls, vec)
-	>>> print(matrix)
-	[[1, 2, 3]
-	[2, 4, 6]
-	[3, 6, 9]]
+    >>> tp = (1, 2, 3)
+    >>> ls = [2, 4, 6]
+    >>> vec = Vector((3, 6, 9))
+    >>> matrix = Matrix(tp, ls, vec)
+    >>> print(matrix)
+    [[1, 2, 3]
+    [2, 4, 6]
+    [3, 6, 9]]
 
 An empty :class:`Matrix` can also be created without passing any
 parameters into the constructor
 
 .. code-block:: python
-	
-	>>> matrix = Matrix()
-	>>> print(matrix)
-	[[0, 0, 0]
-	[0, 0, 0]
-	[0, 0, 0]]
+    
+    >>> matrix = Matrix()
+    >>> print(matrix)
+    [[0, 0, 0]
+    [0, 0, 0]
+    [0, 0, 0]]
 
 Arithmetic Operations
 ^^^^^^^^^^^^^^^^^^^^^
 
-The :class:`Vector` supports vector addition and subtraction as well
-as scalar multiplication and division.
+The :py:class:`Vector` and :py:class:`Matrix` support the standard operators
+for respective types. Both right and left multiplication of vectors and
+matrices are supported. The following demonstrate the possible operations:
 
 .. code-block:: python
 
-	>>> # vector addition
-	>>> print(Vector((1, 2, 3)) + Vector((5, 6, 7)))
-	[6, 8, 10]
-	>>> # vector subtraction
-	>>> print(Vector((7, 8, 5)) - Vector((10, 2, 7)))
-	[-3, 6, -2]
-	>>> # scalar multiplication
-	>>> print(Vector((3, 6, 9)) * 1.5)
-	[4.5, 9, 13.5]
-	>>> # scalar division
-	>>> print(Vector((7, 2, 8)) / 0.5)
-	[14, 4, 16]
+    >>> vector1 = Vector(1, 2, 3)
+    >>> vector2 = Vector(4, 5, 6)
+    >>> matrix1 = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+    >>> matrix2 = Matrix((3, 2, 1), (6, 5, 4), (9, 8, 7))
+    >>>
+    >>> vectorSum = vector1 + vector2
+    >>> vectorDiff = vector1 - vector2
+    >>> vectorMultS = vector1 * 2
+    >>> vectorMultM = vector1 @ matrix1
+    >>> vectorDiv = vector1 / 42
+    >>> vector1 += vector2
+    >>> vector1 -= vector2
+    >>> vector1 *= 1.5
+    >>> vector1 /= 34
+    >>> vectorNeg = -vector1
+    >>>
+    >>> matrixSum = matrix1 + matrix2
+    >>> matrixDiff = matrix1 - matrix2
+    >>> matrixMultS = matrix1 * 3.14
+    >>> matrixMultV = matrix1 @ vector1
+    >>> matrixMultM = matrix1 @ matrix2
+    >>> matrixDiv = matrix1 / 3.0
+    >>> matrix1 += matrix2
+    >>> matrix1 -= matrix2
+    >>> matrix1 *= 1.1
+    >>> matrix1 /= 2.2
+    >>> matrixNeg = -matrix1
 
-The :class:`Matrix` supports matrix addition and subtraction as well
-as scalar multiplication and division.
+Generating Matrices
+^^^^^^^^^^^^^^^^^^^
 
-.. code-block:: python
-
-	>>> matrix1 = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
-	>>> matrix2 = Matrix((9, 8, 7), (6, 5, 4), (3, 2, 1))
-	>>> # matrix addition
-	>>> print(matrix1 + matrix2)
-	[[10, 10, 10]
-	[10, 10, 10]
-	[10, 10, 10]]
-	>>> # matrix subtraction
-	>>> print(matrix1 - matrix2)
-	[[-8, -6, -4]
-	[-2, 0, 2]
-	[4, 6, 8]]
-	>>> # scalar multiplication
-	>>> print(matrix1 * 2)
-	[[2, 4, 6]
-	[8, 10, 12]
-	[14, 16, 18]]
-	>>> # scalar division
-	>>> print(matrix2 / 3)
-	[[3, 2.66667, 2.33333]
-	[2, 1.66667, 2.33333]
-	[1, 0.666667, 0.333333]]
-
-The :class:`Matrix` also supports left-hand matrix multiplication of
-:class:`Vectors`. The :class:`Matrix` acts as a linear transformation
-of the :class:`Vector`.
-
-	>>> matrix = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
-	>>> vector = Vector((1, 2, 3))
-	>>> # matrix multiplication
-	>>> result = matrix * vector
-	>>> print(result)
-	[14, 32, 50]
-	>>> type(result)
-	<class 'pyevspace.Vector'>
-
-Multiple linear transforms can also be compounded via matrix
-multiplication.
-
-	>>> # 90 degree rotation around x-axis
-	>>> matrix1 = Matrix((1, 0, 0), (0, 0, 1), (0, -1, 0))
-	>>> # 90 degree rotation around y-axis
-	>>> matrix2 = Matrix((0, 0, -1), (0, 1, 0), (1, 0, 0))
-	>>> # equivalent transormation equal to a 90 degree rotation around
-	>>> # the x-axis, followed by a 90 degree rotation around the y-axis
-	>>> compound = matrix2 * matrix1
-	>>> print(compound)
-	[[0, 1, 0]
-	[0, 0, 1]
-	[1, 0, 0]]
-
-Other :class:`Vector` Operators
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-There are other vector like operators for the :class:`Vector` class,
-include magnitude, norm, and dot and cross products.
+Rotation matrices can be generated using the getMatrix*
+:ref:`methods <mat-gen-label>`.
 
 .. code-block:: python
 
-	>>> vector1 = Vector((1, 2, 3))
-	>>> vector2 = Vector((4, 5, 6))
-	>>> # magnitude of a vector
-	>>> vector1.mag()
-	3.7416573867739413
-	>>> # vector norm
-	>>> print(norm(vector1))
-	[0.267261, 0.534522, 0.801784]
-	>>> # vector dot product
-	>>> dot(vector1, vector2)
-	32
-	>>> # vector cross product
-	>>> print(cross(vector1, vector2))
-	[-3, 6, -3]
+    >>> vector = Vector(1, 2, 3)
+    >>> axisRotation = getMatrixAxis(X_AXIS, 1.234)
+    >>> axisRotatedVector = axisRotation @ vector
+    >>>
+    >>> angles = Angles(1.0, 2.0, 3.0) # angles in radians
+    >>> eulerRotation = getMatrixEuler(ZYX, angles)
+    >>> eulerRotatedVector = eulerRotation @ vector
+    >>>
+    >>> anglesTo = Angles(3.0, 2.0, 1.0)
+    >>> rotation = getMatrixFromTo(XYZ, angles, YZY, anglesTo)
+    >>> fromToVector = vector @ rotation
 
-Other :class:`Matrix` Operators
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Rotating Vectors
+^^^^^^^^^^^^^^^^
 
-There are also two other operators for the :class:`Matrix` : transpose
-and determinate. 
+The rotate*To and rotate*From :ref:`methods <rotate-meth-label>` will
+handle all the nuance of rotating a vector for you. The same rotated
+vectors created above can be equivalently computed below:
 
 .. code-block:: python
 
-	>>> matrix = Matrix((7, 2, 5), (5, 2, 9), (6, 3, 3))
-	>>> # matrix transpose
-	>>> print(transpose(matrix))
-	[[7, 5, 6]
-	[2, 2, 3]
-	[5, 9, 3]]
-	>>> # determinate
-	>>> det(matrix)
-	-54.0
+    >>> vector = Vector(1, 2, 3)
+    >>> axisRotatedVector = rotateAxisFrom(X_AXIS, 1.234, vector)
+    >>>
+    >>> angles = Angles(1.0, 2.0, 3.0)
+    >>> eulerRotatedVector = rotateEulerFrom(ZYX, angles, vector))
+    >>>
+    >>> anglesTo = Angles(3.0, 2.0, 1.0)
+    >>> rotation = getMatrixFromTo(XYZ, angles, YZY, anglesTo)
+    >>> fromToVector = rotateMatrixTo(rotation, vector)
 
-Check out some more complex :doc:`examples <examples>` and the 
-:doc:`api reference </reference/api/index>` for more details about the
-types and methods of the package.
+Reference Frames
+^^^^^^^^^^^^^^^^
+
+ReferenceFrames can also manage rotating vectors for you.
+
+.. code-block:: python
+
+    >>> frameA = ReferenceFrame(XZX, Angles(1.0, 4.0, 2.1))
+    >>> frameB = ReferenceFrame(ZXY, Angles(1.57, 3.14, 2.5), offset=Vector(0, 1, 1))
+    >>>
+    >>> vector = Vector(1, 1, 1)
+    >>> fromAToB = frameA.rotateToFrame(frameB, vector)
+
+The following example shows four ways to compute the same rotated vector:
+
+.. code-block:: python
+
+    >>> vector = Vector(1, 2, 3)
+    >>> order = XYZ
+    >>> angles = Angles(1.0, 2.0, 3.0)
+    >>> matrix = getEulerMatrix(order, angles)
+    >>>
+    >>> # manually rotate to reference frame
+    >>> rotatedVector = vector @ matrix
+    >>> # use method
+    >>> rotatedVector = rotateMatrixTo(matrix, vector)
+    >>> # use method without needing matrix
+    >>> rotatedVector = rotateEulerTo(order, angles, vector)
+    >>> # use ReferenceFrame object
+    >>> frame = ReferenceFrame(order, angles)
+    >>> rotatedVector = frame.rotateTo(vector)

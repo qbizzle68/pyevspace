@@ -79,7 +79,7 @@ Arithmetic Operators
     Standard multiplication depending on the type of `other`:
 
         - :ref:`numeric <numeric-def>` - standard scalar multiplication
-        - :class:`EVector` - left-hand matrix multiplication of a vector
+        - :class:`Vector` - left-hand matrix multiplication of a vector
         - :class:`Matrix` - matrix multiplication of a matrix
 
     :param other: the object to multiply self by
