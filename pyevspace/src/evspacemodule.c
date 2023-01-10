@@ -344,59 +344,59 @@ EVSpace_CAPI* get_evspace_capi(void)
     capi->Order_New         = _order_new;
     capi->RefFrame_New      = _reference_frame_new;
 
-    capi->EVSpace_Vector_add        = _vector_add;
-    capi->EVSpace_Vector_subtract   = _vector_subtract;
-    capi->EVSpace_Vector_multiply   = _vector_multiply;
-    capi->EVSpace_Vector_multiply_matrix = _vector_multiply_matrix;
-    capi->EVSpace_Vector_divide     = _vector_divide;
-    capi->EVSpace_Vector_iadd       = _vector_iadd;
-    capi->EVSpace_Vector_isubtract  = _vector_isubtract;
-    capi->EVSpace_Vector_imultiply  = _vector_imultiply;
-    capi->EVSpace_Vector_idivide    = _vector_idivide;
-    capi->EVSpace_Vector_negative   = _vector_negative;
+    capi->Vector_add        = _vector_add;
+    capi->Vector_subtract   = _vector_subtract;
+    capi->Vector_multiply   = _vector_multiply;
+    capi->Vector_multiply_m = _vector_multiply_matrix;
+    capi->Vector_divide     = _vector_divide;
+    capi->Vector_iadd       = _vector_iadd;
+    capi->Vector_isubtract  = _vector_isubtract;
+    capi->Vector_imultiply  = _vector_imultiply;
+    capi->Vector_idivide    = _vector_idivide;
+    capi->Vector_negative   = _vector_negative;
 
-    capi->EVSpace_Matrix_add                = _matrix_add;
-    capi->EVSpace_Matrix_subtract           = _matrix_subtract;
-    capi->EVSpace_Matrix_multiply_vector    = _matrix_multiply_v;
-    capi->EVSpace_Matrix_multiply_matrix    = _matrix_multiply_m;
-    capi->EVSpace_Matrix_multiply_scalar    = _matrix_multiply_s;
-    capi->EVSpace_Matrix_divide             = _matrix_divide;
-    capi->EVSpace_Matrix_iadd               = _matrix_iadd;
-    capi->EVSpace_Matrix_isubtract          = _matrix_isubtract;
-    capi->EVSpace_Matrix_imultiply_scalar   = _matrix_imultiply_s;
-    capi->EVSpace_Matrix_idivide            = _matrix_idivide;
-    capi->EVSpace_Matrix_negative           = _matrix_negative;
+    capi->Matrix_add        = _matrix_add;
+    capi->Matrix_subtract   = _matrix_subtract;
+    capi->Matrix_multiply_v = _matrix_multiply_v;
+    capi->Matrix_multiply_m = _matrix_multiply_m;
+    capi->Matrix_multiply_s = _matrix_multiply_s;
+    capi->Matrix_divide     = _matrix_divide;
+    capi->Matrix_iadd       = _matrix_iadd;
+    capi->Matrix_isubtract  = _matrix_isubtract;
+    capi->Matrix_imultiply  = _matrix_imultiply_s;
+    capi->Matrix_idivide    = _matrix_idivide;
+    capi->Matrix_negative   = _matrix_negative;
 
-    capi->EVSpace_mag           = _vector_magnitude;
-    capi->EVSpace_mag_squared   = _vector_magnitude2;
-    capi->EVSpace_normalize     = _vector_normalize;
+    capi->Vector_mag        = _vector_magnitude;
+    capi->Vector_mag2       = _vector_magnitude2;
+    capi->Vector_normalize  = _vector_normalize;
 
-    capi->EVSpace_dot       = _vector_dot;
-    capi->EVSpace_cross     = _vector_cross;
-    capi->EVSpace_norm      = _vector_norm;
-    capi->EVSpace_vang      = _vector_angle;
-    capi->EVSpace_vxcl      = _vector_exclude;
-    capi->EVSpace_proj      = _vector_projection;
-    capi->EVSpace_det       = _matrix_determinate;
-    capi->EVSpace_transpose = _matrix_transpose;
+    capi->Vector_dot        = _vector_dot;
+    capi->Vector_cross      = _vector_cross;
+    capi->Vector_norm       = _vector_norm;
+    capi->Vector_vang       = _vector_angle;
+    capi->Vector_vxcl       = _vector_exclude;
+    capi->Vector_proj       = _vector_projection;
+    capi->Matrix_det        = _matrix_determinate;
+    capi->Matrix_transpose  = _matrix_transpose;
 
-    capi->EVSpace_get_matrix    = _get_rotation_matrix;
-    capi->EVSpace_get_euler     = _get_euler_matrix;
-    capi->EVSpace_from_to       = _get_matrix_from_to;
+    capi->Get_matrix        = _get_rotation_matrix;
+    capi->Get_euler         = _get_euler_matrix;
+    capi->Get_from_to       = _get_matrix_from_to;
 
-    capi->EVSpace_axis_to       = _rotate_axis_to;
-    capi->EVSpace_axis_from     = _rotate_axis_from;
-    capi->EVSpace_euler_to      = _rotate_euler_to;
-    capi->EVSpace_euler_from    = _rotate_euler_from;
-    capi->EVSpace_matrix_to     = _rotate_matrix_to;
-    capi->EVSpace_matrix_from   = _rotate_matrix_from;
-    capi->EVSpace_offset_to     = _rotate_offset_to;
-    capi->EVSpace_offset_from   = _rotate_offset_from;
+    capi->Rotate_axis_to       = _rotate_axis_to;
+    capi->Rotate_axis_from     = _rotate_axis_from;
+    capi->Rotate_euler_to      = _rotate_euler_to;
+    capi->Rotate_euler_from    = _rotate_euler_from;
+    capi->Rotate_matrix_to     = _rotate_matrix_to;
+    capi->Rotate_matrix_from   = _rotate_matrix_from;
+    capi->Rotate_offset_to     = _rotate_offset_to;
+    capi->Rotate_offset_from   = _rotate_offset_from;
 
-    capi->EVSpace_ref_to        = _refframe_rotate_to;
-    capi->EVSpace_ref_from      = _refframe_rotate_from;
-    capi->EVSpace_ref_to_ref    = _refframe_to_frame;
-    capi->EVSpace_ref_from_ref  = _refframe_from_frame;
+    capi->Rotate_ref_to        = _refframe_rotate_to;
+    capi->Rotate_ref_from      = _refframe_rotate_from;
+    capi->Rotate_ref_to_ref    = _refframe_to_frame;
+    capi->Rotate_ref_from_ref  = _refframe_from_frame;
 
     return capi;
 }
@@ -407,7 +407,7 @@ EVSpace_CAPI* get_evspace_capi(void)
 static void 
 evspace_destructor(PyObject* capi) 
 {
-    void* ptr = PyCapsule_GetPointer(capi, EVSpace_CAPSULE_NAME);
+    void* ptr = PyCapsule_GetPointer(capi, Evs_CAPSULE_NAME);
     free(ptr);
 }
 
@@ -543,7 +543,7 @@ static PyModuleDef EVSpace_Module = {
     {                                                       \
         PyObject* val = (PyObject*)new_order(f, s, l);      \
         PYEVSPACE_ADD_OBJECT(m, #order, val);               \
-        cap->EVSpace_##order = (const EVSpace_Order*)val;   \
+        cap->Order_##order = (const EVSpace_Order*)val;   \
     }
 
 static int
