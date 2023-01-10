@@ -4,801 +4,689 @@
 C API
 =====
 
-The C-API defines two structs that represent the EVector and EMatrix. 
+The C API provides C level access to the same types and methods as the Python
+API to extend or embed PyEVSpace in your own Python extensions. PyEVSpace
+provides a capsule that can be imported which provides binary level access
+to the types and methods of the package. This makes the capsule more like
+an application binary interface, similar to Pythons own ABI. You only need
+to include the evspace_api.h header and import the capsule, and you will
+have C level access to PyEVSpace.
 
 .. note::
-
-	All methods in the C API capsule return a :c:type:`PyObject`\ \*.
+    
+    All methods use the explicit types found in PyEVSpace, however they are
+    all derived from :c:`PyObject` and can therefore be cast to :c:`PyObject*`
+    if needed.
 
 Types
 -----
-	
+
 .. c:struct:: EVSpace_Vector
 
-	C struct that defines the Python EVector type. A pointer of this type can be
-	cast to or from a :c:type:`PyObject`\ \*.
+    C struct that defines the Python Vector type. A pointer of this type can
+    be cast to or from a :c:type:`PyObject`\ \*.
 
-	.. code-block:: c
+    .. code-block:: c
 
-		typedef struct {
-			PyObject_HEAD
-			double *data;
-		} EVSpace_Vector;
+        typedef struct {
+            PyObject_HEAD
+            double *data;
+        } EVSpace_Vector;
 
 .. c:member:: double* EVSpace_Vector.data
 
-	The internal data array for the vector. The memory is allocated in the
-	:c:type:`EVSpace_Vector` constructors to an array of length three. The
-	values of the array of course are mutable, however caution should be used
-	with resect to changing the actual pointer value. Setting the pointer to a
-	new array is much more efficient than copying memory into it, however if the 
-	object is currently in use by a buffer object such as a :py:class:`memoryview`, 
-	you may be unable to free the original data array without rendering any views
-	of the object useless, causing a memory leak. If you must change the pointer
-	value, be sure you have considered all upstream and downstream consequences
-	of doing so.
+    The internal data array for the vector. The memory is allocated in the
+    :c:type:`EVSpace_Vector` constructors to an array of length three. The
+    values of the array of course are mutable, however caution should be used
+    with resect to changing the actual pointer value. Setting the pointer to a
+    new array is much more efficient than copying memory into it, however if the 
+    object is currently in use by a buffer object such as a :py:class:`memoryview`, 
+    you may be unable to free the original data array without rendering any views
+    of the object useless, causing a memory leak. If you must change the pointer
+    value, be sure you have considered all upstream and downstream consequences
+    of doing so.
 
-	.. note::
+    .. note::
 
-		If you chose to change the value of the data pointer, you are responsible
-		for also freeing the memory. If you do not you must be sure that any other
-		resource with a reference to the memory will free it when it is no longer
-		in use, or else this will result in a memory leak.
+        If you chose to change the value of the data pointer, you are responsible
+        for also freeing the memory. If you do not you must be sure that any other
+        resource with a reference to the memory will free it when it is no longer
+        in use, or else this will result in a memory leak.
 
 .. c:struct:: EVSpace_Matrix
 
-	C struct that defines the Python EMatrix type.
+    C struct that defines the Python Matrix type.
 
-	.. code-block:: c
-		
-		typedef struct {
-			PyObject_HEAD
-			double *data;
-		} EVSpace_Matrix;
+    .. code-block:: c
+        
+        typedef struct {
+            PyObject_HEAD
+            double *data;
+        } EVSpace_Matrix;
 
 .. c:member:: double* EVSpace_Matrix.data
 
-	The internal data array for the matrix. The memory is allocated in the
-	:c:type:`EVSpace_Matrix` constructors to a one-demensional array of length
-	nine. The memory starts at index [0, 0] and increases by column first, then
-	by row. The mapping from two-dimensional indices to one-dimension is 
-	:math:`3 * row + col`. The :c:macro:`EVSpace_RC_INDEX` macro can be used for 
-	cleanly mapping between dimensions.
+    The internal data array for the matrix. The memory is allocated in the
+    :c:type:`EVSpace_Matrix` constructors to a one-demensional array of length
+    nine. The memory starts at index [0, 0] and increases by column first, then
+    by row. The mapping from two-dimensional indices to one-dimension is 
+    :math:`3 * row + col`. The :c:macro:`EVSpace_RC_INDEX` macro can be used for 
+    cleanly mapping between dimensions.
 
-	.. code-block: c
+    .. code-block: c
 
-		// not great, row and column indices not readable
-		data_array[5] = 3;
-		// okay, excessive code/memory usage
-		int row = 1;
-		int col = 2;
-		int index = 3 * row + col;
-		data_array[index] = 3;
-		// best use, clean and consice
-		data_array[EVSpace_RC_INDEX(1, 2)] = 3;
+        // not great, row and column indices not readable
+        data_array[5] = 3;
+        // okay, excessive code/memory usage
+        int row = 1;
+        int col = 2;
+        int index = 3 * row + col;
+        data_array[index] = 3;
+        // best use, clean and consice
+        data_array[EVSpace_RC_INDEX(1, 2)] = 3;
 
-	The :c:macro:`EVSpace_Matrix_COMPONENT` handles the mapping for you when 
-	dealing with an :c:type:`EVSpace_Matrix` instance.
+    The :c:macro:`EVSpace_Matrix_COMP` handles the mapping for you, when 
+    dealing with an :c:type:`EVSpace_Matrix` instance.
 
-	The values of the array of course are mutable, however caution should be used
-	with resect to changing the actual pointer value. Setting the pointer to a
-	new array is much more efficient than copying memory into it, however if the 
-	object is currently in use by a buffer object such as a :py:class:`memoryview`, 
-	you may be unable to free the original data array without rendering any views
-	of the object useless, causing a memory leak. If you must change the pointer
-	value, be sure you have considered all upstream and downstream consequences
-	of doing so.
+    The values of the array of course are mutable, however caution should be used
+    with resect to changing the actual pointer value. Setting the pointer to a
+    new array is much more efficient than copying memory into it, however if the 
+    object is currently in use by a buffer object such as a :py:class:`memoryview`, 
+    you may be unable to free the original data array without rendering any views
+    of the object useless, causing a memory leak. If you must change the pointer
+    value, be sure you have considered all upstream and downstream consequences
+    of doing so.
 
-	.. note::
+    .. note::
 
-		If you chose to change the value of the data pointer, you are responsible
-		for also freeing the memory. If you do not you must be sure that any other
-		resource with a reference to the memory will free it when it is no longer
-		in use, or else this will result in a memory leak.
+        If you chose to change the value of the data pointer, you are responsible
+        for also freeing the memory. If you do not you must be sure that any other
+        resource with a reference to the memory will free it when it is no longer
+        in use, or else this will result in a memory leak.
 
-.. c:struct:: EVSpace_CAPI
+.. c:struct:: EVSpace_Angles
 
-	Python capsule object that contain all functions of the pyevspace C API. For 
-	more details on capsules check out the official Python 
-	`docs <https://docs.python.org/3/extending/extending.html#providing-a-c-api-for-an-extension-module>`_.
-	The capsule can be imported using the :c:macro:`EVSpace_IMPORT` which sets
-	the global pointer :c:var:`EVSpaceAPI` using the :c:`PyCapsule_Import()` 
-	method. There are helper macros for every function inside the capsule to avoid
-	cumbersome method calls. For example to create a new :c:type:`EVSpace_Vector`
+    C struct that defines the Python Angles type.
 
-	.. code-block:: c
-		
-		new_vector_long = EVSpaceAPI->Vector_FromArray(arr, EVSpaceAPI->VectorType);
-		new_vector_short = Vector_FromArray(arr);
+    .. code-block:: c
+        
+        typedef struct {
+            PyObject_HEAD
+            double alpha;
+            double beta;
+            double gamma;
+        } EVSpace_Angles;
 
-	you can use the macro to massively reduce the length of your code. The struct
-	is defined as follows.
+.. c:member:: double EVSpace_Angles.alpha
 
-	.. code-block:: c
+    The first angle of an Euler rotation, in radians.
 
-		typedef struct {
-			/* type objects */
-			PyTypeObject* VectorType;
-			PyTypeObject* MatrixType;
+.. c:member:: double EVSpace_Angles.beta
 
-			/* constructors */
-			PyObject* (*Vector_FromArray)(double*, PyTypeObject*);
-			PyObject* (*Vector_StealArray)(double*, PyTypeObject*);
-			PyObject* (*Matrix_FromArray)(double*, PyTypeObject*);
-			PyObject* (*Matrix_StealArray)(double*, PyTypeObject*);
+    The second angle of an Euler rotation, in radians.
 
-			/* vector number methods */
-			PyObject* (*EVSpace_Vector_add)(const EVSpace_Vector*, const EVSpace_Vector*);
-			PyObject* (*EVSpace_Vector_subtract)(const EVSpace_Vector*, const EVSpace_Vector*);
-			PyObject* (*EVSpace_Vector_multiply)(const EVSpace_Vector*, double);
-			PyObject* (*EVSpace_Vector_divide)(const EVSpace_Vector*, double);
-			void (*EVSpace_Vector_iadd)(EVSpace_Vector*, const EVSpace_Vector*);
-			void (*EVSpace_Vector_isubtract)(EVSpace_Vector*, const EVSpace_Vector*);
-			void (*EVSpace_Vector_imultiply)(EVSpace_Vector*, double);
-			void (*EVSpace_Vector_idivide)(EVSpace_Vector*, double);
-			PyObject* (*EVSpace_Vector_negative)(const EVSpace_Vector*);
+.. c:member:: double EVSpace_Angles.gamma
 
-			/* matrix number methods */
-			PyObject* (*EVSpace_Matrix_add)(const EVSpace_Matrix*, const EVSpace_Matrix*);
-			PyObject* (*EVSpace_Matrix_subtract)(const EVSpace_Matrix*, const EVSpace_Matrix*);
-			PyObject* (*EVSpace_Matrix_multiply_vector)(const EVSpace_Matrix*, const EVSpace_Vector*);
-			PyObject* (*EVSpace_Matrix_multiply_matrix)(const EVSpace_Matrix*, const EVSpace_Matrix*);
-			PyObject* (*EVSpace_Matrix_multiply_scalar)(const EVSpace_Matrix*, double);
-			PyObject* (*EVSpace_Matrix_divide)(const EVSpace_Matrix*, double);
-			void (*EVSpace_Matrix_iadd)(EVSpace_Matrix*, const EVSpace_Matrix*);
-			void (*EVSpace_Matrix_isubtract)(EVSpace_Matrix*, const EVSpace_Matrix*);
-			void (*EVSpace_Matrix_imultiply_scalar)(EVSpace_Matrix*, double);
-			void (*EVSpace_Matrix_idivide)(EVSpace_Matrix*, double);
-			PyObject* (*EVSpace_Matrix_negative)(const EVSpace_Matrix*);
+    The third angle of an Euler rotation, in radians.
 
-			/* vector class methods */
-			double (*EVSpace_mag)(const EVSpace_Vector*);
-			double (*EVSpace_mag_squared)(const EVSpace_Vector*);
-			void (*EVSpace_normalize)(EVSpace_Vector*);
+.. c:enum:: EVSpace_Axis
 
-			/* module methods */
-			double (*EVSpace_dot)(const EVSpace_Vector*, const EVSpace_Vector*);
-			PyObject* (*EVSpace_cross)(const EVSpace_Vector*, const EVSpace_Vector*);
-			PyObject* (*EVSpace_norm)(const EVSpace_Vector*);
-			double (*EVSpace_vang)(const EVSpace_Vector*, const EVSpace_Vector*);
-			PyObject* (*EVSpace_vxcl)(const EVSpace_Vector*, const EVSpace_Vector*);
-			PyObject* (*EVSpace_proj)(const EVSpace_Vector*, const EVSpace_Vector*);
-			double (*EVSpace_det)(const EVSpace_Matrix*);
-			PyObject* (*EVSpace_transpose)(const EVSpace_Matrix*);
+    An enumerated axis type to distinguish between axes, mostly used in describing
+    Euler rotation orders.
 
-		} EVSpace_CAPI;
+    .. code-block:: c
 
-.. c:member:: PyTypeObject* EVSpace_CAPI.VectorType
+        typedef enum {
+            X_AXIS = 0,
+            Y_AXIS = 1,
+            Z_AXIS = 2
+        } EVSpace_Axis;
 
-	The static :c:type:`PyTypeObject` implementation of :c:type:`EVSpace_Vector`.
+.. c:enumerator:: EVSpace_Axis.X_AXIS
 
-.. c:member:: PyTypeObject* EVSpace_CAPI.MatrixType
+    Used to indicate the x-axis or an axis aliasing the x-axis in another named
+    reference frame. Has a value of 0.
 
-	The static :c:type:`PyTypeObject` implementation of :c:type:`EVSpace_Matrix`.
+.. c:enumerator:: EVSpace_Axis.Y_AXIS
 
-.. _functions-label:
+    Used to indicate the y-axis or an axis aliasing the y-axis in another named
+    reference frame. Has a value of 1.
 
-Functions
----------
+.. c:enumerator:: EVSpace_Axis.Z_AXIS
+
+    Used to indicate the z-axis or an axis aliasing the z-axis in another named
+    reference frame. Has a value of 2.
+
+.. c:struct:: EVSpace_Order
+
+    A type used to represent an Euler rotation, consisting of three axes, each
+    indicated by an :c:enum:`EVSpace_Axis`.
+
+    .. code-block:: c
+
+        typedef struct {
+            PyObject_HEAD
+            EVSpace_Axis first;
+            EVSpace_Axis second;
+            EVSpace_Axis third;
+        } EVSpace_Order;
+
+    There exist twelve unique Euler rotations, all of which are instantiated in
+    the PyEVSpace capsule. As a result, you likely do not need to instantiate
+    an EVSpace_Order object.
+
+.. c:struct:: EVSpace_ReferenceFrame
+
+    This C type is an idealized reference frame, which works by storing an
+    internal matrix that describes a rotation from an intertial (unrotated)
+    reference frame to this reference frame. The type also supports offset
+    frames as well.
+
+    .. code-block:: c
+
+        typedef struct {
+            PyObject_HEAD
+            EVSpace_Order* order;
+            EVSpace_Angles* angles;
+            EVSpace_Matrix* matrix;
+            EVSpace_Vector* offset;
+        } EVSpace_ReferenceFrame;
+
+Capsule
+^^^^^^^
+
+.. c:alias:: EVSpace_CAPI
+
+The full capsule documentation can be found :doc:`here <capsule>`. A list of
+its contents follow:
+
+Types
+"""""
+
+.. c:alias:: EVSpace_CAPI.VectorType
+             EVSpace_CAPI.MatrixType
+             EVSpace_CAPI.AnglesType
+             EVSpace_CAPI.OrderType
+             EVSpace_CAPI.RefFrameType
 
 Constructors
-^^^^^^^^^^^^
+""""""""""""
 
-.. c:function:: PyObject* EVSpace_CAPI.Vector_FromArray(double* array, \
-	PyTypeObject* type)
-
-	Creates a new :c:type:`EVSpace_Vector` instance by copying the data from
-	`array`. If `array` is NULL, the vector components will be initialized to 
-	zero.
-
-	The `array` parameter must have a size of at least three. Since the data is 
-	only copied from the array, it is still the users responsibility to free the
-	memory to avoid leaks.
-
-	The `type` parameter must be the :c:`PyTypeObject` implementation of 
-	:c:type:`EVSpace_Vector`, which can be found in the capsule as
-	:c:type:`VectorType`. 
-
-	:param array: array of size three with the x, y and z values
-	:param type: the Python type of :c:type:`EVSpace_Vector`
-	:return: a pointer to the new vector
-	:retval NULL: if an error occurred
-
-.. c:function:: PyObject* EVSpace_CAPI.Vector_StealArray(double* array, \
-	PyTypeObject* type)
-
-	Creates a new :c:type:`EVSpace_Vector` instance by stealing an array pointer
-	for the underlying data array. This is a much more efficient constructor 
-	than :c:func:`Vector_FromArray` because no copying is done. The underlying 
-	data pointer is set to the `array` parameter, and `array` is set to NULL on 
-	success.
-
-	The `type` parameter must be the :c:`PyTypeObject` implementation of
-	:c:type:`EVSpace_Vector`, which can be found in the capsule as 
-	:c:type:`VectorType`.
-
-	.. note::
-
-		The `array` parameter is set to NULL only if this function succeeds. If
-		the function does not succeed (NULL is returned) it is still the users
-		responsibility to free `array` to avoid a memory leak.
-
-	:param array: array of size three with the x, y and z value. set to NULL
-		on success
-	:param type: the Python type of :c:type:`EVSpace_Vector`
-	:return: a pointer to the new vector
-	:retval NULL: if an error occurred
-
-.. c:function:: PyObject* EVSpace_CAPI.Matrix_FromArray(double* array, \
-	PyTypeObject* type)
-
-	Creates a new :c:type:`EVSpace_Matrix` instance by copying the data from
-	`array`. If `array` is NULL, the matrix components will be initialized to 
-	zero.
-
-	The `array` parameter must have a size of at least nine. Since the data is 
-	only copied from the array, it is still the users responsibility to free the
-	memory to avoid leaks.
-
-	The `type` parameter must be the :c:`PyTypeObject` implementation of 
-	:c:type:`EVSpace_Matrix`, which can be found in the capsule as
-	:c:type:`MatrixType`. 
-
-	:param array: array of size nine holding the matrix component values
-	:param type: the Python type of :c:type:`EVSpace_Matrix`
-	:return: a pointer to the new matrix
-	:retval NULL: if an error occurred
-
-.. c:function:: PyObject* EVSpace_CAPI.Matrix_StealArray(double* array, \
-	PyTypeObject* type)
-
-	Creates a new :c:type:`EVSpace_Matrix` instance by stealing an array pointer
-	for the underlying data array. This is a much more efficient constructor 
-	than :c:func:`Matrix_FromArray` because no copying is done. The underlying 
-	data pointer is set to the `array` argument, and `array` is set to NULL on 
-	success.
-
-	The `type` parameter must be the :c:`PyTypeObject` implementation of
-	:c:type:`EVSpace_Matrix`, which can be found in the capsule as 
-	:c:type:`MatrixType`.
-
-	.. note::
-
-		The `array` parameter is set to NULL only if this function succeeds. If
-		the function does not succeed (NULL is returned) it is still the users
-		responsibility to free `array` to avoid a memory leak.
-
-	:param array: array of size nine holding the matrix component values
-	:param type: the Python type of :c:type:`EVSpace_Matrix`
-	:return: a pointer to the new matrix
-	:retval NULL: if an error occurred
+.. c:alias:: EVSpace_CAPI.Vector_FromArray
+             EVSpace_CAPI.Vector_StealArray
+             EVSpace_CAPI.Matrix_FromArray
+             EVSpace_CAPI.Matrix_StealArray
+             EVSpace_CAPI.Angles_New
+             EVSpace_CAPI.Order_New
+             EVSpace_CAPI.RefFrame_New
 
 Vector numeric methods
-^^^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""""
 
-.. c:function:: PyObject* EVSpace_CAPI.EVSpace_Vector_add(const EVSpace_Vector* \
-	lhs, const EVSpace_Vector* rhs)
-
-	Returns a new :c:type:`EVSpace_Vector` equal to :math:`lhs + rhs`.
-
-	:param lhs: vector to be added to
-	:param rhs: vector to add to
-	:return: the sum of `lhs` and `rhs`
-	:retval NULL: if an error occurred
-
-.. c:function:: PyObject* EVSpace_CAPI.EVSpace_Vector_subtract(const \
-	EVSpace_Vector* lhs, const EVSpace_Vector* rhs)
-
-	Returns a new :c:type:`EVSpace_Vector` equal to :math:`lhs - rhs`.
-
-	:param lhs: vector to be subtracted from
-	:param rhs: vector to subtract
-	:return: the difference of `lhs`, and `rhs`
-	:retval NULL: if an error occurred
-
-.. c:function:: PyObject* EVSpace_CAPI.EVSpace_Vector_multiply(const \
-	EVSpace_Vector* lhs, double scalar)
-
-	Returns a new :c:type:`EVSpace_Vector` equal to :math:`lhs * scalar`.
-
-	:param lhs: vector to be multiplied
-	:param rhs: scalar to multiply each element of `lhs` by
-	:return: the product of `lhs` and `scalar`
-	:retval NULL: if an error occurred
-
-.. c:function:: PyObject* EVSpace_CAPI.EVSpace_Vector_divide(const \
-	EVSpace_Vector* lhs, double scalar)
-
-	Returns a new :c:type:`EVSpace_Vector` equal to :math:`lhs / scalar`.
-	This is equivalent to 
-
-	.. code-block:: c
-
-		EVSpace_CAPI.EVSpace_Vector_multiply(lhs, 1.0 / scalar);
-
-.. c:function:: void EVSpace_CAPI.EVSpace_Vector_iadd(EVSpace_Vector* self, \
-	const EVSpace_Vector* other)
-
-	Inplace vector addition. This function doesn't call any Python code and will
-	always succeed.
-
-	:param self: vector to be added to
-	:param other: vector to add to `self`
-
-.. c:function:: void EVSpace_CAPI.EVSpace_Vector_isubtract(EVSpace_Vector* self, \
-	const EVSpace_Vector* other)
-
-	Inplace vector subtraction. This function doesn't call any Python code and 
-	will always succeed.
-
-	:param self: vector to be subtracted from
-	:param other: vector to subtract from `self`
-
-
-.. c:function:: void EVSpace_CAPI.EVSpace_Vector_imultiply(EVSpace_Vector* self, \
-	double scalar)
-
-	Inplace scalar multiplication. This function doesn't call any Python code 
-	and will always succeed.
-
-	:param self: vector to multiply
-	:param scalar: scalar to multiply `self` by
-
-.. c:function:: void EVSpace_CAPI.EVSpace_Vector_idivide(EVSpace_Vector* self, \
-	double scalar)
-
-	Inplace scalar division. This function doesn't call any Python code and will
-	always succeed.
-
-	:param self: vector to divide
-	:param scalar: scalar to divide `self` by
-
-.. c:function:: PyObject* EVSpace_CAPI.EVSpace_Vector_negative(const \
-	EVSpace_Vector* self)
-
-	Urnary negative operator, returns a new vector pointing in the opposite
-	direction of `self`.
-
-	:param self: vector to negate
-	:return: the negative vector of `self`
-	:retval NULL: if an error occurrs
+.. c:alias:: EVSpace_CAPI.Vector_add
+             EVSpace_CAPI.Vector_subtract
+             EVSpace_CAPI.Vector_multiply
+             EVSpace_CAPI.Vector_multiply_m
+             EVSpace_CAPI.Vector_divide
+             EVSpace_CAPI.Vector_iadd
+             EVSpace_CAPI.Vector_isubtract
+             EVSpace_CAPI.Vector_imultiply
+             EVSpace_CAPI.Vector_idivide
+             EVSpace_CAPI.Vector_negative
 
 Matrix numeric methods
-^^^^^^^^^^^^^^^^^^^^^^
-
-.. c:function:: PyObject* EVSpace_CAPI.EVSpace_Matrix_add(const EVSpace_Matrix* \
-	lhs, const EVSpace_Matrix* rhs)
-
-	Returns a new matrix equal to :math:`lhs + rhs`.
-
-	:param lhs: first matrix
-	:param rhs: second matrix
-	:return: matrix sum of `lhs` and `rhs`
-	:retval NULL: if an error occurred
-
-.. c:function:: PyObject* EVSpace_CAPI.EVSpace_Matrix_subtract(const \
-	EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
-
-	Returns a new matrix equal to :math:`lhs - rhs`.
-
-	:param lhs: first matrix
-	:param rhs: second matrix
-	:return: matrix difference of `lhs` and `rhs`
-	:retval NULL: if an error occurred
-
-.. c:function:: PyObject* EVSpace_CAPI.EVSpace_Matrix_multiply_vector(const \
-	EVSpace_Matrix* matrix, const EVSpace_Vector* vector)
-
-	Left-hand matrix multiplication of a vector.
-
-	:param matrix: matrix to multiply `vector` by
-	:param vector: vector to multiply
-	:return: a new transformed vector
-	:retval NULL: if an error occurred
-
-.. c:function:: PyObject* EVSpace_CAPI.EVSpace_Matrix_multiply_matrix(const \
-	EVSpace_Matrix* lhs, const EVSpace_Matrix* rhs)
-	
-	Compound two transformations via matrix multiplication.
-
-	:param lhs: first matrix
-	:param rhs: second matrix
-	:return: the compounded matrix
-	:retval NULL: if an error occurred
-
-.. c:function:: PyObject* EVSpace_CAPI.EVSpace_Matrix_multiply_scalar(const \
-	EVSpace_Matrix* self, double scalar)
-
-	Scalar matrix multiplication.
-
-	:param self: matrix to multipliy
-	:param scalar: scalar to multiply each component of `matrix` by
-	:return: matrix product
-	:retval NULL: if an error occurred
-
-.. c:function:: PyObject* EVSpace_CAPI.EVSpace_Matrix_divide(const \
-	EVSpace_Matrix* lhs, double scalar)
-
-	Matrix scalar division.
-
-	:param lhs: matrix to divide
-	:param scalar: scalar to divide each component of `matrix` by
-	:return: matrix quotient
-	:retval NULL: if an error occurred
-
-.. c:function:: void EVSpace_CAPI.EVSpace_Matrix_iadd(EVSpace_Matrix* self, \
-	const EVSpace_Matrix* other)
-
-	Inplace matrix addition, adding `other` to `self`
-
-	:param self: matrix to be added to
-	:param other: matrix to add to `self`
-
-.. c:function:: void EVSpace_CAPI.EVSpace_Matrix_isubtract(EVSpace_Matrix* self, \
-	const EVSpace_Matrix* other)
-
-	Inplace matrix subtraction, subtracting `other` from `self`.
-
-	:param self: matrix to be subtracted from
-	:param other: matrix to subtract
-
-.. c:function:: void EVSpace_CAPI.EVSpace_Matrix_imultiply_scalar(EVSpace_Matrix* \
-	self, double scalar)
-
-	Inplace scalar multiplication.
-
-	:param self: matrix to multiply
-	:param scalar: scalar to multiply each component of `matrix` by
-
-.. c:function:: void EVSpace_CAPI.EVSpace_Matrix_idivide(EVSpace_Matrix* self, \
-	double other)
-
-	Inplace scalar division.
-
-	:param self: matrix to divide
-	:param scalar: scalar to divide each component of `matrix` by
-
-.. c:function:: PyObject* EVSpace_CAPI.EVSpace_Matrix_negative(const \
-	EVSpace_Matrix* matrix)
-
-	Unary negative operator, negates each component of `matrix`.
-
-	:param matrix: matrix to negate
-	:return: negative matrix of `matrix`
-	:retval NULL: if an error occurred
-
-Vector type methods
-^^^^^^^^^^^^^^^^^^^
-
-.. c:function:: double EVSpace_CAPI.EVSpace_mag(const EVSpace_Vector* vector)
-
-	Computes the magnitude, or length, of a vector. This function doesn't call any
-	Python code and always succeeds.
-
-	:param vector: vector to compute the magnitude of
-	:return: the length of `vector`
-
-.. c:function:: double EVSpace_CAPI.EVSpace_mag_squared(const EVSpace_Vector* \
-	vector)
-
-	Computes the square of the magnitude of a vector. This is more efficient than
-	squaring the value returned from :c:func:`EVSpace_mag` and also avoids rounding
-	errors.
-
-	:param vector: vector to find the magnitude of
-	:return: the square of the length of `vector`
-
-.. c:function:: void EVSpace_CAPI.EVSpace_normalize(EVSpace_Vector* self)
-
-	Normalizes a vector inplace, which maintains its direction but changes its
-	length to 1.0.
-
-	:param self: vector to normalize
-
-.. c:function:: double EVSpace_CAPI.EVSpace_dot(const EVSpace_Vector* lhs, const \
-	EVSpace_Vector* rhs)
-
-	Computes the dot product of two vectors.
-
-	:param lhs: first vector
-	:param rhs: second vector
-	:return: the dot product of `lhs` and `rhs`
-
-.. c:function:: PyObject* EVSpace_CAPI.EVSpace_cross(const EVSpace_Vector* lhs, \
-	const EVSpace_Vector* rhs)
-
-	Computes the cross product of two vectors. This uses a right-hand coordinate
-	frame. This vector can be negated to compute a cross product for a left-hand
-	coordinate frame.
-
-	:param lhs: first vector
-	:param rhs: second vector
-	:return: the right-handed cross product of `lhs` and `rhs`
-	:retval NULL: if an error occurred
-
-.. c:function:: PyObject* EVSpace_CAPI.EVSpace_norm(const EVSpace_Vector* vector)
-
-	Returns a new vector equal to the norm of `self`. The returned vector points
-	in the same difection as `self` but has a length of 1.0.
-
-	:param self: vector to compute the norm of
-	:return: a normalized version of `self`
-	:retval NULL: if an error occurred
-
-.. c:function:: double EVSpace_CAPI.EVSpace_vang(const EVSpace_Vector* from, \
-	const EVSpace_Vector* to)
-
-	Compute the angle between two vectors. This is always the shortest angle 
-	between `from` and `to`.
-
-	Note: don't be confused by the nomenclature of the parameters,
-	:c:`EVSpace_vang(from, to)` is equal to :c:`EVSpace_vang(to, from)`.
-
-	:param from: first vector
-	:param to: second vector
-	:return: the shortest angle between `from` and `to` in radians
-
-.. c:function:: PyObject* EVSpace_CAPI.EVSpace_vxcl(const EVSpace_Vector* vector, \
-	const EVSpace_Vector* exclude)
-
-	Creates a new vector equal to `vector` with all parts of `exclude` removed
-	from it. This is in effect the vector projection of `vector` on the plane
-	whose normal vector is `exclude`. The result of this function and the 
-	`exclude` vector are linearly independent vectors.
-
-	:param vector: starting vector
-	:param exclude: vector to exclude from `vector`
-	:return: the projection of `vector` onto the plane whose normal vector is
-		`exclude`.
-	:retval NULL: if an error occurred
-	
-.. c:function:: PyObject* EVSpace_CAPI.EVSpace_proj(const EVSpace_Vector* proj, \
-	const EVSpace_Vector* onto)
-
-	The projection of one vector onto another. If the angle between vectors u and v
-	is theta, u projected onto v is the vector pointing in the direction of v whose
-	length is :math:`|u| * cos(theta)`. If the dot product of u and v is negative,
-	this vector points in the opposite direction of v.
-
-	:param proj: vector to project
-	:param onto: vector to be projected on
-	:return: the projection of `proj` onto `onto`
-	:retval NULL: if an error occurred
-
-Matrix type methods
-^^^^^^^^^^^^^^^^^^^
-
-.. c:function:: double EVSpace_CAPI.EVSpace_det(const EVSpace_Matrix* matrix)
-
-	Computes the determinate of a matrix.
-
-	:param matrix: matrix to compute the determinate of
-	:return: the determinate of `matrix`
-
-.. c:function:: PyObject* EVSpace_CAPI.EVSpace_transpose(const EVSpace_Matrix* \
-	matrix)
-
-	Returns a new matrix equal to the transpose of `matrix`. The returned matrix 
-	of this function has the values of `matrix` but with the rows and columns
-	switched.
-
-	:param matrix: matrix to transpose
-	:return: the transpose of `matrix`
-	:retval NULL: if an error occurred
+""""""""""""""""""""""
+
+.. c:alias:: EVSpace_CAPI.Matrix_add
+             EVSpace_CAPI.Matrix_subtract
+             EVSpace_CAPI.Matrix_multiply_v
+             EVSpace_CAPI.Matrix_multiply_m
+             EVSpace_CAPI.Matrix_multiply_s
+             EVSpace_CAPI.Matrix_divide
+             EVSpace_CAPI.Matrix_iadd
+             EVSpace_CAPI.Matrix_isubtract
+             EVSpace_CAPI.Matrix_imultiply
+             EVSpace_CAPI.Matrix_negative
+
+Vector instance methods
+"""""""""""""""""""""""
+
+.. c:alias:: EVSpace_CAPI.Vector_mag
+             EVSpace_CAPI.Vector_mag2
+             EVSpace_CAPI.Vector_normalize
+
+Vector module methods
+"""""""""""""""""""""
+
+.. c:alias:: EVSpace_CAPI.Vector_dot
+             EVSpace_CAPI.Vector_cross
+             EVSpace_CAPI.Vector_norm
+             EVSpace_CAPI.Vector_vang
+             EVSpace_CAPI.Vector_vxcl
+             EVSpace_CAPI.Vector_proj
+
+Matrix module methods
+"""""""""""""""""""""
+
+.. c:alias:: EVSpace_CAPI.Matrix_det
+             EVSpace_CAPI.Matrix_transpose
+
+Rotation order instances
+
+.. c:alias:: Order_XYZ
+             Order_XZY
+             Order_YXZ
+             Order_YZX
+             Order_ZXY
+             Order_ZYX
+             Order_XYX
+             Order_XZX
+             Order_YXY
+             Order_YZY
+             Order_ZXZ
+             Order_ZYZ
+
+Rotation matrix methods
+"""""""""""""""""""""""
+
+.. c:alias:: EVSpace_CAPI.Get_matrix
+             EVSpace_CAPI.Get_euler
+             EVSpace_CAPI.Get_from_to
+
+Vector rotate methods
+"""""""""""""""""""""
+
+.. c:alias:: EVSpace_CAPI.Rotate_axis_to
+             EVSpace_CAPI.Rotate_axis_from
+             EVSpace_CAPI.Rotate_euler_to
+             EVSpace_CAPI.Rotate_euler_from
+             EVSpace_CAPI.Rotate_matrix_to
+             EVSpace_CAPI.Rotate_matrix_from
+             EVSpace_CAPI.Rotate_offset_to
+             EVSpace_CAPI.Rotate_offset_from
+
+Reference frame functions
+"""""""""""""""""""""""""
+
+.. c:alias:: EVSpace_CAPI.Rotate_ref_to
+             EVSpace_CAPI.Rotate_ref_from
+             EVSpace_CAPI.Rotate_ref_to_ref
+             EVSpace_CAPI.Rotate_ref_from_ref
 
 Macros
-------
-
-Type ease of use
-^^^^^^^^^^^^^^^^
+^^^^^^
 
 .. c:macro:: EVSpace_VECTOR_X(obj)
 
-	Simplifies accessing the X component of a vector by casting `obj` to an
-	EVSpace_Vector* and calling the underlying array.
+    Simplifies accessing the X component of a vector by casting `obj` to an
+    EVSpace_Vector* and calling the underlying array.
 
-	:param obj: a PyObject* or EVSpace_Vector* to get the X component of
+    :param obj: a PyObject* or EVSpace_Vector* to get the X component of
 
 .. c:macro:: EVSpace_VECTOR_Y(obj)
 
-	Simplifies accessing the Y component of a vector by casting `obj` to an
-	EVSpace_Vector* and calling the underlying array.
+    Simplifies accessing the Y component of a vector by casting `obj` to an
+    EVSpace_Vector* and calling the underlying array.
 
-	:param obj: a PyObject* or EVSpace_Vector* to get the Y component of
+    :param obj: a PyObject* or EVSpace_Vector* to get the Y component of
 
 .. c:macro:: EVSpace_VECTOR_Z(obj)
 
-	Simplifies accessing the Z component of a vector by casting `obj` to an
-	EVSpace_Vector* and calling the underlying array.
+    Simplifies accessing the Z component of a vector by casting `obj` to an
+    EVSpace_Vector* and calling the underlying array.
 
-	:param obj: a PyObject* or EVSpace_Vector* to get the Z component of
+    :param obj: a PyObject* or EVSpace_Vector* to get the Z component of
 
 .. c:macro:: EVSpace_RC_INDEX(row, col)
 
-	Maps a row and column index to a single 1-dimensional contiguous array
-	index. This is simply :c:`3 * row + col`, but looks much cleaner in code.
+    Maps a row and column index to a single 1-dimensional contiguous array
+    index. This is simply :c:`3 * row + col`, but looks much cleaner in code.
 
-	.. code-block: c
-		
-		int row = 1;
-		int col = 2;
-		arr[EVSpace_RC_INDEX(row, col)] = 5;
+    .. code-block: c
+        
+        int row = 1;
+        int col = 2;
+        arr[EVSpace_RC_INDEX(row, col)] = 5;
 
-	:param row: row index
-	:param col: col index
+    :param row: row index
+    :param col: col index
 
-.. c:macro:: EVSpace_MATRIX_COMPONENT(obj, row, col)
+.. c:macro:: EVSpace_MATRIX_COMP(obj, row, col)
 
-	Simplifies accessing a component of `obj` by casting to a 
-	EVSpace_Matrix* and calling the underlying array.
+    Simplifies accessing a component of `obj` by casting to a 
+    EVSpace_Matrix* and calling the underlying array.
 
-	:param obj: a PyObject* or EVSpace_Vector* to get the component of
-	:param row: the row of the component to get
-	:param col: the column of the component to get
+    :param obj: a PyObject* or EVSpace_Vector* to get the component of
+    :param row: the row of the component to get
+    :param col: the column of the component to get
 
-Capsule ease of use
-^^^^^^^^^^^^^^^^^^^
+.. c:macro:: Vector_Check(obj)
+    
+    Checks if `obj` is an `EVSpace_VectorType`.
 
-.. c:macro:: EVSpace_CAPSULE_NAME
+    :param obj: a :c:`PyObject*` to check the type of
 
-	Unique identifier for the C API capsule.
+.. c:macro:: Matrix_Check(obj)
 
-The following macros are shorthand calls to the methods in the 
-:c:type:`EVSpace_CAPI` struct. Details of each method can be found in the
-:ref:`functions-label` section.
+    Checks if `obj` is an `EVSpace_MatrixType`.
 
-.. c:macro:: Vector_FromArray(array)
-		
-	See :c:type:`EVSpace_CAPI.Vector_FromArray`. 
-	
-	.. note::
-		
-		This macro handles the `type` argument in the constructor call.
+    :param obj: a :c:`PyObject*` to check the type of
+    
+.. c:macro:: Angles_Check(obj)
 
-.. c:macro:: Vector_StealArray(array)
+    Checks if `obj` is an `EVSpace_AnglesType`.
 
-	See :c:type:`EVSpace_CAPI.Vector_StealArray`.
+    :param obj: a :c:`PyObject*` to check the type of
 
-	.. note::
-		
-		This macro handles the `type` argument in the constructor call.
+.. c:macro:: Order_Check(obj)
 
-.. c:macro:: Matrix_FromArray(array)
+    Checks if `obj` is an `EVSpace_OrderType`.
 
-	See :c:type:`EVSpace_CAPI.Matrix_FromArray`.
+    :param obj: a :c:`PyObject*` to check the type of
 
-	.. note::
-		
-		This macro handles the `type` argument in the constructor call.
+.. c:macro:: ReferenceFrame_Check(obj)
 
-.. c:macro:: Matrix_StealArray(array)
+    Checks if `obj` is an `EVSpace_ReferenceFrameType`.
 
-	See :c:type:`EVSpace_CAPI.Matrix_StealArray`.
+    :param obj: a :c:`PyObject*` to check the type of
 
-	.. note::
+The following macros are all for calls to capsule functions. They are of the
+form Evs_XXX, where XXX is the name of the capsule function. The Order
+instances do not follow this rule, for example the macro for `Order_XYZ` is
+just `Evs_XYZ`.
 
-		This macro handles the `type` argument in the constructor call.
+Constructors
+""""""""""""
 
-.. c:macro:: EVSpace_Vector_add(rhs, lhs)
+The constructor macros handle the `type` argument in the constructor call.
 
-	See :c:type:`EVSpace_CAPI.EVSpace_Vector_add`.
+.. c:macro:: Evs_Vector_FromArray(array)
 
-.. c:macro:: EVSpace_Vector_subtract(rhs, lhs)
+    Maps to :c:func:`EVSpace_CAPI.Vector_FromArray`.
 
-	See :c:type:`EVSpace_CAPI.EVSpace_Vector_subtract`.
+.. c:macro:: Evs_Vector_StealArray(array)
 
-.. c:macro:: EVSpace_Vector_multiply(self, scalar)
+    Maps to :c:func:`EVSpace_CAPI.Vector_StealArray`.
 
-	See :c:type:`EVSpace_CAPI.EVSpace_Vector_multiply`.
+.. c:macro:: Evs_Matrix_FromArray(array)
 
-.. c:macro:: EVSpace_Vector_divide(self, scalar)
+    Maps to :c:func:`EVSpace_CAPI.Matrix_FromArray`.
 
-	See :c:type:`EVSpace_CAPI.EVSpace_Vector_divide`.
+.. c:macro:: Evs_Matrix_StealArray(array)
 
-.. c:macro:: EVSpace_Vector_iadd(self, other)
+    Maps to :c:func:`EVSpace_CAPI.Matrix_StealArray`.
 
-	See :c:type:`EVSpace_CAPI.EVSpace_Vector_iadd`.
+.. c:macro:: Evs_Angles_New(alpha, beta, gamma)
 
-.. c:macro:: EVSpace_Vector_isubtract(self, other)
+    Maps to :c:func:`EVSpace_CAPI.Angles_New`.
 
-	See :c:type:`EVSpace_CAPI.EVSpace_Vector_isubtract`.
+.. c:macro:: Evs_Order_New(order, angles)
 
-.. c:macro:: EVspace_Vector_imultiply(self, scalar)
+    Maps to :c:func:`EVSpace_CAPI.Order_New`.
 
-	See :c:type:`EVSpace_CAPI.EVspace_Vector_imultiply`.
+.. c:macro:: Evs_RefFrame_New(order, angles, offset)
 
-.. c:macro:: EVSpace_Vector_idivide(self, scalar)
+    Maps to :c:func:`EVSpace_CAPI.RefFrame_New`.
 
-	See :c:type:`EVSpace_CAPI.EVSpace_Vector_idivide`.
+Vector number methods
+"""""""""""""""""""""
 
-.. c:macro:: EVSpace_Vector_negative(self)
+.. c:macro:: Evs_Vector_add(lhs, rhs)
 
-	See :c:type:`EVSpace_CAPI.EVSpace_Vector_negative`.
+    Maps to :c:func:`EVSpace_CAPI.Vector_add`.
 
-.. c:macro:: EVSpace_Matrix_add(rhs, lhs)
+.. c:macro:: Evs_Vector_subtract(lhs, rhs)
 
-	See :c:type:`EVSpace_CAPI.EVSpace_Matrix_add`.
+    Maps to :c:func:`EVSpace_CAPI.Vector_subtract`.
 
-.. c:macro:: EVSpace_Matrix_subtract(rhs, lhs)
+.. c:macro:: Evs_Vector_multiply(self, scalar)
 
-	See :c:type:`EVSpace_CAPI.EVSpace_Matrix_subtract`.
+    Maps to :c:func:`EVSpace_CAPI.Vector_multiply`.
 
-.. c:macro:: EVSpace_Matrix_multiply_vector(rhs, lhs)
+.. c:macro:: Evs_Vector_multiply_m(lhs, rhs)
 
-	See :c:type:`EVSpace_CAPI.EVSpace_Matrix_multiply_vector`.
+    Maps to :c:func:`EVSpace_CAPI.Vector_multiply_m`.
 
-.. c:macro:: EVSpace_Matrix_multiply_matrix(rhs, lhs)
+.. c:macro:: Evs_Vector_divide(self, scalar)
 
-	See :c:type:`EVSpace_CAPI.EVSpace_Matrix_multiply_matrix`.
+    Maps to :c:func:`EVSpace_CAPI.Vector_divide`.
 
-.. c:macro:: EVSpace_Matrix_multiply_scalar(self, scalar)
+.. c:macro:: Evs_Vector_iadd(self, other)
 
-	See :c:type:`EVSpace_CAPI.EVSpace_Matrix_multiply_scalar`.
+    Maps to :c:func:`EVSpace_CAPI.Vector_iadd`.
 
-.. c:macro:: EVSpace_Matrix_divide(rhs, lhs)
+.. c:macro:: Evs_Vector_isubtract(self, other)
 
-	See :c:type:`EVSpace_CAPI.EVSpace_Matrix_divide`.
+    Maps to :c:func:`EVSpace_CAPI.Vector_isubtract`.
 
-.. c:macro:: EVSpace_Matrix_iadd(self, other)
+.. c:macro:: Evs_Vector_imultiply(self, scalar)
 
-	See :c:type:`EVSpace_CAPI.EVSpace_Matrix_iadd`.
+    Maps to :c:func:`EVSpace_CAPI.Vector_imultiply`.
 
-.. c:macro:: EVSpace_Matrix_isubtract(self, other)
+.. c:macro:: Evs_Vector_idivide(self, scalar)
 
-	See :c:type:`EVSpace_CAPI.EVSpace_Matrix_isubtract`.
+    Maps to :c:func:`EVSpace_CAPI.Vector_idivide`.
 
-.. c:macro:: EVSpace_Matrix_imultiply(self, scalar)
+.. c:macro:: Evs_Vector_negative(self)
 
-	See :c:type:`EVSpace_CAPI.EVSpace_Matrix_imultiply`.
+    Maps to :c:func:`EVSpace_CAPI.Vector_negative`.
 
-.. c:macro:: EVSpace_Matrix_idivide(self, scalar)
+Matrix number methods
+"""""""""""""""""""""
 
-	See :c:type:`EVSpace_CAPI.EVSpace_Matrix_idivide`.
+.. c:macro:: Evs_Matrix_add(lhs, rhs)
 
-.. c:macro:: EVSpace_Matrix_negative(self)
+    Maps to :c:func:`EVSpace_CAPI.Matrix_add`.
 
-	See :c:type:`EVSpace_CAPI.EVSpace_Matrix_negative`.
+.. c:macro:: Evs_Matrix_subtract(lhs, rhs)
 
-.. c:macro:: EVSpace_mag(self)
+    Maps to :c:func:`EVSpace_CAPI.Matrix_subtract`.
 
-	See :c:type:`EVSpace_CAPI.EVSpace_mag`.
+.. c:macro:: Evs_Matrix_multiply_v(lhs, rhs)
 
-.. c:macro:: EVSpace_mag_squared(self)
+    Maps to :c:func:`EVSpace_CAPI.Matrix_multiply_v`.
 
-	See :c:type:`EVSpace_CAPI.EVSpace_mag_squared`.
+.. c:macro:: Evs_Matrix_multiply_m(lhs, rhs)
 
-.. c:macro:: EVSpace_normalize(self)
+    Maps to :c:func:`EVSpace_CAPI.Matrix_multiply_m`.
 
-	See :c:type:`EVSpace_CAPI.EVSpace_normalize`.
+.. c:macro:: Evs_Matrix_multiply_s(self, scalar)
 
-.. c:macro:: EVSpace_dot(lhs, rhs)
+    Maps to :c:func:`EVSpace_CAPI.Matrix_multiply_s`.
 
-	See :c:type:`EVSpace_CAPI.EVSpace_dot`.
+.. c:macro:: Evs_Matrix_divide(lhs, rhs)
 
-.. c:macro:: EVSpace_cross(lhs, rhs)
+    Maps to :c:func:`EVSpace_CAPI.Matrix_divide`.
 
-	See :c:type:`EVSpace_CAPI.EVSpace_cross`.
+.. c:macro:: Evs_Matrix_iadd(self, other)
 
-.. c:macro:: EVSpace_norm(self)
+    Maps to :c:func:`EVSpace_CAPI.Matrix_iadd`.
 
-	See :c:type:`EVSpace_CAPI.EVSpace_norm`.
+.. c:macro:: Evs_Matrix_isubtract(self, other)
 
-.. c:macro:: EVSpace_vang(from, to)
+    Maps to :c:func:`EVSpace_CAPI.Matrix_isubtract`.
 
-	See :c:type:`EVSpace_CAPI.EVSpace_vang`.
+.. c:macro:: Evs_Matrix_imultiply(self, scalar)
 
-.. c:macro:: EVSpace_vxcl(vec, xcl)
+    Maps to :c:func:`EVSpace_CAPI.Matrix_imultiply`.
 
-	See :c:type:`EVSpace_CAPI.EVSpace_vxcl`.
+.. c:macro:: Evs_Matrix_idivide(self, scalar)
 
-.. c:macro:: EVSpace_proj(proj, onto)
+    Maps to :c:func:`EVSpace_CAPI.Matrix_idivide`.
 
-	See :c:type:`EVSpace_CAPI.EVSpace_proj`.
+.. c:macro:: Evs_Matrix_negative(self)
 
-.. c:macro:: EVSpace_det(self)
+    Maps to :c:func:`EVSpace_CAPI.Matrix_negative`.
 
-	See :c:type:`EVSpace_CAPI.EVSpace_det`.
+Vector instance methods
+"""""""""""""""""""""""
 
-.. c:macro:: EVSpace_transpose(self)
+.. c:macro:: Evs_mag(self)
 
-	See :c:type:`EVSpace_CAPI.EVSpace_transpose`.
+    Maps to :c:func:`EVSpace_CAPI.Vector_mag`.
+
+.. c:macro:: Evs_mag2(self)
+
+    Maps to :c:func:`EVSpace_CAPI.Vector_mag2`.
+
+.. c:macro:: Evs_normalize(self)
+
+    Maps to :c:func:`EVSpace_CAPI.Vector_normalize`.
+
+Vector functions
+""""""""""""""""
+
+.. c:macro:: Evs_dot(lhs, rhs)
+
+    Maps to :c:func:`EVSpace_CAPI.Vector_dot`.
+
+.. c:macro:: Evs_cross(lhs, rhs)
+
+    Maps to :c:func:`EVSpace_CAPI.Vector_cross`.
+
+.. c:macro:: Evs_norm(self)
+
+    Maps to :c:func:`EVSpace_CAPI.Vector_norm`.
+
+.. c:macro:: Evs_vang(from, to)
+
+    Maps to :c:func:`EVSpace_CAPI.Vector_vang`.
+
+.. c:macro:: Evs_vxcl(vec, xcl)
+
+    Maps to :c:func:`EVSpace_CAPI.Vector_vxcl`.
+
+.. c:macro:: Evs_proj(proj, onto)
+
+    Maps to :c:func:`EVSpace_CAPI.Vector_proj`.
+
+Matrix functions
+""""""""""""""""
+
+.. c:macro:: Evs_det(self)
+
+    Maps to :c:func:`EVSpace_CAPI.Matrix_det`.
+
+.. c:macro:: Evs_transpose(self)
+
+    Maps to :c:func:`EVSpace_CAPI.Matrix_transpose`.
+
+Rotation order instances
+""""""""""""""""""""""""
+
+.. c:macro:: Evs_XYZ
+
+    Maps to :c:var:`EVSpace_CAPI.Order_XYZ`.
+
+.. c:macro:: Evs_XZY
+
+    Maps to :c:var:`EVSpace_CAPI.Order_XZY`.
+
+.. c:macro:: Evs_YXZ
+
+    Maps to :c:var:`EVSpace_CAPI.Order_YXZ`.
+
+.. c:macro:: Evs_YZX
+
+    Maps to :c:var:`EVSpace_CAPI.Order_YZX`.
+
+.. c:macro:: Evs_ZXY
+
+    Maps to :c:var:`EVSpace_CAPI.Order_ZXY`.
+
+.. c:macro:: Evs_ZYX
+
+    Maps to :c:var:`EVSpace_CAPI.Order_ZYX`.
+
+.. c:macro:: Evs_XYX
+
+    Maps to :c:var:`EVSpace_CAPI.Order_XYX`.
+
+.. c:macro:: Evs_XZX
+
+    Maps to :c:var:`EVSpace_CAPI.Order_XZX`.
+
+.. c:macro:: Evs_YXY
+
+    Maps to :c:var:`EVSpace_CAPI.Order_YXY`.
+
+.. c:macro:: Evs_YZY
+
+    Maps to :c:var:`EVSpace_CAPI.Order_YZY`.
+
+.. c:macro:: Evs_ZXZ
+
+    Maps to :c:var:`EVSpace_CAPI.Order_ZXZ`.
+
+.. c:macro:: Evs_ZYZ
+
+    Maps to :c:var:`EVSpace_CAPI.Order_ZYZ`.
+
+Rotation matrix functions
+"""""""""""""""""""""""""
+
+.. c:macro:: Evs_get_matrix(axis, angle)
+
+    Maps to :c:func:`EVSpace_CAPI.Get_matrix`.
+
+.. c:macro:: Evs_get_euler(order, angles)
+
+    Maps to :c:func:`EVSpace_CAPI.Get_euler`.
+
+.. c:macro:: Evs_from_to(orderFrom, anglesFrom, orderTo, anglesTo)
+
+    Maps to :c:func:`EVSpace_CAPI.Get_from_to`.
+
+Rotate vector functions
+"""""""""""""""""""""""
+
+.. c:macro:: Evs_axis_to(axis, angle, vector)
+
+    Maps to :c:func:`EVSpace_CAPI.Rotate_axis_to`.
+
+.. c:macro:: Evs_axis_from(axis, angle, vector)
+
+    Maps to :c:func:`EVSpace_CAPI.Rotate_axis_from`.
+
+.. c:macro:: Evs_euler_to(order, angles, vector)
+
+    Maps to :c:func:`EVSpace_CAPI.Rotate_euler_to`.
+
+.. c:macro:: Evs_euler_from(order, angles, vector)
+
+    Maps to :c:func:`EVSpace_CAPI.Rotate_euler_from`.
+
+.. c:macro:: Evs_matrix_to(matrix, vector)
+
+    Maps to :c:func:`EVSpace_CAPI.Rotate_matrix_to`.
+
+.. c:macro:: Evs_matrix_from(matrix, vector)
+
+    Maps to :c:func:`EVSpace_CAPI.Rotate_matrix_from`.
+
+.. c:macro:: Evs_offset_to(matrix, offset, vector)
+
+    Maps to :c:func:`EVSpace_CAPI.Rotate_offset_to`.
+
+.. c:macro:: Evs_offset_from(matrix, offset, vector)
+
+    Maps to :c:func:`EVSpace_CAPI.Rotate_offset_from`.
+
+Reference frame functions
+"""""""""""""""""""""""""
+
+.. c:macro:: Evs_ref_to(frame, vector)
+
+    Maps to :c:func:`EVSpace_CAPI.Rotate_ref_to`.
+
+.. c:macro:: Evs_ref_from(frame, vector)
+
+    Maps to :c:func:`EVSpace_CAPI.Rotate_ref_from`.
+
+.. c:macro:: Evs_ref_to_ref(self, frameTo, vector)
+
+    Maps to :c:func:`EVSpace_CAPI.Rotate_ref_to_ref`.
+
+.. c:macro:: Evs_ref_from_ref(self, frameFrom, vector)
+
+    Maps to :c:func:`EVSpace_CAPI.Rotate_ref_from_ref`.

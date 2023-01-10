@@ -21,6 +21,117 @@ internally. This allows the most inexperienced user to safely
 rotate vectors between reference frames and keeps code clean and
 concise.
 
+How Rotations Work
+------------------
+Pure rotations work like a map from a vector space to itself. If the
+original reference frame is our normal x, y, z coordinate frame, a
+rotated vector is that original vector expressed with a differenct
+set of *basis* vectors.
+
+Basis Vectors
+^^^^^^^^^^^^^
+Simply speaking, basis vectors are the set of vectors that allow us to
+represent every vector in a vector space. For a Euclidean vector space
+these are usually the unit vectors pointing towards each positive axis,
+namely (1, 0, 0), (0, 1, 0) and (0, 0, 1), also called e1, e2 and e3
+respectively. Any vector in our vector space then, can be written as a 
+linear combination of our basis vectors: (a, b, c) = e1 * a + e2 * b + 
+e3 * c. Other sets of basis vectors also exist, as well show shortly.
+
+Rotation Matrix
+^^^^^^^^^^^^^^^
+A rotation matrix is simply a mapping of vectors. When right multiplying
+a matrix by a vector, we create a new vector that is a linear combination
+of the columns of our matrix (called the column space). In essence, we can
+think of these column vectors as a basis for a rotated reference frame in
+the same vector space. 
+
+For a simple example, think of the identity matrix as a rotation. Of course
+we know this is a rotation of zero radians, since no vector will be changed
+by multiplying by the identity matrix. This can be demonstrated by looking
+at the identity matrix's columns:
+
+.. code-block:: python
+    
+    >>> Matrix.id
+    Matrix([1, 0, 0]
+        [0, 1, 0]
+        [0, 0, 1])
+
+This first column, which represents where
+the x-axis is mapped to, is the x-axis (1, 0, 0). The second and third columns
+show the y and z axes also map to themselves, which is why each vector remains
+the same after being multiplied by the identity matrix.
+
+A more complex example can be seen using the Euler rotation around the axes
+X, Y and Z, with angles 1.0, 2.0 and 3.0 radians. This yields the rotation
+matrix:
+
+.. code-block:: python
+
+    >>> getMatrixEuler(XYZ, Angles(1.0, 2.0, 3.0))
+    Matrix([0.411982, 0.0587266, 0.909297]
+        [-0.681243, -0.642873, 0.350175]
+        [0.605127, -0.763718, -0.224845])
+
+Here the x-axis maps to the vector (0.411982, -0.681243, 0.605127). The y and z
+axes map to the second and third column vectors respectively. Because these 
+vectors are only rotations of our original axis vectors, they remain orthogonal
+to each other, meaning they are linearly independent, and since there's three of
+them in a 3-dimensional vector space, they form a basis. 
+
+The significance of
+this basis is it represents how the three axes of the reference frame defined
+by the Euler rotation are represented in our original basis. Therefore, by
+multiplying a vector from the rotated reference frame by our rotation matrix,
+we get a representation of that vector in the original basis. *This is
+equivalent to rotating the vector from the rotated reference frame, to the
+original reference frame.* Simply put, if we multiply our vectors on the right,
+the rotation matrix tells us how to move vectors from a rotated reference frame
+to the unrotated reference frame.
+
+Overly simplifying a few things, the rotation matrix that describes how to move
+the other direction between reference frames is simply the inverse of the
+original rotation matrix. Luckily, the inverse of a pure rotation matrix is its
+transpose, which is simple to compute. Therefore, multiplying a vector from our
+original reference frame on the right by the *transpose* of our matrix from
+above, rotates said vector *to* the rotated reference frame.
+
+Speeding Things Along
+^^^^^^^^^^^^^^^^^^^^^
+As you may have already noticed, multiplying the transpose of a matrix on the
+right generates the same output as if we multiplied the original matrix on the
+left. This is good for us, because it means we don't need to transpose our
+matrices, which otherwise would add more time to our computations. In summary,
+for an unrotated reference frame *A*, if we have a pure rotation matrix that
+describes a mapping to reference frame *B*, multiplying the matrix by a
+vector on the right rotates the vector from B to A. Multiplying the matrix by
+a vector on the left rotates the vector from A to B. Note the opposite is true
+if you inverse (transpose) the matrix.
+
+If M is a matrix representing a rotation from reference frame A to reference
+frame B:
+
+================= =========== ======================
+Mapping Direction Matrix Form Operation
+================= =========== ======================
+A -> B            normal      vB = vA @ M
+A -> B            transposed  vB = transpose(M) @ vA
+B -> A            normal      vA = M @ vB
+B -> A            transposed  vA = vB @ transpose(M)
+================= =========== ======================
+
+While several reference frame mappings exist, as long as they are pure rotations
+(no offset origins) a single matrix is enough describe the mapping. This allows
+us to use the rules above to rotate any vector using the matrix returned by one
+of the getMatrix* methods. To simplify all of this, PyEVSpace implements a
+collection of methods to handle all of the above for you. The rotate*To and
+rotate*From methods remove all of the complexities of rotations, while also
+eliminating the need for you to create a matrix yourself. While you now know how
+to rotate vectors yourself, it is advised to use these methods for cleaner code,
+to reduce errors and faster execution of the rotation.
+
+
 Generating Rotation Matrices
 ----------------------------
 

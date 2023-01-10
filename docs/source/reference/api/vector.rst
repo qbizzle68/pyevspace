@@ -97,6 +97,15 @@ Arithmetic Operators
 	:rtype: Vector
 	:raises TypeError: if `scalar` is not a :ref:`numeric <numeric-def>` type
 
+.. py:method:: Vector.__matmul__(matrix)
+
+	Multiplication with the vector on the left side.
+
+	:param Matrix matrix: the matrix to multiply self by
+	:return: the transformation of self by matrix
+	:rtype: Vector
+	:raises TypeError: if `matrix` is not a Matrix type
+
 .. py:method:: Vector.__truediv__(scalar)
 
 	Standard scalar division.

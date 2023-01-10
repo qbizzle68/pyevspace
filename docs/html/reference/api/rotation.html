@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Rotation API Reference &#8212; PyEVSpace 0.0.12 documentation</title>
+    <title>Rotation API Reference &#8212; PyEVSpace 0.0.12.3 documentation</title>
   
   
   
@@ -98,7 +98,7 @@
 
   
   
-    <p class="title logo__title">PyEVSpace 0.0.12 documentation</p>
+    <p class="title logo__title">PyEVSpace 0.0.12.3 documentation</p>
   
 </a>
     
@@ -248,7 +248,6 @@
   <div class="bd-toc-item navbar-nav">
     <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">PyEVSpace API</a><input checked class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="pyevspace.html">PyEVSpace Documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vector.html">Vector API Reference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="matrix.html">Matrix API Reference</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">Rotation API Reference</a></li>
@@ -256,6 +255,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../c-api/index.html">C API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../c-api/capsule.html">Capsule</a></li>
 </ul>
 
   </div>
@@ -292,29 +292,36 @@
 <nav class="contents" id="table-of-contents">
 <p class="topic-title">Table of Contents</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#rotation-api-reference" id="id3">Rotation API Reference</a></p>
+<li><p><a class="reference internal" href="#rotation-api-reference" id="id4">Rotation API Reference</a></p>
 <ul>
-<li><p><a class="reference internal" href="#generating-rotation-matrices" id="id4">Generating Rotation Matrices</a></p></li>
-<li><p><a class="reference internal" href="#rotating-vectors" id="id5">Rotating Vectors</a></p></li>
-<li><p><a class="reference internal" href="#rotation-types" id="id6">Rotation Types</a></p>
+<li><p><a class="reference internal" href="#how-rotations-work" id="id5">How Rotations Work</a></p>
 <ul>
-<li><p><a class="reference internal" href="#enumerated-axes" id="id7">Enumerated Axes</a></p></li>
-<li><p><a class="reference internal" href="#order" id="id8">Order</a></p>
-<ul>
-<li><p><a class="reference internal" href="#attributes" id="id9">Attributes</a></p></li>
-<li><p><a class="reference internal" href="#instance-methods" id="id10">Instance Methods</a></p></li>
+<li><p><a class="reference internal" href="#basis-vectors" id="id6">Basis Vectors</a></p></li>
+<li><p><a class="reference internal" href="#rotation-matrix" id="id7">Rotation Matrix</a></p></li>
+<li><p><a class="reference internal" href="#speeding-things-along" id="id8">Speeding Things Along</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#angles" id="id11">Angles</a></p>
+<li><p><a class="reference internal" href="#generating-rotation-matrices" id="id9">Generating Rotation Matrices</a></p></li>
+<li><p><a class="reference internal" href="#rotating-vectors" id="id10">Rotating Vectors</a></p></li>
+<li><p><a class="reference internal" href="#rotation-types" id="id11">Rotation Types</a></p>
 <ul>
-<li><p><a class="reference internal" href="#id1" id="id12">Attributes</a></p></li>
-<li><p><a class="reference internal" href="#id2" id="id13">Instance Methods</a></p></li>
+<li><p><a class="reference internal" href="#enumerated-axes" id="id12">Enumerated Axes</a></p></li>
+<li><p><a class="reference internal" href="#order" id="id13">Order</a></p>
+<ul>
+<li><p><a class="reference internal" href="#attributes" id="id14">Attributes</a></p></li>
+<li><p><a class="reference internal" href="#instance-methods" id="id15">Instance Methods</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#angles" id="id16">Angles</a></p>
+<ul>
+<li><p><a class="reference internal" href="#id2" id="id17">Attributes</a></p></li>
+<li><p><a class="reference internal" href="#id3" id="id18">Instance Methods</a></p></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#matrix-generator-methods" id="id14">Matrix Generator Methods</a></p></li>
-<li><p><a class="reference internal" href="#rotation-methods" id="id15">Rotation Methods</a></p></li>
+<li><p><a class="reference internal" href="#matrix-generator-methods" id="id19">Matrix Generator Methods</a></p></li>
+<li><p><a class="reference internal" href="#rotation-methods" id="id20">Rotation Methods</a></p></li>
 </ul>
 </li>
 </ul>
@@ -328,6 +335,123 @@ they handle deriving the necessary matrices and how to use them
 internally. This allows the most inexperienced user to safely
 rotate vectors between reference frames and keeps code clean and
 concise.</p>
+<section id="how-rotations-work">
+<h2>How Rotations Work<a class="headerlink" href="#how-rotations-work" title="Permalink to this heading">#</a></h2>
+<p>Pure rotations work like a map from a vector space to itself. If the
+original reference frame is our normal x, y, z coordinate frame, a
+rotated vector is that original vector expressed with a differenct
+set of <em>basis</em> vectors.</p>
+<section id="basis-vectors">
+<h3>Basis Vectors<a class="headerlink" href="#basis-vectors" title="Permalink to this heading">#</a></h3>
+<p>Simply speaking, basis vectors are the set of vectors that allow us to
+represent every vector in a vector space. For a Euclidean vector space
+these are usually the unit vectors pointing towards each positive axis,
+namely (1, 0, 0), (0, 1, 0) and (0, 0, 1), also called e1, e2 and e3
+respectively. Any vector in our vector space then, can be written as a
+linear combination of our basis vectors: (a, b, c) = e1 * a + e2 * b +
+e3 * c. Other sets of basis vectors also exist, as well show shortly.</p>
+</section>
+<section id="rotation-matrix">
+<h3>Rotation Matrix<a class="headerlink" href="#rotation-matrix" title="Permalink to this heading">#</a></h3>
+<p>A rotation matrix is simply a mapping of vectors. When right multiplying
+a matrix by a vector, we create a new vector that is a linear combination
+of the columns of our matrix (called the column space). In essence, we can
+think of these column vectors as a basis for a rotated reference frame in
+the same vector space.</p>
+<p>For a simple example, think of the identity matrix as a rotation. Of course
+we know this is a rotation of zero radians, since no vector will be changed
+by multiplying by the identity matrix. This can be demonstrated by looking
+at the identity matrix’s columns:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Matrix</span><span class="o">.</span><span class="n">id</span>
+<span class="go">Matrix([1, 0, 0]</span>
+<span class="go">    [0, 1, 0]</span>
+<span class="go">    [0, 0, 1])</span>
+</pre></div>
+</div>
+<p>This first column, which represents where
+the x-axis is mapped to, is the x-axis (1, 0, 0). The second and third columns
+show the y and z axes also map to themselves, which is why each vector remains
+the same after being multiplied by the identity matrix.</p>
+<p>A more complex example can be seen using the Euler rotation around the axes
+X, Y and Z, with angles 1.0, 2.0 and 3.0 radians. This yields the rotation
+matrix:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">getMatrixEuler</span><span class="p">(</span><span class="n">XYZ</span><span class="p">,</span> <span class="n">Angles</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">))</span>
+<span class="go">Matrix([0.411982, 0.0587266, 0.909297]</span>
+<span class="go">    [-0.681243, -0.642873, 0.350175]</span>
+<span class="go">    [0.605127, -0.763718, -0.224845])</span>
+</pre></div>
+</div>
+<p>Here the x-axis maps to the vector (0.411982, -0.681243, 0.605127). The y and z
+axes map to the second and third column vectors respectively. Because these
+vectors are only rotations of our original axis vectors, they remain orthogonal
+to each other, meaning they are linearly independent, and since there’s three of
+them in a 3-dimensional vector space, they form a basis.</p>
+<p>The significance of
+this basis is it represents how the three axes of the reference frame defined
+by the Euler rotation are represented in our original basis. Therefore, by
+multiplying a vector from the rotated reference frame by our rotation matrix,
+we get a representation of that vector in the original basis. <em>This is
+equivalent to rotating the vector from the rotated reference frame, to the
+original reference frame.</em> Simply put, if we multiply our vectors on the right,
+the rotation matrix tells us how to move vectors from a rotated reference frame
+to the unrotated reference frame.</p>
+<p>Overly simplifying a few things, the rotation matrix that describes how to move
+the other direction between reference frames is simply the inverse of the
+original rotation matrix. Luckily, the inverse of a pure rotation matrix is its
+transpose, which is simple to compute. Therefore, multiplying a vector from our
+original reference frame on the right by the <em>transpose</em> of our matrix from
+above, rotates said vector <em>to</em> the rotated reference frame.</p>
+</section>
+<section id="speeding-things-along">
+<h3>Speeding Things Along<a class="headerlink" href="#speeding-things-along" title="Permalink to this heading">#</a></h3>
+<p>As you may have already noticed, multiplying the transpose of a matrix on the
+right generates the same output as if we multiplied the original matrix on the
+left. This is good for us, because it means we don’t need to transpose our
+matrices, which otherwise would add more time to our computations. In summary,
+for an unrotated reference frame <em>A</em>, if we have a pure rotation matrix that
+describes a mapping to reference frame <em>B</em>, multiplying the matrix by a
+vector on the right rotates the vector from B to A. Multiplying the matrix by
+a vector on the left rotates the vector from A to B. Note the opposite is true
+if you inverse (transpose) the matrix.</p>
+<p>If M is a matrix representing a rotation from reference frame A to reference
+frame B:</p>
+<table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Mapping Direction</p></th>
+<th class="head"><p>Matrix Form</p></th>
+<th class="head"><p>Operation</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>A -&gt; B</p></td>
+<td><p>normal</p></td>
+<td><p>vB = vA &#64; M</p></td>
+</tr>
+<tr class="row-odd"><td><p>A -&gt; B</p></td>
+<td><p>transposed</p></td>
+<td><p>vB = transpose(M) &#64; vA</p></td>
+</tr>
+<tr class="row-even"><td><p>B -&gt; A</p></td>
+<td><p>normal</p></td>
+<td><p>vA = M &#64; vB</p></td>
+</tr>
+<tr class="row-odd"><td><p>B -&gt; A</p></td>
+<td><p>transposed</p></td>
+<td><p>vA = vB &#64; transpose(M)</p></td>
+</tr>
+</tbody>
+</table>
+<p>While several reference frame mappings exist, as long as they are pure rotations
+(no offset origins) a single matrix is enough describe the mapping. This allows
+us to use the rules above to rotate any vector using the matrix returned by one
+of the getMatrix* methods. To simplify all of this, PyEVSpace implements a
+collection of methods to handle all of the above for you. The rotate*To and
+rotate*From methods remove all of the complexities of rotations, while also
+eliminating the need for you to create a matrix yourself. While you now know how
+to rotate vectors yourself, it is advised to use these methods for cleaner code,
+to reduce errors and faster execution of the rotation.</p>
+</section>
+</section>
 <section id="generating-rotation-matrices">
 <h2>Generating Rotation Matrices<a class="headerlink" href="#generating-rotation-matrices" title="Permalink to this heading">#</a></h2>
 <p>The pyevspace module provides the following methods for generating
@@ -634,8 +758,8 @@ axis in its associated order object.</p>
 </dl>
 </dd></dl>
 
-<section id="id1">
-<h4>Attributes<a class="headerlink" href="#id1" title="Permalink to this heading">#</a></h4>
+<section id="id2">
+<h4>Attributes<a class="headerlink" href="#id2" title="Permalink to this heading">#</a></h4>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pyevspace.Angles.alpha">
 <span class="sig-prename descclassname"><span class="pre">Angles.</span></span><span class="sig-name descname"><span class="pre">alpha</span></span><a class="headerlink" href="#pyevspace.Angles.alpha" title="Permalink to this definition">#</a></dt>
@@ -655,8 +779,8 @@ axis in its associated order object.</p>
 </dd></dl>
 
 </section>
-<section id="id2">
-<h4>Instance Methods<a class="headerlink" href="#id2" title="Permalink to this heading">#</a></h4>
+<section id="id3">
+<h4>Instance Methods<a class="headerlink" href="#id3" title="Permalink to this heading">#</a></h4>
 <dl class="py method">
 <dt class="sig sig-object py" id="pyevspace.Angles.__len__">
 <span class="sig-prename descclassname"><span class="pre">Angles.</span></span><span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyevspace.Angles.__len__" title="Permalink to this definition">#</a></dt>
@@ -1092,6 +1216,28 @@ are not Vector types</p>
 <nav id="bd-toc-nav" class="page-toc">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#how-rotations-work">
+   How Rotations Work
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#basis-vectors">
+     Basis Vectors
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#rotation-matrix">
+     Rotation Matrix
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#speeding-things-along">
+     Speeding Things Along
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#generating-rotation-matrices">
    Generating Rotation Matrices
   </a>
@@ -1266,7 +1412,7 @@ are not Vector types</p>
       </a>
      </li>
      <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#id1">
+      <a class="reference internal nav-link" href="#id2">
        Attributes
       </a>
       <ul class="nav section-nav flex-column">
@@ -1300,7 +1446,7 @@ are not Vector types</p>
       </ul>
      </li>
      <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#id2">
+      <a class="reference internal nav-link" href="#id3">
        Instance Methods
       </a>
       <ul class="nav section-nav flex-column">

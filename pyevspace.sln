@@ -51,6 +51,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "api", "api", "{9C9921A2-239
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "c-api", "c-api", "{F0A423DB-B9B8-4D49-A2AD-A15C388AFBA0}"
 	ProjectSection(SolutionItems) = preProject
+		docs\source\reference\c-api\capsule.rst = docs\source\reference\c-api\capsule.rst
 		docs\source\reference\c-api\index.rst = docs\source\reference\c-api\index.rst
 	EndProjectSection
 EndProject
