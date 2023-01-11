@@ -605,7 +605,7 @@ _pyevspace_exec(PyObject* module)
     PYEVSPACE_ADD_ORDER(module, capi, ZXZ, Z_AXIS, X_AXIS, Z_AXIS);
     PYEVSPACE_ADD_ORDER(module, capi, ZYZ, Z_AXIS, Y_AXIS, Z_AXIS);
 
-    PyObject* capsule = PyCapsule_New(capi, EVSpace_CAPSULE_NAME, 
+    PyObject* capsule = PyCapsule_New(capi, Evs_CAPSULE_NAME, 
                                       evspace_destructor);
     if (!capsule) {
         free(capi);
