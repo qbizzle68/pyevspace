@@ -65,8 +65,14 @@ matrix_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED(_))
         return NULL;
     }
 
-    int none_count = Py_IsNone(parameters[0]) + Py_IsNone(parameters[1]) +
+    int none_count =
+#if PY_VERSION_HEX >= 0x03100000
+        Py_IsNone(parameters[0]) + Py_IsNone(parameters[1]) +
         Py_IsNone(parameters[2]);
+#else
+        (parameters[0] == Py_None) + (parameters[1] == Py_None) +
+        (parameters[2] == Py_None);
+#endif
     if (none_count == 3) {
         return (PyObject*)new_matrix_empty;
     }
@@ -198,10 +204,32 @@ matrix_richcompare(EVSpace_Matrix* self, PyObject* other, int op)
             (EVSpace_Matrix*)other
         );
         if (op == Py_EQ) {
+#if PY_VERSION_HEX >= 0x03100000
             return result ? Py_NewRef(Py_True) : Py_NewRef(Py_False);
+#else
+            if (result) {
+                Py_INCREF(Py_True);
+                return Py_True;
+            }
+            else {
+                Py_INCREF(Py_False);
+                return Py_False;
+            }
+#endif
         }
         else if (op == Py_NE) {
+#if PY_VERSION_HEX >= 0x03100000
             return result ? Py_NewRef(Py_False) : Py_NewRef(Py_True);
+#else
+            if (result) {
+                Py_INCREF(Py_False);
+                return Py_False;
+            }
+            else {
+                Py_INCREF(Py_True);
+                return Py_True;
+            }
+#endif
         }
     }
 
@@ -540,7 +568,12 @@ matrix_iadd(EVSpace_Matrix* self, PyObject* other)
 {
     if (Matrix_Check(self) && Matrix_Check(other)) {
         _matrix_iadd(self, (EVSpace_Matrix*)other);
+#if PY_VERSION_HEX >= 0x03100000
         return Py_NewRef(self);
+#else
+        Py_INCREF(self);
+        return (PyObject*)self;
+#endif
     }
 
     Py_RETURN_NOTIMPLEMENTED;
@@ -551,7 +584,12 @@ matrix_isubtract(EVSpace_Matrix* self, PyObject* other)
 {
     if (Matrix_Check(self) && Matrix_Check(other)) {
         _matrix_isubtract(self, (EVSpace_Matrix*)other);
+#if PY_VERSION_HEX >= 0x03100000
         return Py_NewRef(self);
+#else
+        Py_INCREF(self);
+        return (PyObject*)self;
+#endif
     }
 
     Py_RETURN_NOTIMPLEMENTED;
@@ -569,7 +607,12 @@ matrix_imultiply(EVSpace_Matrix* mat, PyObject* arg)
 
             _matrix_imultiply_s(mat, scalar);
 
+#if PY_VERSION_HEX >= 0x03100000
             return Py_NewRef(mat);
+#else
+            Py_INCREF(mat);
+            return (PyObject*)mat;
+#endif
         }
 
         // Python will fall back to 'mat = mat * arg' when NotImplemented is 
@@ -613,7 +656,12 @@ matrix_idivide(EVSpace_Matrix* mat, PyObject* arg)
 
         _matrix_idivide(mat, scalar);
 
+#if PY_VERSION_HEX >= 0x03100000
         return Py_NewRef(mat);
+#else
+        Py_INCREF(mat);
+        return (PyObject*)mat;
+#endif
     }
 
     Py_RETURN_NOTIMPLEMENTED;

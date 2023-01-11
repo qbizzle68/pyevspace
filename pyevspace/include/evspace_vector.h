@@ -195,15 +195,27 @@ vector_richcompare(EVSpace_Vector* self, PyObject* other, int op)
     if (Vector_Check(other)) {
         if (op == Py_EQ)
         {
-            return __vector_eq(self, (EVSpace_Vector*)other)
-                ? Py_NewRef(Py_True)
-                : Py_NewRef(Py_False);
+            if (__vector_eq(self, (EVSpace_Vector*)other)) {
+                Py_RETURN_TRUE;
+            }
+            else {
+                Py_RETURN_FALSE;
+            }
+            //return __vector_eq(self, (EVSpace_Vector*)other)
+                //? Py_NewRef(Py_True)
+                //: Py_NewRef(Py_False);
         }
         else if (op == Py_NE)
         {
-            return (!__vector_eq(self, (EVSpace_Vector*)other))
+            if (!__vector_eq(self, (EVSpace_Vector*)other)) {
+                Py_RETURN_TRUE;
+            }
+            else {
+                Py_RETURN_FALSE;
+            }
+            /*return (!__vector_eq(self, (EVSpace_Vector*)other))
                 ? Py_NewRef(Py_True)
-                : Py_NewRef(Py_False);
+                : Py_NewRef(Py_False);*/
         }
     }
 
@@ -457,7 +469,12 @@ vector_iadd(EVSpace_Vector* self, PyObject* other)
 {
     if (Vector_Check(self) && Vector_Check(other)) {
         _vector_iadd(self, (EVSpace_Vector*)other);
+#if PY_VERSION_HEX >= 0x03100000
         return Py_NewRef(self);
+#else
+        Py_INCREF(self);
+        return (PyObject*)self;
+#endif
     }
 
     Py_RETURN_NOTIMPLEMENTED;
@@ -468,7 +485,12 @@ vector_isubtract(EVSpace_Vector* self, PyObject* other)
 {
     if (Vector_Check(self) && Vector_Check(other)) {
         _vector_isubtract(self, (EVSpace_Vector*)other);
+#if PY_VERSION_HEX >= 0x03100000
         return Py_NewRef(self);
+#else
+        Py_INCREF(self);
+        return (PyObject*)self;
+#endif
     }
 
     Py_RETURN_NOTIMPLEMENTED;
@@ -485,7 +507,12 @@ vector_imultiply(EVSpace_Vector* self, PyObject* other)
 
         _vector_imultiply(self, scalar);
 
+#if PY_VERSION_HEX >= 0x03100000
         return Py_NewRef(self);
+#else
+        Py_INCREF(self);
+        return (PyObject*)self;
+#endif
     }
 
     Py_RETURN_NOTIMPLEMENTED;
@@ -513,7 +540,12 @@ vector_idivide(EVSpace_Vector* self, PyObject* other)
 
         _vector_idivide(self, scalar);
 
+#if PY_VERSION_HEX >= 0x03100000
         return Py_NewRef(self);
+#else
+        Py_INCREF(self);
+        return (PyObject*)self;
+#endif
     }
 
     Py_RETURN_NOTIMPLEMENTED;
@@ -686,7 +718,12 @@ vector_normalize(EVSpace_Vector* self, PyObject* Py_UNUSED)
 
     _vector_idivide(self, VECTOR_MAG(self));
 
+#if PY_VERSION_HEX >= 0x03100000
     return Py_NewRef(self);
+#else
+    Py_INCREF(self);
+    return (PyObject*)self;
+#endif
 }
 
 static PyObject*

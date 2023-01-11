@@ -15,6 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		pypi_build_upload.bat = pypi_build_upload.bat
 		README.md = README.md
 		setup.py = setup.py
+		tox.ini = tox.ini
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{A4204D87-0FF2-4065-BA6B-0DD092521C4E}"

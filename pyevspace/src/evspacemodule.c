@@ -80,7 +80,11 @@ static PyTypeObject EVSpace_VectorType = {
     .tp_as_sequence = &vector_as_sequence,
     .tp_str         = (reprfunc)vector_str,
     .tp_as_buffer   = &vector_buffer,
+#if PY_VERSION_HEX >= 0x03100000
     .tp_flags       = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE,
+#else
+    .tp_flags       = Py_TPFLAGS_DEFAULT,
+#endif
     .tp_doc         = vector_doc,
     .tp_richcompare = (richcmpfunc)&vector_richcompare,
     .tp_iter        = (getiterfunc)vector_iter,
@@ -141,7 +145,11 @@ static PyTypeObject EVSpace_MatrixType = {
     .tp_as_mapping  = &matrix_as_mapping,
     .tp_str         = (reprfunc)matrix_str,
     .tp_as_buffer   = &matrix_buffer,
+#if PY_VERSION_HEX >= 0x03100000
     .tp_flags       = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_MAPPING,
+#else
+    .tp_flags       = Py_TPFLAGS_DEFAULT,
+#endif
     .tp_doc         = matrix_doc,
     .tp_richcompare = (richcmpfunc)&matrix_richcompare,
     .tp_methods     = matrix_methods,
@@ -189,7 +197,11 @@ static PyTypeObject EVSpace_AnglesType = {
     .tp_repr        = (reprfunc)angles_repr,
     .tp_as_sequence = &angles_as_sequence,
     .tp_str         = (reprfunc)angles_str,
+#if PY_VERSION_HEX >= 0x03100000
     .tp_flags       = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE,
+#else
+    .tp_flags       = Py_TPFLAGS_DEFAULT,
+#endif
     .tp_doc         = angles_doc,
     .tp_methods     = angles_methods,
     .tp_members     = angles_members,
@@ -234,7 +246,11 @@ static PyTypeObject EVSpace_OrderType = {
     .tp_repr        = (reprfunc)order_repr,
     .tp_as_sequence = &order_as_sequence,
     .tp_str         = (reprfunc)order_str,
+#if PY_VERSION_HEX >= 0x03100000
     .tp_flags       = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE,
+#else
+    .tp_flags       = Py_TPFLAGS_DEFAULT,
+#endif
     .tp_doc         = order_doc,
     .tp_methods     = order_methods,
     .tp_members     = order_members,
@@ -558,9 +574,32 @@ _pyevspace_exec(PyObject* module)
     };
 
     for (int i = 0; i < Py_ARRAY_LENGTH(types); i++) {
+#if PY_VERSION_HEX >= 0x03090000
         if (PyModule_AddType(module, types[i]) < 0) {
             return -1;
         }
+#else
+        char* names[] = {
+            "Vector",
+            "Matrix",
+            "Angles",
+            "Order",
+            "ReferenceFrame"
+        };
+
+        if (PyType_Ready(types[i]) < 0) {
+            for (int j = 0; j < i; j++) {
+                Py_DECREF(types[j]);
+            }
+            return -1;
+        }
+        if (PyModule_AddObject(module, names[i], (PyObject*)types[i]) < 0) {
+            for (int j = 0; j < i; j++) {
+                Py_DECREF(types[j]);
+            }
+            return -1;
+        }
+#endif
     }
 
     double arr[3] = { 1.0, 0.0, 0.0 };

@@ -73,7 +73,12 @@ refframe_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 static PyObject*
 refframe_angles_getter(EVSpace_ReferenceFrame* self, void* closure)
 {
+#if PY_VERSION_HEX >= 0x03100000
     return Py_NewRef(self->angles);
+#else
+    Py_INCREF(self->angles);
+    return (PyObject*)self->angles;
+#endif
 }
 
 static int
@@ -188,7 +193,18 @@ static PyObject*
 refframe_offset_getter(EVSpace_ReferenceFrame* self, void* Py_UNUSED(_))
 {
     if (self->offset) {
+#if PY_VERSION_HEX >= 0x03100000
         return Py_NewRef(self->offset);
+#else
+        if (self->offset) {
+            Py_INCREF(self->offset);
+            return (PyObject*)self->offset;
+        }
+        else {
+            Py_INCREF(Py_None);
+            return Py_None;
+        }
+#endif
     }
     else {
         Py_RETURN_NONE;
