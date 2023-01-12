@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Installing PyEVSpace &#8212; PyEVSpace 0.0.12.3 documentation</title>
+    <title>Installing PyEVSpace &#8212; PyEVSpace 0.0.12.4 documentation</title>
   
   
   
@@ -98,7 +98,7 @@
 
   
   
-    <p class="title logo__title">PyEVSpace 0.0.12.3 documentation</p>
+    <p class="title logo__title">PyEVSpace 0.0.12.4 documentation</p>
   
 </a>
     
@@ -327,7 +327,48 @@ C, requiring the extension to be re-compiled everytime it is edited.</p>
 </section>
 <section id="using-visual-studio">
 <h3>Using Visual Studio<a class="headerlink" href="#using-visual-studio" title="Permalink to this heading">#</a></h3>
-<p>todo: find out what needs to be done to use VS out of the box</p>
+<p>PyEVSpace was built using Visual Studio, so you can work on it straight
+away using the solution in the repository. Clone the repo onto your machine
+using git</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">git clone https://github.com/qbizzle68/pyevspace.git</span>
+</pre></div>
+</div>
+<p>and open the <cite>pyevspace.sln</cite> file to develop using Visual Studio. You can
+also create a new project and use the ‘Clone a repository’ option, using
+<a class="github reference external" href="https://github.com/qbizzle68/pyevspace">qbizzle68/pyevspace</a> as the URL to clone from. You will
+need to create a virtual envirnoment to support the other tools used in
+development like sphinx and tox. Activate your virtual envirnoment and
+run:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">pip install -r requirements.txt</span>
+</pre></div>
+</div>
+<p>Optionally you can manually install only the packages you will need.</p>
+<p>The Visual Studio solution is configured to build the library to
+‘pyevspace/bin/$(Platform)’, where $(Platform) is something like x86 or x64. To build
+the package using setup.py check the section above.</p>
+<p>To use a difference IDE check how to develop Python extension modules
+on your specific development environment. You will need to list
+<cite>pyevspace/pyevspace/include</cite> in your include path.</p>
+</section>
+</section>
+<section id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Permalink to this heading">#</a></h2>
+<p>The test module is included in the distributed package and is built using
+unittest, Python’s default testing suite. If you have PyEVSpace in your
+environment, simply run:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">python -m unittest pyevspace.tests.pyevspace_tests</span>
+</pre></div>
+</div>
+<p>If for some reason you want a more verbose output, use the -v flag as well.</p>
+<section id="tox">
+<h3>Tox<a class="headerlink" href="#tox" title="Permalink to this heading">#</a></h3>
+<p>Since PyEVSpace supports multiple Python versions, we use tox to test across
+those versions. Tox is already configured to test Python versions 3.8 through
+3.11. To ensure any changes work on all supported versions, run:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">tox</span>
+</pre></div>
+</div>
+<p>It may take a minute to run the entire test suites for every version.</p>
 </section>
 </section>
 </section>
@@ -393,6 +434,18 @@ C, requiring the extension to be re-compiled everytime it is edited.</p>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#using-visual-studio">
      Using Visual Studio
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#testing">
+   Testing
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#tox">
+     Tox
     </a>
    </li>
   </ul>

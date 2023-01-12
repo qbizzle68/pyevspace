@@ -6,12 +6,20 @@
 PyEVSpace Documentation
 =======================
 
-**Version**: |version| 
+.. image:: https://img.shields.io/pypi/l/pyevspace?style=plastic
+    :target: https://opensource.org/licenses/MIT
+    :alt: PyPI - License
 
-**Links**: 
-:doc:`Install <user/install>` |
-`Source Code <https://github.com/qbizzle68/pyevspace>`_ |
-`Issues <https://github.com/qbizzle68/pyevspace/issues>`_
+.. image:: https://img.shields.io/pypi/v/pyevspace?style=plastic
+    :target: https://pypi.org/project/pyevspace/#history
+    :alt: PyPI
+
+.. image:: https://img.shields.io/pypi/pyversions/pyevspace?style=plastic
+    :alt: PyPI - Python Version
+
+.. line-block::
+
+    **Links**: :doc:`Install <user/install>` | https://github.com/qbizzle68/pyevspace | `Issues <https://github.com/qbizzle68/pyevspace/issues>`_
 
 .. toctree::
    :maxdepth: 2
