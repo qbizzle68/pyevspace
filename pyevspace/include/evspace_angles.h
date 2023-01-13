@@ -27,7 +27,7 @@ _angles_new(double alpha, double beta, double gamma, PyTypeObject* type)
 #define new_angle_empty		new_angles(0.0, 0.0, 0.0);
 
 static PyObject*
-angles_new(PyTypeObject* type, PyObject* args, PyObject* PyUNUSED(_))
+angles_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED(_))
 {
     double alpha, beta, gamma;
 
