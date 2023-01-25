@@ -240,41 +240,33 @@ static EVSpace_Vector*
 _rotate_offset_to(const EVSpace_Matrix* matrix, const EVSpace_Vector* offset,
                   const EVSpace_Vector* vector)
 {
-    EVSpace_Vector* rotated_vector = _vector_multiply_matrix(vector, matrix);
-    if (!rotated_vector) {
+    // vectorF = vectorR + offset
+    // find vector in fixed reference frame
+    EVSpace_Vector* vector_rotated_frame = _vector_subtract(vector, offset);
+    if (!vector_rotated_frame) {
         return NULL;
     }
 
-    EVSpace_Vector* rotated_offset = _vector_multiply_matrix(offset, matrix);
-    if (!rotated_offset) {
-        Py_DECREF(rotated_vector);
-        return NULL;
-    }
-
-    EVSpace_Vector* rtn = _vector_subtract(rotated_vector, rotated_offset);
-    Py_DECREF(rotated_vector);
-    Py_DECREF(rotated_offset);
-    return rtn;
+    // rotate vector to rotated reference frame
+    EVSpace_Vector* rotated_vector = _vector_multiply_matrix(vector_rotated_frame, matrix);
+    Py_DECREF(vector_rotated_frame);
+    return rotated_vector;
 }
 
 static EVSpace_Vector*
 _rotate_offset_from(const EVSpace_Matrix* matrix, const EVSpace_Vector* offset,
                     const EVSpace_Vector* vector)
 {
-    EVSpace_Vector* rotated_offset = _vector_multiply_matrix(offset, matrix);
-    if (!rotated_offset) {
+    // rotate vector back to a fixed frame basis
+    EVSpace_Vector* vector_rotated_frame = _matrix_multiply_v(matrix, vector);
+    if (!vector_rotated_frame) {
         return NULL;
     }
 
-    EVSpace_Vector* rotated_vector = _vector_add(vector, rotated_offset);
-    Py_DECREF(rotated_offset);
-    if (!rotated_vector) {
-        return NULL;
-    }
-
-    EVSpace_Vector* rtn = _matrix_multiply_v(matrix, rotated_vector);
-    Py_DECREF(rotated_vector);
-    return rtn;
+    // vectorF = vectorR + offset
+    EVSpace_Vector* vector_fixed_frame = _vector_add(vector_rotated_frame, offset);
+    Py_DECREF(vector_rotated_frame);
+    return vector_fixed_frame;
 }
 
 static PyObject*
