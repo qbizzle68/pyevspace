@@ -1,5 +1,5 @@
 # Changelog
 
-## pyevspace 0.0.13
+## pyevspace 0.0.12.5
 
-Consolidated the extension into the pyevspace package.
+Efficiency improvements in rotateOffset* methods.
