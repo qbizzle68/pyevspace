@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.1] - 2023-07-24
+
+### Security
+
+- Upgraded Pygments to 2.15.1 due to ReDoS vulnerability.
+- Upgraded requests to 2.31.0 due to potentially leaking Proxy-Authorization headers.
+
 ## [0.13.0] - 2023-07-24
 
 ### Added
