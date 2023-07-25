@@ -207,7 +207,8 @@ release will be removed from pip and git releases.
 
 Initial version of project.
 
-[unreleased]: https://github.com/qbizzle68/pyevspace/compare/v0.13.0...HEAD
+[unreleased]: https://github.com/qbizzle68/pyevspace/compare/v0.13.1...HEAD
+[0.13.1]: https://github.com/qbizzle68/pyevspace/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/qbizzle68/pyevspace/compare/v0.12.5...v0.13.0
 [0.12.5]: https://github.com/qbizzle68/pyevspace/compare/v0.12.4...v0.12.5
 [0.12.4]: https://github.com/qbizzle68/pyevspace/compare/v0.12.3...v0.12.4
