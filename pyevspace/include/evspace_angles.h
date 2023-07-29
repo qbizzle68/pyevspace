@@ -23,7 +23,7 @@ _angles_new(double alpha, double beta, double gamma, PyTypeObject* type)
     return angles;
 }
 
-#define new_angle(a, b, g)	_angles_new(a, b, c, &EVSpace_AnglesType);
+#define new_angle(a, b, g)	_angles_new(a, b, g, &EVSpace_AnglesType);
 #define new_angle_empty		new_angles(0.0, 0.0, 0.0);
 
 static PyObject*
