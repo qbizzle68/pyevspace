@@ -25,10 +25,17 @@ _reference_frame_new(EVSpace_Order* order, EVSpace_Angles* angles,
     if (!rot->matrix) {
         return NULL;
     }
+
+    // Create a copy of the angles type to ensure each EVSpace_Angles type has a single master.
+    EVSpace_Angles* tmp = new_angle(angles->alpha, angles->beta, angles->gamma);
+    if (!tmp) {
+        Py_DECREF(rot->matrix);
+        return NULL;
+    }
+    rot->angles = tmp;
+
     rot->order = order;
     Py_INCREF(rot->order);
-    rot->angles = angles;
-    Py_INCREF(rot->angles);
     rot->offset = offset;
     Py_XINCREF(rot->offset);
 
