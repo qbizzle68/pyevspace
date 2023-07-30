@@ -78,6 +78,23 @@ refframe_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
                                            (EVSpace_Vector*)offset, type);
 }
 
+static int
+_refframe_update_matrix(EVSpace_ReferenceFrame* frame)
+{
+    EVSpace_Matrix*
+    matrix = (EVSpace_Matrix*)_get_euler_matrix(frame->order, frame->angles);
+
+    if (!matrix) {
+        return -1;
+    }
+
+    PyObject* tmp = (PyObject*)frame->matrix;
+    frame->matrix = matrix;
+    Py_XDECREF(tmp);
+
+    return 0;
+}
+
 static PyObject*
 refframe_angles_getter(EVSpace_ReferenceFrame* self, void* closure)
 {
@@ -105,27 +122,20 @@ refframe_angles_setter(EVSpace_ReferenceFrame* self, EVSpace_Angles* arg,
         return -1;
     }
 
-    EVSpace_Matrix*
-    matrix = (EVSpace_Matrix*)_get_euler_matrix(self->order, arg);
-    if (!matrix) {
-        return -1;
-    }
-
     // Copy the angles to enforce self is the instance's only master.
     EVSpace_Angles* angs_copy = new_angle(arg->alpha, arg->beta, arg->gamma);
     if (!angs_copy) {
-        Py_DECREF(matrix);
         return -1;
     }
 
-    self->angles->master = NULL;
+    // Keep the old angles object to revert if theres an error creating matrix.
     PyObject* tmp = (PyObject*)self->angles;
     self->angles = angs_copy;
-    Py_XDECREF(tmp);
-
-    tmp = (PyObject*)self->matrix;
-    self->matrix = matrix;
-    Py_XDECREF(tmp);
+    if (_refframe_update_matrix(self) < 0) {
+        Py_XDECREF(self->angles);
+        self->angles = (EVSpace_Angles*)tmp;
+        return -1;
+    }
 
     return 0;
 }
