@@ -39,36 +39,46 @@ static PyBufferProcs vector_buffer = {
     .bf_releasebuffer   = (releasebufferproc)release_buffer
 };
 
+PyDoc_STRVAR(vector_mag2_doc, "mag() -> float\n\
+\n\
+Computes the square of the magnitude of a vector. Eliminates\n\
+round-off error when squaring the result of mag().");
+
+PyDoc_STRVAR(vector_norm_doc, "normalize() -> Vector\n\
+\n\
+Modifies the vector to a length of 1, while preserving\n\
+its direction.");
+
+PyDoc_STRVAR(vector_reduce_doc, "__reduce__() -> (cls, (x, y, z))\n\
+\n\
+Allows pickling of the Vector type by returning the constructor\n\
+and arguments to recreate the Vector.");
+
 static PyMethodDef vector_methods[] = {
 
     /* instance methods */
 
     {"mag",         (PyCFunction)vector_magnitude, METH_NOARGS,
-     PyDoc_STR("mag() -> float\n\nComputes the magnitude of a vector")},
+     PyDoc_STR("mag() -> float\n\nComputes the magnitude of a vector.")},
 
     {"mag2",        (PyCFunction)vector_magnitude_square, METH_NOARGS, 
-     PyDoc_STR("mag2() -> float\n\nComputes the square of the magnitude of a "
-               "vector. Eliminates round-off error when squaring the result "
-               "of mag().")},
+     vector_mag2_doc},
 
     {"normalize",   (PyCFunction)vector_normalize, METH_NOARGS,
-     PyDoc_STR("normalize() -> Vector\n\nModifies the vector to a length of "
-               "1, while preserving its direction.")},
+     vector_norm_doc},
 
     {"__reduce__",  (PyCFunction)vector_reduce, METH_NOARGS, 
-     PyDoc_STR("__reduce__() -> (cls, (x, y, z))\n\nAllows pickling of the "
-               "Vector type by returning the constructor and arguments to "
-               "recreate the Vector.")},
+     vector_reduce_doc},
 
     {NULL}
 };
 
 PyDoc_STRVAR(vector_doc, "Vector([{x, y, z | iterable}])\n\
 \n\
-The Vector can be constructed with an iterable of length 3, or directly with\
-the x, y and z components. All components must be numeric types. \
-Alternatively the components will default to zero if no argument is \
-specified.");
+The Vector can be constructed with an iterable of length 3, or\n\
+directly with the x, y and z components. All components must be\n\
+numeric types. Alternatively the components will default to zero\n\
+if no argument is specified.");
 
 static PyTypeObject EVSpace_VectorType = {
     PyVarObject_HEAD_INIT(NULL, 0)
@@ -120,20 +130,24 @@ static PyBufferProcs matrix_buffer = {
     .bf_releasebuffer   = (releasebufferproc)release_buffer
 };
 
+PyDoc_STRVAR(matrix_reduce_doc, "__reduce__() -> (cls, state)\n\
+\n\
+Allows pickling of the Matrix type by returning the constructor\n\
+and arguments to recreate the Matrix.");
+
 static PyMethodDef matrix_methods[] = {
     {"__reduce__", (PyCFunction)matrix_reduce, METH_NOARGS, 
-     PyDoc_STR("__reduce__() -> (cls, state)\n\nAllows pickling of the "
-               "Matrix type by returning the constructor and arguments to "
-               "recreate the Matrix.")},
+     matrix_reduce_doc},
+
     {NULL}
 };
 
 PyDoc_STRVAR(matrix_doc, "Matrix([row0, row1, row2])\n\
 \n\
-The Matrix can be constructed with three iterables, all of length three, \
-whose components are numeric types. Each iterable represents a row of the \
-matrix and are all required. Alternatively if no arguments are present each \
-component is defaulted to zero.");
+The Matrix can be constructed with three iterables, all of length\n\
+three, whose components are numeric types. Each iterable represents\n\
+a row of the matrix and are all required. Alternatively if no arguments\n\
+are present each component is defaulted to zero.");
 
 static PyTypeObject EVSpace_MatrixType = {
     PyVarObject_HEAD_INIT(NULL, 0)
@@ -174,11 +188,14 @@ static PyGetSetDef angles_getset[] = {
     {NULL}
 };
 
+PyDoc_STRVAR(angles_reduce_doc, "__reduce__() -> (cls, state)\n\
+\n\
+Allows pickling of the Angles type by returning the constructor\n\
+and state of the object to recreate later.");
+
 static PyMethodDef angles_methods[] = {
     {"__reduce__", (PyCFunction)angles_reduce, METH_NOARGS,
-     PyDoc_STR("__reduce__() -> (cls, state)\n\nAllows pickling of the "
-               "Angles type by returning the constructor and state of the "
-               "object to recreate later")},
+     angles_reduce_doc},
 
     {NULL}
 };
@@ -225,16 +242,20 @@ static PyMemberDef order_members[] = {
     {NULL}
 };
 
+PyDoc_STRVAR(order_reduce_doc, "__reduce__() -> (cls, state)\n\
+\n\
+Allows pickling of the Order type by returning the constructor\n\
+and state of the object to recreate later.");
+
 static PyMethodDef order_methods[] = {
-    {"__reduce__", (PyCFunction)order_reduce, METH_NOARGS,
-        PyDoc_STR("__reduce__() -> (cls, state)")},
+    {"__reduce__", (PyCFunction)order_reduce, METH_NOARGS, order_reduce_doc},
     {NULL}
 };
 
 PyDoc_STRVAR(order_doc, "Order(axis1, axis2, axis3)\n\
 \n\
-All axes are required and should be one of the three eunmerated axis types \
-X_AXIS, Y_AXIS or Z_AXIS.");
+All axes are required and should be one of the three eunmerated\n\
+axis types X_AXIS, Y_AXIS or Z_AXIS.");
 
 static PyTypeObject EVSpace_OrderType = {
     PyVarObject_HEAD_INIT(NULL, 0)
@@ -299,10 +320,10 @@ static PyMethodDef reference_frame_methods[] = {
 
 PyDoc_STRVAR(reference_frame_doc, "ReferenceFrame(order, angles[, *, offset])\n\
 \n\
-The order and angles parameters are required and order should be one of the \
-default Order type instances provided by pyevspace. Angles needs to be in \
-radians and offset is an optional vector that points from an inertial origin \
-to the reference frames origin.");
+The order and angles parameters are required and order should be\n\
+one of the default Order type instances provided by pyevspace.\n\
+Angles needs to be in radians and offset is an optional vector that\n\
+points from an inertial origin to the reference frames origin.");
 
 static PyTypeObject EVSpace_ReferenceFrameType = {
     PyVarObject_HEAD_INIT(NULL, 0)
@@ -410,98 +431,124 @@ evspace_destructor(PyObject* capi)
     free(ptr);
 }
 
+PyDoc_STRVAR(norm_doc, "norm(vector) -> Vector\n\
+\n\
+Creates a normalized version of a Vector. Differs from\n\
+vector.normalize() by returning a new Vector and 'vector'\n\
+remains unchanged.");
+
+PyDoc_STRVAR(vang_doc, "vang(from, to) -> float\n\
+\n\
+Determines the shortest angle between two vectors. The arguments\n\
+are commutative i.e. vang(from, to) == vang(to, from).");
+
+PyDoc_STRVAR(vxcl_doc, "vxcl(vector, exclude) -> Vector\n\
+\n\
+Removes all portions of exclude from vector. This is the same as\n\
+projecting vector onto the plane whose normal vector is exclude.");
+
+PyDoc_STRVAR(transpose_doc, "transpose(matrix) -> Matrix\n\
+\n\
+Returns the transpose of matrix, where the returned matrix is\n\
+the rows and columns of matrix are inverted.");
+
+PyDoc_STRVAR(matrix_euler_doc, "getMatrixEuler(order, angles) -> Matrix\n\
+\n\
+Creates the rotation matrix that represents the Euler rotation\n\
+defined by order and angles.");
+
+PyDoc_STRVAR(matrix_fromto_doc,
+"getMatrixFromTo(orderFrom, anglesFrom, orderTo, anglesTo) -> Matrix\n\
+\n\
+Creates the rotation matrix between two reference frames, both\n\
+defined by a particular Euler order and the corresponding angles.");
+
+PyDoc_STRVAR(axisto_doc, "rotateAxisTo(axis, angle, vector) -> Vector\n\
+\n\
+Rotates a vector to the reference frame defined by a rotation\n\
+around axis by angle radians.");
+
+PyDoc_STRVAR(axisfrom_doc, "rotateAxisFrom(axis, angle, vector) -> Vector\n\
+\n\
+Rotates a vector from the reference frame defined by a rotation\n\
+around axis by angle radians.");
+
+PyDoc_STRVAR(eulerto_doc, "rotateEulerTo(order, angles, vector) -> Vector\n\
+\n\
+Rotates a vector to the reference frame defined by an Euler\n\
+rotation.");
+
+PyDoc_STRVAR(eulerfrom_doc, "rotateEulerFrom(order, angles, vector) -> Vector\n\
+\n\
+Rotates a vector from the reference frame defined by an Euler\n\
+rotation.");
+
 static PyMethodDef evspace_methods[] = {
-    {"dot",                 (PyCFunction)vector_dot, METH_FASTCALL,
+    {"dot", (PyCFunction)vector_dot, METH_FASTCALL,
      PyDoc_STR("dot(lhs, rhs) -> float\n\nCompute the dot product of "
                "two Vectors.")},
 
-    {"cross",               (PyCFunction)vector_cross, METH_FASTCALL,
+    {"cross", (PyCFunction)vector_cross, METH_FASTCALL,
      PyDoc_STR("cross(lhs, rhs) -> Vector\n\nCompute the cross product of "
                "two Vectors using the right-hand rule.")},
 
-    {"norm",                (PyCFunction)vector_norm, METH_FASTCALL,
-     PyDoc_STR("norm(vector) -> Vector\n\nCreates a normalized version of "
-               "a Vector. Differs from vector.normalize() by returning a "
-               "new Vector and 'vector' remains unchanged.")},
+    {"norm", (PyCFunction)vector_norm, METH_FASTCALL, norm_doc},
 
-    {"vang",                (PyCFunction)vector_angle, METH_FASTCALL,
-     PyDoc_STR("vang(from, to) -> float\n\nDetermines the shortest angle "
-               "between two vectors. The arguments are commutative i.e. "
-               "vang(from, to) == vang(to, from).")},
+    {"vang", (PyCFunction)vector_angle, METH_FASTCALL, vang_doc},
 
-    {"vxcl",                (PyCFunction)vector_exclude, METH_FASTCALL,
-     PyDoc_STR("vxcl(vector, exclude) -> Vector\n\nRemoves all portions of "
-               "exclude from vector. This is the same as projecting vector "
-               "onto the plane whose normal vector is exclude.")},
+    {"vxcl", (PyCFunction)vector_exclude, METH_FASTCALL, vxcl_doc},
 
-    {"proj",                (PyCFunction)vector_proj, METH_FASTCALL,
+    {"proj", (PyCFunction)vector_proj, METH_FASTCALL,
      PyDoc_STR("proj(proj, onto) -> Vector\n\nProjects the vector proj onto "
                "the vector onto.")},
 
-    {"det",                 (PyCFunction)matrix_determinate, METH_FASTCALL,
+    {"det", (PyCFunction)matrix_determinate, METH_FASTCALL,
      PyDoc_STR("det(matrix) -> float\n\nComputes the determinate of a "
                "Matrix.")},
 
-    {"transpose",           (PyCFunction)matrix_transpose, METH_FASTCALL,
-     PyDoc_STR("transpose(matrix) -> Matrix\n\nReturns the transpose of "
-               "matrix, where the returned matrix is the rows and columns of "
-               "matrix are inverted.")},
+    {"transpose", (PyCFunction)matrix_transpose, METH_FASTCALL, transpose_doc},
 
-    {"getMatrixAxis",       (PyCFunction)get_rotation_matrix, METH_VARARGS,
+    {"getMatrixAxis", (PyCFunction)get_rotation_matrix, METH_VARARGS,
      PyDoc_STR("getMatrixAxis(axis, angle) -> Matrix\n\nGenerates a rotation "
                "matrix for a rotation around axis by angle radians.")},
 
-    {"getMatrixEuler",      (PyCFunction)get_euler_matrix, METH_FASTCALL,
-     PyDoc_STR("getMatrixEuler(order, angles) -> Matrix\n\nCreates the "
-               "rotation matrix that represents the Euler rotation defined "
-               "by order and angles.")},
+    {"getMatrixEuler", (PyCFunction)get_euler_matrix, METH_FASTCALL,
+     matrix_euler_doc},
 
-    {"getMatrixFromTo",     (PyCFunction)get_matrix_from_to, METH_FASTCALL,
-     PyDoc_STR("getMatrixFromTo(orderFrom, anglesFrom, orderTo, anglesTo) -> "
-               "Matrix\n\nCreates the rotation matrix between two reference "
-               "frames, both defined by a particular Euler order and the "
-               "corresponding angles.")},
+    {"getMatrixFromTo", (PyCFunction)get_matrix_from_to, METH_FASTCALL,
+     matrix_fromto_doc},
 
-    {"rotateAxisTo",        (PyCFunction)rotate_axis_to, METH_VARARGS,
-     PyDoc_STR("rotateAxisTo(axis, angle, vector) -> Vector\n\nRotates "
-               "a vector to the reference frame defined by a rotation around "
-               "axis by angle radians.")},
+    {"rotateAxisTo", (PyCFunction)rotate_axis_to, METH_VARARGS, axisto_doc},
 
-    {"rotateAxisFrom",      (PyCFunction)rotate_axis_from, METH_VARARGS,
-     PyDoc_STR("rotateAxisFrom(axis, angle, vector) -> Vector\n\nRotates "
-               "a vector from the reference frame defined by a rotation "
-               "around axis by angle radians.")},
+    {"rotateAxisFrom", (PyCFunction)rotate_axis_from, METH_VARARGS,
+     axisfrom_doc},
 
-    {"rotateEulerTo",       (PyCFunction)rotate_euler_to, METH_FASTCALL,
-     PyDoc_STR("rotateEulerTo(order, angles, vector) -> Vector\n\nRotates "
-               "a vector to the reference frame defined by an Euler "
-               "rotation.")},
+    {"rotateEulerTo", (PyCFunction)rotate_euler_to, METH_FASTCALL, eulerto_doc},
 
-    {"rotateEulerFrom",     (PyCFunction)rotate_euler_from, METH_FASTCALL,
-     PyDoc_STR("rotateEulerFrom(order, angles, vector) -> Vector\n\nRotates "
-               "a vector from the reference frame defined by an Euler "
-               "rotation.")},
+    {"rotateEulerFrom", (PyCFunction)rotate_euler_from, METH_FASTCALL,
+     eulerfrom_doc},
 
-    {"rotateMatrixTo",      (PyCFunction)rotate_matrix_to, METH_FASTCALL,
+    {"rotateMatrixTo", (PyCFunction)rotate_matrix_to, METH_FASTCALL,
      PyDoc_STR("rotateMatrixTo(matrix, vector) -> Vector\n\nRotates a vector "
                "to the reference frame defined by matrix.")},
 
-    {"rotateMatrixFrom",    (PyCFunction)rotate_matrix_from, METH_FASTCALL,
+    {"rotateMatrixFrom", (PyCFunction)rotate_matrix_from, METH_FASTCALL,
      PyDoc_STR("rotateMatrixFrom(matrix, vector) -> Vector\n\nRotates a vector "
                "from the reference frame defined by matrix.")},
 
-    {"rotateOffsetTo",      (PyCFunction)rotate_offset_to, METH_FASTCALL,
+    {"rotateOffsetTo", (PyCFunction)rotate_offset_to, METH_FASTCALL,
      PyDoc_STR("rotateOffsetTo(matrix, offset, vector) -> Vector\n\nRotates "
                "a vector to an offset reference frame defined by matrix.")},
 
-    {"rotateOffsetFrom",    (PyCFunction)rotate_offset_from, METH_FASTCALL,
+    {"rotateOffsetFrom", (PyCFunction)rotate_offset_from, METH_FASTCALL,
      PyDoc_STR("rotateOffsetFrom(matrix, offset, vector) -> Vector\n\nRotates "
                "a vector from an offset reference frame defined by matrix.")},
 
     {NULL}
 };
 
-PyDoc_STRVAR(evspace_doc, "A 3-dimensional Euclidean vector space module with a vector and matrix type as well as necessary methods to use them.");
+PyDoc_STRVAR(evspace_doc, "A 3-dimensional Euclidean vector space module with \
+a vector and matrix type as well as necessary methods to use them.");
 
 static PyModuleDef EVSpace_Module = {
     PyModuleDef_HEAD_INIT,
