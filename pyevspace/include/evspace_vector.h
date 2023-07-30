@@ -201,9 +201,6 @@ vector_richcompare(EVSpace_Vector* self, PyObject* other, int op)
             else {
                 Py_RETURN_FALSE;
             }
-            //return __vector_eq(self, (EVSpace_Vector*)other)
-                //? Py_NewRef(Py_True)
-                //: Py_NewRef(Py_False);
         }
         else if (op == Py_NE)
         {
@@ -213,9 +210,6 @@ vector_richcompare(EVSpace_Vector* self, PyObject* other, int op)
             else {
                 Py_RETURN_FALSE;
             }
-            /*return (!__vector_eq(self, (EVSpace_Vector*)other))
-                ? Py_NewRef(Py_True)
-                : Py_NewRef(Py_False);*/
         }
     }
 
