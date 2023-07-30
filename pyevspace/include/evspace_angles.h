@@ -171,13 +171,13 @@ angles_set_item(EVSpace_Angles* self, Py_ssize_t index, PyObject* value)
         return -1;
     }
 
-    if (index == 0) {
+    if (index == ROTATION_ANGLE_ALPHA) {
         self->alpha = dbl_value;
     }
-    else if (index == 1) {
+    else if (index == ROTATION_ANGLE_BETA) {
         self->beta = dbl_value;
     }
-    else if (index == 2) {
+    else if (index == ROTATION_ANGLE_GAMMA) {
         self->gamma = dbl_value;
     }
     else {
