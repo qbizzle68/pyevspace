@@ -111,86 +111,19 @@ refframe_angles_setter(EVSpace_ReferenceFrame* self, EVSpace_Angles* arg,
         return -1;
     }
 
+    // Copy the angles to enforce self is the instance's only master.
+    EVSpace_Angles* angs_copy = new_angle(arg->alpha, arg->beta, arg->gamma);
+    if (!angs_copy) {
+        Py_DECREF(matrix);
+        return -1;
+    }
+
+    self->angles->master = NULL;
     PyObject* tmp = (PyObject*)self->angles;
-    Py_INCREF(arg);
-    self->angles = arg;
+    self->angles = angs_copy;
     Py_XDECREF(tmp);
 
     tmp = (PyObject*)self->matrix;
-    Py_INCREF(matrix);
-    self->matrix = matrix;
-    Py_XDECREF(tmp);
-
-    return 0;
-}
-
-#define ROTATION_ANGLE_ALPHA    0
-#define ROTATION_ANGLE_BETA	    1
-#define ROTATION_ANGLE_GAMMA    2
-
-static PyObject*
-refframe_subangle_getter(EVSpace_ReferenceFrame* self, void* closure)
-{
-    size_t which = (size_t)closure;
-    assert(which == ROTATION_ANGLE_ALPHA || which == ROTATION_ANGLE_BETA ||
-           which == ROTATION_ANGLE_GAMMA);
-
-    double angle = 0.0;
-    if (which == ROTATION_ANGLE_ALPHA) {
-        angle = self->angles->alpha;
-    }
-    else if (which == ROTATION_ANGLE_BETA) {
-        angle = self->angles->beta;
-    }
-    else if (which == ROTATION_ANGLE_GAMMA) {
-        angle = self->angles->gamma;
-    }
-
-    return PyFloat_FromDouble(angle);
-}
-
-static int
-refframe_subangle_setter(EVSpace_ReferenceFrame* self, PyObject* arg, 
-                         void* closure)
-{
-    size_t which = (size_t)closure;
-    assert(which == ROTATION_ANGLE_ALPHA || which == ROTATION_ANGLE_BETA ||
-           which == ROTATION_ANGLE_GAMMA);
-
-    if (!arg) {
-        PyErr_SetString(PyExc_ValueError,
-                        "cannot delete angles attribute");
-        return -1;
-    }
-
-    double angle = PyFloat_AsDouble(arg);
-    if (angle == -1.0 && PyErr_Occurred()) {
-        return -1;
-    }
-
-    double* angle_addr = NULL;
-    if (which == ROTATION_ANGLE_ALPHA) {
-        angle_addr = &self->angles->alpha;
-    }
-    else if (which == ROTATION_ANGLE_BETA) {
-        angle_addr = &self->angles->beta;
-    }
-    else {
-        angle_addr = &self->angles->gamma;
-    }
-
-    double temp = *angle_addr;
-    *angle_addr = angle;
-
-    EVSpace_Matrix* matrix = _get_euler_matrix(self->order, self->angles);
-    if (!matrix) {
-        *angle_addr = temp;
-        return -1;
-    }
-    angle_addr = NULL;
-
-    PyObject* tmp = (PyObject*)self->matrix;
-    Py_INCREF(matrix);
     self->matrix = matrix;
     Py_XDECREF(tmp);
 
