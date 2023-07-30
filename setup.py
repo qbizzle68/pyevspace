@@ -36,6 +36,6 @@ setup(name='pyevspace',
           'Topic :: Scientific/Engineering :: Physics',
           'Topic :: Software Development :: Libraries :: Python Modules',
       ],
-      packages=['pyevspace', 'pyevspace.examples', 'pyevspace.tests'],
+      packages=['pyevspace'],
       ext_modules=ext_modules,
       )
