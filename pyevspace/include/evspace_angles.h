@@ -3,6 +3,7 @@
 
 #include <Python.h>
 #include <evspacemodule.h>
+#include <evspace_rotation.h>
 
 // forward declaration
 static PyTypeObject EVSpace_AnglesType;
@@ -106,11 +107,62 @@ angles_get_item(const EVSpace_Angles* self, Py_ssize_t index)
         return PyFloat_FromDouble(self->gamma);
     }
     else {
-        PyErr_Format(PyExc_IndexError, 
-                     "index (%i) must be in [0-2]",
-                     index);
+        PyErr_Format(PyExc_IndexError,
+            "index (%i) must be in [0-2]",
+            index);
         return NULL;
     }
+}
+
+#define ROTATION_ANGLE_ALPHA    0
+#define ROTATION_ANGLE_BETA	    1
+#define ROTATION_ANGLE_GAMMA    2
+
+static PyObject*
+angles_getter(EVSpace_Angles* self, void* closure)
+{
+    PyObject* rtn = angles_get_item(self, (Py_ssize_t)(closure));
+    return rtn;
+}
+
+static int
+angles_setter(EVSpace_Angles* self, PyObject* rhs, void* closure)
+{
+    double value = PyFloat_AsDouble(rhs);
+    if (value == -1.0 && PyErr_Occurred()) {
+        return -1;
+    }
+
+    double* angle_addr = NULL;
+    size_t which = (size_t)(closure);
+    if (which == ROTATION_ANGLE_ALPHA) {
+        angle_addr = &self->alpha;
+    }
+    else if (which == ROTATION_ANGLE_BETA) {
+        angle_addr = &self->beta;
+    }
+    else if (which == ROTATION_ANGLE_GAMMA) {
+        angle_addr = &self->gamma;
+    }
+
+    double old_value = *angle_addr;
+    *angle_addr = value;
+    EVSpace_ReferenceFrame* master = (EVSpace_ReferenceFrame*)self->master;
+
+    if (self->master) {
+        EVSpace_Matrix* matrix = _get_euler_matrix(master->order, self);
+        if (!matrix) {
+            *angle_addr = old_value;
+            return -1;
+        }
+
+        EVSpace_Matrix* tmp = master->matrix;
+        master->matrix = matrix;
+        Py_XDECREF(tmp);
+    }
+    angle_addr = NULL;
+
+    return 0;
 }
 
 static int
