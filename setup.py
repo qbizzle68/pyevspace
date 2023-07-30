@@ -1,22 +1,11 @@
 from setuptools import setup, Extension
 
-def initTxt():
-    with open('pyevspace/__init__.py', 'r') as f:
-        txt = f.readlines()
+from pyevspace.__init__ import __version__, __doc__
 
-    description = txt[0][4:-1]
-    version = txt[-1].split(' ', 4)[2][1:-1]
+from pathlib import Path
 
-    return description, version
-
-    #versionLine = txt[-1]
-    #return versionLine.split(' ', 4)[2][1:-1]
-
-def readme():
-    with open('README.md', 'r') as f:
-        return f.read()
-
-description, __version__ = initTxt()
+currentDirectory = Path(__file__).parent
+longDescription = (currentDirectory / "README.md").read_text()
 
 ext_modules = [Extension(
     '_pyevspace',
@@ -28,8 +17,8 @@ setup(name='pyevspace',
       version=__version__,
       author='Quinton Barnes',
       author_email='devqbizzle68@gmail.com',
-      description=description,
-      long_description=readme(),
+      description=__doc__,
+      long_description=longDescription,
       long_description_content_type='text/markdown',
       license='MIT',
       url='https://github.com/qbizzle68/pyevspace',
