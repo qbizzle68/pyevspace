@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>ReferenceFrame API Reference &#8212; PyEVSpace 0.0.12.5 documentation</title>
+    <title>ReferenceFrame API Reference &#8212; PyEVSpace 0.0.14.0 documentation</title>
   
   
   
@@ -98,7 +98,7 @@
 
   
   
-    <p class="title logo__title">PyEVSpace 0.0.12.5 documentation</p>
+    <p class="title logo__title">PyEVSpace 0.0.14.0 documentation</p>
   
 </a>
     
@@ -354,66 +354,24 @@ rotations.</p>
 <dt class="sig sig-object py" id="pyevspace.ReferenceFrame.angles">
 <span class="sig-prename descclassname"><span class="pre">ReferenceFrame.</span></span><span class="sig-name descname"><span class="pre">angles</span></span><a class="headerlink" href="#pyevspace.ReferenceFrame.angles" title="Permalink to this definition">#</a></dt>
 <dd><p>The <a class="reference internal" href="rotation.html#pyevspace.Angles" title="pyevspace.Angles"><code class="xref py py-class docutils literal notranslate"><span class="pre">Angles</span></code></a> object used to instantate the
-<code class="xref py py-class docutils literal notranslate"><span class="pre">RefernceFrame</span></code>. Setting this value will cause the internal
-matrix to be recomputed, however changing a single angle attribute
-via the angles attribute cannot force the matrix to change. This
-will invalidate the rotation methods the <a class="reference internal" href="#pyevspace.ReferenceFrame" title="pyevspace.ReferenceFrame"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReferenceFrame</span></code></a>
-class provides.</p>
+<code class="xref py py-class docutils literal notranslate"><span class="pre">RefernceFrame</span></code>. Setting this value or any of its angle attributes
+will cause the internal matrix to be recomputed.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ref</span> <span class="o">=</span> <span class="n">ReferenceFrame</span><span class="p">(</span><span class="n">XYZ</span><span class="p">,</span> <span class="n">Angles</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ref</span><span class="o">.</span><span class="n">matrix</span>
 <span class="go">Matrix([0.411982, 0.0587266, 0.909297]</span>
 <span class="go">    [-0.681243, -0.642873, 0.350175]</span>
 <span class="go">    [0.605127, -0.763718, -0.224845])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ref</span><span class="o">.</span><span class="n">angles</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="mi">2</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># ref.matrix remains unchanged</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># ref.matrix updated</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ref</span><span class="o">.</span><span class="n">matrix</span>
 <span class="go">Matrix([0.411982, 0.0587266, 0.909297]</span>
-<span class="go">    [-0.681243, -0.642873, 0.350175]</span>
-<span class="go">    [0.605127, -0.763718, -0.224845])</span>
+<span class="go">    [-0.877274, 0.295301, 0.378401]</span>
+<span class="go">    [-0.246294, -0.953598, 0.173178])</span>
 </pre></div>
 </div>
-<p>To overcome this, the class also provides sub-angle
-attributes (see below) that will indirectly change the desired angle
-and force the matrix to be recomputed.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="rotation.html#pyevspace.Angles" title="pyevspace.Angles">Angles</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyevspace.ReferenceFrame.alpha">
-<span class="sig-prename descclassname"><span class="pre">ReferenceFrame.</span></span><span class="sig-name descname"><span class="pre">alpha</span></span><a class="headerlink" href="#pyevspace.ReferenceFrame.alpha" title="Permalink to this definition">#</a></dt>
-<dd><p>Indirectly get or set the alpha angle of the <a class="reference internal" href="#pyevspace.ReferenceFrame.angles" title="pyevspace.ReferenceFrame.angles"><code class="xref py py-attr docutils literal notranslate"><span class="pre">angles</span></code></a> attribute
-and force the internal rotation matrix to be recomputed.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyevspace.ReferenceFrame.beta">
-<span class="sig-prename descclassname"><span class="pre">ReferenceFrame.</span></span><span class="sig-name descname"><span class="pre">beta</span></span><a class="headerlink" href="#pyevspace.ReferenceFrame.beta" title="Permalink to this definition">#</a></dt>
-<dd><p>Indirectly get or set the beta angle of the <a class="reference internal" href="#pyevspace.ReferenceFrame.angles" title="pyevspace.ReferenceFrame.angles"><code class="xref py py-attr docutils literal notranslate"><span class="pre">angles</span></code></a> attribute
-and force the internal rotation matrix to be recomputed.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="pyevspace.ReferenceFrame.gamma">
-<span class="sig-prename descclassname"><span class="pre">ReferenceFrame.</span></span><span class="sig-name descname"><span class="pre">gamma</span></span><a class="headerlink" href="#pyevspace.ReferenceFrame.gamma" title="Permalink to this definition">#</a></dt>
-<dd><p>Indirectly get or set the gamma angle of the <a class="reference internal" href="#pyevspace.ReferenceFrame.angles" title="pyevspace.ReferenceFrame.angles"><code class="xref py py-attr docutils literal notranslate"><span class="pre">angles</span></code></a> attribute
-and force the internal rotation matrix to be recomputed.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>float</p>
 </dd>
 </dl>
 </dd></dl>
@@ -591,33 +549,6 @@ internal rotation matrix.</p>
      <code class="docutils literal notranslate">
       <span class="pre">
        ReferenceFrame.angles
-      </span>
-     </code>
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#pyevspace.ReferenceFrame.alpha">
-     <code class="docutils literal notranslate">
-      <span class="pre">
-       ReferenceFrame.alpha
-      </span>
-     </code>
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#pyevspace.ReferenceFrame.beta">
-     <code class="docutils literal notranslate">
-      <span class="pre">
-       ReferenceFrame.beta
-      </span>
-     </code>
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#pyevspace.ReferenceFrame.gamma">
-     <code class="docutils literal notranslate">
-      <span class="pre">
-       ReferenceFrame.gamma
       </span>
      </code>
     </a>
