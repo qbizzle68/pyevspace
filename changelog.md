@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed the alpha, beta, and gamma attributes of ReferenceFrame objects. These attributes
   were used to change the underlying matrix of the ReferenceFrame object, which is now
   handled by via a callback mechanism in the Angles class.
+- Tests and examples packages are no longer distributed with pyevspace. They can still be
+  found in the [source repository](https://github.com/qbizzle68/pyevspace).
 
 ## [0.13.1] - 2023-07-24
 
