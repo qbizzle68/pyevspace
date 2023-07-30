@@ -27,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tests and examples packages are no longer distributed with pyevspace. They can still be
   found in the [source repository](https://github.com/qbizzle68/pyevspace).
 
+### Fixed
+
+- Improved docstring format for prettier printing while using the help command.
+
 ## [0.13.1] - 2023-07-24
 
 ### Security
