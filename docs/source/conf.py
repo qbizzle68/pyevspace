@@ -6,11 +6,19 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+from pathlib import Path
+import sys
+
+pyevspaceRoot = Path(__file__).parent.parent
+sys.path.insert(0, pyevspaceRoot)
+
+from pyevspace.__init__ import __version__
+
 project = 'PyEVSpace'
 copyright = '2022, Quinton Barnes'
 author = 'Quinton Barnes'
-version = '0.0.14.0'
-release = '0.0.14.0'
+version = __version__
+release = __version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
