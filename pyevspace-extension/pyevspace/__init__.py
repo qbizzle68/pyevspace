@@ -1,7 +1,7 @@
 """A Python 3-dimensional Euclidean vector space."""
 
 try:
-    from _pyevspace import *
+    from .core import *
 except ModuleNotFoundError:
     pass
 
