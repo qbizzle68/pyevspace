@@ -690,7 +690,7 @@ _pyevspace_exec(PyObject* module)
 }
 
 PyMODINIT_FUNC
-PyInit_core(void)
+PyInit__pyevspace(void)
 {
     PyObject* module = PyModule_Create(&EVSpace_Module);
     if (!module) {
