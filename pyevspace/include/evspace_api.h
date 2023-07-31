@@ -10,6 +10,7 @@ typedef struct {
     double* data;           /* x, y, z component of vectors */
 } EVSpace_Vector;
 
+
 typedef struct {
     PyObject_HEAD
     double* data;           /* row by column ordering */
@@ -21,7 +22,7 @@ typedef struct {
     double beta;
     double gamma;
     // Keep track of the reference frame for callback.
-    void* master;
+    EVSpace_ReferenceFrame* master;
 } EVSpace_Angles;
 
 typedef enum {
