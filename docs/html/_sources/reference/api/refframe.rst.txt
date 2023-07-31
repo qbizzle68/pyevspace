@@ -47,8 +47,11 @@ Attributes
 .. py:attribute:: ReferenceFrame.angles
 
     The :py:class:`Angles` object used to instantate the 
-    :py:class:`RefernceFrame`. Setting this value or any of its angle attributes
-    will cause the internal matrix to be recomputed.
+    :py:class:`RefernceFrame`. Setting this value will cause the internal
+    matrix to be recomputed, however changing a single angle attribute
+    via the angles attribute cannot force the matrix to change. This
+    will invalidate the rotation methods the :py:class:`ReferenceFrame`
+    class provides. 
     
     .. code-block:: python
 
@@ -58,13 +61,38 @@ Attributes
             [-0.681243, -0.642873, 0.350175]
             [0.605127, -0.763718, -0.224845])
         >>> ref.angles.alpha = 2
-        >>> # ref.matrix updated
+        >>> # ref.matrix remains unchanged
         >>> ref.matrix
         Matrix([0.411982, 0.0587266, 0.909297]
-            [-0.877274, 0.295301, 0.378401]
-            [-0.246294, -0.953598, 0.173178])
+            [-0.681243, -0.642873, 0.350175]
+            [0.605127, -0.763718, -0.224845])
+
+    To overcome this, the class also provides sub-angle
+    attributes (see below) that will indirectly change the desired angle 
+    and force the matrix to be recomputed. 
 
     :type: Angles
+
+.. py:attribute:: ReferenceFrame.alpha
+
+    Indirectly get or set the alpha angle of the :py:attr:`angles` attribute
+    and force the internal rotation matrix to be recomputed.
+
+    :type: float
+
+.. py:attribute:: ReferenceFrame.beta
+
+    Indirectly get or set the beta angle of the :py:attr:`angles` attribute
+    and force the internal rotation matrix to be recomputed.
+
+    :type: float
+
+.. py:attribute:: ReferenceFrame.gamma
+
+    Indirectly get or set the gamma angle of the :py:attr:`angles` attribute
+    and force the internal rotation matrix to be recomputed.
+
+    :type: float
 
 .. py:attribute:: ReferenceFrame.offset
 
