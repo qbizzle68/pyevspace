@@ -201,7 +201,6 @@
     <None Include="tox.ini" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="future.txt" />
     <Text Include="LICENSE.txt" />
     <Text Include="pyevspace-extension\tests\offset-scratch.txt" />
     <Text Include="requirements.txt" />
