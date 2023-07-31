@@ -196,19 +196,6 @@
     <None Include="examples\methods.py" />
     <None Include="examples\__init__.py" />
     <None Include="MANIFEST.in" />
-    <None Include="pyevspace-extension\examples\arithmetic.py" />
-    <None Include="pyevspace-extension\examples\creating.py" />
-    <None Include="pyevspace-extension\examples\methods.py" />
-    <None Include="pyevspace-extension\examples\__init__.py" />
-    <None Include="pyevspace-extension\pyevspace\__init__.py" />
-    <None Include="pyevspace-extension\tests\angles_test.py" />
-    <None Include="pyevspace-extension\tests\matrix_test.py" />
-    <None Include="pyevspace-extension\tests\pyevspace_tests.py" />
-    <None Include="pyevspace-extension\tests\refframe_test.py" />
-    <None Include="pyevspace-extension\tests\rotation_answers.py" />
-    <None Include="pyevspace-extension\tests\rotation_test.py" />
-    <None Include="pyevspace-extension\tests\vector_test.py" />
-    <None Include="pyevspace-extension\tests\__init__.py" />
     <None Include="README.md" />
     <None Include="setup.py" />
     <None Include="tests\angles_test.py" />
@@ -225,7 +212,6 @@
   <ItemGroup>
     <Text Include="future.txt" />
     <Text Include="LICENSE.txt" />
-    <Text Include="pyevspace-extension\tests\offset-scratch.txt" />
     <Text Include="requirements.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
