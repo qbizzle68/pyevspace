@@ -24,7 +24,6 @@
     <ProjectGuid>{1ac08e59-21fb-421f-8ce2-fd216edb7c82}</ProjectGuid>
     <RootNamespace>pyevspace</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>pyevspace</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -75,28 +74,28 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(ProjectDir)bin\$(Platform)\</OutDir>
     <IntDir>$(ProjectDir)bin\$(Platform)\intermediates\</IntDir>
-    <TargetName>core</TargetName>
+    <TargetName>_pyevspace</TargetName>
     <TargetExt>.pyd</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)bin\$(Platform)\</OutDir>
     <IntDir>$(ProjectDir)bin\$(Platform)\intermediates\</IntDir>
-    <TargetName>core</TargetName>
+    <TargetName>_pyevspace</TargetName>
     <TargetExt>.pyd</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(ProjectDir)bin\$(Platform)\</OutDir>
     <IntDir>$(ProjectDir)bin\$(Platform)\intermediates\</IntDir>
-    <TargetName>core</TargetName>
+    <TargetName>_pyevspace</TargetName>
     <TargetExt>.pyd</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)bin\$(Platform)\</OutDir>
     <IntDir>$(ProjectDir)bin\$(Platform)\intermediates\</IntDir>
-    <TargetName>core</TargetName>
+    <TargetName>_pyevspace</TargetName>
     <TargetExt>.pyd</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -105,13 +104,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\dev\libs\pyevspace\pyevspace-extension\include;C:\Python\Python311\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\dev\libs\pyevspace\pyevspace\include;C:\Python\Python38\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Python\Python311\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Python\Python38\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -122,7 +121,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\dev\libs\pyevspace\pyevspace-extension\include;C:\Python\Python311\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\dev\libs\pyevspace\pyevspace\include;C:\Python\Python38\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -130,7 +129,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Python\Python311\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Python\Python38\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -139,13 +138,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\dev\libs\pyevspace\pyevspace-extension\include;C:\Python\Python311\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\dev\libs\pyevspace\pyevspace\include;C:\Python\Python38\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Python\Python311\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Python\Python38\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -156,7 +155,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\dev\libs\pyevspace\pyevspace-extension\include;C:\Python\Python311\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\dev\libs\pyevspace\pyevspace\include;C:\Python\Python38\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -164,11 +163,11 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Python\Python311\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Python\Python38\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="pyevspace-extension\src\evspacemodule.c" />
+    <ClCompile Include="src\evspacemodule.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\evspacemodule.h" />
@@ -179,25 +178,12 @@
     <ClInclude Include="include\evspace_refframe.h" />
     <ClInclude Include="include\evspace_vector.h" />
     <ClInclude Include="include\evspace_common.h" />
-    <ClInclude Include="pyevspace-extension\include\evspacemodule.h" />
-    <ClInclude Include="pyevspace-extension\include\evspace_angles.h" />
-    <ClInclude Include="pyevspace-extension\include\evspace_api.h" />
-    <ClInclude Include="pyevspace-extension\include\evspace_common.h" />
-    <ClInclude Include="pyevspace-extension\include\evspace_matrix.h" />
-    <ClInclude Include="pyevspace-extension\include\evspace_refframe.h" />
-    <ClInclude Include="pyevspace-extension\include\evspace_rotation.h" />
-    <ClInclude Include="pyevspace-extension\include\evspace_vector.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include=".gitignore" />
-    <None Include="changelog.md" />
     <None Include="examples\arithmetic.py" />
     <None Include="examples\creating.py" />
     <None Include="examples\methods.py" />
     <None Include="examples\__init__.py" />
-    <None Include="MANIFEST.in" />
-    <None Include="README.md" />
-    <None Include="setup.py" />
     <None Include="tests\angles_test.py" />
     <None Include="tests\matrix_test.py" />
     <None Include="tests\module_test.py" />
@@ -207,12 +193,7 @@
     <None Include="tests\rotation_test.py" />
     <None Include="tests\vector_test.py" />
     <None Include="tests\__init__.py" />
-    <None Include="tox.ini" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="future.txt" />
-    <Text Include="LICENSE.txt" />
-    <Text Include="requirements.txt" />
+    <None Include="__init__.py" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
