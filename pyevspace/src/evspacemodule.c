@@ -132,7 +132,7 @@ PyDoc_STRVAR(matrix_doc, "Matrix([row0, row1, row2])\n\
 \n\
 The Matrix can be constructed with three iterables, all of length three, \
 whose components are numeric types. Each iterable represents a row of the \
-matrix and are all required. Alternatively if no arguments are present each \
+matrix and are all required. Alternatively if no arguments are present each\
 component is defaulted to zero.");
 
 static PyTypeObject EVSpace_MatrixType = {
