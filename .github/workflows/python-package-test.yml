@@ -30,4 +30,4 @@ jobs:
         python -m pip install --upgrade pip setuptools
         pip install .
     - name: Run Tests
-      run: python -m unittest pyevspace.tests.pyevspace_tests
+      run: python -m unittest src.tests
