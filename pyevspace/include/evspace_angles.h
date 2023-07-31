@@ -147,16 +147,20 @@ angles_setter(EVSpace_Angles* self, PyObject* rhs, void* closure)
         angle_addr = &self->gamma;
     }
 
+    double old_value = *angle_addr;
     *angle_addr = value;
     EVSpace_ReferenceFrame* master = (EVSpace_ReferenceFrame*)self->master;
 
     if (self->master) {
-        // Track the original value to revert if computing matrix fails.
-        double old_value = *angle_addr;
-        if (_refframe_update_matrix(master) < 0) {
+        EVSpace_Matrix* matrix = _get_euler_matrix(master->order, self);
+        if (!matrix) {
             *angle_addr = old_value;
             return -1;
         }
+
+        EVSpace_Matrix* tmp = master->matrix;
+        master->matrix = matrix;
+        Py_XDECREF(tmp);
     }
     angle_addr = NULL;
 
