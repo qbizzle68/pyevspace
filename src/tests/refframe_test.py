@@ -52,11 +52,6 @@ class TestReferenceFrame(unittest.TestCase):
         msg = 'refframe order same instance'
         self.assertIs(ref_offset.order, XYZ)
 
-        #msg = 'refframe angles reference count increase'
-        #self.assertTrue(sys.getrefcount(self.angs90) > angleRefCount0, msg=msg)
-        #msg = 'refframe angles same instance'
-        #self.assertIs(ref_offset.angles, angsArg)
-
         # test position offset argument TypeError
         msg = 'reference frame positional offset argument TypeError'
         with self.assertRaises(TypeError, msg=msg):
@@ -90,8 +85,6 @@ class TestReferenceFrame(unittest.TestCase):
         angs = ref.angles
         msg = 'refframe angles ref count increase'
         self.assertTrue(sys.getrefcount(angs) > angRefCount0, msg=msg)
-        #msg = 'refframe angles same instance'
-        #self.assertIs(angs, self.angs90, msg=msg)
 
     def test_refframe_angles_setter(self):
         # test angles property
