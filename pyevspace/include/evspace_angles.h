@@ -147,12 +147,12 @@ angles_setter(EVSpace_Angles* self, PyObject* rhs, void* closure)
         angle_addr = &self->gamma;
     }
 
-    // Track the original value to revert if computing matrix fails.
-    double old_value = *angle_addr;
     *angle_addr = value;
     EVSpace_ReferenceFrame* master = (EVSpace_ReferenceFrame*)self->master;
 
     if (self->master) {
+        // Track the original value to revert if computing matrix fails.
+        double old_value = *angle_addr;
         if (_refframe_update_matrix(master) < 0) {
             *angle_addr = old_value;
             return -1;
