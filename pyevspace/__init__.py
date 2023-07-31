@@ -1,8 +1,9 @@
-"""A Python 3-dimensional Euclidean vector space."""
+""" A Python 3-dimensional Euclidean vector space.
 
-try:
-    from _pyevspace import *
-except ModuleNotFoundError:
-    pass
+"""
 
-__version__ = 'blah blah blah'
+#   long description currently is README.md
+
+from _pyevspace import *
+
+__version__ = '0.14.0'    # do not add a new line after the version string
