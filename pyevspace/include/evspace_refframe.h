@@ -33,7 +33,6 @@ _reference_frame_new(EVSpace_Order* order, EVSpace_Angles* angles,
         return NULL;
     }
     rot->angles = tmp;
-    rot->angles->master = rot;
 
     rot->order = order;
     Py_INCREF(rot->order);
