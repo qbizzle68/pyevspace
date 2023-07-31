@@ -219,18 +219,7 @@
     <None Include="pyevspace-extension\tests\__init__.py" />
     <None Include="README.md" />
     <None Include="setup.py" />
-    <None Include="src\examples\arithmetic.py" />
-    <None Include="src\examples\creating.py" />
-    <None Include="src\examples\methods.py" />
-    <None Include="src\examples\__init__.py" />
     <None Include="src\pyevspace\__init__.py" />
-    <None Include="src\tests\angles_test.py" />
-    <None Include="src\tests\matrix_test.py" />
-    <None Include="src\tests\refframe_test.py" />
-    <None Include="src\tests\rotation_answers.py" />
-    <None Include="src\tests\rotation_test.py" />
-    <None Include="src\tests\vector_test.py" />
-    <None Include="src\tests\__init__.py" />
     <None Include="tests\angles_test.py" />
     <None Include="tests\matrix_test.py" />
     <None Include="tests\module_test.py" />
@@ -247,7 +236,6 @@
     <Text Include="LICENSE.txt" />
     <Text Include="pyevspace-extension\tests\offset-scratch.txt" />
     <Text Include="requirements.txt" />
-    <Text Include="src\tests\offset-scratch.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
