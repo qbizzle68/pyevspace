@@ -274,6 +274,21 @@ static PyGetSetDef reference_frame_getset[] = {
      (setter)refframe_angles_setter,
      PyDoc_STR("angles of the rotations"), NULL},
 
+    {"alpha", (getter)refframe_subangle_getter,
+     (setter)refframe_subangle_setter,
+     PyDoc_STR("alpha angle of the angles attribute"),
+     (void*)ROTATION_ANGLE_ALPHA},
+
+    {"beta", (getter)refframe_subangle_getter,
+     (setter)refframe_subangle_setter,
+     PyDoc_STR("beta angle of the angles attribute"),
+     (void*)ROTATION_ANGLE_BETA},
+
+    {"gamma", (getter)refframe_subangle_getter,
+     (setter)refframe_subangle_setter,
+     PyDoc_STR("gamma angle of the angles attribute"),
+     (void*)ROTATION_ANGLE_GAMMA},
+
     {"offset", (getter)refframe_offset_getter,
      (setter)refframe_offset_setter,
      PyDoc_STR("offset of the reference frame origin"), NULL},
