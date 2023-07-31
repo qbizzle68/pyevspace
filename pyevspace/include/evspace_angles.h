@@ -19,7 +19,6 @@ _angles_new(double alpha, double beta, double gamma, PyTypeObject* type)
     angles->alpha = alpha;
     angles->beta = beta;
     angles->gamma = gamma;
-    angles->master = NULL;
 
     return angles;
 }
