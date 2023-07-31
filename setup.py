@@ -1,7 +1,7 @@
 from setuptools import setup, Extension, find_packages
 
 import sys
-sys.path.insert(0, 'pyevspace-extension')
+sys.path.insert(0, 'src')
 from pyevspace.__init__ import __version__, __doc__
 
 from pathlib import Path
@@ -11,8 +11,8 @@ longDescription = (currentDirectory / "README.md").read_text()
 
 ext_modules = [Extension(
     'pyevspace.core',
-    include_dirs=['pyevspace-extension/include'],
-    sources=['pyevspace-extension/src/evspacemodule.c'],
+    include_dirs=['src/pyevspace/include'],
+    sources=['src/pyevspace/src/evspacemodule.c'],
 )]
 
 setup(name='pyevspace',
@@ -39,6 +39,6 @@ setup(name='pyevspace',
           'Topic :: Software Development :: Libraries :: Python Modules',
       ],
       packages=['pyevspace'],
-      package_dir={'': 'pyevspace-extension'},
+      package_dir={'': 'src'},
       ext_modules=ext_modules,
       )
