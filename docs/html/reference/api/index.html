@@ -1,0 +1,591 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>PyEVSpace API &#8212; PyEVSpace 0.0.14.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+<link href="../../_static/styles/bootstrap.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+
+  
+  <link href="../../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94">
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94">
+
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'reference/api/index';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Vector API Reference" href="vector.html" />
+    <link rel="prev" title="API Reference" href="../index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="docsearch:language" content="en">
+  </head>
+  
+  
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="180" data-default-mode="">
+
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  
+  <input type="checkbox" class="sidebar-toggle" name="__primary" id="__primary">
+  <label class="overlay overlay-primary" for="__primary"></label>
+
+  
+  <input type="checkbox" class="sidebar-toggle" name="__secondary" id="__secondary">
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+      
+<form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+    </div>
+  </div>
+
+  
+  <nav class="bd-header navbar navbar-expand-lg bd-navbar" id="navbar-main"><div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+      <span class="fa-solid fa-bars"></span>
+  </label>
+  <div id="navbar-start">
+    
+    
+  
+
+
+<a class="navbar-brand logo" href="../../index.html">
+
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
+    <p class="title logo__title">PyEVSpace 0.0.14.0 documentation</p>
+  
+</a>
+    
+  </div>
+
+  
+  <div class="col-lg-9 navbar-header-items">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <nav class="navbar-nav">
+    <p class="sidebar-header-items__title" role="heading" aria-level="1" aria-label="Site Navigation">
+        Site Navigation
+    </p>
+    <ul id="navbar-main-elements" class="navbar-nav">
+        
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../user/index.html">
+                        User Guide
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="../index.html">
+                        Reference
+                      </a>
+                    </li>
+                
+    </ul>
+</nav>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+        <div class="navbar-end-item navbar-persistent--container">
+          
+<button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-toggle="tooltip">
+  <i class="fa-solid fa-magnifying-glass"></i>
+</button>
+        </div>
+      
+      
+      <div class="navbar-end-item">
+        <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+</button>
+      </div>
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+      </div>
+      
+    </div>
+  </div>
+
+
+  
+  
+    <div class="navbar-persistent--mobile">
+<button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-toggle="tooltip">
+  <i class="fa-solid fa-magnifying-glass"></i>
+</button>
+    </div>
+  
+
+  
+  <label class="sidebar-toggle secondary-toggle" for="__secondary">
+      <span class="fa-solid fa-outdent"></span>
+  </label>
+  
+
+</div>
+  </nav>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+      
+      <div class="navbar-center-item">
+        <nav class="navbar-nav">
+    <p class="sidebar-header-items__title" role="heading" aria-level="1" aria-label="Site Navigation">
+        Site Navigation
+    </p>
+    <ul id="navbar-main-elements" class="navbar-nav">
+        
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../user/index.html">
+                        User Guide
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="../index.html">
+                        Reference
+                      </a>
+                    </li>
+                
+    </ul>
+</nav>
+      </div>
+      
+      </div>
+    
+
+    
+    
+    <div class="sidebar-header-items__end">
+      
+      <div class="navbar-end-item">
+        <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+</button>
+      </div>
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+      </div>
+      
+    </div>
+    
+  </div>
+
+  
+  <div class="sidebar-start-items sidebar-primary__section">
+    <div class="sidebar-start-items__item"><nav class="bd-links" id="bd-docs-nav" aria-label="Section navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">
+    Section Navigation
+  </p>
+  <div class="bd-toc-item navbar-nav">
+    <ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">PyEVSpace API</a><input checked class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="vector.html">Vector API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matrix.html">Matrix API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rotation.html">Rotation API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="refframe.html">ReferenceFrame API Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../c-api/index.html">C API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../c-api/capsule.html">Capsule</a></li>
+</ul>
+
+  </div>
+</nav>
+    </div>
+  </div>
+  
+
+  
+  <div class="sidebar-end-items sidebar-primary__section">
+    <div class="sidebar-end-items__item">
+    </div>
+  </div>
+
+  
+  <div id="rtd-footer-container"></div>
+
+      </div>
+      <main id="main-content" class="bd-main">
+        
+        
+        <div class="bd-content">
+          <div class="bd-article-container">
+            
+            <div class="bd-header-article">
+                
+            </div>
+            
+            
+            <article class="bd-article" role="main">
+              
+  <section id="pyevspace-api">
+<h1>PyEVSpace API<a class="headerlink" href="#pyevspace-api" title="Permalink to this heading">#</a></h1>
+<section id="pyevspace-documentation">
+<h2>PyEVSpace Documentation<a class="headerlink" href="#pyevspace-documentation" title="Permalink to this heading">#</a></h2>
+<p>The documentation for the package is split into four sections: Vector,
+Matrix, Rotation and ReferenceFrame APIs.</p>
+<div class="admonition note" id="numeric-def">
+<p class="admonition-title">Note</p>
+<p>The underlying data type of the internal array is a C type
+<code class="code highlight c docutils literal highlight-c"><span class="kt">double</span><span class="w"></span></code>. This obviously supports any type that can be represented
+as a Python <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, which includes Python <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> types.
+Therefore numeric types are interpreted in the following order:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>s are converted to a C <code class="code highlight c docutils literal highlight-c"><span class="kt">double</span><span class="w"></span></code></p></li>
+<li><p>A conversion is attempted with the type’s <code class="code highlight python docutils literal highlight-python"><span class="fm">__float__</span><span class="p">()</span></code> method</p></li>
+<li><p>A conversion is attempted with the type’s <code class="code highlight python docutils literal highlight-python"><span class="fm">__index__</span><span class="p">()</span></code> method</p></li>
+<li><p>No suitable conversion can be made and a TypeError is raised</p></li>
+</ol>
+</div></blockquote>
+<p>Therefore in this documentation a numeric type is any type that is
+either a <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> or can be converted to a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>.</p>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="vector.html">Vector API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vector.html#constructor">Constructor</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector"><code class="docutils literal notranslate"><span class="pre">Vector</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vector.html#attributes">Attributes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.e1"><code class="docutils literal notranslate"><span class="pre">Vector.e1</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.e2"><code class="docutils literal notranslate"><span class="pre">Vector.e2</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.e3"><code class="docutils literal notranslate"><span class="pre">Vector.e3</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vector.html#arithmetic-operators">Arithmetic Operators</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.__add__"><code class="docutils literal notranslate"><span class="pre">Vector.__add__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.__sub__"><code class="docutils literal notranslate"><span class="pre">Vector.__sub__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.__mul__"><code class="docutils literal notranslate"><span class="pre">Vector.__mul__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.__matmul__"><code class="docutils literal notranslate"><span class="pre">Vector.__matmul__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.__truediv__"><code class="docutils literal notranslate"><span class="pre">Vector.__truediv__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.__neg__"><code class="docutils literal notranslate"><span class="pre">Vector.__neg__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.__iadd__"><code class="docutils literal notranslate"><span class="pre">Vector.__iadd__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.__isub__"><code class="docutils literal notranslate"><span class="pre">Vector.__isub__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.__imul__"><code class="docutils literal notranslate"><span class="pre">Vector.__imul__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.__itruediv__"><code class="docutils literal notranslate"><span class="pre">Vector.__itruediv__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.__repr__"><code class="docutils literal notranslate"><span class="pre">Vector.__repr__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.__str__"><code class="docutils literal notranslate"><span class="pre">Vector.__str__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.__reduce__"><code class="docutils literal notranslate"><span class="pre">Vector.__reduce__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vector.html#module-methods">Module Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.dot"><code class="docutils literal notranslate"><span class="pre">dot()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.cross"><code class="docutils literal notranslate"><span class="pre">cross()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.norm"><code class="docutils literal notranslate"><span class="pre">norm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.vang"><code class="docutils literal notranslate"><span class="pre">vang()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.vxcl"><code class="docutils literal notranslate"><span class="pre">vxcl()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.proj"><code class="docutils literal notranslate"><span class="pre">proj()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vector.html#logical-operators">Logical Operators</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.__eq__"><code class="docutils literal notranslate"><span class="pre">Vector.__eq__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.__ne__"><code class="docutils literal notranslate"><span class="pre">Vector.__ne__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vector.html#vector-operators">Vector Operators</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.mag"><code class="docutils literal notranslate"><span class="pre">Vector.mag()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.mag2"><code class="docutils literal notranslate"><span class="pre">Vector.mag2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.normalize"><code class="docutils literal notranslate"><span class="pre">Vector.normalize()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vector.html#sequence-protocol">Sequence Protocol</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.__len__"><code class="docutils literal notranslate"><span class="pre">Vector.__len__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.__getitem__"><code class="docutils literal notranslate"><span class="pre">Vector.__getitem__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.__setitem__"><code class="docutils literal notranslate"><span class="pre">Vector.__setitem__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vector.html#iterator-protocol">Iterator Protocol</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vector.html#pyevspace.Vector.__iter__"><code class="docutils literal notranslate"><span class="pre">Vector.__iter__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vector.html#buffer-protocol">Buffer Protocol</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="matrix.html">Matrix API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="matrix.html#constructor">Constructor</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="matrix.html#pyevspace.Matrix"><code class="docutils literal notranslate"><span class="pre">Matrix</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="matrix.html#attributes">Attributes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="matrix.html#pyevspace.Matrix.id"><code class="docutils literal notranslate"><span class="pre">Matrix.id</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="matrix.html#arithmetic-operators">Arithmetic Operators</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="matrix.html#pyevspace.Matrix.__add__"><code class="docutils literal notranslate"><span class="pre">Matrix.__add__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matrix.html#pyevspace.Matrix.__sub__"><code class="docutils literal notranslate"><span class="pre">Matrix.__sub__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matrix.html#pyevspace.Matrix.__mul__"><code class="docutils literal notranslate"><span class="pre">Matrix.__mul__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matrix.html#pyevspace.Matrix.__truediv__"><code class="docutils literal notranslate"><span class="pre">Matrix.__truediv__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matrix.html#pyevspace.Matrix.__neg__"><code class="docutils literal notranslate"><span class="pre">Matrix.__neg__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matrix.html#pyevspace.Matrix.__iadd__"><code class="docutils literal notranslate"><span class="pre">Matrix.__iadd__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matrix.html#pyevspace.Matrix.__isub__"><code class="docutils literal notranslate"><span class="pre">Matrix.__isub__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matrix.html#pyevspace.Matrix.__imul__"><code class="docutils literal notranslate"><span class="pre">Matrix.__imul__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matrix.html#pyevspace.Matrix.__itruediv__"><code class="docutils literal notranslate"><span class="pre">Matrix.__itruediv__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matrix.html#pyevspace.Matrix..__repr__"><code class="docutils literal notranslate"><span class="pre">Matrix..__repr__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matrix.html#pyevspace.Matrix.__str__"><code class="docutils literal notranslate"><span class="pre">Matrix.__str__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matrix.html#pyevspace.Matrix.__reduce__"><code class="docutils literal notranslate"><span class="pre">Matrix.__reduce__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="matrix.html#module-methods">Module Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="matrix.html#pyevspace.det"><code class="docutils literal notranslate"><span class="pre">det()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matrix.html#pyevspace.transpose"><code class="docutils literal notranslate"><span class="pre">transpose()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="matrix.html#logical-operators">Logical Operators</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="matrix.html#pyevspace.Matrix.__eq__"><code class="docutils literal notranslate"><span class="pre">Matrix.__eq__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="matrix.html#pyevspace.Matrix.__ne__"><code class="docutils literal notranslate"><span class="pre">Matrix.__ne__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="matrix.html#mapping-protocol">Mapping Protocol</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matrix.html#buffer-protocol">Buffer Protocol</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rotation.html#how-rotations-work">How Rotations Work</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#basis-vectors">Basis Vectors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#rotation-matrix">Rotation Matrix</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#speeding-things-along">Speeding Things Along</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rotation.html#generating-rotation-matrices">Generating Rotation Matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rotation.html#rotating-vectors">Rotating Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rotation.html#rotation-types">Rotation Types</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#enumerated-axes">Enumerated Axes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#order">Order</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#angles">Angles</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rotation.html#matrix-generator-methods">Matrix Generator Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.getMatrixAxis"><code class="docutils literal notranslate"><span class="pre">getMatrixAxis()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.getMatrixEuler"><code class="docutils literal notranslate"><span class="pre">getMatrixEuler()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.getMatrixFromTo"><code class="docutils literal notranslate"><span class="pre">getMatrixFromTo()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rotation.html#rotation-methods">Rotation Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.rotateAxisFrom"><code class="docutils literal notranslate"><span class="pre">rotateAxisFrom()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.rotateAxisTo"><code class="docutils literal notranslate"><span class="pre">rotateAxisTo()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.rotateEulerFrom"><code class="docutils literal notranslate"><span class="pre">rotateEulerFrom()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.rotateEulerTo"><code class="docutils literal notranslate"><span class="pre">rotateEulerTo()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.rotateMatrixFrom"><code class="docutils literal notranslate"><span class="pre">rotateMatrixFrom()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.rotateMatrixTo"><code class="docutils literal notranslate"><span class="pre">rotateMatrixTo()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.rotateOffsetFrom"><code class="docutils literal notranslate"><span class="pre">rotateOffsetFrom()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rotation.html#pyevspace.rotateOffsetTo"><code class="docutils literal notranslate"><span class="pre">rotateOffsetTo()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="refframe.html">ReferenceFrame API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="refframe.html#pyevspace.ReferenceFrame"><code class="docutils literal notranslate"><span class="pre">ReferenceFrame</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="refframe.html#attributes">Attributes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="refframe.html#pyevspace.ReferenceFrame.order"><code class="docutils literal notranslate"><span class="pre">ReferenceFrame.order</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="refframe.html#pyevspace.ReferenceFrame.matrix"><code class="docutils literal notranslate"><span class="pre">ReferenceFrame.matrix</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="refframe.html#pyevspace.ReferenceFrame.angles"><code class="docutils literal notranslate"><span class="pre">ReferenceFrame.angles</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="refframe.html#pyevspace.ReferenceFrame.offset"><code class="docutils literal notranslate"><span class="pre">ReferenceFrame.offset</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="refframe.html#instance-methods">Instance Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="refframe.html#pyevspace.ReferenceFrame.rotateTo"><code class="docutils literal notranslate"><span class="pre">ReferenceFrame.rotateTo()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="refframe.html#pyevspace.ReferenceFrame.rotateFrom"><code class="docutils literal notranslate"><span class="pre">ReferenceFrame.rotateFrom()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="refframe.html#pyevspace.ReferenceFrame.rotateToFrame"><code class="docutils literal notranslate"><span class="pre">ReferenceFrame.rotateToFrame()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="refframe.html#pyevspace.ReferenceFrame.rotateFromFrame"><code class="docutils literal notranslate"><span class="pre">ReferenceFrame.rotateFromFrame()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+            </article>
+            
+            
+            
+            <footer class="bd-footer-article">
+                <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+  <a class='left-prev' id="prev-link" href="../index.html" title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+          <p class="prev-next-subtitle">previous</p>
+          <p class="prev-next-title">API Reference</p>
+      </div>
+  </a>
+  <a class='right-next' id="next-link" href="vector.html" title="next page">
+  <div class="prev-next-info">
+      <p class="prev-next-subtitle">next</p>
+      <p class="prev-next-title">Vector API Reference</p>
+  </div>
+  <i class="fa-solid fa-angle-right"></i>
+  </a>
+</div>
+            </footer>
+            
+          </div>
+          
+          
+          
+            <div class="bd-sidebar-secondary bd-toc">
+              
+<div class="toc-item">
+  
+<div class="tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+</div>
+<nav id="bd-toc-nav" class="page-toc">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#pyevspace-documentation">
+   PyEVSpace Documentation
+  </a>
+ </li>
+</ul>
+
+</nav>
+</div>
+
+<div class="toc-item">
+  
+<div id="searchbox"></div>
+</div>
+
+<div class="toc-item">
+  
+</div>
+
+<div class="toc-item">
+  
+<div class="tocsection sourcelink">
+    <a href="../../_sources/reference/api/index.rst.txt">
+        <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+</div>
+
+</div>
+
+            </div>
+          
+          
+        </div>
+        <footer class="bd-footer-content">
+          <div class="bd-footer-content__inner">
+            
+          </div>
+        </footer>
+        
+      </main>
+    </div>
+  </div>
+
+  
+    
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94"></script>
+
+  <footer class="bd-footer"><div class="bd-footer__inner container">
+  
+  <div class="footer-item">
+    
+<p class="copyright">
+
+    &copy; Copyright 2022, Quinton Barnes.<br>
+
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    <p class="theme-version">
+    Built with the
+    <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">
+        PyData Sphinx Theme
+    </a>
+    0.12.0.
+</p>
+  </div>
+  
+  <div class="footer-item">
+    
+<p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.3.0.<br>
+</p>
+
+  </div>
+  
+</div>
+  </footer>
+  </body>
+</html>
