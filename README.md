@@ -1,4 +1,4 @@
-# PyEVSpace
+# PyEVSpace 0.14.0
 
 PyEVSpace is a Python Euclidean vector space package containing types
 and methods for representing vector quantites and fasilitating rotating
