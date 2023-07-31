@@ -22,7 +22,7 @@ typedef struct {
     double beta;
     double gamma;
     // Keep track of the reference frame for callback.
-    EVSpace_ReferenceFrame* master;
+    EVSpace_Matrix* master;
 } EVSpace_Angles;
 
 typedef enum {
