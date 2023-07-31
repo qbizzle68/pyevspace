@@ -7,24 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.14.0] - 2023-07-29
-
-### Changed
-
-- The alpha, beta, and gamma attributes of the Angles type are now properties of the class.
-  This allows angles attributes of ReferenceFrame objects to call back to the owner and
-  update the internal rotation matrix.
-- The angles attribute is now copied when constructing ReferenceFrames. The angles object
-  was stored as a reference before, which meant changing an angles attribute changed the
-  attribute for all ReferenceFrame objects that were constructed with that Angles instance.
-  Due to an implementation detail this is no longer possible.
-
-### Removed
-
-- Removed the alpha, beta, and gamma attributes of ReferenceFrame objects. These attributes
-  were used to change the underlying matrix of the ReferenceFrame object, which is now
-  handled by via a callback mechanism in the Angles class.
-
 ## [0.13.1] - 2023-07-24
 
 ### Security
@@ -225,8 +207,7 @@ release will be removed from pip and git releases.
 
 Initial version of project.
 
-[unreleased]: https://github.com/qbizzle68/pyevspace/compare/v0.14.0...HEAD
-[0.14.0]: https://github.com/qbizzle68/pyevspace/compare/v0.14.0...v0.13.1
+[unreleased]: https://github.com/qbizzle68/pyevspace/compare/v0.13.1...HEAD
 [0.13.1]: https://github.com/qbizzle68/pyevspace/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/qbizzle68/pyevspace/compare/v0.12.5...v0.13.0
 [0.12.5]: https://github.com/qbizzle68/pyevspace/compare/v0.12.4...v0.12.5
