@@ -147,8 +147,14 @@ refframe_offset_getter(EVSpace_ReferenceFrame* self, void* Py_UNUSED(_))
 #if PY_VERSION_HEX >= 0x03100000
         return Py_NewRef(self->offset);
 #else
-        Py_INCREF(self->offset);
-        return (PyObject*)self->offset;
+        if (self->offset) {
+            Py_INCREF(self->offset);
+            return (PyObject*)self->offset;
+        }
+        else {
+            Py_INCREF(Py_None);
+            return Py_None;
+        }
 #endif
     }
     else {
