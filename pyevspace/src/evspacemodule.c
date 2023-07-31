@@ -2,10 +2,6 @@
 #include <Python.h>
 #include <structmember.h> // PyMemberDef
 
-// Forward declarations
-static PyTypeObject EVSpace_OrderType;
-static PyTypeObject EVSpace_AnglesType;
-
 /* don't need the extra's for the C API */
 #define _EVSPACE_IMPL
 #include <evspacemodule.h>
