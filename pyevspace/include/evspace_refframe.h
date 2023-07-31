@@ -167,12 +167,8 @@ refframe_offset_setter(EVSpace_ReferenceFrame* self, PyObject* arg,
     }
 
     EVSpace_Vector* tmp = self->offset;
-#if PY_VERSION_HEX >= 0x03100000
-    self->offset = Py_NewRef((EVSpace_Vector*)arg);
-#else
-    Py_INCREF(arg);
+    Py_XINCREF(arg);
     self->offset = (EVSpace_Vector*)arg;
-#endif
     Py_XDECREF(tmp);
 
     return 0;
