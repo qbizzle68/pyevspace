@@ -167,13 +167,15 @@ static PySequenceMethods angles_as_sequence = {
     .sq_ass_item    = (ssizeobjargproc)angles_set_item
 };
 
-static PyGetSetDef angles_getset[] = {
-    {"alpha", (getter)angles_getter, (setter)angles_setter,
-     PyDoc_STR("first angle of a rotation"), (void*)ROTATION_ANGLE_ALPHA},
-    {"beta", (getter)angles_getter, (setter)angles_setter,
-     PyDoc_STR("second angle of a rotation"), (void*)ROTATION_ANGLE_BETA},
-    {"gamma", (getter)angles_getter, (setter)angles_setter,
-     PyDoc_STR("third angle of a rotation"), (void*)ROTATION_ANGLE_GAMMA},
+static PyMemberDef angles_members[] = {
+    {"alpha", T_DOUBLE, offsetof(EVSpace_Angles, alpha), 0,
+     PyDoc_STR("first angle of a rotation")},
+
+    {"beta", T_DOUBLE, offsetof(EVSpace_Angles, beta), 0,
+     PyDoc_STR("second angle of a rotation")},
+
+    {"gamma", T_DOUBLE, offsetof(EVSpace_Angles, gamma), 0,
+     PyDoc_STR("third angle of a rotation")},
 
     {NULL}
 };
@@ -206,7 +208,7 @@ static PyTypeObject EVSpace_AnglesType = {
 #endif
     .tp_doc         = angles_doc,
     .tp_methods     = angles_methods,
-    .tp_getset      = angles_getset,
+    .tp_members     = angles_members,
     .tp_new         = (newfunc)angles_new
 };
 
