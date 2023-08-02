@@ -1,0 +1,26 @@
+# This workflow will generate a new release when a new tag of the form
+# v#.#.# is pushed to the repository.
+
+name: Create new release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+[0-9]+[0-9]+'
+
+jobs:
+  build:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@latest
+      - name: Create release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag-name: ${{ github.ref }}
+          release-name: ${{ github.ref }}
+          draft: false
+          prerelease: false
