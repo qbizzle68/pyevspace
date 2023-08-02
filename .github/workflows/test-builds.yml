@@ -3,7 +3,13 @@
 
 name: Test binary builds
 
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - setup.py
+      - MANIFEST.in
+      - /src/pyevspace/**
+      - /src/tests/**
 
 permissions:
   contents: read
