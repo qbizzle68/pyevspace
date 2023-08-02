@@ -11,7 +11,7 @@ on:
       - /src/pyevspace/**
       - /src/tests/**
     tags-ignore:
-      - **
+      - '**'
   pull_request:
     paths:  
       - setup.py
