@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.1] - 2023-08-02
+
+### Added
+
+- Workflows to automatically build and distrubute releases and packages for use. This has
+  no effect on the public API.
+
 ## [0.14.0] - 2023-07-31
 
 ### Changed
