@@ -1,4 +1,8 @@
-# PyEVSpace 0.14.0
+# PyEVSpace 0.14.1
+
+This version of PyEVSpace is no functionally different than 0.14.0.
+This version was published to pypi using automated scripting workflows,
+and its existence means everything works!!
 
 PyEVSpace is a Python Euclidean vector space package containing types
 and methods for representing vector quantites and fasilitating rotating
