@@ -5,14 +5,6 @@ import sys
 from functools import total_ordering
 
 
-# This parsing is based on rigorous formatting in the CHANGELOG.md. Each beginning of a
-# version's changed should start with a line consiting only of: '## [X.X.X] - YYYY-MM-DD'.
-# These will serve as the demarcation points with which to generate the changes.
-
-LINE_DELIMITER = re.compile('^## \[\d+.\d+.\d+\] - \d{4}-\d{2}-\d{2}\s*$')
-VERSION_PATTERN = re.compile('\[\d+.\d+.\d+\]')
-
-
 @total_ordering
 class Version:
     __slots__ = '_major', '_minor', '_patch'
@@ -66,8 +58,19 @@ class Version:
 
 
 class Changelog(dict):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    # This parsing is based on rigorous formatting in the CHANGELOG.md. Each beginning of a
+    # version's changed should start with a line consiting only of: '## [X.X.X] - YYYY-MM-DD'.
+    # These will serve as the demarcation points with which to generate the changes.
+
+    LINE_DELIMITER = re.compile('^## \[\d+.\d+.\d+\] - \d{4}-\d{2}-\d{2}\s*$')
+    VERSION_PATTERN = re.compile('\[\d+.\d+.\d+\]')
+
+    def __init__(self, filename: str):
+        if not isinstance(filename, str):
+            raise TypeError(f'filename must be a str type, not {type(filename)}')
+
+        super().__init__()
+        self._getContents(filename)
 
     def __getitem__(self, key):
         if isinstance(key, str):
@@ -79,37 +82,33 @@ class Changelog(dict):
             key = Version(key)
         return super().__contains__(key)
 
+    @staticmethod
+    def _parseVersion(line: str) -> Version:
+        match = re.search(Changelog.VERSION_PATTERN, line)
+        if match is None:
+            raise ValueError('no version match found in string')
 
-def parseVersion(line: str) -> Version:
-    match = re.search(VERSION_PATTERN, line)
-    if match is None:
-        raise ValueError('no version match found in string')
+        versionString = line[match.start()+1:match.end()-1]
+        return Version(f'v{versionString}')
 
-    versionString = line[match.start()+1:match.end()-1]
-    return Version(f'v{versionString}')
-
-
-def getChangelogContents(filename: str):
-    changelog = Changelog()
-    with open(filename, 'r') as f:
-        content = ''
-        version = None
-        for line in f:
-            if re.search(LINE_DELIMITER, line):
-                if version is not None:
-                    changelog[version] = content.strip()
-                    content = ''
-                    version = parseVersion(line)
+    def _getContents(self, filename: str):
+        with open(filename, 'r') as f:
+            content = ''
+            version = None
+            for line in f:
+                if re.search(self.LINE_DELIMITER, line):
+                    if version is not None:
+                        self.__setitem__(version, content.strip())
+                        content = ''
+                        version = self._parseVersion(line)
+                    else:
+                        # first version found
+                        version = self._parseVersion(line)
+                        content = ''
                 else:
-                    # first version found
-                    version = parseVersion(line)
-                    content = ''
-            else:
-                content += line
-        if version is not None:
-            changelog[version] = content.strip()
-
-    return changelog
+                    content += line
+            if version is not None:
+                self.__setitem__(version, content.strip())
 
 
 if __name__ == '__main__':
@@ -122,7 +121,7 @@ if __name__ == '__main__':
     CHANGELOG_FILE_PATH = sys.argv[2]
     OUTPUT_FILE_PATH = sys.argv[3]
 
-    log = getChangelogContents(CHANGELOG_FILE_PATH)
+    log = Changelog(CHANGELOG_FILE_PATH)
     if not TAG_NAME in log:
         print(f'tag {TAG_NAME} not found in {CHANGELOG_FILE_PATH}')
         exit(1)
