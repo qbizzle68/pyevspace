@@ -15,50 +15,63 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\evspacemodule.c">
+    <ClCompile Include="src\pyevspace\src\evspacemodule.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\evspacemodule.h">
+    <ClInclude Include="src\pyevspace\include\evspacemodule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\evspace_vector.h">
+    <ClInclude Include="src\pyevspace\include\evspace_angles.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\evspace_common.h">
+    <ClInclude Include="src\pyevspace\include\evspace_api.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\evspace_matrix.h">
+    <ClInclude Include="src\pyevspace\include\evspace_common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\evspace_angles.h">
+    <ClInclude Include="src\pyevspace\include\evspace_matrix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\evspace_api.h">
+    <ClInclude Include="src\pyevspace\include\evspace_refframe.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\evspace_rotation.h">
+    <ClInclude Include="src\pyevspace\include\evspace_rotation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\evspace_refframe.h">
+    <ClInclude Include="src\pyevspace\include\evspace_vector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="tests\__init__.py" />
-    <None Include="tests\matrix_test.py" />
-    <None Include="tests\module_test.py" />
-    <None Include="tests\pyevspace_tests.py" />
-    <None Include="tests\vector_test.py" />
-    <None Include="__init__.py" />
-    <None Include="examples\__init__.py" />
-    <None Include="examples\arithmetic.py" />
-    <None Include="examples\creating.py" />
-    <None Include="examples\methods.py" />
-    <None Include="tests\angles_test.py" />
-    <None Include="tests\rotation_test.py" />
-    <None Include="tests\refframe_test.py" />
-    <None Include="tests\rotation_answers.py" />
+    <None Include=".gitignore" />
+    <None Include="MANIFEST.in" />
+    <None Include="README.md" />
+    <None Include="setup.py" />
+    <None Include="src\examples\arithmetic.py" />
+    <None Include="src\examples\creating.py" />
+    <None Include="src\examples\methods.py" />
+    <None Include="src\examples\__init__.py" />
+    <None Include="src\pyevspace\__init__.py" />
+    <None Include="src\tests\angles_test.py" />
+    <None Include="src\tests\matrix_test.py" />
+    <None Include="src\tests\refframe_test.py" />
+    <None Include="src\tests\rotation_answers.py" />
+    <None Include="src\tests\rotation_test.py" />
+    <None Include="src\tests\vector_test.py" />
+    <None Include="src\tests\__init__.py" />
+    <None Include="tox.ini" />
+    <None Include=".github\workflows\test-builds.yml" />
+    <None Include=".github\workflows\create-release.yml" />
+    <None Include=".github\scripts\generate_changes.py" />
+    <None Include="CHANGELOG.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="LICENSE.txt" />
+    <Text Include="pyevspace-extension\tests\offset-scratch.txt" />
+    <Text Include="requirements.txt" />
+    <Text Include="src\tests\offset-scratch.txt" />
   </ItemGroup>
 </Project>
