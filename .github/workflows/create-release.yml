@@ -23,7 +23,7 @@ jobs:
           python-version: '3.11'
         
       - name: Get changes from change log
-        run: python .github/scripts/generate_changes.py ${{ github.ref_name }} CHANGELOG.md tmp.md
+        run: python .github/scripts/generate_changes.py ${{ github.ref_name }} ${{ github.workspace }}/CHANGELOG.md tmp.md
         
       - name: Create formatted change log file for create-release
         run: |
