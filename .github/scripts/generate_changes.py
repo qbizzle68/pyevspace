@@ -123,8 +123,9 @@ if __name__ == '__main__':
 
     log = Changelog(CHANGELOG_FILE_PATH)
     if not TAG_NAME in log:
-        print(f'tag {TAG_NAME} not found in {CHANGELOG_FILE_PATH}')
-        exit(1)
+        contents = 'No changes found in change log'
+    else:
+        contents = log[TAG_NAME]
 
     with open(OUTPUT_FILE_PATH, 'w') as f:
-        f.write(log[TAG_NAME])
+        f.write(contents)
