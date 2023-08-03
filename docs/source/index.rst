@@ -10,7 +10,7 @@ PyEVSpace Documentation
     :target: https://pypi.org/project/pyevspace/#history
     :alt: PyPI
 
-.. image:: https://github.com/qbizzle68/pyevspace/actions/workflows/python-package-test.yml/badge.svg
+.. image:: https://github.com/qbizzle68/pyevspace/actions/workflows/test-builds.yml/badge.svg
     :target: https://github.com/qbizzle68/pyevspace/actions
     :alt: GitHub Test Action
 
