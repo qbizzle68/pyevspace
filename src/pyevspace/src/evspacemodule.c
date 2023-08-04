@@ -1,6 +1,8 @@
 ﻿#define PY_SSIZE_T_CLEAN
 #include <Python.h>
-#include <structmember.h> // PyMemberDef
+#if PY_VERSION_HEX < 0x03120000
+    #include <structmember.h> // PyMemberDef
+#endif
 
 /* don't need the extra's for the C API */
 #define _EVSPACE_IMPL
@@ -230,13 +232,25 @@ static PySequenceMethods order_as_sequence = {
 };
 
 static PyMemberDef order_members[] = {
+#if PY_VERSION_HEX < 0x03120000
     {"first", T_INT, offsetof(EVSpace_Order, first), READONLY,
+#else
+    {"first", Py_T_INT, offsetof(EVSpace_Order, first), READONLY,
+#endif
      PyDoc_STR("first axis of a rotation")},
 
+#if PY_VERSION_HEX < 0x03120000
     {"second", T_INT, offsetof(EVSpace_Order, second), READONLY,
+#else
+    {"second", Py_T_INT, offsetof(EVSpace_Order, second), READONLY,
+#endif
      PyDoc_STR("second axis of a rotation")},
 
+#if PY_VERSION_HEX < 0x03120000
     {"third", T_INT, offsetof(EVSpace_Order, third), READONLY,
+#else
+    {"third", Py_T_INT, offsetof(EVSpace_Order, third), READONLY,
+#endif
      PyDoc_STR("third axis of a rotation")},
 
     {NULL}
@@ -277,10 +291,18 @@ static PyTypeObject EVSpace_OrderType = {
 };
 
 static PyMemberDef reference_frame_members[] = {
+#if PY_VERSION_HEX < 0x03120000
     {"order", T_OBJECT_EX, offsetof(EVSpace_ReferenceFrame, order), READONLY,
+#else
+    {"order", Py_T_OBJECT_EX, offsetof(EVSpace_ReferenceFrame, order), READONLY,
+#endif
      PyDoc_STR("order of axes in the rotation")},
 
+#if PY_VERSION_HEX < 0x03120000
     {"matrix", T_OBJECT_EX, offsetof(EVSpace_ReferenceFrame, matrix), READONLY,
+#else
+    {"matrix", Py_T_OBJECT_EX, offsetof(EVSpace_ReferenceFrame, matrix), READONLY,
+#endif
      PyDoc_STR("internal matrix describing the rotation")},
 
     {NULL}
