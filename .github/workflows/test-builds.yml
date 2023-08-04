@@ -6,18 +6,16 @@ name: Tests
 on:
   push:
     paths:
-      - setup.py
-      - MANIFEST.in
-      - /src/pyevspace/**
-      - /src/tests/**
-    tags-ignore:
-      - '**'
+      - 'setup.py'
+      - 'MANIFEST.in'
+      - 'src/pyevspace/**'
+      - 'src/tests/**'
   pull_request:
     paths:  
-      - setup.py
-      - MANIFEST.in
-      - /src/pyevspace/**
-      - /src/tests/**  
+      - 'setup.py'
+      - 'MANIFEST.in'
+      - 'src/pyevspace/**'
+      - 'src/tests/**'
 
 permissions:
   contents: read
