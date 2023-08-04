@@ -1,8 +1,7 @@
 # This workflow will generate a new release when a new tag of the form
 # v#.#.# is pushed to the repository.
 
-name: Create release and publish.
-
+name: Create new release
 on:
   push:
     tags:
