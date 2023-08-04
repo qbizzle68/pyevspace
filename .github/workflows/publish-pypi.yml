@@ -5,7 +5,7 @@ name: Upload python package
 
 on: 
   release:
-    type: [publish]
+    type: [published]
 
 jobs:
   build_wheels:
