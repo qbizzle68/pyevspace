@@ -6,17 +6,18 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-from pathlib import Path
-import sys
-
-pyevspaceRoot = Path(__file__).parent.parent
-sys.path.insert(0, pyevspaceRoot)
-
-from pyevspace.__init__ import __version__
-
 project = 'PyEVSpace'
 copyright = '2022, Quinton Barnes'
 author = 'Quinton Barnes'
+
+import tomllib
+import pathlib
+
+path = pathlib.Path(__file__)
+with open(path.parents[2] / 'pyproject.toml', 'rb') as f:
+    toml = tomllib.load(f)
+
+__version__ = toml['project']['version']
 version = __version__
 release = __version__
 
