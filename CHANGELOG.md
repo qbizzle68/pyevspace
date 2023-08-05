@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.2] - 2023-08-04
+
+### Added
+
+- Much more automation via CI/CD.
+- Build and deploy documentation to server after publishing new releases to PyPi.
+- Added version verifying script to ensure version strings in the pyproject.toml and
+  change log match the tag ref name.
+
+### Changed
+
+- THIS HAS NO AFFECT ON THE PUBLIC API.
+
 ## [0.14.1] - 2023-08-02
 
 ### Added
