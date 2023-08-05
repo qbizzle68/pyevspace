@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'PyEVSpace'
-copyright = '2022, Quinton Barnes'
+copyright = '2023, Quinton Barnes'
 author = 'Quinton Barnes'
 
 import tomllib
