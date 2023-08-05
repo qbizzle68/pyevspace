@@ -98,8 +98,8 @@ jobs:
             ${{ env.SPHINX_BUILD_PATH }}/*.html
             ${{ env.SPHINX_BUILD_PATH }}/*.js
             ${{ env.SPHINX_BUILD_PATH }}/*/
-            ${{ env.SPHINX_BUILD_PATH }}/_sources
-            ${{ env.SPHINX_BUILD_PATH }}/.doctrees
+            !${{ env.SPHINX_BUILD_PATH }}/_sources
+            !${{ env.SPHINX_BUILD_PATH }}/.doctrees
 
   deploy_docs:
     name: Deploy documentation to server
