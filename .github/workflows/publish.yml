@@ -1,11 +1,16 @@
 # This workflow builds all wheels and the sdist for pyevspace, then
 # published the version to the PyPi repository.
+# This workflow also builds the documentation using Sphinx, then uploads
+# it to the documentation's hosted server.
 
-name: Upload python package
+name: Publish python package and documentation
 
 on: 
   release:
     type: [published]
+
+env:
+  SPHINX_BUILD_PATH: docs/build
 
 jobs:
   build_wheels:
@@ -66,3 +71,52 @@ jobs:
       
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+
+  build_docs:
+    name: Build documentation using Sphinx
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+  
+      - uses: actions/setup-python@v3
+  
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install sphinx pydata-sphinx-theme
+
+      - name: Build documentation
+        run: |
+          sphinx-build -b html docs/source ${{ env.SPHINX_BUILD_PATH }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: documentation
+          path: |
+            ${{ env.SPHINX_BUILD_PATH }}/*.html
+            ${{ env.SPHINX_BUILD_PATH }}/*.js
+            ${{ env.SPHINX_BUILD_PATH }}/*/
+            ${{ env.SPHINX_BUILD_PATH }}/_sources
+            ${{ env.SPHINX_BUILD_PATH }}/.doctrees
+
+  deploy_docs:
+    name: Deploy documentation to server
+    needs: [build_docs, upload_pypi]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: documentation
+
+      - name: Upload files using SFTP
+        uses: wangyucode/sftp-upload-action@v2.0.2
+        with:
+          host: ${{ secrest.DH_HOST }}
+          username: ${{ secrets.DH_USER }}
+          password: ${{ secrets.DH_PASS }}
+          localDir: '.'
+          remoteDir: 'qbizzle.com/pyevspace'
