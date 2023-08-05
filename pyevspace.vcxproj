@@ -183,10 +183,12 @@
   <ItemGroup>
     <None Include=".github\scripts\generate_changes.py" />
     <None Include=".github\workflows\create-release.yml" />
+    <None Include=".github\workflows\publish.yml" />
     <None Include=".github\workflows\test-builds.yml" />
     <None Include=".gitignore" />
     <None Include="CHANGELOG.md" />
     <None Include="MANIFEST.in" />
+    <None Include="pyproject.toml" />
     <None Include="README.md" />
     <None Include="setup.py" />
     <None Include="src\examples\arithmetic.py" />
