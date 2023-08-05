@@ -8,8 +8,25 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]'
   
 jobs:
+  verify-versions:
+    name: Validate all version numbers
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Validate versions
+        run: .github/scripts/verify_versions.py ${{ github.ref_name }}
+
   release:
     name: Create Release
+    needs: verify-versions
     permissions: write-all
 
     runs-on: ubuntu-latest
