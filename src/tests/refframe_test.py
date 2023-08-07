@@ -125,6 +125,11 @@ class TestReferenceFrame(unittest.TestCase):
         self.assertEqual(ref.matrix, Matrix((0, 0, 1), (1, 0, 0), (0, 1, 0)),
                          msg=msg)
 
+        ref.angles[0] = pi/2
+        msg = 'reference frame sub-angle set by index changing matrix'
+        self.assertEqual(ref.matrix, Matrix((0, 0, 1), (0, -1, 0), (1, 0, 0)),
+                         msg=msg)
+
         # test sub-angle exceptions
         # test deleting sub-angle ValueError
         msg = 'reference frame deleting sub-angle TypeError'
