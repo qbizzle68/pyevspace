@@ -171,14 +171,18 @@ angles_set_item(EVSpace_Angles* self, Py_ssize_t index, PyObject* value)
         return -1;
     }
 
+    double* angle_addr = NULL;
     if (index == ROTATION_ANGLE_ALPHA) {
-        self->alpha = dbl_value;
+        //self->alpha = dbl_value;
+        angle_addr = &self->alpha;
     }
     else if (index == ROTATION_ANGLE_BETA) {
-        self->beta = dbl_value;
+        //self->beta = dbl_value;
+        angle_addr = &self->beta;
     }
     else if (index == ROTATION_ANGLE_GAMMA) {
-        self->gamma = dbl_value;
+        //self->gamma = dbl_value;
+        angle_addr = &self->gamma;
     }
     else {
         PyErr_Format(PyExc_IndexError,
@@ -186,6 +190,19 @@ angles_set_item(EVSpace_Angles* self, Py_ssize_t index, PyObject* value)
                      index);
         return -1;
     }
+
+    // Track the original value to revert if computing matrix fails.
+    double old_value = *angle_addr;
+    *angle_addr = dbl_value;
+    EVSpace_ReferenceFrame* master = (EVSpace_ReferenceFrame*)self->master;
+
+    if (self->master) {
+        if (_refframe_update_matrix(master) < 0) {
+            *angle_addr = old_value;
+            return -1;
+        }
+    }
+    angle_addr = NULL;
 
     return 0;
 }

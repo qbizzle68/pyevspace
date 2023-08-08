@@ -16,9 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added version verifying script to ensure version strings in the pyproject.toml and
   change log match the tag ref name.
 
-### Changed
+### Fixed
 
-- THIS HAS NO AFFECT ON THE PUBLIC API.
+- Fixed changing an Angles sub-angle via the __setitem__() method not recomputing the
+  internal rotation matrix.
 
 ## [0.14.1] - 2023-08-02
 
