@@ -1,8 +1,9 @@
 # PyEVSpace 0.14.1
 
-This version of PyEVSpace is no functionally different than 0.14.0.
-This version was published to pypi using automated scripting workflows,
-and its existence means everything works!!
+[![Github test action](https://github.com/qbizzle68/pyevspace/actions/workflows/test-builds.yml/badge.svg)](https://github.com/qbizzle68/pyevspace/actions)
+[![PyPi](https://img.shields.io/pypi/v/pyevspace?style=plastic)](https://pypi.org/project/pyevspace/#history)
+![Supported Python versions](https://img.shields.io/pypi/pyversions/pyevspace?style=plastic)
+[![License](https://img.shields.io/pypi/l/pyevspace?style-plastic)](https://opensource.org/licenses/MIT)
 
 PyEVSpace is a Python Euclidean vector space package containing types
 and methods for representing vector quantites and fasilitating rotating
