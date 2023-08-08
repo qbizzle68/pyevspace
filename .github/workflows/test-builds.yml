@@ -7,12 +7,7 @@ on:
   push:
     paths:
       - 'setup.py'
-      - 'MANIFEST.in'
-      - 'src/pyevspace/**'
-      - 'src/tests/**'
-  pull_request:
-    paths:  
-      - 'setup.py'
+      - 'pyproject.toml'
       - 'MANIFEST.in'
       - 'src/pyevspace/**'
       - 'src/tests/**'
