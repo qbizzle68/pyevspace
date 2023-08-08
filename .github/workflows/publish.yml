@@ -115,7 +115,7 @@ jobs:
       - name: Upload files using SFTP
         uses: wangyucode/sftp-upload-action@v2.0.2
         with:
-          host: ${{ secrest.DH_HOST }}
+          host: ${{ secrets.DH_HOST }}
           username: ${{ secrets.DH_USER }}
           password: ${{ secrets.DH_PASS }}
           localDir: '.'

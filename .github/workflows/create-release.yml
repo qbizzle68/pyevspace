@@ -22,7 +22,7 @@ jobs:
           python-version: '3.11'
 
       - name: Validate versions
-        run: .github/scripts/verify_versions.py ${{ github.ref_name }}
+        run: python .github/scripts/verify_versions.py ${{ github.ref_name }}
 
   release:
     name: Create Release
