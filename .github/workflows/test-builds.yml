@@ -7,12 +7,7 @@ on:
   push:
     paths:
       - 'setup.py'
-      - 'MANIFEST.in'
-      - 'src/pyevspace/**'
-      - 'src/tests/**'
-  pull_request:
-    paths:  
-      - 'setup.py'
+      - 'pyproject.toml'
       - 'MANIFEST.in'
       - 'src/pyevspace/**'
       - 'src/tests/**'
@@ -23,6 +18,7 @@ permissions:
 jobs:
   build:
     name: Build and test
+    if: github.event.pull_request.merged == false
 
     runs-on: ${{ matrix.os }}
     strategy:

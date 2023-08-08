@@ -31,6 +31,7 @@ def checkConfig(path, tag):
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print(f'syntax: {__file__} <tag_name>')
+        exit(1)
 
     TAG_NAME = sys.argv[1]
     # ensure the tag ref name follows semantic version naming
