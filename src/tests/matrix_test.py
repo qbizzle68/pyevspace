@@ -1,371 +1,383 @@
 from copy import copy
-
-from pyevspace import Matrix, Vector, det, transpose
-import unittest
 import pickle
 
+import pytest
 
-class TestMatrix(unittest.TestCase):
-
-    mi = Matrix((1, 0, 0), (0, 1, 0), (0, 0, 1))
-    m123 = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
-    m147 = Matrix((1, 4, 7), (2, 5, 8), (3, 6, 9))
-    v123 = Vector((1, 2, 3))
-    m2 = Matrix((2, 4, 6), (8, 10, 12), (14, 16, 18))
-
-    def test_matrix_new(self):
-        # test if non-iterable in constructor
-        msg = 'Matrix() constructor non-iterable TypeError'
-        with self.assertRaises(TypeError, msg=msg):
-            Matrix(1, (1, 2, 3), (2, 3, 4))
-
-        # test iterable less than length 3
-        msg = 'Matrix() constructor iterable length < 3 ValueError'
-        with self.assertRaises(ValueError, msg=msg):
-            Matrix((1, 2), (1, 2, 3), (1, 2, 3))
-
-        # test iterable more than length 3
-        msg = 'Matrix() constructor iterable length > 3 ValueError'
-        with self.assertRaises(ValueError, msg=msg):
-            Matrix((1, 2, 3), (4, 5, 6, 7), (8, 9, 10))
-
-        # test non numeric value
-        msg = 'Matrix() constructor iterable non-numeric value TypeError'
-        with self.assertRaises(TypeError, msg=msg):
-            Matrix((1, 2, 'a'), (4, 5, 6), (7, 8, 9))
-
-        # test empty constructor
-        msg = 'Matrix() empty constructor initializing to zeros'
-        self.assertEqual(Matrix(), Matrix((0, 0, 0), (0, 0, 0), (0, 0, 0)),
-                         msg=msg)
-
-    def test_matrix_str(self):
-        # test int only matrix
-        msg = 'matrix str() int'
-        self.assertEqual(str(self.m123), '[[1, 2, 3]\n[4, 5, 6]\n[7, 8, 9]]',
-                         msg=msg)
-
-        # test float
-        msg = 'matrix str() float'
-        self.assertEqual(
-            str(Matrix((1.1, 2.2, 3.3), (4.4, 5.5, 6.6), (7.7, 8.8, 9.9))),
-            '[[1.1, 2.2, 3.3]\n[4.4, 5.5, 6.6]\n[7.7, 8.8, 9.9]]', msg=msg)
-
-    def test_matrix_repr(self):
-        # test int only matrix
-        msg = 'matrix repr() int'
-        self.assertEqual(repr(self.m123),
-                         'Matrix([1, 2, 3]\n    [4, 5, 6]\n    [7, 8, 9])',
-                         msg=msg)
-
-        # test float
-        msg = 'matrix repr() float'
-        self.assertEqual(
-            repr(Matrix((1.1, 2.2, 3.3), (4.4, 5.5, 6.6), (7.7, 8.8, 9.9))),
-            'Matrix([1.1, 2.2, 3.3]\n    [4.4, 5.5, 6.6]\n    [7.7, 8.8, 9.9])',
-            msg=msg)
-
-    def test_matrix_add(self):
-        # test matrix add computation
-        ans = Matrix((2, 6, 10), (6, 10, 14), (10, 14, 18))
-        msg = 'matrix add two matrices'
-        self.assertEqual(self.m123 + self.m147, ans, msg=msg)
-
-        # test exceptions from types
-        msg = 'matrix add rhs arg TypeError'
-        with self.assertRaises(TypeError, msg=msg):
-            ans = self.m123 + 1
-
-        msg = 'matrix add rhs arg TypeError'
-        with self.assertRaises(TypeError, msg=msg):
-            ans = self.m123 + 'a'
-
-    def test_matrix_iadd(self):
-        # test inplace matrix add computation
-        m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
-        m += self.m147
-        ans = Matrix((2, 6, 10), (6, 10, 14), (10, 14, 18))
-        msg = 'matrix iadd two matrices'
-        self.assertEqual(self.m123 + self.m147, ans, msg=msg)
-
-        # test exceptions from types
-        msg = 'matrix iadd rhs arg TypeError'
-        with self.assertRaises(TypeError, msg=msg):
-            self.m123 += 1
-
-        msg = 'matrix iadd rhs arg TypeError'
-        with self.assertRaises(TypeError, msg=msg):
-            self.m123 += 'a'
-
-    def test_matrix_subtract(self):
-        # test matrix subtraction computations
-        ans = Matrix((0, -2, -4), (2, 0, -2), (4, 2, 0))
-        msg = 'matrix subtract two matrices'
-        self.assertEqual(self.m123 - self.m147, ans, msg=msg)
-
-        # test exceptions from types
-        msg = 'matrix subtract rhs arg TypeError'
-        with self.assertRaises(TypeError, msg=msg):
-            ans = self.m123 - 1
-
-        with self.assertRaises(TypeError, msg=msg):
-            ans = self.m123 - 'a'
-
-    def test_matrix_isubtract(self):
-        # test matrix inplace subtraction computations
-        m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
-        m -= self.m147
-        ans = Matrix((0, -2, -4), (2, 0, -2), (4, 2, 0))
-        msg = 'matrix isubtract two matrices'
-        self.assertEqual(m, ans, msg=msg)
-
-        # test exceptions from types
-        msg = 'matrix isubtract rhs argument TypeError'
-        with self.assertRaises(TypeError, msg=msg):
-            self.m123 -= 1
-
-        with self.assertRaises(TypeError, msg=msg):
-            self.m123 -= 'a'
-
-    def test_matrix_scalar_multiply(self):
-        # test matrix scalar multiplication computations
-        msg = 'matrix multiply scalar'
-        self.assertEqual(self.m123 * 2, self.m2, msg=msg)
-        self.assertEqual(self.m123 * 2.0, self.m2, msg=msg)
-
-        # test exceptions from types
-        msg = 'matrix multiply rhs argument TypeError'
-        with self.assertRaises(TypeError, msg=msg):
-            ans = self.m123 * range(5)
-
-        with self.assertRaises(TypeError, msg=msg):
-            ans = self.m123 * 'a'
-
-    def test_matrix_vector_multiply(self):
-        # test vector multiplication computations
-        msg = 'matrix multiply matrix and vector'
-        self.assertEqual(self.m123 @ self.v123, Vector((14, 32, 50)), msg=msg)
-
-    def test_matrix_multiply(self):
-        # test matrix multiplication computations
-        ans = Matrix((14, 32, 50), (32, 77, 122), (50, 122, 194))
-        msg = 'matrix multiply two matrices'
-        self.assertEqual(self.m123 @ self.m147, ans, msg=msg)
-
-    def test_matrix_imultiply(self):
-        # test inplace scalar multiplication computations
-        m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
-        m *= 2
-        msg = 'matrix imultiply scalar'
-        self.assertEqual(m, self.m2, msg=msg)
-        m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
-        m *= 2.0
-        self.assertEqual(m, self.m2, msg=msg)
-
-        # test exception from types
-        msg = 'matrix imultiply rhs argument TypeError'
-        with self.assertRaises(TypeError, msg=msg):
-            self.m123 @= self.v123
-
-        with self.assertRaises(TypeError, msg=msg):
-            self.m123 @= m
-
-    def test_matrix_divide(self):
-        # test scalar division computations
-        ans = Matrix((0.5, 1, 1.5), (2, 2.5, 3), (3.5, 4, 4.5))
-        msg = 'matrix divide scalar'
-        self.assertEqual(self.m123 / 2, ans, msg=msg)
-        self.assertEqual(self.m123 / 2.0, ans, msg=msg)
-        self.assertEqual(self.m123 / 0.5, self.m2, msg=msg)
-
-        # test exceptions from types
-        msg = 'matrix divide rhs argument TypeError'
-        with self.assertRaises(TypeError, msg=msg):
-            tmp = self.m123 / self.v123
-
-        with self.assertRaises(TypeError, msg=msg):
-            tmp = self.m123 / 'a'
-
-    def test_matrix_idivide(self):
-        # test inplace scalar division computations
-        ans = Matrix((0.5, 1, 1.5), (2, 2.5, 3), (3.5, 4, 4.5))
-        m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
-        m /= 2
-        msg = 'matrix idivide scalar'
-        self.assertEqual(m, ans, msg=msg)
-        m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
-        m /= 2.0
-        self.assertEqual(m, ans, msg=msg)
-        m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
-        m /= 0.5
-        self.assertEqual(m, self.m2, msg=msg)
-
-        # test exceptions from types
-        msg = 'matrix idivide rhs argument TypeError'
-        with self.assertRaises(TypeError, msg=msg):
-            self.m123 /= self.v123
-
-        with self.assertRaises(TypeError, msg=msg) as cm:
-            self.m123 /= 'a'
-
-    def test_matrix_get(self):
-        # test mapping to a value
-        msg = 'matrix getitem'
-        self.assertEqual(self.m123[0, 0], 1, msg=msg)
-        self.assertEqual(self.m123[1, 2], 6, msg=msg)
-
-        # test exceptions of index types
-        msg = 'matrix getitem index TypeError'
-        with self.assertRaises(TypeError, msg=msg):
-            x = self.m123[1, 'a']
-
-        with self.assertRaises(TypeError, msg=msg):
-            x = self.m123[1, 0, 2]
-
-        # test exceptions of index ranges
-        msg = 'matrix getitem IndexError'
-        with self.assertRaises(IndexError, msg=msg):
-            x = self.m123[3, 1]
-
-        with self.assertRaises(IndexError, msg=msg):
-            x = self.m123[2, 5]
-
-        with self.assertRaises(IndexError, msg=msg):
-            x = self.m123[0, -5]
-
-        # test map to row
-        row = self.m123[1]
-        msg = 'matrix get row buffer'
-        self.assertEqual(row[0], 4, msg=msg)
-        self.assertEqual(row[1], 5, msg=msg)
-        self.assertEqual(row[2], 6, msg=msg)
-
-    def test_matrix_set(self):
-        # test setting mapped to value
-        m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
-        m[0, 0] = 42
-        msg = 'matrix setitem'
-        self.assertEqual(m[0, 0], 42, msg=msg)
-
-        # test exception on types
-        msg = 'matrix set row to bad type SystemError'
-        with self.assertRaises(SystemError, msg=msg):
-            self.m123[0] = 4
-
-        msg = 'matrix setitem index TypeError'
-        with self.assertRaises(TypeError, msg=msg):
-            self.m123[1, 'a'] = 2
-
-        msg = 'matrix setitem index too many args TypeError'
-        with self.assertRaises(TypeError, msg=msg):
-            self.m123[1, 0, 2] = 5
-
-        # test exception on index ranges
-        msg = 'matrix setitem index IndexError'
-        with self.assertRaises(IndexError, msg=msg):
-            self.m123[3, 1] = 3
-
-        with self.assertRaises(IndexError, msg=msg):
-            self.m123[2, 5] = 8
-
-        with self.assertRaises(IndexError, msg=msg):
-            self.m123[0, -5] = 7
-
-        # test setting views as rows
-        m[1][1] = 4
-        msg = 'matrix set row item'
-        self.assertEqual(m[1, 1], 4, msg=msg)
-
-    def test_matrix_compare(self):
-        # test equality and inequality operators
-        m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
-        self.assertEqual(m, self.m123, msg='matrix compare equal')
-        self.assertNotEqual(m, self.m147, msg='matrix compare not equal')
-        self.assertTrue(m == self.m123, msg='matrix compare == true')
-        self.assertFalse(m == self.m147, msg='matrix compare == false')
-        self.assertTrue(m != self.m147, msg='matrix compare != true')
-        self.assertFalse(m != self.m123, msg='matrix compare != false')
-
-    @staticmethod
-    def equality(matrix, array):
-        return (matrix[0, 0] == array[0, 0]
-                and matrix[0, 1] == array[0, 1]
-                and matrix[0, 2] == array[0, 2]
-                and matrix[1, 0] == array[1, 0]
-                and matrix[1, 1] == array[1, 1]
-                and matrix[1, 2] == array[1, 2]
-                and matrix[2, 0] == array[2, 0]
-                and matrix[2, 1] == array[2, 1]
-                and matrix[2, 2] == array[2, 2])
-
-    def test_matrix_buffer(self):
-        # test buffer as a memoryview
-        m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
-        view = memoryview(m)
-        m[1, 1] = 10
-        msg = 'matrix buffer set'
-        self.assertTrue(self.equality(m, view), msg=msg)
-        m[1, 1] = 68
-        msg = 'matrix buffer set view'
-        self.assertTrue(self.equality(m, view), msg=msg)
-
-    def test_matrix_pickle(self):
-        # test ability to pickle matrix
-        #   test passes by not raising exception
-        buf = pickle.dumps(self.m123)
-
-        # test ability to create matrix from bytes
-        m = pickle.loads(buf)
-        msg = 'matrix pickle'
-        self.assertEqual(m, self.m123, msg=msg)
-
-        # test copy module use of __reduce__()
-        cpy = copy(self.m123)
-        msg = 'matrix copy from copy module'
-        self.assertEqual(cpy, self.m123, msg)
-        msg = 'matrix copy is not same object'
-        self.assertIsNot(cpy, self.m123, msg)
-
-    def test_matrix_determinate(self):
-        # test det with non-invertible matrix
-        msg = 'matrix determinate expected output'
-        self.assertEqual(det(self.m123), 0, msg=msg)
-
-        # test det with-invertible matrix
-        m = Matrix((2, 6, 4), (7, 3, 1), (8, 0, 0))
-        self.assertEqual(det(m), -48, msg=msg)
-
-        # test exception from types
-        msg = 'det() argument length < 2 TypeError'
-        with self.assertRaises(TypeError, msg=msg):
-            det()
-
-        msg = 'det() argument length > 2 TypeError'
-        with self.assertRaises(TypeError, msg=msg):
-            det(self.v123, self.v123)
-
-        msg = 'det() argument TypeError'
-        with self.assertRaises(TypeError, msg=msg):
-            det(7)
-
-    def test_matrix_transpose(self):
-        # test transpose expected values
-        msg = 'matrix transpose expected output'
-        self.assertEqual(transpose(self.m123), self.m147, msg=msg)
-
-        # test exception from types
-        msg = 'transpose() argument length < 1 TypeError'
-        with self.assertRaises(TypeError, msg=msg):
-            transpose()
-
-        msg = 'transpose() argument length > 1 TypeError'
-        with self.assertRaises(TypeError, msg=msg):
-            transpose(self.m123, self.m123)
-
-        msg = 'transpose() argument TypeError'
-        with self.assertRaises(TypeError, msg=msg):
-            transpose(5)
-
-
-if __name__ == '__main__':
-    unittest.main()
+from pyevspace import Matrix, Vector
+
+
+class MatrixValues:
+    def __init__(self):
+        self.mi = Matrix((1, 0, 0), (0, 1, 0), (0, 0, 1))
+        self.m123 = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+        self.m147 = Matrix((1, 4, 7), (2, 5, 8), (3, 6, 9))
+        self.v123 = Vector(1, 2, 3)
+        self.m2 = Matrix((2, 4, 6), (8, 10, 12), (14, 16, 18))
+
+
+@pytest.fixture()
+def matrix_values():
+    return MatrixValues()
+
+
+def test_matrix_construction(subtests, matrix_values: MatrixValues):
+    m = Matrix.__new__(Matrix)
+    for i in range(3):
+        for j in range(3):
+            with subtests.test(i=i, j=j):
+                assert m[i, j] == 0
+
+    m = Matrix()
+    for i in range(3):
+        for j in range(3):
+            with subtests.test(i=i, j=j):
+                assert m[i, j] == 0
+
+    for i in range(3):
+        for j in range(3):
+            value = (i * 3) + j + 1
+            with subtests.test(i=i, j=j):
+                assert matrix_values.m123[i, j] == value
+
+    with pytest.raises(TypeError):
+        Matrix(1, (1, 2, 3), (4, 5, 6))
+
+    with pytest.raises(ValueError):
+        Matrix((1, 2), (3, 4, 5), (6, 7, 8))
+
+    with pytest.raises(ValueError):
+        Matrix((1, 2, 3), (4, 5, 6, 7), (8, 9, 10))
+
+    with pytest.raises(TypeError):
+        Matrix((1, 2, 'a'), (3, 4, 5), (6, 7, 8))
+
+
+def test_matrix_strings(matrix_values: MatrixValues) -> None:
+    assert str(matrix_values.m123) == '[[1, 2, 3]\n[4, 5, 6]\n[7, 8, 9]]'
+    assert (repr(matrix_values.m123) ==
+            'Matrix([1, 2, 3], [4, 5, 6], [7, 8, 9])')
+    
+    m = Matrix((1.1, 2.2, 3.3), (4.4, 5.5, 6.6), (7.7, 8.8, 9.9))
+    assert str(m) == '[[1.1, 2.2, 3.3]\n[4.4, 5.5, 6.6]\n[7.7, 8.8, 9.9]]'
+    assert (repr(m) ==
+            'Matrix([1.1, 2.2, 3.3], [4.4, 5.5, 6.6], [7.7, 8.8, 9.9])')
+    
+
+def test_matrix_add(matrix_values: MatrixValues) -> None:
+    ans = Matrix((2, 6, 10), (6, 10, 14), (10, 14, 18))
+    assert matrix_values.m123 + matrix_values.m147 == ans
+
+    with pytest.raises(TypeError):
+        matrix_values.m123 + 1
+
+    with pytest.raises(TypeError):
+        matrix_values.m123 + 'a'
+
+    with pytest.raises(TypeError):
+        matrix_values.m123 + [1, 2, 3]
+
+    with pytest.raises(TypeError):
+        1.0 + matrix_values
+
+
+def test_matrix_iadd(matrix_values: MatrixValues) -> None:
+    m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+    m += matrix_values.m147
+    assert m == Matrix((2, 6, 10), (6, 10, 14), (10, 14, 18))
+
+    with pytest.raises(TypeError):
+        matrix_values.m123 += 1
+
+    with pytest.raises(TypeError):
+        matrix_values.m123 += 'a'
+
+    with pytest.raises(TypeError):
+        matrix_values.m123 += (1, 2, 3)
+
+
+def test_matrix_subtract(matrix_values: MatrixValues) -> None:
+    m = matrix_values.m123 - matrix_values.m147
+    assert m == Matrix((0, -2, -4), (2, 0, -2), (4, 2, 0))
+
+    with pytest.raises(TypeError):
+        matrix_values.m123 - 1
+
+    with pytest.raises(TypeError):
+        1 - matrix_values.m123
+
+    with pytest.raises(TypeError):
+        matrix_values.m123 - (1, 2, 3)
+
+
+def test_matrix_isubtract(matrix_values: MatrixValues) -> None:
+    m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+    m -= matrix_values.m147
+    assert m == Matrix((0, -2, -4), (2, 0, -2), (4, 2, 0))
+
+    with pytest.raises(TypeError):
+        matrix_values.m123 -= 1
+    
+    with pytest.raises(TypeError):
+        matrix_values.m123 -= (1, 2, 3)
+
+    with pytest.raises(TypeError):
+        x = 1
+        x -= matrix_values.m123
+
+
+def test_matrix_multiply(matrix_values: MatrixValues) -> None:
+    assert matrix_values.m123 * 2 == matrix_values.m2
+    assert matrix_values.m123 * 2.0 == matrix_values.m2
+    assert 2 * matrix_values.m123 == matrix_values.m2
+
+    assert matrix_values.m123 @ matrix_values.v123 == Vector(14, 32, 50)
+    
+    answer = Matrix((14, 32, 50), (32, 77, 122), (50, 122, 194))
+    assert matrix_values.m123 @ matrix_values.m147 == answer
+
+    with pytest.raises(TypeError):
+        matrix_values.m123 * (1, 2, 3)
+
+    with pytest.raises(TypeError):
+        matrix_values.m123 * 'a'
+
+    with pytest.raises(TypeError):
+        matrix_values.m123 @ 1
+    
+    with pytest.raises(TypeError):
+        1 @ matrix_values.m123
+
+
+def test_matrix_imultiply(matrix_values: MatrixValues) -> None:
+    m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+    m *= 2
+    assert m == matrix_values.m2
+
+    # todo: this needs fixing in evspace
+    # m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+    # m @= matrix_values.m147
+    # answer = Matrix((14, 32, 50), (32, 77, 122), (50, 122, 194))
+    # assert m == answer
+
+    with pytest.raises(TypeError):
+        matrix_values.m123 *= matrix_values.m123
+
+    with pytest.raises(TypeError):
+        matrix_values.m123 @= 1.0
+
+    with pytest.raises(TypeError):
+        matrix_values.m123 @= matrix_values.v123
+
+
+def test_matrix_divide(matrix_values: MatrixValues) -> None:
+    answer = Matrix((0.5, 1, 1.5), (2, 2.5, 3), (3.5, 4, 4.5))
+    assert matrix_values.m123 / 2 == answer
+
+    assert matrix_values.m123 / 0.5 == matrix_values.m2
+
+    with pytest.raises(TypeError):
+        matrix_values.m123 / matrix_values.v123
+
+    with pytest.raises(TypeError):
+        matrix_values.m123 / 'a'
+
+    with pytest.raises(TypeError):
+        x = 5
+        x / matrix_values.m123
+
+
+def test_matrix_idivide(matrix_values: MatrixValues) -> None:
+    m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+    answer = Matrix((0.5, 1, 1.5), (2, 2.5, 3), (3.5, 4, 4.5))
+    m /= 2
+    assert m == answer
+
+    m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+    m /= 0.5
+    assert m == matrix_values.m2
+
+    with pytest.raises(TypeError):
+        matrix_values.m123 /= matrix_values.m147
+    
+    with pytest.raises(TypeError):
+        matrix_values.m123 /= [1, 2, 3]
+
+
+def test_matrix_get(matrix_values: MatrixValues) -> None:
+    assert matrix_values.m123[0, 0] == 1
+    assert matrix_values.m123[1, 2] == 6
+    assert matrix_values.m123[-1, 1] == 8
+    assert matrix_values.m123[2, -2] == 8
+    assert matrix_values.m123[-3, -3] == 1
+
+    with pytest.raises(TypeError):
+        matrix_values.m123['a', 0]
+    
+    with pytest.raises(TypeError):
+        matrix_values.m123(0, [1])
+
+    with pytest.raises(IndexError):
+        matrix_values.m123[0, 3]
+
+    with pytest.raises(IndexError):
+        matrix_values.m123[4, 1]
+
+    with pytest.raises(IndexError):
+        matrix_values.m123[2, -4]
+
+    with pytest.raises(IndexError):
+        matrix_values.m123[-5, 0]
+
+    with pytest.raises(IndexError):
+        matrix_values.m123[-4, -4]
+
+    # Test MatrixView returned memoryviews
+    view = matrix_values.m123[0]
+    assert view.strides == (8,)
+    assert view.ndim == 1
+    assert view.shape == (3,)
+    assert view.format == 'd'
+    assert view.tolist() == [1, 2, 3]
+
+    view = matrix_values.m123[-1]
+    assert view.strides == (8,)
+    assert view.ndim == 1
+    assert view.shape == (3,)
+    assert view.format == 'd'
+    assert view.tolist() == [7, 8, 9]
+
+    view = matrix_values.m123[0:2, 1]
+    assert view.strides == (24,)
+    assert view.ndim == 1
+    assert view.shape == (2,)
+    assert view.format == 'd'
+    assert view.tolist() == [2, 5]
+
+    view = matrix_values.m123[0, 1:3]
+    assert view.strides == (8,)
+    assert view.ndim == 1
+    assert view.shape == (2,)
+    assert view.format == 'd'
+    assert view.tolist() == [2, 3]
+
+    # zero length views
+    view = matrix_values.m123[0:2, 0:2]
+    assert view.strides == (24, 8)
+    assert view.ndim == 2
+    assert view.shape == (2, 2)
+    assert view.format == 'd'
+    assert view.tolist() == [[1, 2], [4, 5]]
+
+    view = matrix_values.m123[0, 1:1]
+    assert view.strides == (8,)
+    assert view.ndim == 1
+    assert view.shape == (0,)
+    assert view.format == 'd'
+    assert view.tolist() == []
+
+    view = matrix_values.m123[0:0, 1]
+    assert view.strides == (8,)
+    assert view.ndim == 1
+    assert view.shape == (0,)
+    assert view.format == 'd'
+    assert view.tolist() == []
+
+    view = matrix_values.m123[0:0, 1:1]
+    assert view.strides == (8,)
+    assert view.ndim == 1
+    assert view.shape == (0,)
+    assert view.format == 'd'
+    assert view.tolist() == []
+
+
+def test_matrix_set() -> None:
+    m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+    m[0, 0] = 10
+    assert m[0, 0] == 10
+
+    m[-1, 2] = 11
+    assert m[2, 2] == 11
+
+    m[1, -2] = 12
+    assert m[1, 1] == 12
+
+    m[-2, -1] = 13
+    assert m[1, 2] == 13
+
+    with pytest.raises(TypeError):
+        m['a', 2] = 1
+    
+    with pytest.raises(TypeError):
+        m[1, [3]] = 1
+
+    with pytest.raises(IndexError):
+        m[3, 0] = 5
+
+    with pytest.raises(IndexError):
+        m[1, 4] = 6
+
+    with pytest.raises(IndexError):
+        m[-4, 2] = 7
+    
+    with pytest.raises(IndexError):
+        m[0, -5] = 8
+
+    # todo: add slice assignment when implemented
+
+
+def test_matrix_compare(matrix_values: MatrixValues) -> None:
+    m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+    assert m == matrix_values.m123
+    assert m != matrix_values.m147
+
+
+def test_matrix_view(matrix_values: MatrixValues) -> None:
+    view = memoryview(matrix_values.m123)
+    assert view.ndim == 2
+    assert view.shape == (3, 3)
+    assert view.strides == (24, 8)
+    assert view.nbytes == 72
+    assert view.format == 'd'
+    assert len(view) == 3
+    assert view.tolist() == [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+
+    m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+    view = memoryview(m)
+    m[1, 1] = 10
+    assert view[1, 1] == 10
+    view[0, 0] = 11
+    assert m[0, 0] == 11
+
+
+def test_matrix_pickle(matrix_values: MatrixValues) -> None:
+    buffer = pickle.dumps(matrix_values.m123)
+    m = pickle.loads(buffer)
+    assert m == matrix_values.m123
+
+    cpy = copy(matrix_values.m123)
+    assert cpy == matrix_values.m123
+    assert cpy is not matrix_values.m123
+
+
+def test_matrix_determinate(matrix_values: MatrixValues) -> None:
+    assert matrix_values.m123.determinate() == 0
+
+    m = Matrix((2, 6, 4), (7, 3, 1), (8, 0, 0))
+    assert m.determinate() == -48
+
+    with pytest.raises(TypeError):
+        m.determinate(0)
+
+
+def test_matrix_transpose(matrix_values: MatrixValues) -> None:
+    assert matrix_values.m123.transpose() == matrix_values.m147
+
+    m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+    m.transpose_inplace()
+    assert m == matrix_values.m147
+
+    with pytest.raises(TypeError):
+        m.transpose(0)
+
+    with pytest.raises(TypeError):
+        m.transpose_inplace('a')

@@ -44,13 +44,22 @@ typedef struct {
     bool intrinsic;
 } EVSpace_ReferenceFrame;
 
+typedef struct {
+    PyObject_HEAD
+    EVSpace_Matrix* base;
+    double* data;
+    Py_ssize_t* shape;
+    Py_ssize_t* strides;
+    int ndim;
+} EVSpace_MatrixView;
+
 #define EVSpaceVector_VECTOR(o)         (*((o)->vector))
 #define EVSpaceVector_X(o)              EVSpaceVector_VECTOR(o)[0]
 #define EVSpaceVector_Y(o)              EVSpaceVector_VECTOR(o)[1]
 #define EVSpaceVector_Z(o)              EVSpaceVector_VECTOR(o)[2]
 
 #define EVSpaceMatrix_MATRIX(o)         (*((o)->matrix))
-#define EVSpaceMatrix_COMP(o, r, c)     EVSpaceMatrix_MATRIX(o)(r, c)
+// #define EVSpaceMatrix_COMP(o, r, c)     EVSpaceMatrix_MATRIX(o)(r, c)
 
 #define EVSpaceAngles_ANGLES(o)         (*((o)->angles))
 #define EVSpaceAngles_ALPHA(o)          EVSpaceAngles_ANGLES(o)[0]
@@ -65,6 +74,7 @@ typedef struct {
 
 #define EVS_PyObject_Cast(o)        reinterpret_cast<PyObject*>(o)
 #define EVSpaceVector_Cast(o)   reinterpret_cast<EVSpace_Vector*>(o)
+#define EVSpaceMatrix_Cast(o)   reinterpret_cast<EVSpace_Matrix*>(o)
 
 // todo: add capsule api 
 

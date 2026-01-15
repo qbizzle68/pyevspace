@@ -10,33 +10,62 @@
 #include <cstdint>      // int64_t
 #include <cstddef>      // offsetof
 #include <array>        // std::array
+#include <string_view>
 
-// todo: remove this when don't developing
+// todo: remove this when done developing
 #include <iostream>
 #include <cstdio>
 
+static PyTypeObject EVSpace_VectorType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+};
+
+static PyTypeObject EVSpace_MatrixType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+};
+
+static PyTypeObject EVSpace_MatrixViewType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+};
+
+// Don't return PyErr_NoMemory() so this can be used in
+// methods that be used anywhere a pointer is returned.
 #define EXCEPTION_WRAPPER(o)    try {\
     o\
 }\
 catch (const std::bad_alloc&) {\
-    return PyErr_NoMemory();\
+    PyErr_NoMemory();\
+    return NULL;\
 }\
 catch (const std::exception& e) {\
     PyErr_SetString(PyExc_RuntimeError, e.what());\
     return NULL;\
 }
+#define EVS_BUFFER_EMPTY            0x0
+#define EVS_BUFFER_NO_SHAPE         (~(1 << 1))
+#define EVS_BUFFER_RELEASE_SHAPE    (1 << 1)
+#define EVS_BUFFER_NO_STRIDES       (~(1 << 2))
+#define EVS_BUFFER_RELEASE_STRIDES  (1 << 2)
 
-static PyTypeObject EVSpace_VectorType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-};
-#define BUFFER_EMPTY            0x0
-#define BUFFER_NO_SHAPE         (~(1 << 1))
-#define BUFFER_RELEASE_SHAPE    (1 << 1)
-#define BUFFER_NO_STRIDES       (~(1 << 2))
-#define BUFFER_RELEASE_STRIDES  (1 << 2)
-
-// todo: can this be made const double?
 typedef std::array<double, 3> varray_t;
+typedef std::array<double, 9> marray_t;
+
+static void
+EVSpaceBuffer_Release(PyObject* obj, Py_buffer* view)
+{
+    if (view->internal != NULL)
+    {
+        int internal = *(reinterpret_cast<int*>(view->internal));
+
+        if (internal & EVS_BUFFER_RELEASE_SHAPE) {
+            free(view->shape);
+        }
+        if (internal & EVS_BUFFER_RELEASE_STRIDES) {
+            free(view->strides);
+        }
+        free(view->internal);
+    }
+}
 
 // Parses obj into a C double type. On success return obj otherwise
 // return NULL.
@@ -59,22 +88,57 @@ EVSpaceObject_AsDouble(PyObject* obj, double& value)
 static int
 EVSpaceIterable_GetItems(PyObject* obj, std::array<PyObject*, 3>& items)
 {
+    PyObject *item;
+    Py_ssize_t count = 0;
+    PyObject* tmp[3]{NULL};
+
+    if (PyTuple_Check(obj) && PyTuple_GET_SIZE(obj) == 3)
+    {
+#if PY_VERSION_HEX >= 0x030a0000
+        items[0] = Py_NewRef(PyTuple_GET_ITEM(obj, 0));
+        items[1] = Py_NewRef(PyTuple_GET_ITEM(obj, 1));
+        items[2] = Py_NewRef(PyTuple_GET_ITEM(obj, 2));
+#else
+        items[0] = PyTuple_GET_ITEM(obj, 0);
+        Py_INCREF(items[0]);
+        items[1] = PyTuple_GET_ITEM(obj, 1);
+        Py_INCREF(items[1]);
+        items[2] = PyTuple_GET_ITEM(obj, 2);
+        Py_INCREF(items[2]);
+#endif
+        return 0;
+    }
+    else if (PyList_Check(obj) && PyList_GET_SIZE(obj) == 3)
+    {
+#if PY_VERSION_HEX >= 0x030a0000
+        items[0] = Py_NewRef(PyList_GET_ITEM(obj, 0));
+        items[1] = Py_NewRef(PyList_GET_ITEM(obj, 1));
+        items[2] = Py_NewRef(PyList_GET_ITEM(obj, 2));
+#else
+        items[0] = PyList_GET_ITEM(obj, 0);
+        Py_INCREF(items[0]);
+        items[1] = PyList_GET_ITEM(obj, 1);
+        Py_INCREF(items[1]);
+        items[2] = PyList_GET_ITEM(obj, 2);
+        Py_INCREF(items[2]);
+#endif
+        return 0;
+    }
+
     PyObject* iterator = PyObject_GetIter(obj);
     if (!iterator) {
         return -1;
     }
 
-    PyObject *item;
-    Py_ssize_t count = 0;
-    PyObject* tmp[3]{NULL};
-
-    while (item = PyIter_Next(iterator))
+    int result;
+    while ((result = PyIter_NextItem(iterator, &item)) > 0)
     {
         if (count > 2)
         {
             PyErr_SetString(PyExc_ValueError,
                             "iterable must have exactly 3 items "
                             "(iterable contains more than 3)");
+            Py_XDECREF(item);
             Py_XDECREF(tmp[0]);
             Py_XDECREF(tmp[1]);
             Py_XDECREF(tmp[2]);
@@ -83,6 +147,13 @@ EVSpaceIterable_GetItems(PyObject* obj, std::array<PyObject*, 3>& items)
         }
 
         tmp[count++] = item;
+    }
+    if (result == -1) {
+        Py_XDECREF(tmp[0]);
+        Py_XDECREF(tmp[1]);
+        Py_XDECREF(tmp[2]);
+        Py_XDECREF(iterator);
+        return -1;
     }
 
     if (count != 3)
@@ -134,7 +205,7 @@ EVSpaceItems_AsArray(std::array<PyObject*, 3> items, varray_t& array)
 static EVSpace_Vector*
 _EVSpaceVector_New(PyTypeObject* type) noexcept
 {
-    try {
+    EXCEPTION_WRAPPER(
         EVSpace_Vector* self = EVSpaceVector_Cast(type->tp_alloc(type, 0));
         if (!self) {
             return NULL;
@@ -142,20 +213,13 @@ _EVSpaceVector_New(PyTypeObject* type) noexcept
 
         self->vector = new evspace::Vector();
         return self;
-    }
-    catch (const std::bad_alloc&) {
-        return EVSpaceVector_Cast(PyErr_NoMemory());
-    }
-    catch (const std::exception& e) {
-        PyErr_SetString(PyExc_RuntimeError, e.what());
-        return NULL;
-    }
+    )
 }
 
 static EVSpace_Vector*
 _EVSpaceVector_New(const varray_t array, PyTypeObject* type) noexcept
 {
-    try {
+    EXCEPTION_WRAPPER(
         EVSpace_Vector* self = EVSpaceVector_Cast(type->tp_alloc(type, 0));
         if (!self) {
             return NULL;
@@ -164,55 +228,36 @@ _EVSpaceVector_New(const varray_t array, PyTypeObject* type) noexcept
         // todo: make evspace::Vector take an array
         self->vector = new evspace::Vector(array[0], array[1], array[2]);
         return self;
-    }
-    catch (const std::bad_alloc&) {
-        return EVSpaceVector_Cast(PyErr_NoMemory());
-    }
-    catch (const std::exception& e) {
-        PyErr_SetString(PyExc_RuntimeError, e.what());
-        return NULL;
-    }
+    )
 }
 
 static EVSpace_Vector*
 _EVSpaceVector_New(const evspace::Vector& vector, PyTypeObject* type) noexcept
 {
-    try {
+    EXCEPTION_WRAPPER(
         EVSpace_Vector* self = EVSpaceVector_Cast(type->tp_alloc(type, 0));
         if (!self) {
             return NULL;
         }
+
         self->vector = new evspace::Vector(vector);
         return self;
-    }
-    catch (const std::bad_alloc&) {
-        return EVSpaceVector_Cast(PyErr_NoMemory());
-    }
-    catch (const std::exception& e) {
-        PyErr_SetString(PyExc_RuntimeError, e.what());
-        return NULL;
-    }
+    )
 }
 
 // Force call of the new constructor
 static EVSpace_Vector*
 _EVSpaceVector_New(evspace::Vector&& vector, PyTypeObject* type) noexcept
 {
-    try {
+    EXCEPTION_WRAPPER(
         EVSpace_Vector* self = EVSpaceVector_Cast(type->tp_alloc(type, 0));
         if (!self) {
             return NULL;
         }
+
         self->vector = new evspace::Vector(std::move(vector));
         return self;
-    }
-    catch (const std::bad_alloc&) {
-        return EVSpaceVector_Cast(PyErr_NoMemory());
-    }
-    catch (const std::exception& e) {
-        PyErr_SetString(PyExc_RuntimeError, e.what());
-        return NULL;
-    }
+    )
 }
 
 /* Helper methods to _EVSpaceVector_New by not needing the PyTypeObject* argument */
@@ -256,9 +301,6 @@ Vector_init(EVSpace_Vector* self, PyObject* args, PyObject* Py_UNUSED)
     //  Vector.__init__() -> None: ...
     //  Vector.__init__(iterable: Iterable) -> None: ...
     //  Vector.__init__(x: float, y: float, z: float) -> None: ...
-    if (PyErr_Occurred()) {
-        std::cout << "An error is set while entering Vector_init()\n";
-    }
 
     varray_t buffer{};
     PyObject* parameter = NULL;
@@ -274,7 +316,7 @@ Vector_init(EVSpace_Vector* self, PyObject* args, PyObject* Py_UNUSED)
     else if (tuple_size == 1)
     {
         // Single arg must be an iterable
-        if (!PyArg_ParseTuple(args, "O", &parameter)) {
+        if (!PyArg_ParseTuple(args, "O:pyevspace.Vector.__init__", &parameter)) {
             return -1;
         }
 
@@ -325,11 +367,12 @@ _EVSpaceVector_String(const EVSpace_Vector* self, const char* format)
     std::size_t buffer_size = snprintf(NULL, 0, format, EVSpaceVector_X(self),
         EVSpaceVector_Y(self), EVSpaceVector_Z(self));
 
-    try {
+    EXCEPTION_WRAPPER(
         char* buffer = new char[buffer_size + 1];
         if (sprintf(buffer, format, EVSpaceVector_X(self),
-                    EVSpaceVector_Y(self), EVSpaceVector_Z(self)) < 0) {
-            PyErr_SetString(PyExc_RuntimeError, "Failed to fill buffer on string operation");
+                    EVSpaceVector_Y(self), EVSpaceVector_Z(self)) < 0)
+        {
+            PyErr_SetString(PyExc_RuntimeError, "failed to fill buffer on string operator");
             delete [] buffer;
             return NULL;
         }
@@ -338,14 +381,7 @@ _EVSpaceVector_String(const EVSpace_Vector* self, const char* format)
         delete [] buffer;
 
         return rtn;
-    }
-    catch (const std::bad_alloc&) {
-        return PyErr_NoMemory();
-    }
-    catch (const std::exception& e) {
-        PyErr_SetString(PyExc_RuntimeError, e.what());
-        return NULL;
-    }
+    )
 }
 
 static PyObject*
@@ -372,11 +408,14 @@ Vector_richcompare(EVSpace_Vector* self, PyObject* other, int op)
     // todo: evspace doesn't use ulp based comparisons, so the tests
     // currently might fail until that's implemented
 
-    EVSpace_Vector* rhs = EVSpaceVector_Cast(other);
-    bool is_equal = EVSpaceVector_VECTOR(self) == EVSpaceVector_VECTOR(rhs);
+    EVSpace_Vector* rhs;
+    bool is_equal;
     
-    if (EVSpaceVector_Check(rhs))
+    if (EVSpaceVector_Check(other))
     {
+        rhs = EVSpaceVector_Cast(other);
+        is_equal = EVSpaceVector_VECTOR(self) == EVSpaceVector_VECTOR(rhs);
+
         if (op == Py_EQ)
         {
             if (is_equal) {
@@ -428,6 +467,8 @@ Vector_subtract(EVSpace_Vector* self, PyObject* other)
             return EVS_PyObject_Cast(EVSpaceVector_New(std::move(result)));
         )
     }
+
+    Py_RETURN_NOTIMPLEMENTED;
 }
 
 static PyObject*
@@ -469,16 +510,22 @@ Vector_multiply(PyObject* lhs, PyObject* rhs)
     )    
 }
 
-// static PyObject*
-// Vector_matrix_multiply(EVSpace_Vector* self, PyObject* other)
-// {
-//     if (EVSpaceVector_Check(self)) {
-//         if (EVSpaceMatrix_Check(other))
-//         {
+static PyObject*
+Vector_matrix_multiply(EVSpace_Vector* self, PyObject* other)
+{
+    if (EVSpaceVector_Check(self)) {
+        if (EVSpaceMatrix_Check(other))
+        {
+            EXCEPTION_WRAPPER(
+                evspace::Vector result = EVSpaceVector_VECTOR(self) *
+                                         EVSpaceMatrix_MATRIX(EVSpaceMatrix_Cast(other));
+                return EVS_PyObject_Cast(EVSpaceVector_New(std::move(result)));
+            )
+        }
+    }
 
-//         }
-//     }
-// }
+    Py_RETURN_NOTIMPLEMENTED;
+}
 
 static PyObject*
 Vector_divide(EVSpace_Vector* self, PyObject* other)
@@ -515,7 +562,7 @@ Vector_inplace_add(EVSpace_Vector* self, PyObject* other)
     {
         EVSpaceVector_VECTOR(self) += EVSpaceVector_VECTOR(rhs);
 
-#if PY_VERSION_HEX >= 0x03100000
+#if PY_VERSION_HEX >= 0x030a0000
             return Py_NewRef(self);
 #else
             Py_INCREF(self);
@@ -534,7 +581,7 @@ Vector_inplace_subtract(EVSpace_Vector* self, PyObject* other)
     {
         EVSpaceVector_VECTOR(self) -= EVSpaceVector_VECTOR(rhs);
 
-#if PY_VERSION_HEX >= 0x03100000
+#if PY_VERSION_HEX >= 0x030a0000
             return Py_NewRef(self);
 #else
             Py_INCREF(self);
@@ -567,7 +614,7 @@ Vector_inplace_multiply(EVSpace_Vector* self, PyObject* other)
 
         EVSpaceVector_VECTOR(self) *= scalar;
 
-#if PY_VERSION_HEX >= 0x03100000
+#if PY_VERSION_HEX >= 0x030a0000
         return Py_NewRef(self);
 #else
         Py_INCREF(self);
@@ -578,24 +625,24 @@ Vector_inplace_multiply(EVSpace_Vector* self, PyObject* other)
     Py_RETURN_NOTIMPLEMENTED;
 }
 
-// static PyObject*
-// Vector_inplace_multiply_matrix(EVSpace_Vector* self, PyObject* arg)
-// {
-//     EVSpace_Matrix* rhs;
-//     if (EVSpaceVector_Check(self)) {
-//         rhs = EVSpaceMatrix_Cast(arg);
-//         EVSpaceVector_VECTOR(self) *= EVSpaceMatrix_MATRIX(rhs);
+static PyObject*
+Vector_inplace_multiply_matrix(EVSpace_Vector* self, PyObject* arg)
+{
+    EVSpace_Matrix* rhs;
+    if (EVSpaceVector_Check(self) && EVSpaceVector_Check(arg)) {
+        rhs = EVSpaceMatrix_Cast(arg);
+        EVSpaceVector_VECTOR(self) *= EVSpaceMatrix_MATRIX(rhs);
 
-// #if PY_VERSION_HEX >= 0x03100000
-//         return Py_NewRef(self);
-// #else
-//         Py_INCREF(self);
-//         return (PyObject*)self;
-// #endif
-//     }
+#if PY_VERSION_HEX >= 0x030a0000
+        return Py_NewRef(self);
+#else
+        Py_INCREF(self);
+        return (PyObject*)self;
+#endif
+    }
 
-//     Py_RETURN_NOTIMPLEMENTED;
-// }
+    Py_RETURN_NOTIMPLEMENTED;
+}
 
 static PyObject*
 Vector_inplace_divide(EVSpace_Vector* self, PyObject* other)
@@ -616,7 +663,7 @@ Vector_inplace_divide(EVSpace_Vector* self, PyObject* other)
 
         EVSpaceVector_VECTOR(self) /= scalar;
 
-#if PY_VERSION_HEX >= 0x03100000
+#if PY_VERSION_HEX >= 0x030a0000
         return Py_NewRef(self);
 #else
         Py_INCREF(self);
@@ -707,8 +754,7 @@ Vector_set_item(EVSpace_Vector* self, Py_ssize_t index, PyObject* arg)
 
 /* Vector buffer functions */
 
-// todo: expose the data buffer of evspace::Vector to make this work
-/*static int
+static int
 Vector_get_buffer(EVSpace_Vector* obj, Py_buffer* view, int flags)
 {
     if (!view)
@@ -729,15 +775,15 @@ Vector_get_buffer(EVSpace_Vector* obj, Py_buffer* view, int flags)
         PyErr_NoMemory();
         return -1;
     }
-    *internal = BUFFER_NO_STRIDES;
+    *internal = EVS_BUFFER_NO_STRIDES;
 
-#if PY_VERSION_HEX >= 0x03100000
+#if PY_VERSION_HEX >= 0x030a0000
     view->obj           = Py_NewRef(EVS_PyObject_Cast(obj));
 #else
     Py_INCREF(obj);
     view->obj           = EVS_PyObject_Cast(obj);
 #endif
-    view->buf           = EVSpaceVector_VECTOR(obj).data();
+    view->buf           = EVSpaceVector_VECTOR(obj).data().data();
     view->len           = sizeof(double) * 3;
     view->readonly      = 0;
     view->itemsize      = sizeof(double);
@@ -745,12 +791,12 @@ Vector_get_buffer(EVSpace_Vector* obj, Py_buffer* view, int flags)
 
     if (flags & PyBUF_ND) {
         view->shape     = shape;
-        *internal |= BUFFER_RELEASE_SHAPE;
+        *internal |= EVS_BUFFER_RELEASE_SHAPE;
     }
     else {
         view->shape    = NULL;
         delete shape;
-        *internal |= BUFFER_NO_SHAPE;
+        *internal |= EVS_BUFFER_NO_SHAPE;
     }
 
     if (flags & PyBUF_STRIDES) {
@@ -767,12 +813,11 @@ Vector_get_buffer(EVSpace_Vector* obj, Py_buffer* view, int flags)
         view->format    = NULL;
     }
 
-    // view->strides       = &view->itemsize;
     view->suboffsets    = NULL;
     view->internal      = reinterpret_cast<void*>(internal);
 
     return 0;
-}*/
+}
 
 /* Vector class methods */
 
@@ -1015,7 +1060,8 @@ static PySequenceMethods vector_as_sequence = {
 };
 
 static PyBufferProcs vector_buffer = {
-
+    (getbufferproc)Vector_get_buffer,       /* bf_getbuffer */
+    (releasebufferproc)EVSpaceBuffer_Release /* bf_releasebuffer */
 };
 
 PyDoc_STRVAR(vector_mag_doc, "magnitude() -> float\n\
@@ -1056,6 +1102,1092 @@ static PyMethodDef vector_methods[] = {
 
     {NULL}
 };
+
+/* EVSpace_MatrixView */
+
+static EVSpace_MatrixView*
+EVSpaceMatrixView_New(EVSpace_Matrix* base, std::size_t ndim, std::size_t offset,
+                      Py_ssize_t shape0, Py_ssize_t shape1,
+                      Py_ssize_t strides0, Py_ssize_t strides1)
+{
+    EVSpace_MatrixView* view = reinterpret_cast<EVSpace_MatrixView*>(
+        EVSpace_MatrixViewType.tp_alloc(&EVSpace_MatrixViewType, 0)
+    );
+
+    view->base = base;
+    view->data = EVSpaceMatrix_MATRIX(base).data().data() + offset;
+    view->shape = reinterpret_cast<Py_ssize_t*>(malloc(ndim * sizeof(Py_ssize_t)));
+    if (!view->shape) {
+        view->ob_base.ob_type->tp_dealloc(EVS_PyObject_Cast(view));
+        PyErr_NoMemory();
+        return NULL;
+    }
+    view->strides = reinterpret_cast<Py_ssize_t*>(malloc(ndim * sizeof(Py_ssize_t)));
+    if (!view->strides) {
+        view->ob_base.ob_type->tp_dealloc(EVS_PyObject_Cast(view));
+        PyErr_NoMemory();
+        free(view->shape);
+        return NULL;
+    }
+
+    view->shape[0] = shape0;
+    view->strides[0] = strides0;
+    if (ndim > 1) {
+        view->shape[1] = shape1;
+        view->strides[1] = strides1;
+    }
+    view->ndim = ndim;
+
+    Py_INCREF(base);
+    return view;
+}
+
+static void
+MatrixView_dealloc(EVSpace_MatrixView* self)
+{
+    if (self->shape != NULL) {
+        free(self->shape);
+    }
+    if (self->strides != NULL) {
+        free(self->strides);
+    }
+    self->data = NULL;
+
+    Py_DECREF(self->base);
+    Py_TYPE(self)->tp_free(self);
+}
+
+static int
+MatrixView_GetBuffer(EVSpace_MatrixView* obj, Py_buffer* view, int flags)
+{
+#if PY_VERSION_HEX >= 0x030a0000
+    view->obj           = Py_NewRef(obj);
+#else
+    Py_INCREF(obj);
+    view->obj           = EVS_PyObject_Cast(obj);
+#endif
+    view->buf           = obj->data;
+    view->readonly      = 0;
+    view->itemsize      = sizeof(double);
+    view->shape         = (flags & PyBUF_ND) ? obj->shape : NULL;
+    view->strides       = (flags & PyBUF_STRIDES) ? obj->strides : NULL;
+    view->format        = (flags & PyBUF_FORMAT) ? (char*)"d" : NULL;
+    view->suboffsets    = NULL;
+    view->ndim          = obj->ndim;
+
+    // len = product(shape) * itemsize
+    view->len           = sizeof(double) * obj->shape[0];
+    if (obj->ndim > 1) {
+        view->len *= obj->shape[1];
+    }
+
+    return 0;
+}
+
+static PyBufferProcs matrixview_as_buffer = {
+    (getbufferproc)MatrixView_GetBuffer,    /* bf_getbuffer */
+    NULL,                                   /* bf_releasebuffer */
+};
+
+/* EVSpace_Matrix constructors */
+
+static EVSpace_Matrix*
+_EVSpaceMatrix_New(PyTypeObject* type) noexcept
+{
+    EVSpace_Matrix* self = EVSpaceMatrix_Cast(type->tp_alloc(type, 0));
+    if (!self) {
+        return NULL;
+    }
+
+    EXCEPTION_WRAPPER(
+        self->matrix = new evspace::Matrix();
+        return self;
+    )
+}
+
+static EVSpace_Matrix*
+_EVSpaceMatrix_New(const marray_t array, PyTypeObject* type) noexcept
+{
+    EVSpace_Matrix* self = EVSpaceMatrix_Cast(type->tp_alloc(type, 0));
+    if (!self) {
+        return NULL;
+    }
+
+    EXCEPTION_WRAPPER(
+        self->matrix = new evspace::Matrix(array);
+        return self;
+    )
+}
+
+static EVSpace_Matrix*
+_EVSpaceMatrix_New(const evspace::Matrix& matrix, PyTypeObject* type) noexcept
+{
+    EVSpace_Matrix* self = EVSpaceMatrix_Cast(type->tp_alloc(type, 0));
+    if (!self) {
+        return NULL;
+    }
+
+    EXCEPTION_WRAPPER(
+        self->matrix = new evspace::Matrix(matrix);
+        return self;
+    )
+}
+
+static EVSpace_Matrix*
+_EVSpaceMatrix_New(evspace::Matrix&& matrix, PyTypeObject* type) noexcept
+{
+    EVSpace_Matrix* self = EVSpaceMatrix_Cast(type->tp_alloc(type, 0));
+    if (!self) {
+        return NULL;
+    }
+
+    EXCEPTION_WRAPPER(
+        self->matrix = new evspace::Matrix(std::move(matrix));
+        return self;
+    )
+}
+
+/* Constructor wrappers that provide the `type` argument to constructors above */
+static EVSpace_Matrix*
+EVSpaceMatrix_New() noexcept
+{
+    return _EVSpaceMatrix_New(&EVSpace_MatrixType);
+}
+
+static EVSpace_Matrix*
+EVSpaceMatrix_New(const marray_t array) noexcept
+{
+    return _EVSpaceMatrix_New(array, &EVSpace_MatrixType);
+}
+
+static EVSpace_Matrix*
+EVSpaceMatrix_New(const evspace::Matrix& matrix) noexcept
+{
+    return _EVSpaceMatrix_New(matrix, &EVSpace_MatrixType);
+}
+
+static EVSpace_Matrix*
+EVSpaceMatrix_New(evspace::Matrix&& matrix) noexcept
+{
+    return _EVSpaceMatrix_New(std::move(matrix), &EVSpace_MatrixType);
+}
+
+static PyObject*
+Matrix_new(PyTypeObject* type, PyObject* arg, PyObject* Py_UNUSED)
+{
+    marray_t array{};
+    EVSpace_Matrix* self = EVSpaceMatrix_New(array);
+
+    return EVS_PyObject_Cast(self);
+}
+
+static int
+Matrix_init(EVSpace_Matrix* self, PyObject* args, PyObject* Py_UNUSED)
+{
+    // Possible signatures:
+    // Matrix.__init__()
+    // Matrix.__init__(row1: Iterable, row2: Iterable, row3: Iterable)
+    // Matrix.__init__(array: Iterable, Iterable, Iterable)
+
+    Py_ssize_t tuple_size = PyTuple_Size(args);
+    if (tuple_size == -1) {
+        return -1;
+    }
+    else if (tuple_size == 0) {
+        // self is already initialized to 0's
+        return 0;
+    }
+    else if (tuple_size != 3 && tuple_size != 1) {
+        PyErr_Format(PyExc_ValueError, "expected 0 or 3 argument, not %i", tuple_size);
+        return -1;
+    }
+
+    std::array<PyObject*, 3> items{NULL};
+    PyObject* container;
+
+    if (tuple_size == 1) {
+        // strip the outer container from argument
+        if (!PyArg_ParseTuple(args, "O:pyevspace.Matrix.__init__", &container)) {
+            return NULL;
+        }
+    }
+    else {
+        container = args;
+    }
+
+    if (EVSpaceIterable_GetItems(container, items) < 0) {
+        return -1;
+    }
+
+    std::array<PyObject*, 3> sub_items{NULL};
+    std::array<varray_t, 3> values;
+    int result;
+
+    for (int i = 0; i < 3; i++)
+    {
+        if (EVSpaceIterable_GetItems(items[i], sub_items) < 0) {
+            Py_DECREF(items[0]);
+            Py_DECREF(items[1]);
+            Py_DECREF(items[2]);
+            return -1;
+        }
+
+        result = EVSpaceItems_AsArray(sub_items, values[i]);
+        Py_DECREF(sub_items[0]);
+        Py_DECREF(sub_items[1]);
+        Py_DECREF(sub_items[2]);
+
+        if (result < 0)
+        {
+            Py_DECREF(items[0]);
+            Py_DECREF(items[1]);
+            Py_DECREF(items[2]);
+            return -1;
+        }
+    }
+
+    Py_DECREF(items[0]);
+    Py_DECREF(items[1]);
+    Py_DECREF(items[2]);
+
+    try {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                EVSpaceMatrix_MATRIX(self)(i, j) = values[i][j];
+            }
+        }
+    }
+    catch (const std::exception& e) {
+        PyErr_SetString(PyExc_RuntimeError, e.what());
+        return -1;
+    }
+
+    return 0;
+}
+
+static void
+Matrix_dealloc(EVSpace_Matrix* self)
+{
+    delete self->matrix;
+    Py_TYPE(self)->tp_free(EVS_PyObject_Cast(self));
+}
+
+static inline PyObject*
+_EVSpaceMatrix_String(const EVSpace_Matrix* matrix, const char* format)
+{
+    const size_t buffer_size = snprintf(NULL, 0, format,
+        EVSpaceMatrix_MATRIX(matrix)(0, 0), EVSpaceMatrix_MATRIX(matrix)(0, 1),
+        EVSpaceMatrix_MATRIX(matrix)(0, 2), EVSpaceMatrix_MATRIX(matrix)(1, 0),
+        EVSpaceMatrix_MATRIX(matrix)(1, 1), EVSpaceMatrix_MATRIX(matrix)(1, 2),
+        EVSpaceMatrix_MATRIX(matrix)(2, 0), EVSpaceMatrix_MATRIX(matrix)(2, 1),
+        EVSpaceMatrix_MATRIX(matrix)(2, 2)
+    );
+    char* buffer = reinterpret_cast<char*>(malloc(buffer_size + 1));
+    if (!buffer) {
+        return PyErr_NoMemory();
+    }
+
+    if (sprintf(buffer, format, EVSpaceMatrix_MATRIX(matrix)(0, 0),
+        EVSpaceMatrix_MATRIX(matrix)(0, 1), EVSpaceMatrix_MATRIX(matrix)(0, 2),
+        EVSpaceMatrix_MATRIX(matrix)(1, 0), EVSpaceMatrix_MATRIX(matrix)(1, 1),
+        EVSpaceMatrix_MATRIX(matrix)(1, 2), EVSpaceMatrix_MATRIX(matrix)(2, 0),
+        EVSpaceMatrix_MATRIX(matrix)(2, 1), EVSpaceMatrix_MATRIX(matrix)(2, 2)) < 0)
+    {
+        PyErr_SetString(PyExc_RuntimeError, "error filling string buffer");
+        delete buffer;
+        return NULL;
+    }
+    PyObject* rtn = PyUnicode_FromString(buffer);
+    delete buffer;
+
+    return rtn;
+}
+
+static PyObject*
+Matrix_str(const EVSpace_Matrix* self)
+{
+    return _EVSpaceMatrix_String(self, "[[%g, %g, %g]\n[%g, %g, %g]\n[%g, %g, %g]]");
+}
+
+static PyObject*
+Matrix_repr(const EVSpace_Matrix* self)
+{
+    return _EVSpaceMatrix_String(self, "Matrix([%g, %g, %g], [%g, %g, %g], [%g, %g, %g])");
+}
+
+static PyObject*
+Matrix_richcompare(EVSpace_Matrix* self, PyObject* other, int op)
+{
+    if (EVSpaceMatrix_Check(other))
+    {
+        bool result = (EVSpaceMatrix_MATRIX(self) ==
+                       EVSpaceMatrix_MATRIX(EVSpaceMatrix_Cast(other)));
+
+        if (op == Py_EQ)
+        {
+            if (result) {
+                Py_RETURN_TRUE;
+            }
+            else {
+                Py_RETURN_FALSE;
+            }
+        }
+        else if (op == Py_NE)
+        {
+            if (result) {
+                Py_RETURN_FALSE;
+            }
+            else {
+                Py_RETURN_TRUE;
+            }
+        }
+    }
+
+    Py_RETURN_NOTIMPLEMENTED;
+}
+
+/* Matrix number method */
+
+static PyObject*
+Matrix_add(EVSpace_Matrix* self, PyObject* other) noexcept
+{
+    EVSpace_Matrix* rhs = EVSpaceMatrix_Cast(other);
+    if (EVSpaceMatrix_Check(self) && EVSpaceMatrix_Check(rhs))
+    {
+        EXCEPTION_WRAPPER(
+            evspace::Matrix result = EVSpaceMatrix_MATRIX(self) + EVSpaceMatrix_MATRIX(rhs);
+            return EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(result)));
+        )
+    }
+
+    Py_RETURN_NOTIMPLEMENTED;
+}
+
+static PyObject*
+Matrix_subtract(EVSpace_Matrix* self, PyObject* other) noexcept
+{
+    EVSpace_Matrix* rhs = EVSpaceMatrix_Cast(other);
+    if (EVSpaceMatrix_Check(self) && EVSpaceMatrix_Check(rhs))
+    {
+        EXCEPTION_WRAPPER(
+            evspace::Matrix result = EVSpaceMatrix_MATRIX(self) - EVSpaceMatrix_MATRIX(rhs);
+            return EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(result)));
+        )
+    }
+
+    Py_RETURN_NOTIMPLEMENTED;
+}
+
+static PyObject*
+Matrix_multiply(PyObject* lhs, PyObject* rhs)
+{
+    PyObject* scalar_result;
+    double scalar;
+    
+    EVSpace_Matrix* self;
+    // Matrix.__mul__(rhs)
+    if (EVSpaceMatrix_Check(lhs))
+    {
+        self = EVSpaceMatrix_Cast(lhs);
+        scalar_result = EVSpaceObject_AsDouble(rhs, scalar);
+    }
+    // lhs.__mul__(self)
+    else
+    {
+        self = EVSpaceMatrix_Cast(rhs);
+        scalar_result = EVSpaceObject_AsDouble(lhs, scalar);
+    }
+
+    if (!scalar_result) {
+        if (PyErr_ExceptionMatches(PyExc_TypeError))
+        {
+            PyErr_Clear();
+            Py_RETURN_NOTIMPLEMENTED;
+        }
+
+        return NULL;
+    }
+
+    EXCEPTION_WRAPPER(
+        evspace::Matrix result = EVSpaceMatrix_MATRIX(self) * scalar;
+        return EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(result)));
+    )
+}
+
+static PyObject*
+Matrix_matrix_multiply(EVSpace_Matrix* self, PyObject* other)
+{
+    if (EVSpaceMatrix_Check(self))
+    {
+        if (EVSpaceMatrix_Check(other))
+        {
+            EXCEPTION_WRAPPER(
+                evspace::Matrix result = EVSpaceMatrix_MATRIX(self) *
+                                         EVSpaceMatrix_MATRIX(EVSpaceMatrix_Cast(other));
+                return EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(result)));
+            )
+        }
+        else if (EVSpaceVector_Check(other))
+        {
+            EXCEPTION_WRAPPER(
+                evspace::Vector result = EVSpaceMatrix_MATRIX(self) *
+                                         EVSpaceVector_VECTOR(EVSpaceVector_Cast(other));
+                return EVS_PyObject_Cast(EVSpaceVector_New(std::move(result)));
+            )
+        }
+    }
+
+    Py_RETURN_NOTIMPLEMENTED;
+}
+
+static PyObject*
+Matrix_divide(EVSpace_Matrix* self, PyObject* other)
+{
+    double scalar;
+
+    if (EVSpaceMatrix_Check(self))
+    {
+        if (!EVSpaceObject_AsDouble(other, scalar))
+        {
+            if (PyErr_ExceptionMatches(PyExc_TypeError)) {
+                PyErr_Clear();
+                Py_RETURN_NOTIMPLEMENTED;
+            }
+
+            return NULL;
+        }
+
+        EXCEPTION_WRAPPER(
+            evspace::Matrix result = EVSpaceMatrix_MATRIX(self) / scalar;
+            return EVS_PyObject_Cast(EVSpaceMatrix_New(result));
+        )
+    }
+
+    Py_RETURN_NOTIMPLEMENTED;
+}
+
+static PyObject*
+Matrix_inplace_add(EVSpace_Matrix* self, PyObject* other)
+{
+    EVSpace_Matrix* rhs = EVSpaceMatrix_Cast(other);
+    if (EVSpaceMatrix_Check(self) && EVSpaceMatrix_Check(rhs))
+    {
+        EVSpaceMatrix_MATRIX(self) += EVSpaceMatrix_MATRIX(rhs);
+
+#if PY_VERSION_HEX >= 0x030a0000
+        return Py_NewRef(self);
+#else
+        Py_INCREF(self);
+        return EVS_PyObject_Cast(self);
+#endif
+    }
+
+    Py_RETURN_NOTIMPLEMENTED;
+}
+
+static PyObject*
+Matrix_inplace_subtract(EVSpace_Matrix* self, PyObject* other)
+{
+    EVSpace_Matrix* rhs = EVSpaceMatrix_Cast(other);
+
+    if (EVSpaceMatrix_Check(self) && EVSpaceMatrix_Check(rhs))
+    {
+        EVSpaceMatrix_MATRIX(self) -= EVSpaceMatrix_MATRIX(rhs);
+
+#if PY_VERSION_HEX >= 0x030a0000
+        return Py_NewRef(self);
+#else
+        Py_INCREF(self);
+        return EVS_PyObject_Cast(self);
+#endif
+    }
+
+    Py_RETURN_NOTIMPLEMENTED;
+}
+
+static PyObject*
+Matrix_inplace_multiply(EVSpace_Matrix* self, PyObject* other)
+{
+    double scalar;
+
+    if (EVSpaceMatrix_Check(self))
+    {
+        if (!EVSpaceObject_AsDouble(other, scalar))
+        {
+            if (PyErr_ExceptionMatches(PyExc_TypeError)) {
+                PyErr_Clear();
+                Py_RETURN_NOTIMPLEMENTED;
+            }
+
+            return NULL;
+        }
+
+        EVSpaceMatrix_MATRIX(self) *= scalar;
+
+#if PY_VERSION_HEX >= 0x030a0000
+        return Py_NewRef(self);
+#else
+        Py_INCREF(self);
+        return EVS_PyObject_Cast(self);
+#endif
+    }
+
+    Py_RETURN_NOTIMPLEMENTED;
+}
+
+static PyObject*
+Matrix_inplace_multiply_matrix(EVSpace_Matrix* self, PyObject* other)
+{
+    EVSpace_Matrix* rhs = EVSpaceMatrix_Cast(other);
+
+    if (EVSpaceMatrix_Check(self))
+    {
+        if (EVSpaceMatrix_Check(other))
+        {
+            EVSpaceMatrix_MATRIX(self) *= EVSpaceMatrix_MATRIX(rhs);
+
+#if PY_VERSION_HEX >= 0x030a0000
+            return Py_NewRef(self);
+#else
+            Py_INCREF(self);
+            return EVS_PyObject_Cast(self);
+#endif
+        }
+        else if (EVSpaceVector_Check(other))
+        {
+            // Python will fall back to self = self * other when NotImplemented
+            // is returned, so we must force the TypeError here.
+            PyErr_Format(PyExc_TypeError,
+                         "unsupported operand type(S) for @=: '%s' and '%s'",
+                         self->ob_base.ob_type->tp_name,
+                         EVSpace_VectorType.tp_name);
+            return NULL;
+        }
+    }
+
+    Py_RETURN_NOTIMPLEMENTED;
+}
+
+static PyObject*
+Matrix_inplace_divide(EVSpace_Matrix* self, PyObject* other)
+{
+    double scalar;
+
+    if (EVSpaceMatrix_Check(self))
+    {
+        if (!EVSpaceObject_AsDouble(other, scalar))
+        {
+            if (PyErr_ExceptionMatches(PyExc_TypeError)) {
+                PyErr_Occurred();
+                Py_RETURN_NOTIMPLEMENTED;
+            }
+
+            return NULL;
+        }
+
+        EVSpaceMatrix_MATRIX(self) /= scalar;
+
+#if PY_VERSION_HEX >= 0x030a0000
+        return Py_NewRef(self);
+#else
+        Py_INCREF(self);
+        return EVS_PyObject_Cast(self);
+#endif
+    }
+
+    Py_RETURN_NOTIMPLEMENTED;
+}
+
+static PyObject*
+Matrix_negative(EVSpace_Matrix* self)
+{
+    if (!EVSpaceMatrix_Check(self)) {
+        PyErr_SetString(PyExc_TypeError, "pyevspace.Matrix.__neg__ must be called "
+                                         "on pyevspace.Matrix type");
+        return NULL;
+    }
+
+    EXCEPTION_WRAPPER(
+        evspace::Matrix result = -EVSpaceMatrix_MATRIX(self);
+        return EVS_PyObject_Cast(EVSpaceMatrix_New(result));
+    )
+}
+
+/* Mapping and buffer methods */
+
+static Py_ssize_t
+Matrix_length(EVSpace_Matrix* self)
+{
+    return 3;
+}
+
+static int
+_EVSpaceMatrix_GetBuffer(EVSpace_Matrix* obj, Py_buffer* view)
+{
+    // Sets up a basic Py_buffer view with the caller needing to fill
+    // in the more detailed attributes. Return -1 on error.
+
+    int* internal = reinterpret_cast<int*>(malloc(sizeof(int)));
+    if (!internal)
+    {
+        PyErr_NoMemory();
+        return -1;
+    }
+    *internal = EVS_BUFFER_EMPTY;
+
+#if PY_VERSION_HEX >= 0x030a0000
+    view->obj           = Py_NewRef(obj);
+#else
+    Py_INCREF(obj);
+    view->obj           = EVS_PyObject_Cast(obj);
+#endif
+    view->buf           = EVSpaceMatrix_MATRIX(obj).data().data();
+    view->len           = sizeof(double) * 9;
+    view->readonly      = 0;
+    view->itemsize      = sizeof(double);
+    view->suboffsets    = NULL;
+    view->internal      = reinterpret_cast<void*>(internal);
+
+    return 0;
+}
+
+static PyObject*
+Matrix_map_subscript(EVSpace_Matrix* self, PyObject* indices)
+{
+    int index0, index1, result;
+    PyObject* key0, *key1, *slice0, *slice1;
+    Py_ssize_t start0, stop0, step0, slicelength0, start1, stop1, step1, slicelength1;
+    EVSpace_MatrixView* matrix_view;
+
+    if (PyLong_Check(indices))
+    {
+        start0 = PyLong_AsInt(indices);
+        if (start0 == -1 && PyErr_Occurred()) {
+            return NULL;
+        }
+
+        stop0 = start0 + 1;
+        step0 = 1;
+        PySlice_AdjustIndices(3, &start0, &stop0, step0);
+        // todo: do we raise an error here or just return the empty view like below?
+        if (start0 == stop0) {
+            PyErr_Format(PyExc_IndexError, "index %i out of bounds, must "
+                                           "be between [0-2]", start0);
+            return NULL;
+        }
+
+        matrix_view = EVSpaceMatrixView_New(self, 1, 3 * start0, 3, -1, sizeof(double), -1);
+    }
+    else if (PySlice_Check(indices))
+    {
+        if (PySlice_GetIndicesEx(indices, 3, &start0, &stop0, &step0, &slicelength0) < 0) {
+            return NULL;
+        }
+        
+        if (start0 == stop0) {
+            matrix_view = EVSpaceMatrixView_New(self, 1, 0, 0, -1, sizeof(double), -1);
+        }
+        else {
+            // Second dimensions here all have '3' hardcoded because all columns are included
+            matrix_view = EVSpaceMatrixView_New(self, 2, 3 * start0, slicelength0, 3,
+                                                3 * step0 * sizeof(double), sizeof(double));
+        }
+    }
+    else if (PyTuple_Check(indices))
+    {
+        // possible combination is (int, int), (int, slice), (slice, int), (slice, slice)
+        if (PyArg_ParseTuple(indices, "OO:pyevspace.Matrix.__getitem__", &key0, &key1) < 0) {
+            return NULL;
+        }
+
+        if (PyLong_Check(key0))
+        {
+            index0 = PyLong_AsInt(key0);
+            if (index0 == -1 && PyErr_Occurred()) {
+                return NULL;
+            }
+
+            start0 = index0;
+            stop0 = start0 + 1;
+            PySlice_AdjustIndices(3, &start0, &stop0, 1);
+            // I think we can rely on start0 != stop0 signaling valid index
+            if (start0 == stop0) {
+                PyErr_Format(PyExc_IndexError, "first index (got %i) out of range",
+                                index0);
+                return NULL;
+            }
+
+            // (int, int)
+            if (PyLong_Check(key1))
+            {
+                index1 = PyLong_AsInt(key1);
+                if (index0 == -1 && PyErr_Occurred()) {
+                    return NULL;
+                }
+
+                start1 = index1;
+                stop1 = index1 + 1;
+                PySlice_AdjustIndices(3, &start1, &stop1, 1);
+
+                if (start1 == stop1) {
+                    PyErr_Format(PyExc_IndexError, "second index (got %i) out of range",
+                                 index1);
+                    return NULL;
+                }
+
+                return PyFloat_FromDouble(EVSpaceMatrix_MATRIX(self)(start0, start1));
+            }
+            // (int, slice)
+            else if (PySlice_Check(key1))
+            {
+                if (PySlice_GetIndicesEx(key1, 3, &start1, &stop1, &step1, &slicelength1) < 0) {
+                    return NULL;
+                }
+
+                if (start1 == stop1) {
+                    matrix_view = EVSpaceMatrixView_New(self, 1, 0, 0, -1,
+                                                        sizeof(double), -1);
+                }
+                else {
+                    matrix_view = EVSpaceMatrixView_New(self, 1, 3 * index0 + start1, slicelength1,
+                                                        -1, step1 * sizeof(double), -1);
+                }
+            }
+            else {
+                PyErr_SetString(PyExc_TypeError, "second index must be int or slice type");
+            }
+        }
+        else if (PySlice_Check(key0))
+        {
+            if (PySlice_GetIndicesEx(key0, 3, &start0, &stop0, &step0, &slicelength0) < 0) {
+                return NULL;
+            }
+
+            if (start0 == stop0) {
+                matrix_view = EVSpaceMatrixView_New(self, 1, 0, 0, -1, sizeof(double), -1);
+                return PyMemoryView_FromObject(EVS_PyObject_Cast(matrix_view));
+            }
+            
+            // (slice, int)
+            if (PyLong_Check(key1))
+            {
+                index1 = PyLong_AsInt(key1);
+                if (index1 == -1 && PyErr_Occurred()) {
+                    return NULL;
+                }
+                
+                matrix_view = EVSpaceMatrixView_New(self, 1, 3 * start0 + index1, slicelength0,
+                                                        -1, 3 * step0 * sizeof(double), -1);
+            }
+            // (slice, slice)
+            else if (PySlice_Check(key1))
+            {
+                if (PySlice_GetIndicesEx(key1, 3, &start1, &stop1, &step1, &slicelength1) < 0) {
+                    return NULL;
+                }
+
+                if (start1 == stop1) {
+                    matrix_view = EVSpaceMatrixView_New(self, 1, 0, 0, -1, sizeof(double), -1);
+                }
+                else {
+                    matrix_view = EVSpaceMatrixView_New(self, 2, 3 * start0 + start1, slicelength0,
+                                                        slicelength1, 3 * step0 * sizeof(double),
+                                                        step1 * sizeof(double));
+                }
+            }
+            else {
+                PyErr_SetString(PyExc_TypeError, "second index must be int or slice type");
+                return NULL;
+            }
+        }
+        else {
+            PyErr_SetString(PyExc_TypeError, "first index must be int or slice type");
+            return NULL;
+        }
+    }
+    else {
+        PyErr_SetString(PyExc_TypeError, "first index must be int or slice type");
+        return NULL;
+    }
+
+    return PyMemoryView_FromObject(EVS_PyObject_Cast(matrix_view));
+}
+
+static int
+Matrix_map_assignment(EVSpace_Matrix* self, PyObject* indices, PyObject* rhs)
+{
+    PyObject* key0, *key1;
+    Py_ssize_t index0, index1, tmp;
+    double value;
+
+    // If indices is (int, int) we don't want a memoryview
+    if (PyArg_ParseTuple(indices, "nn:pyevspace.Matrix.__setitem__", &index0, &index1))
+    {
+        value = PyFloat_AsDouble(rhs);
+        if (value == -1 && PyErr_Occurred()) {
+            return -1;
+        }
+
+        tmp = index0 + 1;
+        PySlice_AdjustIndices(3, &index0, &tmp, 1);
+        if (index0 == tmp || index0 < 0 || index0 > 2) {
+            PyErr_Format(PyExc_IndexError, "first index must be in range [0-2] (got %i)", index0);
+            return -1;
+        }
+
+        tmp = index1 + 1;
+        PySlice_AdjustIndices(3, &index1, &tmp, 1);
+        if (index1 == tmp || index1 < 0 || index1 > 2) {
+            PyErr_Format(PyExc_IndexError, "second index must be in range [0-2] (got %i)", index1);
+            return -1;
+        }
+
+        try {
+            // todo: can we use data() here to optimized?
+            EVSpaceMatrix_MATRIX(self)(index0, index1) = value;
+
+            return 0;
+        }
+        catch (const std::exception &e) {
+            PyErr_SetString(PyExc_RuntimeError, e.what());
+            return -1;
+        }
+    }
+
+    // will this raise an exception that will be propagated?
+    PyErr_Clear();
+    if (PyArg_ParseTuple(indices, "O!O!:pyevspace.Matrix.__getitem__", &PySlice_Type, &key0, &PySlice_Type, &key1) ||
+        PyArg_ParseTuple(indices, "nO!:pyevspace.Matrix.__getitem__", &index0, &PySlice_Type, &key0) ||
+        PyArg_ParseTuple(indices, "O!n:pyevspace.Matrix.__getitem__", &PySlice_Type, &key0, &index0))
+    {
+        PyErr_SetString(PyExc_Warning, "slice assignment not yet implemented");
+    }
+    return -1;
+}
+
+static int
+Matrix_get_buffer(EVSpace_Matrix* self, Py_buffer* view, int flags)
+{
+    Py_ssize_t* shape = NULL, *strides = NULL;
+
+    if (!view) {
+        PyErr_SetString(PyExc_ValueError, "NULL view in getbuffer");
+        return -1;
+    }
+
+    int internal_tmp = EVS_BUFFER_EMPTY;
+
+    view->len           = sizeof(double) * 9;
+    view->readonly      = 0;
+    view->itemsize      = sizeof(double);
+    view->format        = (flags & PyBUF_FORMAT) ? (char*)"d" : NULL;
+    view->suboffsets    = NULL;
+    view->ndim          = 2;
+    view->buf           = EVSpaceMatrix_MATRIX(self).data().data();
+
+    if (flags & PyBUF_ND) {
+        Py_ssize_t* shape = reinterpret_cast<Py_ssize_t*>(malloc(2 * sizeof(Py_ssize_t)));
+        if (!shape) {
+            PyErr_NoMemory();
+            return -1;
+        }
+        shape[0] = shape[1] = 3;
+        view->shape = shape;
+        internal_tmp |= EVS_BUFFER_RELEASE_SHAPE;
+    }
+    else {
+        view->shape = NULL;
+    }
+
+    if (flags & PyBUF_STRIDES) {
+        Py_ssize_t* strides = reinterpret_cast<Py_ssize_t*>(malloc(2 * sizeof(Py_ssize_t)));
+        if (!strides) {
+            PyErr_NoMemory();
+            if (shape) free(shape);
+            return -1;
+        }
+        strides[0] = sizeof(double) * 3;
+        strides[1] = sizeof(double);
+        view->strides = strides;
+        internal_tmp |= EVS_BUFFER_RELEASE_STRIDES;
+    }
+    else {
+        view->strides = NULL;
+    }
+
+    int* internal = reinterpret_cast<int*>(malloc(sizeof(int)));
+    if (!internal) {
+        PyErr_NoMemory();
+        if (shape) free(shape);
+        if (strides) free(strides);
+        return -1;
+    }
+    *internal = internal_tmp;
+    view->internal = reinterpret_cast<void*>(internal);
+
+#if PY_VERSION_HEX >= 0x030a0000
+    view->obj           = Py_NewRef(self);
+#else
+    Py_INCREF(self);
+    view->obj           = EVS_PyObject_Cast(self);
+#endif
+
+    return 0;
+}
+
+/* Matrix instance methods */
+
+static PyObject*
+Matrix_reduce(EVSpace_Matrix* self, PyObject* Py_UNUSED)
+{
+    return Py_BuildValue("(O((ddd)(ddd)(ddd)))", Py_TYPE(self),
+                        EVSpaceMatrix_MATRIX(self)(0, 0), EVSpaceMatrix_MATRIX(self)(0, 1),
+                        EVSpaceMatrix_MATRIX(self)(0, 2), EVSpaceMatrix_MATRIX(self)(1, 0),
+                        EVSpaceMatrix_MATRIX(self)(1, 1), EVSpaceMatrix_MATRIX(self)(1, 2),
+                        EVSpaceMatrix_MATRIX(self)(2, 0), EVSpaceMatrix_MATRIX(self)(2, 1),
+                        EVSpaceMatrix_MATRIX(self)(2, 2));
+}
+
+static PyObject*
+Matrix_determinate(EVSpace_Matrix* self)
+{
+    if (!EVSpaceMatrix_Check(self))
+    {
+        PyErr_Format(PyExc_TypeError,
+                     "calling object must be a %s type",
+                     Py_TYPE(self)->tp_name);
+        return NULL;
+    }
+
+    double result = EVSpaceMatrix_MATRIX(self).determinate();
+
+    return PyFloat_FromDouble(result);
+}
+
+static PyObject*
+Matrix_transpose(EVSpace_Matrix* self)
+{
+    if (!EVSpaceMatrix_Check(self))
+    {
+        PyErr_Format(PyExc_TypeError,
+                     "calling object must be a %s type",
+                     Py_TYPE(self)->tp_name);
+        return NULL;
+    }
+
+    EXCEPTION_WRAPPER(
+        evspace::Matrix result = EVSpaceMatrix_MATRIX(self).transpose();
+        return EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(result)));
+    )
+}
+
+static PyObject*
+Matrix_transpose_inplace(EVSpace_Matrix* self)
+{
+    if (!EVSpaceMatrix_Check(self))
+    {
+        PyErr_Format(PyExc_TypeError,
+                     "calling object must be a %s type",
+                     Py_TYPE(self)->tp_name);
+        return NULL;
+    }
+
+    EVSpaceMatrix_MATRIX(self).transpose_inplace();
+
+    Py_RETURN_NONE;
+}
+
+static PyObject*
+Matrix_inverse(EVSpace_Matrix* self)
+{
+    if (!EVSpaceMatrix_Check(self))
+    {
+        PyErr_Format(PyExc_TypeError,
+                     "calling object must be a %s type",
+                     Py_TYPE(self)->tp_name);
+        return NULL;
+    }
+
+    // Nest try blocks so we only catch std::runtime_error thrown from Matrix.inverse()
+    try {
+        try {
+
+            evspace::Matrix inverse = EVSpaceMatrix_MATRIX(self).inverse();
+            return EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(inverse)));
+        }
+        catch (const std::bad_alloc&) {
+            return PyErr_NoMemory();
+        }
+        catch (const std::runtime_error& e) {
+            if (std::string_view(e.what()) == "Unable to invert singular matrix") {
+                PyErr_SetString(PyExc_ValueError, "unable to invert singular matrix");
+                return NULL;
+            }
+            else {
+                throw;
+            }
+        }
+    }
+    catch (const std::exception& e) {
+        PyErr_SetString(PyExc_RuntimeError, e.what());
+        return NULL;
+    }
+}
+
+static PyNumberMethods matrix_as_number;
+
+static PyMappingMethods matrix_as_map = {
+    (lenfunc)Matrix_length,             /* mp_length */
+    (binaryfunc)Matrix_map_subscript,   /* mp_subscript */
+    (objobjargproc)Matrix_map_assignment, /* mp_ass_subscript */
+};
+
+static PyBufferProcs matrix_as_buffer = {
+    (getbufferproc)Matrix_get_buffer,           /* bf_getbuffer */
+    (releasebufferproc)EVSpaceBuffer_Release    /* bf_releasebuffer */
+};
+
+PyDoc_STRVAR(matrix_reduce_doc, "pyevspace.Matrix.__reduce() -> (cls, state)\n\
+\n\
+Allows pickle support of the pyevspace.Matrix type.");
+
+PyDoc_STRVAR(matrix_transpose_doc, "pyevspace.Matrix.transpose() -> pyevspace.Matrix\n\
+\n\
+Returns the transpose of the matrix, where the returned matrix has\n\
+its rows and columns inverted.");
+
+PyDoc_STRVAR(matrix_transpose_inplace_doc, "pyevspace.Matrix.transpose_inplace() -> None\n\
+\n\
+Transposes the called pyevspace.Matrix object in place.");
+
+PyDoc_STRVAR(matrix_determinate_doc, "pyevspace.Matrix.determinate() -> float\n\
+\n\
+Computes the determinate of the matrix.");
+
+PyDoc_STRVAR(matrix_inverse_doc, "pyevspace.Matrix.inverse() -> pyevspace.Matrix\n\
+\n\
+Computes the inverse of a matrix");
+
+static PyMethodDef matrix_methods[] = {
+
+    {"__reduce__", (PyCFunction)Matrix_reduce, METH_NOARGS, matrix_reduce_doc},
+
+    {"transpose", (PyCFunction)Matrix_transpose, METH_NOARGS, matrix_transpose_doc},
+
+    {"transpose_inplace", (PyCFunction)Matrix_transpose_inplace, METH_NOARGS, matrix_transpose_inplace_doc},
+
+    {"determinate", (PyCFunction)Matrix_determinate, METH_NOARGS, matrix_determinate_doc},
+
+    {"inverse", (PyCFunction)Matrix_inverse, METH_NOARGS, matrix_inverse_doc},
+
+    {NULL}
+};
+
+PyDoc_STRVAR(matrix_doc, "pyevspace.matrix([row0: Iterable, row1: Iterable, row2: Iterable])\n\
+\n\
+The pyevspace.Matrix type can be constructed with rows of iterables all of\
+length three, whose components are numeric types. Alternatively if no arguments\
+are present each component is defaulet to zero.");
 
 /* global module level methods */
 
@@ -1099,9 +2231,8 @@ static PyMethodDef evspace_methods[] = {
     {NULL}
 };
 
-// todo: improve this
-PyDoc_STRVAR(evspace_doc, "A 3-dimensional Eulclidean vector space module with \
-a vector and matrix tpye as well as necessary methods to use them.");
+PyDoc_STRVAR(evspace_doc, "A 3-dimensional Euclidean vector space package for\
+vector and matrix types with support for reference frames and Euler rotations.");
 
 static PyModuleDef EVSpace_Module = {
     PyModuleDef_HEAD_INIT,
@@ -1113,6 +2244,8 @@ static PyModuleDef EVSpace_Module = {
 
 static PyTypeObject* const EVSpace_Types[] = {
     &EVSpace_VectorType,
+    &EVSpace_MatrixViewType,
+    &EVSpace_MatrixType,
 };
 
 static int initialize_module(PyObject* module)
@@ -1126,8 +2259,8 @@ static int initialize_module(PyObject* module)
     vector_as_number.nb_inplace_multiply        = (binaryfunc)Vector_inplace_multiply;
     vector_as_number.nb_true_divide             = (binaryfunc)Vector_divide;
     vector_as_number.nb_inplace_true_divide     = (binaryfunc)Vector_inplace_divide;
-    // vector_as_number.nb_matrix_multiply         = (binaryfunc)Vector_matrix_multiply;
-    // vector_as_number.nb_inplace_matrix_multiply = (binaryfunc)Vector_inplace_multiply_matrix;
+    vector_as_number.nb_matrix_multiply         = (binaryfunc)Vector_matrix_multiply;
+    vector_as_number.nb_inplace_matrix_multiply = (binaryfunc)Vector_inplace_multiply_matrix;
 
     EVSpace_VectorType.tp_name          = "pyevspace.Vector";
     EVSpace_VectorType.tp_basicsize     = sizeof(EVSpace_Vector);
@@ -1137,8 +2270,8 @@ static int initialize_module(PyObject* module)
     EVSpace_VectorType.tp_as_number     = &vector_as_number;
     EVSpace_VectorType.tp_as_sequence   = &vector_as_sequence;
     EVSpace_VectorType.tp_str           = (reprfunc)Vector_str;
-    // EVSpace_VectorType.tp_as_buffer     = &vector_buffer;
-#if PY_VERSION_HEX >= 0x03100000
+    EVSpace_VectorType.tp_as_buffer     = &vector_buffer;
+#if PY_VERSION_HEX >= 0x030a0000
     EVSpace_VectorType.tp_flags         = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE;
 #else
     EVSpace_VectorType.tp_flags         = Py_TPFLAGS_DEFAULT;
@@ -1149,6 +2282,45 @@ static int initialize_module(PyObject* module)
     EVSpace_VectorType.tp_methods       = vector_methods;
     EVSpace_VectorType.tp_init          = (initproc)Vector_init;
     EVSpace_VectorType.tp_new           = (newfunc)Vector_new;
+
+    EVSpace_MatrixViewType.tp_name      = "pyevspace._MatrixView";
+    EVSpace_MatrixViewType.tp_basicsize = sizeof(EVSpace_MatrixView);
+    EVSpace_MatrixViewType.tp_itemsize  = 0;
+    EVSpace_MatrixViewType.tp_dealloc   = (destructor)MatrixView_dealloc;
+    EVSpace_MatrixViewType.tp_as_buffer = &matrixview_as_buffer;
+    EVSpace_MatrixViewType.tp_flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_DISALLOW_INSTANTIATION;
+
+    matrix_as_number.nb_add             = (binaryfunc)Matrix_add;
+    matrix_as_number.nb_subtract        = (binaryfunc)Matrix_subtract;
+    matrix_as_number.nb_multiply        = (binaryfunc)Matrix_multiply;
+    matrix_as_number.nb_negative        = (unaryfunc)Matrix_negative;
+    matrix_as_number.nb_inplace_add     = (binaryfunc)Matrix_inplace_add;
+    matrix_as_number.nb_inplace_subtract = (binaryfunc)Matrix_inplace_subtract;
+    matrix_as_number.nb_inplace_multiply = (binaryfunc)Matrix_inplace_multiply;
+    matrix_as_number.nb_true_divide     = (binaryfunc)Matrix_divide;
+    matrix_as_number.nb_inplace_true_divide = (binaryfunc)Matrix_inplace_divide;
+    matrix_as_number.nb_matrix_multiply = (binaryfunc)Matrix_matrix_multiply;
+    matrix_as_number.nb_inplace_matrix_multiply = (binaryfunc)Matrix_inplace_multiply_matrix;
+
+    EVSpace_MatrixType.tp_name          = "pyevspace.Matrix";
+    EVSpace_MatrixType.tp_basicsize     = sizeof(EVSpace_Matrix);
+    EVSpace_MatrixType.tp_itemsize      = 0;
+    EVSpace_MatrixType.tp_dealloc       = (destructor)Matrix_dealloc;
+    EVSpace_MatrixType.tp_repr          = (reprfunc)Matrix_repr;
+    EVSpace_MatrixType.tp_as_number     = &matrix_as_number;
+    EVSpace_MatrixType.tp_as_mapping    = &matrix_as_map;
+    EVSpace_MatrixType.tp_str           = (reprfunc)Matrix_str;
+    EVSpace_MatrixType.tp_as_buffer     = &matrix_as_buffer;
+#if PY_VERSION_HEX >= 0x030a0000
+    EVSpace_MatrixType.tp_flags         = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE;
+#else
+    EVSpace_MatrixType.tp_flags         = Py_TPFLAGS_DEFAULT;
+#endif
+    EVSpace_MatrixType.tp_doc           = matrix_doc;
+    EVSpace_MatrixType.tp_richcompare   = (richcmpfunc)&Matrix_richcompare;
+    EVSpace_MatrixType.tp_methods       = matrix_methods;
+    EVSpace_MatrixType.tp_init          = (initproc)Matrix_init;
+    EVSpace_MatrixType.tp_new           = (newfunc)Matrix_new;
 
     int count = sizeof(EVSpace_Types) / sizeof(EVSpace_Types[0]);
     for (int i = 0; i < count; i++)
