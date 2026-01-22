@@ -5,6 +5,7 @@
 #include <Python.h>
 
 #include <evspace.hpp>
+#include <vector>
 
 #define PYEVSPACE_PI            3.14159265358979323846
 #define PYEVSPACE_PI_2          1.57079632679489661923
@@ -21,11 +22,13 @@ typedef struct {
     evspace::Matrix* matrix;
 } EVSpace_Matrix;
 
+// typedef struct EVSpace_ReferenceFrame;
+
 typedef struct {
     PyObject_HEAD
     evspace::EulerAngles* angles;
     // Track reference frame for callback updating matrix on angle
-    void* master; 
+    std::vector<PyObject*> masters;
 } EVSpace_Angles;
 
 typedef struct {

@@ -8,4 +8,9 @@ __all__ = (
     'vector_exclude',
     'vector_proj',
     'Matrix',
+    'EulerAngles',
+    'RotationOrder',
+    'rotate_from',
+    'rotate_to',
+    'rotate_between',
 )
