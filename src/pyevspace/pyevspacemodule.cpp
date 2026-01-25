@@ -250,8 +250,7 @@ _EVSpaceVector_New(const varray_t array, PyTypeObject* type) noexcept
             return NULL;
         }
 
-        // todo: make evspace::Vector take an array
-        self->vector = new evspace::Vector(array[0], array[1], array[2]);
+        self->vector = new evspace::Vector(array);
         return self;
     )
 }
@@ -430,9 +429,6 @@ Vector_iter(EVSpace_Vector* self)
 static PyObject*
 Vector_richcompare(EVSpace_Vector* self, PyObject* other, int op)
 {
-    // todo: evspace doesn't use ulp based comparisons, so the tests
-    // currently might fail until that's implemented
-
     EVSpace_Vector* rhs;
     bool is_equal;
     
@@ -905,6 +901,33 @@ Vector_reduce(EVSpace_Vector* self, PyObject* Py_UNUSED)
                          EVSpaceVector_Y(self), EVSpaceVector_Z(self));
 }
 
+static PyObject*
+Vector_compare_to(EVSpace_Vector* self, PyObject* args)
+{
+    if (!EVSpaceVector_Check(self)) {
+        PyErr_SetString(PyExc_TypeError, "calling object must be Vector type");
+        return NULL;
+    }
+    
+    int max_ulps;
+    EVSpace_Vector* rhs;
+    if (!PyArg_ParseTuple(args, "O!i:compare_to", &EVSpace_VectorType, &rhs, &max_ulps)) {
+        return NULL;
+    }
+
+    if (max_ulps < 0) {
+        PyErr_Format(PyExc_ValueError, "max_ulps must be non-negative (got %i)", max_ulps);
+        return NULL;
+    }
+
+    if (EVSpaceVector_VECTOR(self).compare_to(EVSpaceVector_VECTOR(rhs), max_ulps)) {
+        Py_RETURN_TRUE;
+    }
+    else {
+        Py_RETURN_FALSE;
+    }
+}
+
 /* Vector related module level functions */
 
 static PyObject*
@@ -1113,6 +1136,12 @@ PyDoc_STRVAR(vector_reduce_doc, "__reduce__() -> (cls, (x, y, z))\n\
 \n\
 Allows pickling of the pyevspace.Vector type.");
 
+PyDoc_STRVAR(vector_compare_to_doc, "compare_to(rhs: Vector, max_ulps: int) -> bool\n\
+\n\
+Compares self to rhs using component wise ULP based mechanics. self is\n\
+considered equal to rhs if, for each respsective component, the difference\n\
+between binary representations is less than or equal to max_ulps ULPs.");
+
 static PyMethodDef vector_methods[] = {
 
     {"magnitude", (PyCFunction)Vector_magnitude, METH_NOARGS, vector_mag_doc},
@@ -1124,6 +1153,8 @@ static PyMethodDef vector_methods[] = {
     {"norm", (PyCFunction)Vector_norm, METH_NOARGS, vector_norm_doc},
 
     {"__reduce__", (PyCFunction)Vector_reduce, METH_NOARGS, vector_reduce_doc},
+
+    {"compare_to", (PyCFunction)Vector_compare_to, METH_VARARGS, vector_compare_to_doc},
 
     {NULL}
 };
@@ -2159,6 +2190,33 @@ Matrix_inverse(EVSpace_Matrix* self)
     }
 }
 
+static PyObject*
+Matrix_compare_to(EVSpace_Matrix* self, PyObject* args)
+{
+    if (!EVSpaceMatrix_Check(self)) {
+        PyErr_SetString(PyExc_TypeError, "calling object must be a Matrix type");
+        return NULL;
+    }
+
+    EVSpace_Matrix* rhs;
+    int max_ulps;
+    if (!PyArg_ParseTuple(args, "O!i:compare_to", &EVSpace_MatrixType, &rhs, &max_ulps)) {
+        return NULL;
+    }
+
+    if (max_ulps < 0) {
+        PyErr_Format(PyExc_ValueError, "max_ulps must be non-negative (got %i)", max_ulps);
+        return NULL;
+    }
+
+    if (EVSpaceMatrix_MATRIX(rhs).compare_to(EVSpaceMatrix_MATRIX(rhs), max_ulps)) {
+        Py_RETURN_TRUE;
+    }
+    else {
+        Py_RETURN_FALSE;
+    }
+}
+
 static PyNumberMethods matrix_as_number;
 
 static PyMappingMethods matrix_as_map = {
@@ -2193,6 +2251,12 @@ PyDoc_STRVAR(matrix_inverse_doc, "pyevspace.Matrix.inverse() -> pyevspace.Matrix
 \n\
 Computes the inverse of a matrix");
 
+PyDoc_STRVAR(matrix_compare_to_doc, "compare_to(rhs: Matrix, max_ulps: int) -> bool\n\
+\n\
+Compares self to rhs using component wise ULP based mechanics. self is\n\
+considered equal to rhs if, for each respsective component, the difference\n\
+between binary representations is less than or equal to max_ulps ULPs.");
+
 static PyMethodDef matrix_methods[] = {
 
     {"__reduce__", (PyCFunction)Matrix_reduce, METH_NOARGS, matrix_reduce_doc},
@@ -2204,6 +2268,8 @@ static PyMethodDef matrix_methods[] = {
     {"determinate", (PyCFunction)Matrix_determinate, METH_NOARGS, matrix_determinate_doc},
 
     {"inverse", (PyCFunction)Matrix_inverse, METH_NOARGS, matrix_inverse_doc},
+
+    {"compare_to", (PyCFunction)Matrix_compare_to, METH_VARARGS, matrix_compare_to_doc},
 
     {NULL}
 };

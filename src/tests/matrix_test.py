@@ -1,9 +1,17 @@
 from copy import copy
 import pickle
+import math
 
 import pytest
 
 from pyevspace import Matrix, Vector
+
+
+def advance_ulps(x: float, n: int, direction: float) -> float:
+    """Advance x by n ULPs towards direction."""
+    for _ in range(n):
+        x = math.nextafter(x, direction)
+    return x
 
 
 class MatrixValues:
@@ -153,11 +161,17 @@ def test_matrix_imultiply(matrix_values: MatrixValues) -> None:
     m *= 2
     assert m == matrix_values.m2
 
-    # todo: this needs fixing in evspace
-    # m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
-    # m @= matrix_values.m147
-    # answer = Matrix((14, 32, 50), (32, 77, 122), (50, 122, 194))
-    # assert m == answer
+    m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+    m @= matrix_values.m147
+    answer = Matrix((14, 32, 50), (32, 77, 122), (50, 122, 194))
+    assert m == answer
+
+    # Important test to ensure matrix data isn't touched until
+    # multiplication is complete
+    m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+    m @= m
+    answer = Matrix((30, 36, 42), (66, 81, 96), (102, 126, 150))
+    assert m == answer
 
     with pytest.raises(TypeError):
         matrix_values.m123 *= matrix_values.m123
@@ -326,9 +340,43 @@ def test_matrix_set() -> None:
 
 
 def test_matrix_compare(matrix_values: MatrixValues) -> None:
+    # trivial comparisons
     m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
     assert m == matrix_values.m123
     assert m != matrix_values.m147
+    assert m.compare_to(matrix_values.m123, 10)
+
+    m = Matrix((2, 4, 6), (8, 10, 12), (14, 16, 18))
+    m /= 2.0
+    assert m == matrix_values.m123
+    assert m != matrix_values.m147
+    assert m.compare_to(matrix_values.m123, 10)
+
+    # Vector extensively tests the advanced component comparisons
+    # only need to check a few here to ensure matrix also uses
+    # ULP based mechanics
+    
+    lhs = m
+    rhs = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+    lhs[0, 0] = 1.0
+    rhs[0, 0] = advance_ulps(1.0, 1, 2.0)
+    assert lhs == rhs
+
+    rhs[0, 0] = advance_ulps(1.0, 1, 0.0)
+    assert lhs == rhs
+
+    rhs[0, 0] = math.inf
+    assert lhs != rhs
+
+    lhs[0, 0] = math.inf
+    assert lhs == rhs
+
+    lhs[0, 0] = -math.inf
+    assert lhs != rhs
+
+    lhs[0, 0] = 1.0
+    rhs[0, 0] = math.nan
+    assert lhs != rhs
 
 
 def test_matrix_view(matrix_values: MatrixValues) -> None:

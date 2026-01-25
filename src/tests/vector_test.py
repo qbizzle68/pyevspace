@@ -1,4 +1,5 @@
 from copy import copy
+import math
 from math import sqrt, pi
 import pickle
 
@@ -8,6 +9,14 @@ from pyevspace import (
     Vector, Matrix, vector_dot, vector_cross, vector_angle, vector_exclude,
     vector_proj
 )
+
+
+def advance_ulps(x: float, n: int, direction: float) -> float:
+    """Advance x by n ULPs towards direction."""
+    y = x
+    for _ in range(n):
+        y = math.nextafter(y, direction)
+    return y
 
 
 class VectorValues:
@@ -345,11 +354,96 @@ def test_vector_sequence(vector_values: VectorValues) -> None:
 
 
 def test_vector_compare(vector_values: VectorValues) -> None:
+    # trivial tests
     v = Vector(1, 2, 3)
     assert v == vector_values.v123
     assert v != vector_values.v111
+    assert v.compare_to(vector_values.v123, 10)
 
-    # todo: test ULP based comparisons when implemented
+    # advanced tests
+    lhs = v
+    rhs = Vector(1, 2, 3)
+
+    # near zero
+    lhs[0] = +0.0
+    rhs[0] = -0.0
+    assert lhs == rhs
+    assert lhs.compare_to(rhs, 10)
+
+    lhs[0] = 0.0
+    rhs[0] = advance_ulps(0.0, 1, 1.0)
+    assert lhs == rhs
+    assert lhs.compare_to(rhs, 10)
+
+    rhs[0] = advance_ulps(0.0, 1, -1.0)
+    assert lhs == rhs
+    assert lhs.compare_to(rhs, 10)
+
+    rhs[0] = advance_ulps(0.0, 20, 1.0)
+    assert lhs.compare_to(rhs, 20)
+    assert lhs.compare_to(rhs, 19) is False
+
+    # Around 1.0
+    lhs[0] = rhs[0] = 1.0
+    lhs[1] = 1.0
+    rhs[1] = advance_ulps(1.0, 1, 2.0)
+    assert lhs == rhs
+    assert lhs.compare_to(rhs, 2)
+
+    rhs[1] = advance_ulps(1.0, 1, 0.0)
+    assert lhs == rhs
+    assert lhs.compare_to(rhs, 2)
+
+    rhs[1] = advance_ulps(1.0, 10, 2.0)
+    assert lhs == rhs
+    assert lhs.compare_to(rhs, 10)
+
+    rhs[1] = advance_ulps(1.0, 11, 2.0)
+    assert lhs != rhs
+    assert lhs.compare_to(rhs, 11)
+
+    lhs[1] = -1.0
+    rhs[1] = advance_ulps(-1.0, 10, 0.0)
+    assert lhs == rhs
+    assert lhs.compare_to(rhs, 10)
+
+    rhs[1] = advance_ulps(-1.0, 11, 0.0)
+    assert lhs != rhs
+    assert lhs.compare_to(rhs, 11)
+
+    # medium magnitude
+    lhs[1] = rhs[1] = 2.0
+    lhs[2] = 1e6
+    rhs[2] = advance_ulps(1e6, 10, math.inf)
+    assert lhs == rhs
+    assert lhs.compare_to(rhs, 9) is False
+    assert lhs.compare_to(rhs, 11)
+
+    rhs[2] = advance_ulps(1e6, 11, +math.inf)
+    assert lhs != rhs
+
+    rhs[2] = 1e6 + 1
+    assert lhs != rhs
+
+    # large magnitude
+    lhs[2] = 1e200
+    rhs[2] = advance_ulps(1e200, 10, math.inf)
+    assert lhs == rhs
+
+    rhs[2] = advance_ulps(1e200, 11, math.inf)
+    assert lhs != rhs
+
+    # infinities and NaNs
+    lhs[2] = math.inf
+    rhs[2] = math.inf
+    assert lhs == rhs
+
+    rhs[2] = -math.inf
+    assert lhs != rhs
+
+    lhs[2] = 3.0
+    rhs[2] = math.nan
+    assert lhs != rhs
 
 
 def test_vector_buffer() -> None:
