@@ -1,7 +1,9 @@
 from math import sin, cos, pi
-from pyevspace import Matrix, Vector, X_AXIS, Y_AXIS, Z_AXIS, XYZ, XZY, YXZ, \
-    YZX, ZXY, ZYX, XYX, XZX, YXY, YZY, ZXZ, ZYZ, Order, rotateOffsetFrom, \
-    rotateOffsetTo, Angles, getMatrixEuler, rotateMatrixFrom
+from pyevspace import (
+    Matrix, Vector, X_AXIS, Y_AXIS, Z_AXIS, XYZ, XZY, YXZ, YZX, ZXY, ZYX, XYX,
+    XZX, YXY, YZY, ZXZ, ZYZ, EulerAngles, compute_rotation_matrix,
+    rotate_to, rotate_from,
+)
 
 so = cos(pi / 4)  # cos and sin of forty-five
 
@@ -97,7 +99,7 @@ ef = cos(pi / 4) * sin(pi / 4) * (1 + sin(pi / 4))  # 0.8535534
 of = cos(pi / 4) * cos(pi / 4) * (1 - cos(pi / 4))  # 0.1464466
 
 rotation_XYZ_answers = [
-    Matrix.id,  # 0 radians
+    Matrix.IDENTITY,  # 0 radians
     Matrix((half, -half, so),  # pi / 4 radians
            (ef, of, -half),
            (of, ef, half)),
@@ -122,7 +124,7 @@ rotation_XYZ_answers = [
 ]
 
 rotation_XZY_answers = [
-    Matrix.id,  # 0 radians
+    Matrix.IDENTITY,  # 0 radians
     Matrix((half, -so, half),  # pi / 4 radians
            (ef, half, -of),
            (-of, half, ef)),
@@ -132,7 +134,7 @@ rotation_XZY_answers = [
     Matrix((half, -so, -half),  # 3 pi / 4 radians
            (ef, half, of),
            (of, -half, ef)),
-    Matrix.id,  # pi radians
+    Matrix.IDENTITY,  # pi radians
     Matrix((half, so, half),  # 5 pi / 4 radians
            (of, half, -ef),
            (-ef, half, of)),
@@ -145,7 +147,7 @@ rotation_XZY_answers = [
 ]
 
 rotation_YXZ_answers = [
-    Matrix.id,  # 0 radians
+    Matrix.IDENTITY,  # 0 radians
     Matrix((ef, -of, half),  # pi / 4 radians
            (half, half, -so),
            (-of, ef, half)),
@@ -155,7 +157,7 @@ rotation_YXZ_answers = [
     Matrix((ef, of, -half),  # 3 pi / 4 radians
            (-half, half, -so),
            (of, ef, half)),
-    Matrix.id,  # pi radians
+    Matrix.IDENTITY,  # pi radians
     Matrix((of, -ef, half),  # 5 pi / 4 radians
            (half, half, so),
            (-ef, of, half)),
@@ -168,7 +170,7 @@ rotation_YXZ_answers = [
 ]
 
 rotation_YZX_answers = [
-    Matrix.id,  # 0 radians
+    Matrix.IDENTITY,  # 0 radians
     Matrix((half, of, ef),  # pi / 4 radians
            (so, half, -half),
            (-half, ef, of)),
@@ -178,7 +180,7 @@ rotation_YZX_answers = [
     Matrix((half, of, -ef),  # 3 pi / 4 radians
            (so, half, half),
            (half, -ef, of)),
-    Matrix.id,  # pi radians
+    Matrix.IDENTITY,  # pi radians
     Matrix((half, ef, of),  # 5 pi / 4 radians
            (-so, half, -half),
            (-half, of, ef)),
@@ -191,7 +193,7 @@ rotation_YZX_answers = [
 ]
 
 rotation_ZXY_answers = [
-    Matrix.id,  # 0 radians
+    Matrix.IDENTITY,  # 0 radians
     Matrix((of, -half, ef),  # pi / 4 radians
            (ef, half, of),
            (-half, so, half)),
@@ -201,7 +203,7 @@ rotation_ZXY_answers = [
     Matrix((of, half, -ef),  # 3 pi / 4 radians
            (-ef, half, of),
            (half, so, half)),
-    Matrix.id,  # pi radians
+    Matrix.IDENTITY,  # pi radians
     Matrix((ef, -half, of),  # 5 pi / 4 radians
            (of, half, ef),
            (-half, -so, half)),
@@ -214,7 +216,7 @@ rotation_ZXY_answers = [
 ]
 
 rotation_ZYX_answers = [
-    Matrix.id,  # 0 radians
+    Matrix.IDENTITY,  # 0 radians
     Matrix((half, -of, ef),  # pi / 4 radians
            (half, ef, -of),
            (-so, half, half)),
@@ -224,7 +226,7 @@ rotation_ZYX_answers = [
     Matrix((half, of, ef),  # 3 pi / 4 radians
            (-half, ef, of),
            (-so, -half, half)),
-    Matrix.id,  # pi radians
+    Matrix.IDENTITY,  # pi radians
     Matrix((half, -ef, of),  # 5 pi / 4 radians
            (half, of, -ef),
            (so, half, half)),
@@ -237,7 +239,7 @@ rotation_ZYX_answers = [
 ]
 
 rotation_XYX_answers = [
-    Matrix.id,  # 0 radians
+    Matrix.IDENTITY,  # 0 radians
     Matrix((so, half, half),  # pi / 4 radians
            (half, of, -ef),
            (-half, ef, -of)),
@@ -262,7 +264,7 @@ rotation_XYX_answers = [
 ]
 
 rotation_XZX_answers = [
-    Matrix.id,  # 0 radians
+    Matrix.IDENTITY,  # 0 radians
     Matrix((so, -half, half),  # pi / 4 radians
            (half, -of, -ef),
            (half, ef, of)),
@@ -287,7 +289,7 @@ rotation_XZX_answers = [
 ]
 
 rotation_YXY_answers = [
-    Matrix.id,  # 0 radians
+    Matrix.IDENTITY,  # 0 radians
     Matrix((of, half, ef),  # pi / 4 radians
            (half, so, -half),
            (-ef, half, -of)),
@@ -312,7 +314,7 @@ rotation_YXY_answers = [
 ]
 
 rotation_YZY_answers = [
-    Matrix.id,  # 0 radians
+    Matrix.IDENTITY,  # 0 radians
     Matrix((-of, -half, ef),  # pi / 4 radians
            (half, so, half),
            (-ef, half, of)),
@@ -337,7 +339,7 @@ rotation_YZY_answers = [
 ]
 
 rotation_ZXZ_answers = [
-    Matrix.id,  # 0 radians
+    Matrix.IDENTITY,  # 0 radians
     Matrix((of, -ef, half),  # pi / 4 radians
            (ef, -of, -half),
            (half, half, so)),
@@ -362,7 +364,7 @@ rotation_ZXZ_answers = [
 ]
 
 rotation_ZYZ_answers = [
-    Matrix.id,  # 0 radians
+    Matrix.IDENTITY,  # 0 radians
     Matrix((-of, -ef, half),  # pi / 4 radians
            (ef, of, half),
            (-half, half, so)),
@@ -404,192 +406,234 @@ rotation_euler_answers = {
 rotation_axis_to_answers = {
     X_AXIS:
         {
-            X_AXIS: Vector.e1,
-            Y_AXIS: -Vector.e3,
-            Z_AXIS: Vector.e2
+            X_AXIS: Vector.E1,
+            Y_AXIS: -Vector.E3,
+            Z_AXIS: Vector.E2
         },
     Y_AXIS:
         {
-            X_AXIS: Vector.e3,
-            Y_AXIS: Vector.e2,
-            Z_AXIS: -Vector.e1
+            X_AXIS: Vector.E3,
+            Y_AXIS: Vector.E2,
+            Z_AXIS: -Vector.E1
         },
     Z_AXIS:
         {
-            X_AXIS: -Vector.e2,
-            Y_AXIS: Vector.e1,
-            Z_AXIS: Vector.e3
+            X_AXIS: -Vector.E2,
+            Y_AXIS: Vector.E1,
+            Z_AXIS: Vector.E3
         }
 }
 
 rotation_axis_from_answers = {
     X_AXIS:
         {
-            X_AXIS: Vector.e1,
-            Y_AXIS: Vector.e3,
-            Z_AXIS: -Vector.e2
+            X_AXIS: Vector.E1,
+            Y_AXIS: Vector.E3,
+            Z_AXIS: -Vector.E2
         },
     Y_AXIS:
         {
-            X_AXIS: -Vector.e3,
-            Y_AXIS: Vector.e2,
-            Z_AXIS: Vector.e1
+            X_AXIS: -Vector.E3,
+            Y_AXIS: Vector.E2,
+            Z_AXIS: Vector.E1
         },
     Z_AXIS:
         {
-            X_AXIS: Vector.e2,
-            Y_AXIS: -Vector.e1,
-            Z_AXIS: Vector.e3
+            X_AXIS: Vector.E2,
+            Y_AXIS: -Vector.E1,
+            Z_AXIS: Vector.E3
+        }
+}
+
+rotation_axis_to_offset_answers = {
+    X_AXIS:
+        {
+            X_AXIS: Vector(0, -1, 1),
+            Y_AXIS: Vector(-1, -1, 0),
+            Z_AXIS: Vector(-1, 0, 1)
+        },
+    Y_AXIS:
+        {
+            X_AXIS: Vector(1, -1, 0),
+            Y_AXIS: Vector(1, 0, -1),
+            Z_AXIS: Vector(0, -1, -1)
+        },
+    Z_AXIS:
+        {
+            X_AXIS: Vector(-1, 0, -1),
+            Y_AXIS: Vector(0, 1, -1),
+            Z_AXIS: Vector(-1, 1, 0)
+        }
+}
+
+rotation_axis_from_offset_answers = {
+    X_AXIS:
+        {
+            X_AXIS: Vector(2, 1, 1),
+            Y_AXIS: Vector(1, 1, 2),
+            Z_AXIS: Vector(1, 0, 1)
+        },
+    Y_AXIS:
+        {
+            X_AXIS: Vector(1, 1, 0),
+            Y_AXIS: Vector(1, 2, 1),
+            Z_AXIS: Vector(2, 1, 1)
+        },
+    Z_AXIS:
+        {
+            X_AXIS: Vector(1, 2, 1),
+            Y_AXIS: Vector(0, 1, 1),
+            Z_AXIS: Vector(1, 1, 2)
         }
 }
 
 rotation_euler_to_answers = {
     XYZ:
         {
-            X_AXIS: Vector.e3,
-            Y_AXIS: -Vector.e2,
-            Z_AXIS: Vector.e1
+            X_AXIS: Vector.E3,
+            Y_AXIS: -Vector.E2,
+            Z_AXIS: Vector.E1
         },
     XZY:
         {
-            X_AXIS: -Vector.e2,
-            Y_AXIS: Vector.e1,
-            Z_AXIS: Vector.e3
+            X_AXIS: -Vector.E2,
+            Y_AXIS: Vector.E1,
+            Z_AXIS: Vector.E3
         },
     YXZ:
         {
-            X_AXIS: Vector.e1,
-            Y_AXIS: -Vector.e3,
-            Z_AXIS: Vector.e2
+            X_AXIS: Vector.E1,
+            Y_AXIS: -Vector.E3,
+            Z_AXIS: Vector.E2
         },
     YZX:
         {
-            X_AXIS: Vector.e2,
-            Y_AXIS: Vector.e1,
-            Z_AXIS: -Vector.e3
+            X_AXIS: Vector.E2,
+            Y_AXIS: Vector.E1,
+            Z_AXIS: -Vector.E3
         },
     ZXY:
         {
-            X_AXIS: -Vector.e1,
-            Y_AXIS: Vector.e3,
-            Z_AXIS: Vector.e2
+            X_AXIS: -Vector.E1,
+            Y_AXIS: Vector.E3,
+            Z_AXIS: Vector.E2
         },
     ZYX:
         {
-            X_AXIS: Vector.e3,
-            Y_AXIS: Vector.e2,
-            Z_AXIS: -Vector.e1
+            X_AXIS: Vector.E3,
+            Y_AXIS: Vector.E2,
+            Z_AXIS: -Vector.E1
         },
     XYX:
         {
-            X_AXIS: Vector.e2,
-            Y_AXIS: Vector.e1,
-            Z_AXIS: -Vector.e3
+            X_AXIS: Vector.E2,
+            Y_AXIS: Vector.E1,
+            Z_AXIS: -Vector.E3
         },
     XZX:
         {
-            X_AXIS: Vector.e3,
-            Y_AXIS: -Vector.e2,
-            Z_AXIS: Vector.e1
+            X_AXIS: Vector.E3,
+            Y_AXIS: -Vector.E2,
+            Z_AXIS: Vector.E1
         },
     YXY:
         {
-            X_AXIS: Vector.e2,
-            Y_AXIS: Vector.e1,
-            Z_AXIS: -Vector.e3
+            X_AXIS: Vector.E2,
+            Y_AXIS: Vector.E1,
+            Z_AXIS: -Vector.E3
         },
     YZY:
         {
-            X_AXIS: -Vector.e1,
-            Y_AXIS: Vector.e3,
-            Z_AXIS: Vector.e2
+            X_AXIS: -Vector.E1,
+            Y_AXIS: Vector.E3,
+            Z_AXIS: Vector.E2
         },
     ZXZ:
         {
-            X_AXIS: Vector.e3,
-            Y_AXIS: -Vector.e2,
-            Z_AXIS: Vector.e1
+            X_AXIS: Vector.E3,
+            Y_AXIS: -Vector.E2,
+            Z_AXIS: Vector.E1
         },
     ZYZ:
         {
-            X_AXIS: -Vector.e1,
-            Y_AXIS: Vector.e3,
-            Z_AXIS: Vector.e2
+            X_AXIS: -Vector.E1,
+            Y_AXIS: Vector.E3,
+            Z_AXIS: Vector.E2
         }
 }
 
 rotation_euler_from_answers = {
     XYZ:
         {
-            X_AXIS: Vector.e3,
-            Y_AXIS: -Vector.e2,
-            Z_AXIS: Vector.e1
+            X_AXIS: Vector.E3,
+            Y_AXIS: -Vector.E2,
+            Z_AXIS: Vector.E1
         },
     XZY:
         {
-            X_AXIS: Vector.e2,
-            Y_AXIS: -Vector.e1,
-            Z_AXIS: Vector.e3
+            X_AXIS: Vector.E2,
+            Y_AXIS: -Vector.E1,
+            Z_AXIS: Vector.E3
         },
     YXZ:
         {
-            X_AXIS: Vector.e1,
-            Y_AXIS: Vector.e3,
-            Z_AXIS: -Vector.e2
+            X_AXIS: Vector.E1,
+            Y_AXIS: Vector.E3,
+            Z_AXIS: -Vector.E2
         },
     YZX:
         {
-            X_AXIS: Vector.e2,
-            Y_AXIS: Vector.e1,
-            Z_AXIS: -Vector.e3
+            X_AXIS: Vector.E2,
+            Y_AXIS: Vector.E1,
+            Z_AXIS: -Vector.E3
         },
     ZXY:
         {
-            X_AXIS: -Vector.e1,
-            Y_AXIS: Vector.e3,
-            Z_AXIS: Vector.e2
+            X_AXIS: -Vector.E1,
+            Y_AXIS: Vector.E3,
+            Z_AXIS: Vector.E2
         },
     ZYX:
         {
-            X_AXIS: -Vector.e3,
-            Y_AXIS: Vector.e2,
-            Z_AXIS: Vector.e1
+            X_AXIS: -Vector.E3,
+            Y_AXIS: Vector.E2,
+            Z_AXIS: Vector.E1
         },
     XYX:
         {
-            X_AXIS: Vector.e2,
-            Y_AXIS: Vector.e1,
-            Z_AXIS: -Vector.e3
+            X_AXIS: Vector.E2,
+            Y_AXIS: Vector.E1,
+            Z_AXIS: -Vector.E3
         },
     XZX:
         {
-            X_AXIS: Vector.e3,
-            Y_AXIS: -Vector.e2,
-            Z_AXIS: Vector.e1
+            X_AXIS: Vector.E3,
+            Y_AXIS: -Vector.E2,
+            Z_AXIS: Vector.E1
         },
     YXY:
         {
-            X_AXIS: Vector.e2,
-            Y_AXIS: Vector.e1,
-            Z_AXIS: -Vector.e3
+            X_AXIS: Vector.E2,
+            Y_AXIS: Vector.E1,
+            Z_AXIS: -Vector.E3
         },
     YZY:
         {
-            X_AXIS: -Vector.e1,
-            Y_AXIS: Vector.e3,
-            Z_AXIS: Vector.e2
+            X_AXIS: -Vector.E1,
+            Y_AXIS: Vector.E3,
+            Z_AXIS: Vector.E2
         },
     ZXZ:
         {
-            X_AXIS: Vector.e3,
-            Y_AXIS: -Vector.e2,
-            Z_AXIS: Vector.e1
+            X_AXIS: Vector.E3,
+            Y_AXIS: -Vector.E2,
+            Z_AXIS: Vector.E1
         },
     ZYZ:
         {
-            X_AXIS: -Vector.e1,
-            Y_AXIS: Vector.e3,
-            Z_AXIS: Vector.e2
+            X_AXIS: -Vector.E1,
+            Y_AXIS: Vector.E3,
+            Z_AXIS: Vector.E2
         }
 }
 
@@ -824,7 +868,7 @@ rotation_from_ZYX_to = {
     YXZ: Matrix((0, 0, 1), (-1, 0, 0), (0, -1, 0)),
     YZX: Matrix((0, 1, 0), (0, 0, 1), (1, 0, 0)),
     ZXY: Matrix((0, 0, -1), (-1, 0, 0), (0, 1, 0)),
-    ZYX: Matrix.id,
+    ZYX: Matrix.IDENTITY,
     XYX: Matrix((0, 1, 0), (0, 0, 1), (1, 0, 0)),
     XZX: Matrix((-1, 0, 0), (0, -1, 0), (0, 0, 1)),
     YXY: Matrix((0, 1, 0), (0, 0, 1), (1, 0, 0)),
@@ -837,29 +881,29 @@ rotation_from_XYX_to = {
     XYZ: Matrix((0, 0, -1), (-1, 0, 0), (0, 1, 0)),
     XZY: Matrix((1, 0, 0), (0, -1, 0), (0, 0, -1)),
     YXZ: Matrix((0, 1, 0), (0, 0, -1), (-1, 0, 0)),
-    YZX: Matrix.id,
+    YZX: Matrix.IDENTITY,
     ZXY: Matrix((0, -1, 0), (0, 0, -1), (1, 0, 0)),
     ZYX: Matrix((0, 0, 1), (1, 0, 0), (0, 1, 0)),
-    XYX: Matrix.id,
+    XYX: Matrix.IDENTITY,
     XZX: Matrix((0, 0, -1), (-1, 0, 0), (0, 1, 0)),
-    YXY: Matrix.id,
+    YXY: Matrix.IDENTITY,
     YZY: Matrix((0, -1, 0), (0, 0, -1), (1, 0, 0)),
     ZXZ: Matrix((0, 0, -1), (-1, 0, 0), (0, 1, 0)),
     ZYZ: Matrix((0, -1, 0), (0, 0, -1), (1, 0, 0))
 }
 
 rotation_from_XZX_to = {
-    XYZ: Matrix.id,
+    XYZ: Matrix.IDENTITY,
     XZY: Matrix((0, -1, 0), (0, 0, -1), (1, 0, 0)),
     YXZ: Matrix((0, 0, 1), (1, 0, 0), (0, 1, 0)),
     YZX: Matrix((0, -1, 0), (0, 0, 1), (-1, 0, 0)),
     ZXY: Matrix((0, 0, -1), (1, 0, 0), (0, -1, 0)),
     ZYX: Matrix((-1, 0, 0), (0, -1, 0), (0, 0, 1)),
     XYX: Matrix((0, -1, 0), (0, 0, 1), (-1, 0, 0)),
-    XZX: Matrix.id,
+    XZX: Matrix.IDENTITY,
     YXY: Matrix((0, -1, 0), (0, 0, 1), (-1, 0, 0)),
     YZY: Matrix((0, 0, -1), (1, 0, 0), (0, -1, 0)),
-    ZXZ: Matrix.id,
+    ZXZ: Matrix.IDENTITY,
     ZYZ: Matrix((0, 0, -1), (1, 0, 0), (0, -1, 0))
 }
 
@@ -870,9 +914,9 @@ rotation_from_YXY_to = {
     YZX: Matrix((1, 0, 0), (0, 1, 0), (0, 0, 1)),
     ZXY: Matrix((0, -1, 0), (0, 0, -1), (1, 0, 0)),
     ZYX: Matrix((0, 0, 1), (1, 0, 0), (0, 1, 0)),
-    XYX: Matrix.id,
+    XYX: Matrix.IDENTITY,
     XZX: Matrix((0, 0, -1), (-1, 0, 0), (0, 1, 0)),
-    YXY: Matrix.id,
+    YXY: Matrix.IDENTITY,
     YZY: Matrix((0, -1, 0), (0, 0, -1), (1, 0, 0)),
     ZXZ: Matrix((0, 0, -1), (-1, 0, 0), (0, 1, 0)),
     ZYZ: Matrix((0, -1, 0), (0, 0, -1), (1, 0, 0))
@@ -883,28 +927,28 @@ rotation_from_YZY_to = {
     XZY: Matrix((0, 0, 1), (1, 0, 0), (0, 1, 0)),
     YXZ: Matrix((-1, 0, 0), (0, 1, 0), (0, 0, -1)),
     YZX: Matrix((0, 0, 1), (-1, 0, 0), (0, -1, 0)),
-    ZXY: Matrix.id,
+    ZXY: Matrix.IDENTITY,
     ZYX: Matrix((0, -1, 0), (0, 0, 1), (-1, 0, 0)),
     XYX: Matrix((0, 0, 1), (-1, 0, 0), (0, -1, 0)),
     XZX: Matrix((0, 1, 0), (0, 0, -1), (-1, 0, 0)),
     YXY: Matrix((0, 0, 1), (-1, 0, 0), (0, -1, 0)),
-    YZY: Matrix.id,
+    YZY: Matrix.IDENTITY,
     ZXZ: Matrix((0, 1, 0), (0, 0, -1), (-1, 0, 0)),
-    ZYZ: Matrix.id
+    ZYZ: Matrix.IDENTITY
 }
 
 rotation_from_ZXZ_to = {
-    XYZ: Matrix.id,
+    XYZ: Matrix.IDENTITY,
     XZY: Matrix((0, -1, 0), (0, 0, -1), (1, 0, 0)),
     YXZ: Matrix((0, 0, 1), (1, 0, 0), (0, 1, 0)),
     YZX: Matrix((0, -1, 0), (0, 0, 1), (-1, 0, 0)),
     ZXY: Matrix((0, 0, -1), (1, 0, 0), (0, -1, 0)),
     ZYX: Matrix((-1, 0, 0), (0, -1, 0), (0, 0, 1)),
     XYX: Matrix((0, -1, 0), (0, 0, 1), (-1, 0, 0)),
-    XZX: Matrix.id,
+    XZX: Matrix.IDENTITY,
     YXY: Matrix((0, -1, 0), (0, 0, 1), (-1, 0, 0)),
     YZY: Matrix((0, 0, -1), (1, 0, 0), (0, -1, 0)),
-    ZXZ: Matrix.id,
+    ZXZ: Matrix.IDENTITY,
     ZYZ: Matrix((0, 0, -1), (1, 0, 0), (0, -1, 0))
 }
 
@@ -913,14 +957,14 @@ rotation_from_ZYZ_to = {
     XZY: Matrix((0, 0, 1), (1, 0, 0), (0, 1, 0)),
     YXZ: Matrix((-1, 0, 0), (0, 1, 0), (0, 0, -1)),
     YZX: Matrix((0, 0, 1), (-1, 0, 0), (0, -1, 0)),
-    ZXY: Matrix.id,
+    ZXY: Matrix.IDENTITY,
     ZYX: Matrix((0, -1, 0), (0, 0, 1), (-1, 0, 0)),
     XYX: Matrix((0, 0, 1), (-1, 0, 0), (0, -1, 0)),
     XZX: Matrix((0, 1, 0), (0, 0, -1), (-1, 0, 0)),
     YXY: Matrix((0, 0, 1), (-1, 0, 0), (0, -1, 0)),
-    YZY: Matrix.id,
+    YZY: Matrix.IDENTITY,
     ZXZ: Matrix((0, 1, 0), (0, 0, -1), (-1, 0, 0)),
-    ZYZ: Matrix.id
+    ZYZ: Matrix.IDENTITY
 }
 
 rotation_from_to_answers = {
@@ -938,8 +982,228 @@ rotation_from_to_answers = {
     ZYZ: rotation_from_ZYZ_to
 }
 
-_vectors = [Vector.e1, Vector.e2, Vector.e3]
-_vectors_neg = [-Vector.e1, -Vector.e2, -Vector.e3]
+rotate_from_XYZ_to = {
+        XYZ: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        XZY: (Vector(0, 0, 1), Vector(-1, 0, 0), Vector(0, -1, 0)),
+        YXZ: (Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 0, 0)),
+        YZX: (Vector(0, 0, -1), Vector(-1, 0, 0), Vector(0, 1, 0)),
+        ZXY: (Vector(0, 1, 0), Vector(0, 0, -1), Vector(-1, 0, 0)),
+        ZYX: (Vector(-1, 0, 0), Vector(0, -1, 0), Vector(0, 0, 1)),
+        XYX: (Vector(0, 0, -1), Vector(-1, 0, 0), Vector(0, 1, 0)),
+        XZX: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        YXY: (Vector(0, 0, -1), Vector(-1, 0, 0), Vector(0, 1, 0)),
+        YZY: (Vector(0, 1, 0), Vector(0, 0, -1), Vector(-1, 0, 0)),
+        ZXZ: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        ZYZ: (Vector(0, 1, 0), Vector(0, 0, -1), Vector(-1, 0, 0)),
+}
+rotate_from_XZY_to = {
+        XYZ: (Vector(0, -1, 0), Vector(0, 0, -1), Vector(1, 0, 0)),
+        XZY: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        YXZ: (Vector(0, 0, -1), Vector(-1, 0, 0), Vector(0, 1, 0)),
+        YZX: (Vector(1, 0, 0), Vector(0, -1, 0), Vector(0, 0, -1)),
+        ZXY: (Vector(0, 0, 1), Vector(1, 0, 0), Vector(0, 1, 0)),
+        ZYX: (Vector(0, 1, 0), Vector(0, 0, -1), Vector(-1, 0, 0)),
+        XYX: (Vector(1, 0, 0), Vector(0, -1, 0), Vector(0, 0, -1)),
+        XZX: (Vector(0, -1, 0), Vector(0, 0, -1), Vector(1, 0, 0)),
+        YXY: (Vector(1, 0, 0), Vector(0, -1, 0), Vector(0, 0, -1)),
+        YZY: (Vector(0, 0, 1), Vector(1, 0, 0), Vector(0, 1, 0)),
+        ZXZ: (Vector(0, -1, 0), Vector(0, 0, -1), Vector(1, 0, 0)),
+        ZYZ: (Vector(0, 0, 1), Vector(1, 0, 0), Vector(0, 1, 0)),
+}
+rotate_from_YXZ_to = {
+        XYZ: (Vector(0, 0, 1), Vector(1, 0, 0), Vector(0, 1, 0)),
+        XZY: (Vector(0, -1, 0), Vector(0, 0, 1), Vector(-1, 0, 0)),
+        YXZ: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        YZX: (Vector(0, 1, 0), Vector(0, 0, -1), Vector(-1, 0, 0)),
+        ZXY: (Vector(-1, 0, 0), Vector(0, 1, 0), Vector(0, 0, -1)),
+        ZYX: (Vector(0, 0, 1), Vector(-1, 0, 0), Vector(0, -1, 0)),
+        XYX: (Vector(0, 1, 0), Vector(0, 0, -1), Vector(-1, 0, 0)),
+        XZX: (Vector(0, 0, 1), Vector(1, 0, 0), Vector(0, 1, 0)),
+        YXY: (Vector(0, 1, 0), Vector(0, 0, -1), Vector(-1, 0, 0)),
+        YZY: (Vector(-1, 0, 0), Vector(0, 1, 0), Vector(0, 0, -1)),
+        ZXZ: (Vector(0, 0, 1), Vector(1, 0, 0), Vector(0, 1, 0)),
+        ZYZ: (Vector(-1, 0, 0), Vector(0, 1, 0), Vector(0, 0, -1)),
+}
+rotate_from_YZX_to = {
+        XYZ: (Vector(0, -1, 0), Vector(0, 0, 1), Vector(-1, 0, 0)),
+        XZY: (Vector(1, 0, 0), Vector(0, -1, 0), Vector(0, 0, -1)),
+        YXZ: (Vector(0, 0, -1), Vector(1, 0, 0), Vector(0, -1, 0)),
+        YZX: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        ZXY: (Vector(0, 0, 1), Vector(-1, 0, 0), Vector(0, -1, 0)),
+        ZYX: (Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 0, 0)),
+        XYX: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        XZX: (Vector(0, -1, 0), Vector(0, 0, 1), Vector(-1, 0, 0)),
+        YXY: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        YZY: (Vector(0, 0, 1), Vector(-1, 0, 0), Vector(0, -1, 0)),
+        ZXZ: (Vector(0, -1, 0), Vector(0, 0, 1), Vector(-1, 0, 0)),
+        ZYZ: (Vector(0, 0, 1), Vector(-1, 0, 0), Vector(0, -1, 0)),
+}
+rotate_from_ZXY_to = {
+        XYZ: (Vector(0, 0, -1), Vector(1, 0, 0), Vector(0, -1, 0)),
+        XZY: (Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 0, 0)),
+        YXZ: (Vector(-1, 0, 0), Vector(0, 1, 0), Vector(0, 0, -1)),
+        YZX: (Vector(0, -1, 0), Vector(0, 0, -1), Vector(1, 0, 0)),
+        ZXY: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        ZYX: (Vector(0, 0, -1), Vector(-1, 0, 0), Vector(0, 1, 0)),
+        XYX: (Vector(0, -1, 0), Vector(0, 0, -1), Vector(1, 0, 0)),
+        XZX: (Vector(0, 0, -1), Vector(1, 0, 0), Vector(0, -1, 0)),
+        YXY: (Vector(0, -1, 0), Vector(0, 0, -1), Vector(1, 0, 0)),
+        YZY: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        ZXZ: (Vector(0, 0, -1), Vector(1, 0, 0), Vector(0, -1, 0)),
+        ZYZ: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+}
+rotate_from_ZYX_to = {
+        XYZ: (Vector(-1, 0, 0), Vector(0, -1, 0), Vector(0, 0, 1)),
+        XZY: (Vector(0, 0, -1), Vector(1, 0, 0), Vector(0, -1, 0)),
+        YXZ: (Vector(0, -1, 0), Vector(0, 0, -1), Vector(1, 0, 0)),
+        YZX: (Vector(0, 0, 1), Vector(1, 0, 0), Vector(0, 1, 0)),
+        ZXY: (Vector(0, -1, 0), Vector(0, 0, 1), Vector(-1, 0, 0)),
+        ZYX: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        XYX: (Vector(0, 0, 1), Vector(1, 0, 0), Vector(0, 1, 0)),
+        XZX: (Vector(-1, 0, 0), Vector(0, -1, 0), Vector(0, 0, 1)),
+        YXY: (Vector(0, 0, 1), Vector(1, 0, 0), Vector(0, 1, 0)),
+        YZY: (Vector(0, -1, 0), Vector(0, 0, 1), Vector(-1, 0, 0)),
+        ZXZ: (Vector(-1, 0, 0), Vector(0, -1, 0), Vector(0, 0, 1)),
+        ZYZ: (Vector(0, -1, 0), Vector(0, 0, 1), Vector(-1, 0, 0)),
+}
+rotate_from_XYX_to = {
+        XYZ: (Vector(0, -1, 0), Vector(0, 0, 1), Vector(-1, 0, 0)),
+        XZY: (Vector(1, 0, 0), Vector(0, -1, 0), Vector(0, 0, -1)),
+        YXZ: (Vector(0, 0, -1), Vector(1, 0, 0), Vector(0, -1, 0)),
+        YZX: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        ZXY: (Vector(0, 0, 1), Vector(-1, 0, 0), Vector(0, -1, 0)),
+        ZYX: (Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 0, 0)),
+        XYX: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        XZX: (Vector(0, -1, 0), Vector(0, 0, 1), Vector(-1, 0, 0)),
+        YXY: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        YZY: (Vector(0, 0, 1), Vector(-1, 0, 0), Vector(0, -1, 0)),
+        ZXZ: (Vector(0, -1, 0), Vector(0, 0, 1), Vector(-1, 0, 0)),
+        ZYZ: (Vector(0, 0, 1), Vector(-1, 0, 0), Vector(0, -1, 0)),
+}
+rotate_from_XZX_to = {
+        XYZ: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        XZY: (Vector(0, 0, 1), Vector(-1, 0, 0), Vector(0, -1, 0)),
+        YXZ: (Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 0, 0)),
+        YZX: (Vector(0, 0, -1), Vector(-1, 0, 0), Vector(0, 1, 0)),
+        ZXY: (Vector(0, 1, 0), Vector(0, 0, -1), Vector(-1, 0, 0)),
+        ZYX: (Vector(-1, 0, 0), Vector(0, -1, 0), Vector(0, 0, 1)),
+        XYX: (Vector(0, 0, -1), Vector(-1, 0, 0), Vector(0, 1, 0)),
+        XZX: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        YXY: (Vector(0, 0, -1), Vector(-1, 0, 0), Vector(0, 1, 0)),
+        YZY: (Vector(0, 1, 0), Vector(0, 0, -1), Vector(-1, 0, 0)),
+        ZXZ: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        ZYZ: (Vector(0, 1, 0), Vector(0, 0, -1), Vector(-1, 0, 0)),
+}
+rotate_from_YXY_to = {
+        XYZ: (Vector(0, -1, 0), Vector(0, 0, 1), Vector(-1, 0, 0)),
+        XZY: (Vector(1, 0, 0), Vector(0, -1, 0), Vector(0, 0, -1)),
+        YXZ: (Vector(0, 0, -1), Vector(1, 0, 0), Vector(0, -1, 0)),
+        YZX: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        ZXY: (Vector(0, 0, 1), Vector(-1, 0, 0), Vector(0, -1, 0)),
+        ZYX: (Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 0, 0)),
+        XYX: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        XZX: (Vector(0, -1, 0), Vector(0, 0, 1), Vector(-1, 0, 0)),
+        YXY: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        YZY: (Vector(0, 0, 1), Vector(-1, 0, 0), Vector(0, -1, 0)),
+        ZXZ: (Vector(0, -1, 0), Vector(0, 0, 1), Vector(-1, 0, 0)),
+        ZYZ: (Vector(0, 0, 1), Vector(-1, 0, 0), Vector(0, -1, 0)),
+}
+rotate_from_YZY_to = {
+        XYZ: (Vector(0, 0, -1), Vector(1, 0, 0), Vector(0, -1, 0)),
+        XZY: (Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 0, 0)),
+        YXZ: (Vector(-1, 0, 0), Vector(0, 1, 0), Vector(0, 0, -1)),
+        YZX: (Vector(0, -1, 0), Vector(0, 0, -1), Vector(1, 0, 0)),
+        ZXY: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        ZYX: (Vector(0, 0, -1), Vector(-1, 0, 0), Vector(0, 1, 0)),
+        XYX: (Vector(0, -1, 0), Vector(0, 0, -1), Vector(1, 0, 0)),
+        XZX: (Vector(0, 0, -1), Vector(1, 0, 0), Vector(0, -1, 0)),
+        YXY: (Vector(0, -1, 0), Vector(0, 0, -1), Vector(1, 0, 0)),
+        YZY: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        ZXZ: (Vector(0, 0, -1), Vector(1, 0, 0), Vector(0, -1, 0)),
+        ZYZ: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+}
+rotate_from_ZXZ_to = {
+        XYZ: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        XZY: (Vector(0, 0, 1), Vector(-1, 0, 0), Vector(0, -1, 0)),
+        YXZ: (Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 0, 0)),
+        YZX: (Vector(0, 0, -1), Vector(-1, 0, 0), Vector(0, 1, 0)),
+        ZXY: (Vector(0, 1, 0), Vector(0, 0, -1), Vector(-1, 0, 0)),
+        ZYX: (Vector(-1, 0, 0), Vector(0, -1, 0), Vector(0, 0, 1)),
+        XYX: (Vector(0, 0, -1), Vector(-1, 0, 0), Vector(0, 1, 0)),
+        XZX: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        YXY: (Vector(0, 0, -1), Vector(-1, 0, 0), Vector(0, 1, 0)),
+        YZY: (Vector(0, 1, 0), Vector(0, 0, -1), Vector(-1, 0, 0)),
+        ZXZ: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        ZYZ: (Vector(0, 1, 0), Vector(0, 0, -1), Vector(-1, 0, 0)),
+}
+rotate_from_ZYZ_to = {
+        XYZ: (Vector(0, 0, -1), Vector(1, 0, 0), Vector(0, -1, 0)),
+        XZY: (Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 0, 0)),
+        YXZ: (Vector(-1, 0, 0), Vector(0, 1, 0), Vector(0, 0, -1)),
+        YZX: (Vector(0, -1, 0), Vector(0, 0, -1), Vector(1, 0, 0)),
+        ZXY: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        ZYX: (Vector(0, 0, -1), Vector(-1, 0, 0), Vector(0, 1, 0)),
+        XYX: (Vector(0, -1, 0), Vector(0, 0, -1), Vector(1, 0, 0)),
+        XZX: (Vector(0, 0, -1), Vector(1, 0, 0), Vector(0, -1, 0)),
+        YXY: (Vector(0, -1, 0), Vector(0, 0, -1), Vector(1, 0, 0)),
+        YZY: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+        ZXZ: (Vector(0, 0, -1), Vector(1, 0, 0), Vector(0, -1, 0)),
+        ZYZ: (Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)),
+}
+
+rotate_from_to_answers = {
+    XYZ: rotate_from_XYZ_to,
+    XZY: rotate_from_XZY_to,
+    YXZ: rotate_from_YXZ_to,
+    YZX: rotate_from_YZX_to,
+    ZXY: rotate_from_ZXY_to,
+    ZYX: rotate_from_ZYX_to,
+    XYX: rotate_from_XYX_to,
+    XZX: rotate_from_XZX_to,
+    YXY: rotate_from_YXY_to,
+    YZY: rotate_from_YZY_to,
+    ZXZ: rotate_from_ZXZ_to,
+    ZYZ: rotate_from_ZYZ_to,
+}
+
+rotate_from_XZY_to_ZYX = {
+    "offset_to": {
+        X_AXIS: Vector(1, 0, -1),
+        Y_AXIS: Vector(1, -1, -2),
+        Z_AXIS: Vector(0, -1, -1)
+    },
+    "offset_from": {
+        X_AXIS: Vector(-1, 2, 1),
+        Y_AXIS: Vector(-1, 1, 0),
+        Z_AXIS: Vector(-2, 1, 1)
+    },
+    "offset_both": {
+        X_AXIS: Vector(0, 1, 0),
+        Y_AXIS: Vector(0, 0, -1),
+        Z_AXIS: Vector(-1, 0, 0),
+    }
+}
+
+rotate_from_ZYX_to_XZY = {
+    "offset_to": {
+        X_AXIS: Vector(-1, 1, -2),
+        Y_AXIS: Vector(0, 1, -1),
+        Z_AXIS: Vector(-1, 0, -1)
+    },
+    "offset_from": {
+        X_AXIS: Vector(1, -1, 0),
+        Y_AXIS: Vector(2, -1, 1),
+        Z_AXIS: Vector(1, -2, 1)
+    },
+    "offset_both": {
+        X_AXIS: Vector(0, 0, -1),
+        Y_AXIS: Vector(1, 0, 0),
+        Z_AXIS: Vector(0, -1, 0)
+    }
+}
+
+_vectors = [Vector.E1, Vector.E2, Vector.E3]
+_vectors_neg = [-Vector.E1, -Vector.E2, -Vector.E3]
 
 
 def make_dict(d):
@@ -992,14 +1256,15 @@ _orders = [XYZ, XZY, YXZ, YZX, ZXY, ZYX, XYX, XZX, YXY, YZY, ZXZ, ZYZ]
 
 def make_dict2(orderFrom, offset):
     rtnDict = {}
-    angs90 = Angles(pi/2, pi/2, pi/2)
-    matFrom = getMatrixEuler(orderFrom, angs90)
+    angs90 = EulerAngles(pi/2, pi/2, pi/2)
+    matFrom = compute_rotation_matrix(orderFrom, angs90)
     for orderTo in _orders:
-        matTo = getMatrixEuler(orderTo, angs90)
+        matTo = compute_rotation_matrix(orderTo, angs90)
         axisDict = {}
         for i in range(3):
-            tmp = rotateMatrixFrom(matFrom, _vectors[i])
-            axisDict[i] = rotateOffsetTo(matTo, offset, tmp)
+            tmp = rotate_to(matFrom, _vectors[i])
+            # axisDict[i] = rotateOffsetTo(matTo, offset, tmp)
+            axisDict[i] = rotate_to(matTo, tmp, offset=offset)
         rtnDict[orderTo] = axisDict
     return rtnDict
 

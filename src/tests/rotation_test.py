@@ -1,344 +1,664 @@
-import unittest
-
-from pyevspace import X_AXIS, Y_AXIS, Z_AXIS, XYZ, XZY, YXZ, YZX, ZXY, ZYX, XYX, XZX, YZY, YXY, ZXZ, ZYZ, \
-    Vector, Matrix, Angles, Order, getMatrixAxis, getMatrixEuler, getMatrixFromTo, rotateAxisTo, rotateAxisFrom, \
-    rotateEulerFrom, rotateEulerTo, rotateMatrixFrom, rotateMatrixTo, rotateOffsetTo, rotateOffsetFrom
 from math import pi
+
+import pytest
+
 from .rotation_answers import *
+import pyevspace
+from pyevspace import (X_AXIS, Y_AXIS, Z_AXIS, XYZ, XZY, YXZ, YZX, ZXY, ZYX,
+                       XYX, XZX, YZY, YXY, ZXZ, ZYZ, Vector, Matrix,
+                       compute_rotation_matrix, rotate_from, rotate_to,
+                       rotate_between, EulerAngles,
+)
 
-eps = 1e-6
 
-
-class TestRotation(unittest.TestCase):
-
+class TestData:
     angles = [i * pi / 4 for i in range(8)]
-    angs90 = Angles(pi / 2, pi / 2, pi / 2)
+    angs90 = EulerAngles(pi / 2, pi / 2, pi / 2)
     axes = [X_AXIS, Y_AXIS, Z_AXIS]
     orders = [XYZ, XZY, YXZ, YZX, ZXY, ZYX, XYX, XZX, YXY, YZY, ZXZ, XYX]
-    vectors = [Vector.e1, Vector.e2, Vector.e3]
+    vectors = [Vector.E1, Vector.E2, Vector.E3]
+    # vectors = [Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)]
     vector_empty = Vector()
     matrix_empty = Matrix()
-    offset = Vector((1, 1, 1))
-
-    @staticmethod
-    def matrix_equal(lhs, rhs, epsilon=eps):
-        for row in range(3):
-            for col in range(3):
-                if abs(lhs[row, col] - rhs[row, col]) > epsilon:
-                    return False
-        return True
-
-    @staticmethod
-    def vector_equal(lhs, rhs, epsilon=eps):
-        for l, r in zip(lhs, rhs):
-            if abs(l - r) > epsilon:
-                return False
-        return True
-
-    def test_rotation_rotation_matrix(self):
-        # sentinel test to ensure tests also fail when incorrect
-        mat = getMatrixAxis(Y_AXIS, pi/4)
-        wrongAns = rotation_matrix_answers[X_AXIS][0]
-        self.assertFalse(self.matrix_equal(mat, wrongAns), msg='getMatrixAxis fail sentinel')
-
-        # test rotation matrices for each axis and each quadrant
-        for axis in self.axes:
-            for ang, ans in zip(self.angles, rotation_matrix_answers[axis]):
-                mat = getMatrixAxis(axis, ang)
-                msg = f'rotation from axis: {axis}, angle: {ang}'
-                self.assertTrue(self.matrix_equal(mat, ans), msg=msg)
-
-        # test invalid axis range
-        #   axis > max axis value
-        with self.assertRaises(ValueError, msg='getMatrixAxis axis arg ValueError'):
-            getMatrixAxis(3, 0)
-        #   negative axis value
-        with self.assertRaises(ValueError, msg='getMatrixAxis axis arg ValueError'):
-            getMatrixAxis(-1, 0)
-
-        # test invalid argument types
-        #   invalid type for angle argument
-        with self.assertRaises(TypeError, msg='getMatrixAxis angle arg TypeError'):
-            getMatrixAxis(X_AXIS, 'a')
-        #   invalid type for axis argument
-        with self.assertRaises(TypeError, msg='getMatrixAxis axis arg TypeError'):
-            getMatrixAxis('a', 0)
-
-    def test_rotation_euler_matrix(self):
-        # sentinel test to ensure tests also fail when incorrect
-        mat = getMatrixEuler(XYZ, self.angs90)
-        wrongAns = rotation_euler_answers[XZY][2]
-        self.assertFalse(self.matrix_equal(mat, wrongAns), msg='getMatrixEuler fail sentinel')
-
-        # test euler rotation for each euler order and each quadrant
-        for order in self.orders:
-            for ang, ans in zip(self.angles, rotation_euler_answers[order]):
-                angs = Angles(ang, ang, ang)
-                mat = getMatrixEuler(order, angs)
-                msg = f'rotation from order: {order}, angles: {angs}'
-                self.assertTrue(self.matrix_equal(mat, ans), msg=msg)
-
-        # test invalid argument types
-        #   invalid type for order argument
-        with self.assertRaises(TypeError, msg='getMatrixEuler order arg TypeError'):
-            getMatrixEuler(3, Angles(1, 2, 3))
-        #   invalid type for angles argument
-        with self.assertRaises(TypeError, msg='getMatrixEuler angles arg TypeError'):
-            getMatrixEuler(XYZ, 7)
-
-    @staticmethod
-    def order_str_to_label(order):
-        orderStr = str(order)
-        return f'{orderStr[1]}{orderStr[9]}{orderStr[17]}'
-
-    def test_rotation_from_to_matrix(self):
-        # sentinel test to ensure tests also fail when incorrect
-        mat = getMatrixFromTo(XYZ, self.angs90, YXZ, self.angs90)
-        wrongAns = rotation_from_to_answers[XYZ][YZX]
-        self.assertFalse(self.matrix_equal(mat, wrongAns), msg='getMatrixFromTo fail sentinel')
-
-        # test from each frame to each frame
-        for orderFrom in self.orders:
-            fromLabel = self.order_str_to_label(orderFrom)
-            for orderTo in self.orders:
-                ans = rotation_from_to_answers[orderFrom][orderTo]
-                mat = getMatrixFromTo(orderFrom, self.angs90, orderTo, self.angs90)
-                toLabel = self.order_str_to_label(orderTo)
-                msg = f'rotation matrix from to: from order: {fromLabel}, to order: {toLabel}'
-                self.assertTrue(self.matrix_equal(mat, ans), msg=msg)
-
-        # test invalid argument types
-        #   invalid type for orderFrom argument
-        with self.assertRaises(TypeError, msg='getMatrixFromTo orderFrom arg TypeError'):
-            getMatrixFromTo(0, self.angs90, XYZ, self.angs90)
-        #   invalid type for anglesFrom argument
-        with self.assertRaises(TypeError, msg='getMatrixFromTo anglesFrom arg TypeError'):
-            getMatrixFromTo(XYZ, 0, XYZ, self.angs90)
-        #   invalid type for orderTo argument
-        with self.assertRaises(TypeError, msg='getMatrixFromTo orderTo arg TypeError'):
-            getMatrixFromTo(XYZ, self.angs90, 0, self.angs90)
-        #   invalid type for anglesTo argument
-        with self.assertRaises(TypeError, msg='getMatrixFromTo anglesTo arg TypeError'):
-            getMatrixFromTo(XYZ, self.angs90, XYZ, 0)
-
-    def test_rotation_axis_to(self):
-        # sentinel test to ensure tests also fail when incorrect
-        vec = rotateAxisTo(X_AXIS, pi/2, Vector.e2)
-        wrongAns = rotation_axis_to_answers[X_AXIS][Z_AXIS]
-        self.assertFalse(self.vector_equal(vec, wrongAns), msg='rotateAxisTo fail sentinel')
-
-        # test rotating axis to by checking where basis vector map to in 90 degree rotations
-        for axisRotation in self.axes:
-            for axisMapped in self.axes:
-                ans = rotation_axis_to_answers[axisRotation][axisMapped]
-                vec = rotateAxisTo(axisRotation, pi/2, self.vectors[axisMapped])
-                msg = f'rotate axis to, axis of rotation: {axisRotation}, axis tested: {axisMapped}'
-                self.assertTrue(self.vector_equal(vec, ans), msg=msg)
-
-        # test exception valid axis range
-        #   axis larger than max value
-        with self.assertRaises(ValueError, msg='rotateAxisTo axis arg IndexError'):
-            rotateAxisTo(3, 0, self.vector_empty)
-        #   negative axis value
-        with self.assertRaises(ValueError, msg='rotateAxisTo axis arg IndexError'):
-            rotateAxisTo(-1, 0, self.vector_empty)
-
-        # test type exceptions
-        #   invalid axis type
-        with self.assertRaises(TypeError, msg='rotateAxisTo axis arg TypeError'):
-            rotateAxisTo('a', 0, self.vector_empty)
-        #   invalid angle type
-        with self.assertRaises(TypeError, msg='rotateAxisTo angle arg TypeError'):
-            rotateAxisTo(X_AXIS, 'a', self.vector_empty)
-        #   invalid vector type
-        with self.assertRaises(TypeError, msg='rotateAxisTo vector arg TypeError'):
-            rotateAxisTo(X_AXIS, 0, 1)
-
-    def test_rotation_axis_from(self):
-        # sentinel test to ensure tests also fail when incorrect
-        vec = rotateAxisFrom(X_AXIS, pi/2, Vector.e2)
-        wrongAns = rotation_axis_from_answers[X_AXIS][Z_AXIS]
-        self.assertFalse(self.vector_equal(vec, wrongAns), msg='rotateAxisFrom fail sentinel')
-
-        # test rotating axis from by checking where basis vectors map to in 90 degree rotations
-        for axisRotation in self.axes:
-            for axisMapped in self.axes:
-                ans = rotation_axis_from_answers[axisRotation][axisMapped]
-                vec = rotateAxisFrom(axisRotation, pi/2, self.vectors[axisMapped])
-                msg = f'rotate axis from, axis of rotation: {axisRotation}, axis tested: {axisMapped}'
-                self.assertTrue(self.vector_equal(vec, ans), msg=msg)
-
-        # test exception valid axis range
-        #   axis larger than max value
-        with self.assertRaises(ValueError, msg='rotateAxisFrom axis arg IndexError'):
-            rotateAxisFrom(3, 0, self.vector_empty)
-        #   negative axis value
-        with self.assertRaises(ValueError, msg='rotateAxisFrom axis arg IndexError'):
-            rotateAxisFrom(-1, 0, self.vector_empty)
-
-        # test type exceptions
-        #   invalid axis type
-        with self.assertRaises(TypeError, msg='rotateAxisFrom axis arg TypeError'):
-            rotateAxisFrom('a', 0, self.vector_empty)
-        #   invalid angle type
-        with self.assertRaises(TypeError, msg='rotateAxisFrom angle arg TypeError'):
-            rotateAxisFrom(X_AXIS, 'a', self.vector_empty)
-        #   invalid vector type
-        with self.assertRaises(TypeError, msg='rotateAxisFrom vector arg TypeError'):
-            rotateAxisFrom(X_AXIS, 0, 1)
-
-    def test_rotation_euler_to(self):
-        # sentinel test to ensure tests also fail when incorrect
-        vec = rotateEulerTo(XYZ, self.angs90, Vector.e1)
-        wrongAns = rotation_euler_to_answers[XYZ][Y_AXIS]
-        self.assertFalse(self.vector_equal(vec, wrongAns), msg='rotateEulerTo fail sentinel')
-
-        # test euler rotate by checking where basis vectors map to in 90 degree rotations
-        for order in self.orders:
-            for axis in self.axes:
-                vec = rotateEulerTo(order, self.angs90, self.vectors[axis])
-                msg = f'rotate euler to, order: {order}, axis tested: {axis}'
-                ans = rotation_euler_to_answers[order][axis]
-                self.assertTrue(self.vector_equal(vec, ans), msg=msg)
-
-        # test type exceptions
-        #   invalid order type
-        with self.assertRaises(TypeError, msg='rotateEulerTo order arg TypeError'):
-            rotateEulerTo('a', self.angs90, self.vector_empty)
-        #   invalid angles type
-        with self.assertRaises(TypeError, msg='rotateEulerTo angles arg TypeError'):
-            rotateEulerTo(XYZ, 'a', self.vector_empty)
-        #   invalid vector type
-        with self.assertRaises(TypeError, msg='rotateEulerTo vector arg TypeError'):
-            rotateEulerTo(XYZ, self.angs90, 1)
-
-    def test_rotation_euler_from(self):
-        # sentinel test to ensure tests also fail when incorrect
-        vec = rotateEulerFrom(XYZ, self.angs90, Vector.e1)
-        wrongAns = rotation_euler_from_answers[XYZ][Y_AXIS]
-        self.assertFalse(self.vector_equal(vec, wrongAns), msg='rotateEulerFrom fail sentinel')
-
-        # test euler rotate by checking where basis vectors map to in 90 degree rotations
-        for order in self.orders:
-            for axis in self.axes:
-                vec = rotateEulerFrom(order, self.angs90, self.vectors[axis])
-                msg = f'rotate euler to, order: {order}, axis tested: {axis}'
-                ans = rotation_euler_from_answers[order][axis]
-                self.assertTrue(self.vector_equal(vec, ans), msg=msg)
-
-        # test type exceptions
-        #   invalid order type
-        with self.assertRaises(TypeError, msg='rotateEulerFrom order arg TypeError'):
-            rotateEulerFrom('a', self.angs90, self.vector_empty)
-        #   invalid angles type
-        with self.assertRaises(TypeError, msg='rotateEulerFrom angles arg TypeError'):
-            rotateEulerFrom(XYZ, 'a', self.vector_empty)
-        #   invalid vector type
-        with self.assertRaises(TypeError, msg='rotateEulerFrom vector arg TypeError'):
-            rotateEulerFrom(XYZ, self.angs90, 1)
-
-    def test_rotation_matrix_to(self):
-        # sentinel test to ensure tests also fail when incorrect
-        mat = getMatrixEuler(XYZ, self.angs90)
-        vec = rotateMatrixTo(mat, Vector.e1)
-        wrongAns = rotation_euler_to_answers[XYZ][Y_AXIS]
-        self.assertFalse(self.vector_equal(vec, wrongAns), msg='rotateMatrixTo fail sentinel')
-
-        # test matrix rotate relying on the answers from euler rotate to
-        for order in self.orders:
-            mat = getMatrixEuler(order, self.angs90)
-            for axis in self.axes:
-                vec = rotateMatrixTo(mat, self.vectors[axis])
-                msg = f'rotate matrix to, order: {order}, axis tested: {axis}'
-                ans = rotation_euler_to_answers[order][axis]
-                self.assertTrue(self.vector_equal(vec, ans), msg=msg)
-
-        # test type exceptions
-        #   invalid matrix type
-        with self.assertRaises(TypeError, msg='rotateMatrixTo matrix arg TypeError'):
-            rotateMatrixTo(1, self.vector_empty)
-        #   invalid vector type
-        with self.assertRaises(TypeError, msg='rotateMatrixTo vector arg TypeError'):
-            rotateMatrixTo(self.matrix_empty, 0)
-
-    def test_rotation_matrix_from(self):
-        # sentinel test to ensure tests also fail when incorrect
-        mat = getMatrixEuler(XYZ, self.angs90)
-        vec = rotateMatrixFrom(mat, Vector.e1)
-        wrongAns = rotation_euler_from_answers[XYZ][Y_AXIS]
-        self.assertFalse(self.vector_equal(vec, wrongAns), msg='rotateMatrixFrom fail sentinel')
-
-        # test matrix rotate relying on the answer from euler rotate from
-        for order in self.orders:
-            mat = getMatrixEuler(order, self.angs90)
-            for axis in self.axes:
-                vec = rotateMatrixFrom(mat, self.vectors[axis])
-                msg = f'rotate matrix from, order: {order}, axis tested: {axis}'
-                ans = rotation_euler_from_answers[order][axis]
-                self.assertTrue(self.vector_equal(vec, ans), msg=msg)
-
-        # test type exceptions
-        #   invalid matrix type
-        with self.assertRaises(TypeError, msg='rotateMatrixFrom matrix arg TypeError'):
-            rotateMatrixFrom(1, self.vector_empty)
-        #   invalid vector type
-        with self.assertRaises(TypeError, msg='rotateMatrixFrom vector arg TypeError'):
-            rotateMatrixFrom(self.matrix_empty, 0)
-
-    def test_rotation_offset_to(self):
-        # sentinel test to ensure tests also fail when incorrect
-        mat = getMatrixEuler(XYZ, self.angs90)
-        vec = rotateOffsetTo(mat, self.offset, Vector.e1)
-        wrongAns = rotation_offset_to_answers[XYZ][Y_AXIS]
-        self.assertFalse(self.vector_equal(vec, wrongAns), msg='rotateOffsetTo fail sentinel')
-
-        # test rotating to offset reference frame by mapping basis vectors
-        for order in self.orders:
-            mat = getMatrixEuler(order, self.angs90)
-            for axis in self.axes:
-                vec = rotateOffsetTo(mat, self.offset, self.vectors[axis])
-                msg = f'rotate offset to, order: {order}, axis tested: {axis}'
-                ans = rotation_offset_to_answers[order][axis]
-                self.assertTrue(self.vector_equal(vec, ans), msg=msg)
-
-        # test type exceptions
-        #   invalid matrix type
-        with self.assertRaises(TypeError, msg='rotateOffsetTo matrix arg TypeError'):
-            rotateOffsetTo(1, Vector(), Vector())
-        #   invalid offset vector type
-        with self.assertRaises(TypeError, msg='rotateOffsetTo offset vector arg TypeError'):
-            rotateOffsetTo(Matrix(), 1, Vector())
-        #   invalid vector type
-        with self.assertRaises(TypeError, msg='rotateOffsetTo vector arg TypeError'):
-            rotateOffsetTo(Matrix(), Vector(), 0)
-
-    def test_rotation_offset_from(self):
-        # sentinel test to ensure tests also fail when incorrect
-        mat = getMatrixEuler(XYZ, self.angs90)
-        vec = rotateOffsetFrom(mat, self.offset, Vector.e1)
-        wrongAns = rotation_offset_to_answers[XYZ][Y_AXIS]
-        self.assertFalse(self.vector_equal(vec, wrongAns), msg='rotateOffsetFrom fail sentinel')
-
-        # test rotating from offset reference frame by mapping basis vectors
-        for order in self.orders:
-            mat = getMatrixEuler(order, self.angs90)
-            for axis in self.axes:
-                vec = rotateOffsetFrom(mat, self.offset, self.vectors[axis])
-                msg = f'rotate offset to, order: {order}, axis tested: {axis}'
-                ans = rotation_offset_from_answers[order][axis]
-                self.assertTrue(self.vector_equal(vec, ans), msg=msg)
-
-        # test type exceptions
-        #   invalid matrix type
-        with self.assertRaises(TypeError, msg='rotateOffsetFrom matrix arg TypeError'):
-            rotateOffsetFrom(1, Vector(), Vector())
-        #   invalid offset vector type
-        with self.assertRaises(TypeError, msg='rotateOffsetFrom offset vector arg TypeError'):
-            rotateOffsetFrom(Matrix(), 1, Vector())
-        #   invalid vector type
-        with self.assertRaises(TypeError, msg='rotateOffsetFrom vector arg TypeError'):
-            rotateOffsetFrom(Matrix(), Vector(), 0)
+    offset = Vector(1, 1, 1)
 
 
-if __name__ == '__main__':
-    unittest.main()
+@pytest.fixture
+def data() -> TestData:
+    return TestData()
+
+
+def reversed_rotation_order(order):
+    # todo: fix RotationOrder logic so we can create the reverse easily/properly
+
+    axes = {0: 'X', 1: 'Y', 2: 'Z'}
+    new_first = axes[order.third]
+    new_second = axes[order.second]
+    new_third = axes[order.first]
+
+    order_handle = f'{new_first}{new_second}{new_third}'
+
+    return pyevspace.__dict__[order_handle]
+
+
+""" functions signatures to test:
+compute_rotation_matrix(angle: float, axis: int)                                --- done
+compute_rotation_matrix(angle: float, vector: Vector)                           --- done
+compute_rotation_matrix(o: RotationOrder, a: EulerAngles,                       --- done
+                        *, intrinsic: bool = True)
+compute_rotation_matrix(of, af, ot, at, if: bool, it: bool)                     --- done
+
+rotate_to(m: Matrix, v: Vector, *, offset: Vector = None)                       --- done
+rotate_to(angle: float, axis: int, v: Vector, *, offset: Vector = None)         --- done
+rotate_to(angle: float, axis: Vector, v: Vector, *, offset: Vector = None)      --- done
+rotate_to(order: RotationOrder, angles: EulerAngle,                             --- done
+          *, offset: Vector = None, i: bool = True)
+
+rotate_from(m: Matrix, v: Vector, *, offset: Vector = None)                     --- done
+rotate_from(angle: float, axis: int, v: Vector, *, offset: Vector = None)       --- done
+rotate_from(angle: float, axis: Vector, v: Vector, *, offset: Vector = None)    --- done
+rotate_from(order: RotationOrder, angles: EulerAngle,                           --- done
+            *, offset: Vector = None, i: bool = True)
+
+rotate_between(of, af, ot, at, *, if, it, off_from, off_to)                     --- done
+
+"""
+
+
+def test_rotation_matrix_axis(data: TestData) -> None:
+    for axis in data.axes:
+        for angle, answer in zip(data.angles, rotation_matrix_answers[axis]):
+            matrix = compute_rotation_matrix(angle, axis)
+            assert matrix == answer
+
+    # vector as axis
+    for axis, vector in zip(data.axes, data.vectors):
+        for angle, answer in zip(data.angles, rotation_matrix_answers[axis]):
+            matrix = compute_rotation_matrix(angle, vector)
+            assert matrix == answer
+
+
+def test_rotation_matrix_euler(data: TestData) -> None:
+    for order in data.orders:
+        for angle, answer in zip(data.angles, rotation_euler_answers[order]):
+            angles = EulerAngles(angle, angle, angle)
+            matrix = compute_rotation_matrix(order, angles)
+            assert matrix == answer
+
+    # extrinsic
+    for order in data.orders:
+        reversed_order_answers = rotation_euler_answers[reversed_rotation_order(order)]
+        for angle, answer in zip(data.angles, reversed_order_answers):
+            angles = EulerAngles(angle, angle, angle)
+            matrix = compute_rotation_matrix(order, angles, intrinsic=False)
+            assert matrix == answer
+
+
+def test_rotation_matrix_from_to(data: TestData) -> None:
+    for order_from in data.orders:
+        for order_to in data.orders:
+            answer = rotation_from_to_answers[order_from][order_to]
+            matrix = compute_rotation_matrix(order_from, data.angs90,
+                                             order_to, data.angs90)
+            assert matrix == answer
+
+    # order_from being extrinsic
+    for order_from in data.orders:
+        reversed_order = reversed_rotation_order(order_from)
+        for order_to in data.orders:
+            answer = rotation_from_to_answers[reversed_order][order_to]
+            matrix = compute_rotation_matrix(order_from, data.angs90,
+                                             order_to, data.angs90,
+                                             intrinsic_from=False)
+            assert matrix == answer
+
+    # order_to being extrinsic
+    for order_to in data.orders:
+        reversed_order = reversed_rotation_order(order_to)
+        for order_from in data.orders:
+            answer = rotation_from_to_answers[order_from][reversed_order]
+            matrix = compute_rotation_matrix(order_from, data.angs90,
+                                             order_to, data.angs90,
+                                             intrinsic_to=False)
+            assert matrix == answer
+
+    # both extrinsic
+    for order_from in data.orders:
+        from_reversed = reversed_rotation_order(order_from)
+        for order_to in data.orders:
+            to_reversed = reversed_rotation_order(order_to)
+            answer = rotation_from_to_answers[from_reversed][to_reversed]
+            matrix = compute_rotation_matrix(order_from, data.angs90,
+                                             order_to, data.angs90,
+                                             intrinsic_from=False,
+                                             intrinsic_to=False)
+            assert matrix == answer
+
+    # todo: handle proper error excaption types
+
+
+def test_compute_matrix_errors(data: TestData) -> None:
+    # test invalid axis ranges
+    with pytest.raises(ValueError):
+        compute_rotation_matrix(0, 3)
+    
+    with pytest.raises(ValueError):
+        compute_rotation_matrix(0, -1)
+
+    # test invalid argument types
+    # first arg as float
+    with pytest.raises(TypeError):
+        compute_rotation_matrix('a', X_AXIS)
+    
+    with pytest.raises(TypeError):
+        compute_rotation_matrix(0, [])
+
+    with pytest.raises(TypeError):
+        compute_rotation_matrix(1.5)
+
+    with pytest.raises(TypeError):
+        compute_rotation_matrix(1.5, X_AXIS, 3)
+
+    # first arg as RotationOrder (size = 2)
+    with pytest.raises(TypeError):
+        compute_rotation_matrix(XYZ, 0)
+    
+    with pytest.raises(TypeError):
+        compute_rotation_matrix((), data.angs90[0])
+
+    with pytest.raises(TypeError):
+        compute_rotation_matrix(XYZ, data.angs90[0], intrinsic=5)
+
+    with pytest.raises(TypeError):
+        compute_rotation_matrix(XYZ)
+
+    with pytest.raises(TypeError):
+        compute_rotation_matrix(XYZ, data.angs90[0], 'a')
+
+    # first arg as RotationOrder (size = 4)
+    with pytest.raises(TypeError):
+        compute_rotation_matrix(1, data.angs90[0], XYZ, data.angs90[0])
+    
+    with pytest.raises(TypeError):
+        compute_rotation_matrix(XYZ, 'a', XYZ, data.angs90[0])
+    
+    with pytest.raises(TypeError):
+        compute_rotation_matrix(XYZ, data.angs90[0], 5, data.angs90[0])
+    
+    with pytest.raises(TypeError):
+        compute_rotation_matrix(XYZ, data.angs90[0], YZY, [])
+
+    # keyword args
+    with pytest.raises(TypeError):
+        compute_rotation_matrix(XYZ, data.angs90[0], YZY, data.angs90[1], intrinsic_from=4)
+    
+    with pytest.raises(TypeError):
+        compute_rotation_matrix(XYZ, data.angs90[0], YZY, data.angs90[1], intrinsic_to=tuple)
+
+    with pytest.raises(TypeError):
+        compute_rotation_matrix(XYZ, data.angs90[0], YZY)
+
+    with pytest.raises(TypeError):
+        compute_rotation_matrix(XYZ, data.angs90[0], YZY, data.angs90[1], 5)
+
+
+def test_rotation_rotate_axis(data: TestData) -> None:
+    # Rotate elementary vectors "to" around elementary axes using an axis
+    # constant, getting the answers from rotation_axis_to_answers.
+    for axis_rotation in data.axes:
+        for axis_mapped in data.axes:
+            answer = rotation_axis_to_answers[axis_rotation][axis_mapped]
+            vector = rotate_to(pi / 2.0, axis_rotation,
+                               data.vectors[axis_mapped])
+            assert vector == answer
+
+    # Rotate elementary vectors "to" around elementary axes using a Vector
+    # as axis, getting the answers from rotation_axis_to_answers.
+    for axis_rotation, vector_rotation in zip(data.axes, data.vectors):
+        for axis_mapped in data.axes:
+            answer = rotation_axis_to_answers[axis_rotation][axis_mapped]
+            vector = rotate_to(pi / 2.0, vector_rotation,
+                               data.vectors[axis_mapped])
+            assert vector == answer
+
+    # Rotate elementary vectors "from" around elementary axes using an axis
+    # constant, getting the answers from rotation_axis_from_answers.
+    for axis_rotation in data.axes:
+        for axis_mapped in data.axes:
+            answer = rotation_axis_from_answers[axis_rotation][axis_mapped]
+            vector = rotate_from(pi / 2.0, axis_rotation,
+                                 data.vectors[axis_mapped])
+            assert vector == answer
+
+    # Rotate elementary vectors "from" around elementary axes using a Vector
+    # as axis, getting the answers from rotation_axis_from_answers.
+    for axis_rotation, vector_rotation in zip(data.axes, data.vectors):
+        for axis_mapped in data.axes:
+            answer = rotation_axis_from_answers[axis_rotation][axis_mapped]
+            vector = rotate_from(pi / 2.0, vector_rotation,
+                                 data.vectors[axis_mapped])
+            assert vector == answer
+
+    # offsets
+    # Rotate elementary vectors "to" around elementary axes with an offset,
+    # using an axis constant and getting the answers from rotation_axis_to_answers.
+    for axis_rotation in data.axes:
+        for axis_mapped in data.axes:
+            answer = rotation_axis_to_offset_answers[axis_rotation][axis_mapped]
+            vector = rotate_to(pi / 2.0, axis_rotation,
+                               data.vectors[axis_mapped], offset=data.offset)
+            assert vector == answer
+
+    # Rotate elementary vectors "to" around elementary axes with an offset,
+    # using a Vector as axis, getting the answers from rotation_axis_to_answers.
+    for axis_rotation, vector_rotation in zip(data.axes, data.vectors):
+        for axis_mapped in data.axes:
+            answer = rotation_axis_to_answers[axis_rotation][axis_mapped]
+            vector = rotate_to(pi / 2.0, vector_rotation,
+                               data.vectors[axis_mapped])
+            assert vector == answer
+
+    # Rotate elementary vectors "from" around elementary axes with an offset,
+    # using an axis constant and getting the answers from rotation_axis_from_answers.
+    for axis_rotation in data.axes:
+        for axis_mapped in data.axes:
+            answer = rotation_axis_from_offset_answers[axis_rotation][axis_mapped]
+            vector = rotate_from(pi / 2.0, axis_rotation,
+                                 data.vectors[axis_mapped], offset=data.offset)
+            assert vector == answer
+    
+    # Rotate elementary vectors "from" around elementary axes with an offset,
+    # using a Vector as axis, getting the answers from rotation_axis_from_answers.
+    for axis_rotation, vector_rotation in zip(data.axes, data.vectors):
+        for axis_mapped in data.axes:
+            answer = rotation_axis_from_answers[axis_rotation][axis_mapped]
+            vector = rotate_from(pi / 2.0, vector_rotation,
+                                 data.vectors[axis_mapped])
+            assert vector == answer
+
+    # todo: handle proper error exception types
+
+
+def test_rotation_rotate_euler(data: TestData) -> None:
+    for order in data.orders:
+        for axis in data.axes:
+            vector = rotate_to(order, data.angs90, data.vectors[axis])
+            answer = rotation_euler_to_answers[order][axis]
+            assert vector == answer
+
+    # extrinsic
+    for order in data.orders:
+        reversed_order = reversed_rotation_order(order)
+        for axis in data.axes:
+            answer = rotation_euler_to_answers[reversed_order][axis]
+            vector = rotate_to(order, data.angs90, data.vectors[axis],
+                               intrinsic=False)
+            assert vector == answer
+
+    for order in data.orders:
+        for axis in data.axes:
+            vector = rotate_from(order, data.angs90, data.vectors[axis])
+            answer = rotation_euler_from_answers[order][axis]
+            assert vector == answer
+
+    # extrinsic
+    for order in data.orders:
+        reversed_order = reversed_rotation_order(order)
+        for axis in data.axes:
+            answer = rotation_euler_from_answers[reversed_order][axis]
+            vector = rotate_from(order, data.angs90, data.vectors[axis],
+                                 intrinsic=False)
+            assert vector == answer
+
+    # todo: handle proper error exception types
+
+    # offsets
+    for order in data.orders:
+        for axis in data.axes:
+            vector = rotate_to(order, data.angs90, data.vectors[axis],
+                               offset=data.offset)
+            answer = rotation_offset_to_answers[order][axis]
+            assert vector == answer
+
+    # extrinsic
+    for order in data.orders:
+        reversed_order = reversed_rotation_order(order)
+        for axis in data.axes:
+            answer = rotation_offset_to_answers[reversed_order][axis]
+            vector = rotate_to(order, data.angs90, data.vectors[axis],
+                               intrinsic=False, offset=data.offset)
+            assert vector == answer
+
+    for order in data.orders:
+        for axis in data.axes:
+            vector = rotate_from(order, data.angs90, data.vectors[axis],
+                                 offset=data.offset)
+            answer = rotation_offset_from_answers[order][axis]
+            assert vector == answer
+    
+    # extrinsic
+    for order in data.orders:
+        reversed_order = reversed_rotation_order(order)
+        for axis in data.axes:
+            answer = rotation_offset_from_answers[reversed_order][axis]
+            vector = rotate_from(order, data.angs90, data.vectors[axis],
+                                 intrinsic=False, offset=data.offset)
+            assert vector == answer
+
+
+def test_rotation_rotate_matrix(data: TestData) -> None:
+    for order in data.orders:
+        matrix = compute_rotation_matrix(order, data.angs90)
+        for axis in data.axes:
+            vector = rotate_to(matrix, data.vectors[axis])
+            answer = rotation_euler_to_answers[order][axis]
+            assert vector == answer
+
+    for order in data.orders:
+        matrix = compute_rotation_matrix(order, data.angs90)
+        for axis in data.axes:
+            vector = rotate_from(matrix, data.vectors[axis])
+            answer = rotation_euler_from_answers[order][axis]
+            assert vector == answer
+
+    # offsets
+    for order in data.orders:
+        matrix = compute_rotation_matrix(order, data.angs90)
+        for axis in data.axes:
+            vector = rotate_to(matrix, data.vectors[axis], offset=data.offset)
+            answer = rotation_offset_to_answers[order][axis]
+            assert vector == answer
+
+    for order in data.orders:
+        matrix = compute_rotation_matrix(order, data.angs90)
+        for axis in data.axes:
+            vector = rotate_from(matrix, data.vectors[axis], offset=data.offset)
+            answer = rotation_offset_from_answers[order][axis]
+            assert vector == answer
+
+    # todo: handle proper error exception types
+
+
+def test_rotation_rotate_between( data: TestData) -> None:
+    for order_from in data.orders:
+        for order_to in data.orders:
+            answer = rotate_from_to_answers[order_from][order_to]
+            for i, test_vector in enumerate(data.vectors):
+                vector = rotate_between(order_from, data.angs90, order_to,
+                                        data.angs90, test_vector)
+                assert vector == answer[i]
+
+    # order_from being extrinsic
+    for order_from in data.orders:
+        reversed_order_from = reversed_rotation_order(order_from)
+        for order_to in data.orders:
+            answer = rotate_from_to_answers[reversed_order_from][order_to]
+            for i, test_vector in enumerate(data.vectors):
+                vector = rotate_between(order_from, data.angs90, order_to,
+                                        data.angs90, test_vector,
+                                        intrinsic_from=False)
+                assert vector == answer[i]
+
+    # order_to being extrinsic
+    for order_to in data.orders:
+        reversed_order_to = reversed_rotation_order(order_to)
+        for order_from in data.orders:
+            answer = rotate_from_to_answers[order_from][reversed_order_to]
+            for i, test_vector in enumerate(data.vectors):
+                vector = rotate_between(order_from, data.angs90, order_to,
+                                        data.angs90, test_vector,
+                                        intrinsic_to=False)
+                assert vector == answer[i]
+    
+    # both extrinsic
+    for order_from in data.orders:
+        reversed_order_from = reversed_rotation_order(order_from)
+        for order_to in data.orders:
+            reversed_order_to = reversed_rotation_order(order_to)
+            answer = rotate_from_to_answers[reversed_order_from][reversed_order_to]
+            for i, test_vector in enumerate(data.vectors):
+                vector = rotate_between(order_from, data.angs90, order_to,
+                                        data.angs90, test_vector,
+                                        intrinsic_from=False,
+                                        intrinsic_to=False)
+                assert vector == answer[i]
+
+    # offset
+    # This would require an astronomical amount of time to visual inspect what
+    # the answers should be for all combinations of intrinsic and offset frames.
+    # We'll only generate data for going between two frames that do not produce a
+    # symetric matrix for now and hope that's enough (it should be).
+
+    # from XZY to ZYX
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_to"][axis]
+        vector = rotate_between(XZY, data.angs90, ZYX, data.angs90,
+                                test_vector, offset_to=data.offset)
+        assert vector == answer
+
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_from"][axis]
+        vector = rotate_between(XZY, data.angs90, ZYX, data.angs90,
+                                test_vector, offset_from=data.offset)
+        assert vector == answer
+    
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_both"][axis]
+        vector = rotate_between(XZY, data.angs90, ZYX, data.angs90,
+                                test_vector, offset_from=data.offset,
+                                offset_to=data.offset)
+        assert vector == answer
+
+    # extrinsic from (note we must use 'YZX' as from order)
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_to"][axis]
+        vector = rotate_between(YZX, data.angs90, ZYX, data.angs90,
+                                test_vector, intrinsic_from=False,
+                                offset_to=data.offset)
+        assert vector == answer
+
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_from"][axis]
+        vector = rotate_between(YZX, data.angs90, ZYX, data.angs90,
+                                test_vector, intrinsic_from=False,
+                                offset_from=data.offset)
+        assert vector == answer
+    
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_both"][axis]
+        vector = rotate_between(YZX, data.angs90, ZYX, data.angs90,
+                                test_vector, intrinsic_from=False,
+                                offset_from=data.offset,
+                                offset_to=data.offset)
+        assert vector == answer
+
+    # extrinsic to (note we must use 'XYZ' as to order)
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_to"][axis]
+        vector = rotate_between(XZY, data.angs90, XYZ, data.angs90,
+                                test_vector, intrinsic_to=False,
+                                offset_to=data.offset)
+        assert vector == answer
+
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_from"][axis]
+        vector = rotate_between(XZY, data.angs90, XYZ, data.angs90,
+                                test_vector, intrinsic_to=False,
+                                offset_from=data.offset)
+        assert vector == answer
+    
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_both"][axis]
+        vector = rotate_between(XZY, data.angs90, XYZ, data.angs90,
+                                test_vector, intrinsic_to=False,
+                                offset_from=data.offset,
+                                offset_to=data.offset)
+        assert vector == answer
+    
+    # both extrinsic (note we use YZX -> XYZ)
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_to"][axis]
+        vector = rotate_between(YZX, data.angs90, XYZ, data.angs90,
+                                test_vector, intrinsic_from=False,
+                                intrinsic_to=False,
+                                offset_to=data.offset)
+        assert vector == answer
+
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_from"][axis]
+        vector = rotate_between(YZX, data.angs90, XYZ, data.angs90,
+                                test_vector, intrinsic_from=False,
+                                intrinsic_to=False,
+                                offset_from=data.offset)
+        assert vector == answer
+    
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_both"][axis]
+        vector = rotate_between(YZX, data.angs90, XYZ, data.angs90,
+                                test_vector, intrinsic_from=False,
+                                intrinsic_to=False, offset_from=data.offset,
+                                offset_to=data.offset)
+        assert vector == answer
+
+
+def test_rotate_to_errors(data: TestData) -> None:
+    v = data.vectors[0]
+
+    # invalid axis values
+    with pytest.raises(ValueError):
+        rotate_to(1.5, 3, v)
+    
+    with pytest.raises(ValueError):
+        rotate_to(1.5, -1, v)
+
+    # signature: (m: Matrix, v: Vector)
+    m = Matrix()
+    with pytest.raises(TypeError):
+        rotate_to(m, 5)
+
+    with pytest.raises(TypeError):
+        rotate_to('a', v)
+
+    with pytest.raises(TypeError):
+        rotate_to(m)
+
+    with pytest.raises(TypeError):
+        rotate_to(m, v, True)
+
+    with pytest.raises(TypeError):
+        rotate_to(m, v, offset='a')
+
+    # first arg being float
+    with pytest.raises(TypeError):
+        rotate_to(1.5, [], v)
+
+    with pytest.raises(TypeError):
+        rotate_to(1.5, v, 'a')
+
+    with pytest.raises(TypeError):
+        rotate_to('a', X_AXIS, v)
+    
+    with pytest.raises(TypeError):
+        rotate_to(1.5, X_AXIS, v, offset=[])
+
+    # first arg being RotationOrder
+    a = EulerAngles()
+    with pytest.raises(TypeError):
+        rotate_to(XYZ, a, True)
+    
+    with pytest.raises(TypeError):
+        rotate_to(XYZ, [], v)
+
+    with pytest.raises(TypeError):
+        rotate_to('a', a, v)
+
+    with pytest.raises(TypeError):
+        rotate_to(XYZ, a, v, offset=False)
+
+    with pytest.raises(TypeError):
+        rotate_to(XYZ, a)
+    
+    with pytest.raises(TypeError):
+        rotate_to(XYZ, a, v, 5)
+
+
+def test_rotate_from_errors(data: TestData) -> None:
+    v = data.vectors[0]
+
+    # invalid axis values
+    with pytest.raises(ValueError):
+        rotate_from(1.5, 3, v)
+    
+    with pytest.raises(ValueError):
+        rotate_from(1.5, -1, v)
+
+    # signature: (m: Matrix, v: Vector)
+    m = Matrix()
+    with pytest.raises(TypeError):
+        rotate_from(m, 5)
+
+    with pytest.raises(TypeError):
+        rotate_from('a', v)
+
+    with pytest.raises(TypeError):
+        rotate_from(m)
+
+    with pytest.raises(TypeError):
+        rotate_from(m, v, True)
+
+    with pytest.raises(TypeError):
+        rotate_from(m, v, offset='a')
+
+    # first arg being float
+    with pytest.raises(TypeError):
+        rotate_from(1.5, [], v)
+
+    with pytest.raises(TypeError):
+        rotate_from(1.5, v, 'a')
+
+    with pytest.raises(TypeError):
+        rotate_from('a', X_AXIS, v)
+    
+    with pytest.raises(TypeError):
+        rotate_from(1.5, X_AXIS, v, offset=[])
+
+    # first arg being RotationOrder
+    a = EulerAngles()
+    with pytest.raises(TypeError):
+        rotate_from(XYZ, a, True)
+    
+    with pytest.raises(TypeError):
+        rotate_from(XYZ, [], v)
+
+    with pytest.raises(TypeError):
+        rotate_from('a', a, v)
+
+    with pytest.raises(TypeError):
+        rotate_from(XYZ, a, v, offset=False)
+
+    with pytest.raises(TypeError):
+        rotate_from(XYZ, a)
+    
+    with pytest.raises(TypeError):
+        rotate_from(XYZ, a, v, 5)
+
+
+def test_rotate_between_errors(data: TestData) -> None:
+    a = EulerAngles()
+    with pytest.raises(TypeError):
+        rotate_between('a', a, XYZ, a)
+
+    with pytest.raises(TypeError):
+        rotate_between(XYZ, 5, XYZ, a)
+
+    with pytest.raises(TypeError):
+        rotate_between(XYZ, a, str, a)
+
+    with pytest.raises(TypeError):
+        rotate_between(ZYZ, a, XYZ, data.vectors[0])
+
+    with pytest.raises(TypeError):
+        rotate_between(XYZ, a, ZYZ, a, offset_from=5)
+
+    with pytest.raises(TypeError):
+        rotate_between(XYZ, a, ZYZ, a, offset_to='a')
