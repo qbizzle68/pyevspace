@@ -902,7 +902,41 @@ Vector_reduce(EVSpace_Vector* self, PyObject* Py_UNUSED)
 }
 
 static PyObject*
-Vector_compare_to(EVSpace_Vector* self, PyObject* args)
+Vector_compare_to_tol(EVSpace_Vector* self, PyObject* args)
+{
+    if (!EVSpaceVector_Check(self)) {
+        PyErr_SetString(PyExc_TypeError, "calling object must be Vector type");
+        return NULL;
+    }
+
+    double abs_tol = evspace::DEFAULT_ABS_TOL, rel_tol = evspace::DEFAULT_REL_TOL;
+    EVSpace_Vector* rhs;
+    if (!PyArg_ParseTuple(args, "O!|dd:compare_to_tol", &EVSpace_VectorType,
+                          &rhs, &rel_tol, &abs_tol)) {
+        return NULL;
+    }
+
+    if (rel_tol < 0) {
+        PyErr_SetString(PyExc_ValueError, "rel_tol must be non-negative");
+        return NULL;
+    }
+    if (abs_tol < 0) {
+        PyErr_SetString(PyExc_ValueError, "abs_tol must be non-negative");
+        return NULL;
+    }
+
+    if (EVSpaceVector_VECTOR(self).compare_to(EVSpaceVector_VECTOR(rhs),
+                                              rel_tol, abs_tol)) {
+        Py_RETURN_TRUE;
+    }
+    else {
+        Py_RETURN_FALSE;
+    }
+
+}
+
+static PyObject*
+Vector_compare_to_ulp(EVSpace_Vector* self, PyObject* args)
 {
     if (!EVSpaceVector_Check(self)) {
         PyErr_SetString(PyExc_TypeError, "calling object must be Vector type");
@@ -911,7 +945,7 @@ Vector_compare_to(EVSpace_Vector* self, PyObject* args)
     
     int max_ulps;
     EVSpace_Vector* rhs;
-    if (!PyArg_ParseTuple(args, "O!i:compare_to", &EVSpace_VectorType, &rhs, &max_ulps)) {
+    if (!PyArg_ParseTuple(args, "O!i:compare_to_ulp", &EVSpace_VectorType, &rhs, &max_ulps)) {
         return NULL;
     }
 
@@ -1136,11 +1170,17 @@ PyDoc_STRVAR(vector_reduce_doc, "__reduce__() -> (cls, (x, y, z))\n\
 \n\
 Allows pickling of the pyevspace.Vector type.");
 
-PyDoc_STRVAR(vector_compare_to_doc, "compare_to(rhs: Vector, max_ulps: int) -> bool\n\
+PyDoc_STRVAR(vector_compare_to_ulp_doc, "compare_to_ulp(rhs: Vector, max_ulps: int) -> bool\n\
 \n\
 Compares self to rhs using component wise ULP based mechanics. self is\n\
 considered equal to rhs if, for each respsective component, the difference\n\
 between binary representations is less than or equal to max_ulps ULPs.");
+
+PyDoc_STRVAR(vector_compare_to_tol_doc, "compare_to_tol(rhs: Vector, rel_tol: float = 1e-9, abs_tol: float = 1e-15) -> bool\n\
+\n\
+Compare self to rhs using absolute and relative tolerances. self is \n\
+considered equal to rhs if, for each respective component, the difference is\n\
+within abs_tol + rel_tol * max(abs(v_i), abs(u_i)).");
 
 static PyMethodDef vector_methods[] = {
 
@@ -1154,7 +1194,9 @@ static PyMethodDef vector_methods[] = {
 
     {"__reduce__", (PyCFunction)Vector_reduce, METH_NOARGS, vector_reduce_doc},
 
-    {"compare_to", (PyCFunction)Vector_compare_to, METH_VARARGS, vector_compare_to_doc},
+    {"compare_to_tol", (PyCFunction)Vector_compare_to_tol, METH_VARARGS, vector_compare_to_tol_doc},
+
+    {"compare_to_ulp", (PyCFunction)Vector_compare_to_ulp, METH_VARARGS, vector_compare_to_ulp_doc},
 
     {NULL}
 };
@@ -2191,7 +2233,7 @@ Matrix_inverse(EVSpace_Matrix* self)
 }
 
 static PyObject*
-Matrix_compare_to(EVSpace_Matrix* self, PyObject* args)
+Matrix_compare_to_ulp(EVSpace_Matrix* self, PyObject* args)
 {
     if (!EVSpaceMatrix_Check(self)) {
         PyErr_SetString(PyExc_TypeError, "calling object must be a Matrix type");
@@ -2200,7 +2242,7 @@ Matrix_compare_to(EVSpace_Matrix* self, PyObject* args)
 
     EVSpace_Matrix* rhs;
     int max_ulps;
-    if (!PyArg_ParseTuple(args, "O!i:compare_to", &EVSpace_MatrixType, &rhs, &max_ulps)) {
+    if (!PyArg_ParseTuple(args, "O!i:compare_to_ulp", &EVSpace_MatrixType, &rhs, &max_ulps)) {
         return NULL;
     }
 
@@ -2209,7 +2251,41 @@ Matrix_compare_to(EVSpace_Matrix* self, PyObject* args)
         return NULL;
     }
 
-    if (EVSpaceMatrix_MATRIX(rhs).compare_to(EVSpaceMatrix_MATRIX(rhs), max_ulps)) {
+    if (EVSpaceMatrix_MATRIX(self).compare_to(EVSpaceMatrix_MATRIX(rhs), max_ulps)) {
+        Py_RETURN_TRUE;
+    }
+    else {
+        Py_RETURN_FALSE;
+    }
+}
+
+static PyObject*
+Matrix_compare_to_tol(EVSpace_Matrix* self, PyObject* args)
+{
+    EVSpace_Matrix* rhs;
+    double rel_tol = evspace::DEFAULT_REL_TOL, abs_tol = evspace::DEFAULT_ABS_TOL;
+
+    if (!EVSpaceMatrix_Check(self)) {
+        PyErr_SetString(PyExc_TypeError, "calling object must be a Matrix type");
+        return NULL;
+    }
+
+    if (!PyArg_ParseTuple(args, "O!|dd:compare_to_tol", &EVSpace_MatrixType, &rhs,
+                          &rel_tol, &abs_tol)) {
+        return NULL;
+    }
+
+    if (rel_tol < 0) {
+        PyErr_SetString(PyExc_ValueError, "rel_tol must be non-negative");
+        return NULL;
+    }
+    if (abs_tol < 0) {
+        PyErr_SetString(PyExc_ValueError, "abs_tol must be non-negative");
+        return NULL;
+    }
+
+    if (EVSpaceMatrix_MATRIX(self).compare_to(EVSpaceMatrix_MATRIX(rhs),
+                                              rel_tol, abs_tol)) {
         Py_RETURN_TRUE;
     }
     else {
@@ -2251,11 +2327,17 @@ PyDoc_STRVAR(matrix_inverse_doc, "pyevspace.Matrix.inverse() -> pyevspace.Matrix
 \n\
 Computes the inverse of a matrix");
 
-PyDoc_STRVAR(matrix_compare_to_doc, "compare_to(rhs: Matrix, max_ulps: int) -> bool\n\
+PyDoc_STRVAR(matrix_compare_to_ulp_doc, "compare_to_ulp(rhs: Matrix, max_ulps: int) -> bool\n\
 \n\
 Compares self to rhs using component wise ULP based mechanics. self is\n\
 considered equal to rhs if, for each respsective component, the difference\n\
 between binary representations is less than or equal to max_ulps ULPs.");
+
+PyDoc_STRVAR(matrix_compare_to_tol_doc, "compare_to_tol(rhs: Matrix, rel_tol: float = 1e-9, abs_tol: float = 1e-15) -> bool\n\
+\n\
+Compares self to rhs using relative and absolute tolerances. self is\n\
+considered equal to rhs if, for each respective component, the difference\n\
+is within abs_tol + rel_tol * max(abs(m_ij), abs(m_ij)).");
 
 static PyMethodDef matrix_methods[] = {
 
@@ -2269,7 +2351,9 @@ static PyMethodDef matrix_methods[] = {
 
     {"inverse", (PyCFunction)Matrix_inverse, METH_NOARGS, matrix_inverse_doc},
 
-    {"compare_to", (PyCFunction)Matrix_compare_to, METH_VARARGS, matrix_compare_to_doc},
+    {"compare_to_ulp", (PyCFunction)Matrix_compare_to_ulp, METH_VARARGS, matrix_compare_to_ulp_doc},
+
+    {"compare_to_tol", (PyCFunction)Matrix_compare_to_tol, METH_VARARGS, matrix_compare_to_tol_doc},
 
     {NULL}
 };

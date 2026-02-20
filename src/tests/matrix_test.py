@@ -344,13 +344,14 @@ def test_matrix_compare(matrix_values: MatrixValues) -> None:
     m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
     assert m == matrix_values.m123
     assert m != matrix_values.m147
-    assert m.compare_to(matrix_values.m123, 10)
+    assert m.compare_to_ulp(matrix_values.m123, 10)
+    assert m.compare_to_ulp(Matrix(), 10) is False
 
     m = Matrix((2, 4, 6), (8, 10, 12), (14, 16, 18))
     m /= 2.0
     assert m == matrix_values.m123
     assert m != matrix_values.m147
-    assert m.compare_to(matrix_values.m123, 10)
+    assert m.compare_to_ulp(matrix_values.m123, 10)
 
     # Vector extensively tests the advanced component comparisons
     # only need to check a few here to ensure matrix also uses
@@ -364,9 +365,11 @@ def test_matrix_compare(matrix_values: MatrixValues) -> None:
 
     rhs[0, 0] = advance_ulps(1.0, 1, 0.0)
     assert lhs == rhs
+    assert lhs.compare_to_ulp(rhs, 1)
 
     rhs[0, 0] = math.inf
     assert lhs != rhs
+    assert lhs.compare_to_ulp(rhs, 11) is False
 
     lhs[0, 0] = math.inf
     assert lhs == rhs
@@ -377,6 +380,14 @@ def test_matrix_compare(matrix_values: MatrixValues) -> None:
     lhs[0, 0] = 1.0
     rhs[0, 0] = math.nan
     assert lhs != rhs
+
+    rhs[0, 0] = math.sin(math.pi / 4.0)
+    lhs[0, 0] = math.cos(math.pi / 4.0)
+    lhs.compare_to_tol(rhs)
+
+    lhs[0, 0] = math.sin(math.pi / 6.0)
+    rhs[0, 0] = 0.5
+    lhs.compare_to_tol(rhs)
 
 
 def test_matrix_view(matrix_values: MatrixValues) -> None:

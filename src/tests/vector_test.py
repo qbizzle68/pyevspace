@@ -1,6 +1,6 @@
 from copy import copy
 import math
-from math import sqrt, pi
+from math import sqrt, pi, sin, cos
 import pickle
 
 import pytest
@@ -353,12 +353,10 @@ def test_vector_sequence(vector_values: VectorValues) -> None:
         vector_values.v111[0] = 'a'
 
 
-def test_vector_compare(vector_values: VectorValues) -> None:
+def test_vector_compare_ulp(vector_values: VectorValues) -> None:
     # trivial tests
     v = Vector(1, 2, 3)
-    assert v == vector_values.v123
-    assert v != vector_values.v111
-    assert v.compare_to(vector_values.v123, 10)
+    assert v.compare_to_ulp(vector_values.v123, 10)
 
     # advanced tests
     lhs = v
@@ -368,82 +366,250 @@ def test_vector_compare(vector_values: VectorValues) -> None:
     lhs[0] = +0.0
     rhs[0] = -0.0
     assert lhs == rhs
-    assert lhs.compare_to(rhs, 10)
+    assert lhs.compare_to_ulp(rhs, 10)
 
     lhs[0] = 0.0
     rhs[0] = advance_ulps(0.0, 1, 1.0)
-    assert lhs == rhs
-    assert lhs.compare_to(rhs, 10)
+    assert lhs.compare_to_ulp(rhs, 1)
 
     rhs[0] = advance_ulps(0.0, 1, -1.0)
-    assert lhs == rhs
-    assert lhs.compare_to(rhs, 10)
+    assert lhs.compare_to_ulp(rhs, 2)
 
     rhs[0] = advance_ulps(0.0, 20, 1.0)
-    assert lhs.compare_to(rhs, 20)
-    assert lhs.compare_to(rhs, 19) is False
+    assert lhs.compare_to_ulp(rhs, 20)
+    assert lhs.compare_to_ulp(rhs, 19) is False
 
     # Around 1.0
     lhs[0] = rhs[0] = 1.0
     lhs[1] = 1.0
     rhs[1] = advance_ulps(1.0, 1, 2.0)
-    assert lhs == rhs
-    assert lhs.compare_to(rhs, 2)
+    assert lhs.compare_to_ulp(rhs, 1)
 
     rhs[1] = advance_ulps(1.0, 1, 0.0)
-    assert lhs == rhs
-    assert lhs.compare_to(rhs, 2)
+    assert lhs.compare_to_ulp(rhs, 1)
 
     rhs[1] = advance_ulps(1.0, 10, 2.0)
-    assert lhs == rhs
-    assert lhs.compare_to(rhs, 10)
+    assert lhs.compare_to_ulp(rhs, 10)
 
     rhs[1] = advance_ulps(1.0, 11, 2.0)
-    assert lhs != rhs
-    assert lhs.compare_to(rhs, 11)
+    assert lhs.compare_to_ulp(rhs, 11)
 
     lhs[1] = -1.0
     rhs[1] = advance_ulps(-1.0, 10, 0.0)
-    assert lhs == rhs
-    assert lhs.compare_to(rhs, 10)
+    assert lhs.compare_to_ulp(rhs, 10)
 
     rhs[1] = advance_ulps(-1.0, 11, 0.0)
-    assert lhs != rhs
-    assert lhs.compare_to(rhs, 11)
+    assert lhs.compare_to_ulp(rhs, 11)
 
     # medium magnitude
     lhs[1] = rhs[1] = 2.0
     lhs[2] = 1e6
     rhs[2] = advance_ulps(1e6, 10, math.inf)
-    assert lhs == rhs
-    assert lhs.compare_to(rhs, 9) is False
-    assert lhs.compare_to(rhs, 11)
-
-    rhs[2] = advance_ulps(1e6, 11, +math.inf)
-    assert lhs != rhs
-
-    rhs[2] = 1e6 + 1
-    assert lhs != rhs
+    assert lhs.compare_to_ulp(rhs, 9) is False
+    assert lhs.compare_to_ulp(rhs, 10)
 
     # large magnitude
     lhs[2] = 1e200
     rhs[2] = advance_ulps(1e200, 10, math.inf)
-    assert lhs == rhs
-
-    rhs[2] = advance_ulps(1e200, 11, math.inf)
-    assert lhs != rhs
-
+    assert lhs.compare_to_ulp(rhs, 10)
+    assert lhs.compare_to_ulp(rhs, 9) is False
+    
     # infinities and NaNs
     lhs[2] = math.inf
     rhs[2] = math.inf
-    assert lhs == rhs
+    assert lhs.compare_to_ulp(rhs, 1)
 
     rhs[2] = -math.inf
-    assert lhs != rhs
+    assert lhs.compare_to_ulp(rhs, 9999) is False
 
     lhs[2] = 3.0
     rhs[2] = math.nan
+    assert lhs.compare_to_ulp(rhs, 9999) is False
+
+    # exceptions
+    with pytest.raises(TypeError):
+        lhs.compare_to_ulp(rhs, 1.5)
+
+    with pytest.raises(ValueError):
+        lhs.compare_to_ulp(rhs, -1)
+
+
+def test_vector_compare(vector_values: VectorValues) -> None:
+    lhs = Vector(1, 2, 3)
+    rhs = Vector(1, 2, 3)
+
+    lhs == rhs
+    assert lhs.compare_to_tol(rhs)
+
+    lhs[0] = 0.0
+    rhs[0] = 1e-15
+    assert lhs == rhs
+    assert lhs.compare_to_tol(rhs)
+
+    lhs[0] = 1e-16
+    rhs[0] = 2e-16
+    assert lhs == rhs
+
+    lhs[0] = -1e-16
+    rhs[0] = 1e-16
+    assert lhs == rhs
+
+    lhs[0] = 0.0
+    rhs[0] = 1e-14
     assert lhs != rhs
+    assert lhs.compare_to_tol(rhs, 1e-9, 1e-14)
+
+    lhs[0] = rhs[0] = 1.0
+    lhs[1] = 1e10
+    rhs[1] = 1e10 + 1.0     # relative error ~1e-10
+    assert lhs == rhs
+
+    lhs[1] = 1e20
+    rhs[1] = 1e20 * 1.00000000001    # relative error ~1e-10
+    assert lhs == rhs
+    assert lhs.compare_to_tol(rhs, 1e-10, 1e-15)
+
+    lhs[1] = 1e10
+    rhs[1] = 1e10 + 100     # relative error ~1e-8
+    assert lhs != rhs
+    assert lhs.compare_to_tol(rhs, 1e-8, 1e-15)
+    
+    lhs[1] = 1e15
+    rhs[1] = 1e15 * 1.000001    # relative error ~1e-5
+    assert (lhs == rhs) is False
+    assert lhs.compare_to_tol(rhs, 1e-5, 1e-15)
+
+    # different magnitude scales (testing the sum formulation)
+    lhs[1] = rhs[1] = 2.0
+    lhs[2] = 1.0
+    rhs[2] = 1.0 + 1e-10
+    assert lhs == rhs
+
+    lhs[2] = 1e-5
+    rhs[2] = 1e-5 + 1e-15
+    assert lhs == rhs
+
+    lhs[2] = 1.0
+    rhs[2] = 2.0
+    assert lhs != rhs
+
+    lhs[2] = 1e6
+    rhs[2] = 2e6
+    assert lhs != rhs
+
+    # sign handling
+    lhs[2] = rhs[2] = 3.0
+    lhs[0] = 1.0
+    rhs[0] = -1.0
+    assert lhs != rhs
+
+    lhs[0] = 1e-10
+    rhs[0] = -1e-10
+    assert lhs != rhs
+
+    lhs[0] = 0.0
+    rhs[0] = -0.0
+    assert lhs == rhs
+
+    lhs[0] = -1.0
+    rhs[0] = -1.0 - 1e-10
+    assert lhs == rhs
+
+    lhs[0] = -1e10
+    rhs[0] = -1e10 - 1.0
+    assert lhs == rhs
+
+    # transition region (where abs and rel solerances are similar)
+    # for abs_tol = 1e-15 and rel_tol = 1e-9 this is around 1e-6
+    transition = 1e-6
+    lhs[0] = transition
+    rhs[0] = transition + 1e-15
+    assert lhs == rhs
+
+    rhs[0] = transition + 1e-16
+    assert lhs == rhs
+
+    lhs[0] = transition
+    rhs[0] = transition + 1e-10
+    assert lhs.compare_to_tol(rhs, 1e-5, 1e-10)
+
+    # scientific computing cases
+    lhs[0] = sin(pi / 4.0)
+    rhs[0] = cos(pi / 4.0)
+    assert lhs == rhs
+
+    lhs[0] = sin(pi / 6.0)
+    rhs[0] = 0.5
+    assert lhs == rhs
+
+    lhs[0] = (sin(pi / 3.0) ** 2) + (cos(pi / 3.0) ** 2)
+    rhs[0] = 1.0
+    assert lhs == rhs
+
+    # special values
+    lhs[0] = math.inf
+    rhs[0] = math.inf
+    assert lhs == rhs
+
+    rhs[0] = -math.inf
+    assert lhs != rhs
+
+    rhs[0] = 1e308
+    assert lhs != rhs
+
+    lhs[0] = 1.0
+    rhs[0] = math.inf
+    assert lhs != rhs
+
+    lhs[0] = math.nan
+    rhs[0] = math.nan
+    assert lhs != rhs
+    assert lhs.compare_to_tol(rhs, 0.0, 0.0) is False
+
+    rhs[0] = 0.0
+    assert lhs != rhs
+
+    # boundary testing (just outside tolerance)
+    lhs[0] = 1.0
+    rhs[0] = 1.0 + 0.99e-9
+    assert lhs == rhs
+
+    rhs[0] = 1.0 + 1.01e-9
+    assert lhs != rhs
+
+    lhs[0] = 0.0
+    rhs[0] = 0.99e-15
+    assert lhs == rhs
+
+    rhs[0] = 1.01e-15
+    assert lhs != rhs
+    assert lhs.compare_to_tol(rhs, 1e-9, 9.99e-14)
+
+    # non-transitivity demonstration
+    # this behaves as expected, not an error. mostly for showing it
+    # does exist: might have a==b and b==c but not a==c
+    lhs[0] = 0.0
+    rhs[0] = 5e-16
+    assert lhs == rhs
+
+    lhs[0] = 1.01e-15
+    assert lhs == rhs
+
+    rhs[0] = 0.0
+    assert lhs != rhs
+
+    # exceptions
+    with pytest.raises(TypeError):
+        lhs.compare_to_tol(rhs, 'a', 0.1)
+
+    with pytest.raises(TypeError):
+        lhs.compare_to_tol(rhs, 0.1, [])
+
+    with pytest.raises(ValueError):
+        lhs.compare_to_tol(rhs, -0.1, 0.1)
+
+    with pytest.raises(ValueError):
+        lhs.compare_to_tol(rhs, 0.1, -0.1)
 
 
 def test_vector_buffer() -> None:
