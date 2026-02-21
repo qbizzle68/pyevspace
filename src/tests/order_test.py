@@ -3,12 +3,32 @@ import pickle
 
 import pytest
 
-from pyevspace import RotationOrder, XYZ, YZX, ZXZ
+from pyevspace import RotationOrder, XYZ, YZX, ZXZ, X_AXIS, Y_AXIS, Z_AXIS
 
 
 def test_order_new():
+    order = RotationOrder(0, 1, 2)
+    assert order.first == X_AXIS
+    assert order.second == Y_AXIS
+    assert order.third == Z_AXIS
+
     with pytest.raises(TypeError):
-        RotationOrder(0, 0, 0)
+        RotationOrder(1.1, 1, 2)
+
+    with pytest.raises(TypeError):
+        RotationOrder(0, 'a', 2)
+        
+    with pytest.raises(TypeError):
+        RotationOrder(0, 1, [])
+    
+    with pytest.raises(ValueError):
+        RotationOrder(-1, 0, 1)
+    
+    with pytest.raises(ValueError):
+        RotationOrder(0, 3, 1)
+    
+    with pytest.raises(ValueError):
+        RotationOrder(1, 0, 4)
 
 
 def test_order_str():
@@ -49,15 +69,15 @@ def test_order_get_set():
 
 
 # todo: should RotationOrder be able to be created for persistance?
-# def test_order_persistance(subtests):
-#     buffer = pickle.dumps(XYZ)
-#     o = pickle.loads(buffer)
+def test_order_persistance(subtests):
+    buffer = pickle.dumps(XYZ)
+    o = pickle.loads(buffer)
 
-#     for i in range(3):
-#         with subtests.test(index=i):
-#             o[i] == i
+    for i in range(3):
+        with subtests.test(index=i):
+            o[i] == i
 
-#     o = copy(YZX)
-#     assert o[0] == 1
-#     assert o[1] == 2
-#     assert o[2] == 0
+    o = copy(YZX)
+    assert o[0] == 1
+    assert o[1] == 2
+    assert o[2] == 0

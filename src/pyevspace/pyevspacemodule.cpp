@@ -2567,6 +2567,49 @@ EVSpaceOrder_New(evspace::AxisDirection first, evspace::AxisDirection second,
     return _EVSpaceOrder_New(first, second, third, &EVSpace_OrderType);
 }
 
+static PyObject*
+Order_new(PyTypeObject* type, PyObject* Py_UNUSED(0), PyObject* Py_UNUSED(1))
+{
+    return type->tp_alloc(type, 0);
+}
+
+static int
+Order_init(EVSpace_Order* self, PyObject* args, PyObject* Py_UNUSED)
+{
+    int first, second, third;
+    
+    if (!PyArg_ParseTuple(args, "iii", &first, &second, &third)) {
+        return -1;
+    }
+
+    if (first < 0 || first > 2) {
+        PyErr_Format(PyExc_ValueError, "first axis must be in [0-2], got %d", first);
+        return -1;
+    }
+
+    if (second < 0 || second > 2) {
+        PyErr_Format(PyExc_ValueError, "second axis must be in [0-2], got %d", second);
+        return -1;
+    }
+
+    if (third < 0 || third > 2) {
+        PyErr_Format(PyExc_ValueError, "third axis must be in [0-2], got %d", third);
+        return -1;
+    }
+
+    self->first = static_cast<evspace::AxisDirection>(first);
+    self->second = static_cast<evspace::AxisDirection>(second);
+    self->third = static_cast<evspace::AxisDirection>(third);
+
+    return 0;
+}
+
+static void
+Order_dealloc(EVSpace_Order* self)
+{
+    Py_TYPE(self)->tp_free(EVS_PyObject_Cast(self));
+}
+
 static inline char*
 _EVSpaceAxis_GetName(evspace::AxisDirection direction, char* string)
 {
@@ -3894,17 +3937,20 @@ static int initialize_module(PyObject* module)
     EVSpace_OrderType.tp_name           = "pyevspace.RotationOrder";
     EVSpace_OrderType.tp_basicsize      = sizeof(EVSpace_Order);
     EVSpace_OrderType.tp_itemsize       = 0;
+    EVSpace_OrderType.tp_dealloc        = (destructor)Order_dealloc;
     EVSpace_OrderType.tp_repr           = (reprfunc)Order_repr;
     EVSpace_OrderType.tp_as_sequence    = &order_as_sequence;
     EVSpace_OrderType.tp_str            = (reprfunc)Order_str;
 #if PY_VERSION_HEX >= 0x030a0000
-    EVSpace_OrderType.tp_flags          = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE | Py_TPFLAGS_DISALLOW_INSTANTIATION;
+    EVSpace_OrderType.tp_flags          = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE;
 #else
-    EVSpace_OrderType.tp_flags          = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_DISALLOW_INSTANTIATION;
+    EVSpace_OrderType.tp_flags          = Py_TPFLAGS_DEFAULT;
 #endif
     EVSpace_OrderType.tp_doc            = order_doc;
     EVSpace_OrderType.tp_methods        = order_methods;
     EVSpace_OrderType.tp_members        = order_members;
+    EVSpace_OrderType.tp_init           = (initproc)Order_init;
+    EVSpace_OrderType.tp_new            = (newfunc)Order_new;
 
     int count = sizeof(EVSpace_Types) / sizeof(EVSpace_Types[0]);
     for (int i = 0; i < count; i++)
