@@ -68,6 +68,21 @@ def test_order_get_set():
         XYZ[0] = 1
 
 
+def test_order_compare():
+    new_XYZ = RotationOrder(X_AXIS, Y_AXIS, Z_AXIS)
+
+    assert new_XYZ == XYZ
+    assert new_XYZ != ZXZ
+    assert XYZ == XYZ
+    assert XYZ != ZXZ
+
+    assert hash(new_XYZ) == hash(XYZ)
+    assert hash(XYZ) != hash(ZXZ)
+
+    d = {XYZ: 'foo'}
+    assert d.get(new_XYZ) == 'foo'
+
+
 # todo: should RotationOrder be able to be created for persistance?
 def test_order_persistance(subtests):
     buffer = pickle.dumps(XYZ)

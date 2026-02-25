@@ -2686,6 +2686,60 @@ Order_get_item(EVSpace_Order* self, Py_ssize_t index)
 }
 
 static PyObject*
+Order_richcompare(EVSpace_Order* self, PyObject* other, int op)
+{
+    EVSpace_Order* rhs;
+    bool is_equal;
+
+    if (EVSpaceOrder_Check(other))
+    {
+        rhs = reinterpret_cast<EVSpace_Order*>(other);
+        is_equal = (self->first == rhs->first &&
+                    self->second == rhs->second &&
+                    self->third == rhs->third);
+
+        if (op == Py_EQ)
+        {
+            if (is_equal) {
+                Py_RETURN_TRUE;
+            }
+            else {
+                Py_RETURN_FALSE;
+            }
+        }
+        else if (op == Py_NE)
+        {
+            if (!is_equal) {
+                Py_RETURN_TRUE;
+            }
+            else {
+                Py_RETURN_FALSE;
+            }
+        }
+    }
+
+    Py_RETURN_NOTIMPLEMENTED;
+}
+
+static Py_hash_t
+Order_hash(EVSpace_Order* self)
+{
+    PyObject* t = Py_BuildValue(
+        "(iii)",
+        static_cast<int>(self->first),
+        static_cast<int>(self->second),
+        static_cast<int>(self->third)
+    );
+    if (!t) {
+        return -1;
+    }
+
+    Py_hash_t hash = PyObject_Hash(t);
+    Py_DECREF(t);
+    return hash;
+}
+
+static PyObject*
 Order_reduce(const EVSpace_Order* self, PyObject* Py_UNUSED)
 {
     return Py_BuildValue("(O(iii))", Py_TYPE(self), self->first, self->second, self->third);
@@ -3940,6 +3994,7 @@ static int initialize_module(PyObject* module)
     EVSpace_OrderType.tp_dealloc        = (destructor)Order_dealloc;
     EVSpace_OrderType.tp_repr           = (reprfunc)Order_repr;
     EVSpace_OrderType.tp_as_sequence    = &order_as_sequence;
+    EVSpace_OrderType.tp_hash           = (hashfunc)Order_hash;
     EVSpace_OrderType.tp_str            = (reprfunc)Order_str;
 #if PY_VERSION_HEX >= 0x030a0000
     EVSpace_OrderType.tp_flags          = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE;
@@ -3947,6 +4002,7 @@ static int initialize_module(PyObject* module)
     EVSpace_OrderType.tp_flags          = Py_TPFLAGS_DEFAULT;
 #endif
     EVSpace_OrderType.tp_doc            = order_doc;
+    EVSpace_OrderType.tp_richcompare    = (richcmpfunc)&Order_richcompare;
     EVSpace_OrderType.tp_methods        = order_methods;
     EVSpace_OrderType.tp_members        = order_members;
     EVSpace_OrderType.tp_init           = (initproc)Order_init;
