@@ -3,12 +3,12 @@
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+#if PY_VERSION_HEX < 0x030a0000
+#   include <structmember.h>
+#endif
 
 #include <evspace.hpp>
-#include <vector>
-
-#define PYEVSPACE_PI            3.14159265358979323846
-#define PYEVSPACE_PI_2          1.57079632679489661923
+#include <array>
 
 /* C++ types */
 
@@ -22,13 +22,9 @@ typedef struct {
     evspace::Matrix* matrix;
 } EVSpace_Matrix;
 
-// typedef struct EVSpace_ReferenceFrame;
-
 typedef struct {
     PyObject_HEAD
     evspace::EulerAngles* angles;
-    // Track reference frame for callback updating matrix on angle
-    std::vector<PyObject*> masters;
 } EVSpace_Angles;
 
 typedef struct {
@@ -40,9 +36,12 @@ typedef struct {
 
 typedef struct {
     PyObject_HEAD
-    EVSpace_Order* order;
-    EVSpace_Angles* angles;
-    EVSpace_Matrix* matrix;
+    evspace::AxisDirection first;
+    evspace::AxisDirection second;
+    evspace::AxisDirection third;
+    std::array<double, 3> angles;
+    evspace::Matrix* matrix;
+    // Will possible be Py_None so needs to be PyObject type
     PyObject* offset;
     bool intrinsic;
 } EVSpace_ReferenceFrame;
@@ -62,7 +61,6 @@ typedef struct {
 #define EVSpaceVector_Z(o)              EVSpaceVector_VECTOR(o)[2]
 
 #define EVSpaceMatrix_MATRIX(o)         (*((o)->matrix))
-// #define EVSpaceMatrix_COMP(o, r, c)     EVSpaceMatrix_MATRIX(o)(r, c)
 
 #define EVSpaceAngles_ANGLES(o)         (*((o)->angles))
 #define EVSpaceAngles_ALPHA(o)          EVSpaceAngles_ANGLES(o)[0]
@@ -75,9 +73,9 @@ typedef struct {
 #define EVSpaceOrder_Check(o)           PyObject_TypeCheck(o, &EVSpace_OrderType)
 #define EVSpaceReferenceFrame_Check(o)  PyObject_TypeCheck(o, &EVSpace_ReferenceFrameType)
 
-#define EVS_PyObject_Cast(o)        reinterpret_cast<PyObject*>(o)
-#define EVSpaceVector_Cast(o)   reinterpret_cast<EVSpace_Vector*>(o)
-#define EVSpaceMatrix_Cast(o)   reinterpret_cast<EVSpace_Matrix*>(o)
+#define EVS_PyObject_Cast(o)            reinterpret_cast<PyObject*>(o)
+#define EVSpaceVector_Cast(o)           reinterpret_cast<EVSpace_Vector*>(o)
+#define EVSpaceMatrix_Cast(o)           reinterpret_cast<EVSpace_Matrix*>(o)
 
 // todo: add capsule api 
 

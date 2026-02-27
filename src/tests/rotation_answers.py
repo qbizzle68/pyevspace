@@ -2,8 +2,28 @@ from math import sin, cos, pi
 from pyevspace import (
     Matrix, Vector, X_AXIS, Y_AXIS, Z_AXIS, XYZ, XZY, YXZ, YZX, ZXY, ZYX, XYX,
     XZX, YXY, YZY, ZXZ, ZYZ, EulerAngles, compute_rotation_matrix,
-    rotate_to, rotate_from,
+    rotate_to, RotationOrder,
 )
+
+
+# Reverse the axis orders of a rotation for extrinsinc comparisons on
+# intrinsic answers
+def reversed_rotation_order(order: RotationOrder) -> RotationOrder:
+    return RotationOrder(order.third, order.second, order.first)
+
+
+# Class which holds data referenced in rotation tests
+class TestData:
+    angles = [i * pi / 4 for i in range(8)]
+    angs90 = EulerAngles(pi / 2, pi / 2, pi / 2)
+    axes = [X_AXIS, Y_AXIS, Z_AXIS]
+    orders = [XYZ, XZY, YXZ, YZX, ZXY, ZYX, XYX, XZX, YXY, YZY, ZXZ, XYX]
+    vectors = [Vector.E1, Vector.E2, Vector.E3]
+    # vectors = [Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)]
+    vector_empty = Vector()
+    matrix_empty = Matrix()
+    offset = Vector(1, 1, 1)
+
 
 so = cos(pi / 4)  # cos and sin of forty-five
 
@@ -1263,7 +1283,6 @@ def make_dict2(orderFrom, offset):
         axisDict = {}
         for i in range(3):
             tmp = rotate_to(matFrom, _vectors[i])
-            # axisDict[i] = rotateOffsetTo(matTo, offset, tmp)
             axisDict[i] = rotate_to(matTo, tmp, offset=offset)
         rtnDict[orderTo] = axisDict
     return rtnDict

@@ -3,66 +3,15 @@ from math import pi
 import pytest
 
 from .rotation_answers import *
-import pyevspace
-from pyevspace import (X_AXIS, Y_AXIS, Z_AXIS, XYZ, XZY, YXZ, YZX, ZXY, ZYX,
-                       XYX, XZX, YZY, YXY, ZXZ, ZYZ, Vector, Matrix,
+from pyevspace import (X_AXIS, XYZ, XZY, YZX, ZYX, YZY, ZYZ, Matrix,
                        compute_rotation_matrix, rotate_from, rotate_to,
                        rotate_between, EulerAngles,
 )
 
 
-class TestData:
-    angles = [i * pi / 4 for i in range(8)]
-    angs90 = EulerAngles(pi / 2, pi / 2, pi / 2)
-    axes = [X_AXIS, Y_AXIS, Z_AXIS]
-    orders = [XYZ, XZY, YXZ, YZX, ZXY, ZYX, XYX, XZX, YXY, YZY, ZXZ, XYX]
-    vectors = [Vector.E1, Vector.E2, Vector.E3]
-    # vectors = [Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1)]
-    vector_empty = Vector()
-    matrix_empty = Matrix()
-    offset = Vector(1, 1, 1)
-
-
 @pytest.fixture
 def data() -> TestData:
     return TestData()
-
-
-def reversed_rotation_order(order):
-    # todo: fix RotationOrder logic so we can create the reverse easily/properly
-
-    axes = {0: 'X', 1: 'Y', 2: 'Z'}
-    new_first = axes[order.third]
-    new_second = axes[order.second]
-    new_third = axes[order.first]
-
-    order_handle = f'{new_first}{new_second}{new_third}'
-
-    return pyevspace.__dict__[order_handle]
-
-
-""" functions signatures to test:
-compute_rotation_matrix(angle: float, axis: int)                                --- done
-compute_rotation_matrix(angle: float, vector: Vector)                           --- done
-compute_rotation_matrix(o: RotationOrder, a: EulerAngles,                       --- done
-                        *, intrinsic: bool = True)
-compute_rotation_matrix(of, af, ot, at, if: bool, it: bool)                     --- done
-
-rotate_to(m: Matrix, v: Vector, *, offset: Vector = None)                       --- done
-rotate_to(angle: float, axis: int, v: Vector, *, offset: Vector = None)         --- done
-rotate_to(angle: float, axis: Vector, v: Vector, *, offset: Vector = None)      --- done
-rotate_to(order: RotationOrder, angles: EulerAngle,                             --- done
-          *, offset: Vector = None, i: bool = True)
-
-rotate_from(m: Matrix, v: Vector, *, offset: Vector = None)                     --- done
-rotate_from(angle: float, axis: int, v: Vector, *, offset: Vector = None)       --- done
-rotate_from(angle: float, axis: Vector, v: Vector, *, offset: Vector = None)    --- done
-rotate_from(order: RotationOrder, angles: EulerAngle,                           --- done
-            *, offset: Vector = None, i: bool = True)
-
-rotate_between(of, af, ot, at, *, if, it, off_from, off_to)                     --- done
-
-"""
 
 
 def test_rotation_matrix_axis(data: TestData) -> None:
@@ -133,8 +82,6 @@ def test_rotation_matrix_from_to(data: TestData) -> None:
                                              intrinsic_from=False,
                                              intrinsic_to=False)
             assert matrix == answer
-
-    # todo: handle proper error excaption types
 
 
 def test_compute_matrix_errors(data: TestData) -> None:
@@ -276,8 +223,6 @@ def test_rotation_rotate_axis(data: TestData) -> None:
                                  data.vectors[axis_mapped])
             assert vector == answer
 
-    # todo: handle proper error exception types
-
 
 def test_rotation_rotate_euler(data: TestData) -> None:
     for order in data.orders:
@@ -309,8 +254,6 @@ def test_rotation_rotate_euler(data: TestData) -> None:
             vector = rotate_from(order, data.angs90, data.vectors[axis],
                                  intrinsic=False)
             assert vector == answer
-
-    # todo: handle proper error exception types
 
     # offsets
     for order in data.orders:
@@ -375,8 +318,6 @@ def test_rotation_rotate_matrix(data: TestData) -> None:
             vector = rotate_from(matrix, data.vectors[axis], offset=data.offset)
             answer = rotation_offset_from_answers[order][axis]
             assert vector == answer
-
-    # todo: handle proper error exception types
 
 
 def test_rotation_rotate_between( data: TestData) -> None:

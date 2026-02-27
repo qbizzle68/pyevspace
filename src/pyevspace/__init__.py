@@ -14,6 +14,7 @@ __all__ = (
     'rotate_from',
     'rotate_to',
     'rotate_between',
+    'ReferenceFrame',
     'X_AXIS',
     'Y_AXIS',
     'Z_AXIS',

@@ -1,272 +1,410 @@
-# import sys
-# import unittest
+import pytest
 
-# from pyevspace import ReferenceFrame, XYZ, Angles, Vector, Matrix
-# from .rotation_answers import *
-# from math import pi
-
-# eps = 1e-6
+from pyevspace import ReferenceFrame, XYZ, EulerAngles, Vector, Matrix
+from .rotation_answers import *
 
 
-# class TestReferenceFrame(unittest.TestCase):
-
-#     ref = ReferenceFrame(XYZ, Angles(1, 2, 3))
-#     ref_offset = ReferenceFrame(XYZ, Angles(1, 2, 3), offset=Vector((1, 1, 1)))
-#     angs90 = Angles(pi/2, pi/2, pi/2)
-#     offset = Vector((1, 1, 1))
-#     vectors = [Vector.e1, Vector.e2, Vector.e3]
-
-#     @staticmethod
-#     def angles_equal(lhs, rhs):
-#         return lhs[0] == rhs[0] and lhs[1] == rhs[1] and lhs[2] == rhs[2]
-
-#     @staticmethod
-#     def matrix_equal(lhs, rhs, epsilon=eps):
-#         for row in range(3):
-#             for col in range(3):
-#                 if abs(lhs[row, col] - rhs[row, col]) > epsilon:
-#                     return False
-#         return True
-
-#     def test_refframe_new(self):
-#         # test the refframe constructor
-#         #   test passes by not raising exception
-#         ref = ReferenceFrame(XYZ, Angles())
-#         angsArg = Angles(1, 2, 3)
-#         offsetArg = Vector(1, 1, 1)
-#         ref_offset = ReferenceFrame(XYZ, angsArg, offset=offsetArg)
-
-#         # test 'resource capturing' of attributes
-#         offset_vector = Vector((1, 1, 1))
-#         offRefCount0 = sys.getrefcount(offset_vector)
-#         orderRefCount0 = sys.getrefcount(XYZ)
-#         angleRefCount0 = sys.getrefcount(self.angs90)
-#         ref = ReferenceFrame(XYZ, self.angs90, offset=offset_vector)
-#         msg = 'refframe offset reference count increase'
-#         self.assertTrue(sys.getrefcount(offset_vector) > offRefCount0, msg=msg)
-#         msg = 'refframe offset same instance'
-#         self.assertIs(ref_offset.offset, offsetArg)
-
-#         msg = 'refframe order reference count increase'
-#         self.assertTrue(sys.getrefcount(XYZ) > orderRefCount0, msg=msg)
-#         msg = 'refframe order same instance'
-#         self.assertIs(ref_offset.order, XYZ)
-
-#         # test position offset argument TypeError
-#         msg = 'reference frame positional offset argument TypeError'
-#         with self.assertRaises(TypeError, msg=msg):
-#             ans = ReferenceFrame(XYZ, self.angs90, self.offset)
-
-#         # test constructor type exceptions
-#         msg = 'reference frame constructor order argument TypeError'
-#         with self.assertRaises(TypeError, msg=msg):
-#             ans = ReferenceFrame(1, self.angs90)
-
-#         msg = 'reference frame constructor angles argument TypeError'
-#         with self.assertRaises(TypeError, msg=msg):
-#             ans = ReferenceFrame(XYZ, 1)
-
-#         msg = 'reference frame constructor offset vector argument TypeError'
-#         with self.assertRaises(TypeError, msg=msg):
-#             ans = ReferenceFrame(XYZ, self.angs90, offset=1)
-
-#     def test_refframe_angles_getter(self):
-#         # test angles property
-#         msg = 'reference frame angles property expected output'
-#         self.assertTrue(self.angles_equal(self.ref.angles, Angles(1, 2, 3)),
-#                         msg=msg)
-#         msg = 'reference frame angles property with offset'
-#         self.assertTrue(self.angles_equal(self.ref_offset.angles,
-#                                           Angles(1, 2, 3)), msg=msg)
-
-#         # ensure reference count increases
-#         ref = ReferenceFrame(XYZ, self.angs90)
-#         angRefCount0 = sys.getrefcount(self.angs90)
-#         angs = ref.angles
-#         msg = 'refframe angles ref count increase'
-#         self.assertTrue(sys.getrefcount(angs) > angRefCount0, msg=msg)
-
-#     def test_refframe_angles_setter(self):
-#         # test angles property
-#         ref = ReferenceFrame(XYZ, self.angs90)
-#         ref.angles = Angles()
-#         msg = 'reference frame angles setter test matrix change'
-#         self.assertEqual(ref.matrix, Matrix.id, msg=msg)
-
-#         ref = ReferenceFrame(XYZ, self.angs90, offset=self.offset)
-#         ref.angles = Angles()
-#         msg = 'reference frame angles setter test matrix change with offset'
-#         self.assertEqual(ref.matrix, Matrix.id, msg=msg)
-
-#         # test angles property exceptions
-#         # test deleting angles property
-#         msg = 'reference frame delete angles attribute'
-#         with self.assertRaises(ValueError, msg=msg):
-#             del ref.angles
-
-#         # test angles property TypeError
-#         msg = 'reference frame angles set TypeError'
-#         with self.assertRaises(TypeError, msg=msg):
-#             ref.angles = 1
-
-#     def test_refframe_subangle_getter(self):
-#         # test getting sub-angles
-#         ref = ReferenceFrame(XYZ, self.angs90)
-#         msg = 'reference frame getting sub-angle'
-#         self.assertEqual(ref.angles.alpha, pi/2, msg=msg)
-#         self.assertEqual(ref.angles.beta, pi/2, msg=msg)
-#         self.assertEqual(ref.angles.gamma, pi/2, msg=msg)
-
-#     def test_refframe_subangle_setter(self):
-#         # test setting sub-angle
-#         ref = ReferenceFrame(XYZ, Angles(pi/2, pi/2, pi/2))
-#         ref.angles.alpha = 0
-#         msg = 'reference frame sub-angle set changing matrix'
-#         self.assertEqual(ref.matrix, Matrix((0, 0, 1), (1, 0, 0), (0, 1, 0)),
-#                          msg=msg)
-
-#         ref.angles[0] = pi/2
-#         msg = 'reference frame sub-angle set by index changing matrix'
-#         self.assertEqual(ref.matrix, Matrix((0, 0, 1), (0, -1, 0), (1, 0, 0)),
-#                          msg=msg)
-
-#         # test sub-angle exceptions
-#         # test deleting sub-angle ValueError
-#         msg = 'reference frame deleting sub-angle TypeError'
-#         with self.assertRaises(TypeError, msg=msg):
-#             del ref.angles.alpha
-
-#         # test sub-angle TypeError
-#         msg = 'reference frame sub-angle TypeError'
-#         with self.assertRaises(TypeError, msg=msg):
-#             ref.angles.beta = 'a'
-
-#     def test_refframe_offset_getter(self):
-#         # test getting offset vector
-#         vecOffset = self.ref.offset
-#         msg = 'reference frame offset vector'
-#         self.assertEqual(vecOffset, None, msg=msg)
-#         vecOffset = self.ref_offset.offset
-#         self.assertEqual(vecOffset, self.offset, msg=msg)
-
-#     def test_refframe_offset_setter(self):
-#         # test setting offset vector
-#         ref = ReferenceFrame(XYZ, self.angs90)
-#         ref.offset = Vector(1, 1, 1)
-
-#         ref = ReferenceFrame(XYZ, self.angs90, offset=Vector(1, 1, 1))
-#         ref.offset = Vector(1, 2, 3)
-#         msg = 'refframe offset setter expected outcome'
-#         self.assertEqual(ref.offset, Vector(1, 2, 3), msg=msg)
-
-#         # test deleting offset attribute
-#         del ref.offset
-#         msg = 'refframe offset delete attribute'
-#         self.assertEqual(ref.offset, None, msg=msg)
-
-#         # test offset exceptions
-#         msg = 'refframe offset setter TypeError'
-#         with self.assertRaises(TypeError, msg=msg):
-#             ref.offset = 1
-
-#     @staticmethod
-#     def vector_equal(lhs, rhs, epsilon=eps):
-#         for l, r in zip(lhs, rhs):
-#             if abs(l - r) > epsilon:
-#                 return False
-#         return True
-
-#     def test_refframe_rotate_to(self):
-#         # test rotating to reference frame without offset vector
-#         for order, orderDict in rotation_euler_to_answers.items():
-#             ref = ReferenceFrame(order, self.angs90)
-#             for axis in orderDict:
-#                 ans = ref.rotateTo(self.vectors[axis])
-#                 msg = f'rotate refframe to, order: {order}, axis tested: {axis}'
-#                 self.assertTrue(self.vector_equal(ans, orderDict[axis]), msg=msg)
-
-#         # test rotating to reference frame with offset vector
-#         for order, orderDict in rotation_offset_to_answers.items():
-#             ref = ReferenceFrame(order, self.angs90, offset=self.offset)
-#             for axis in orderDict:
-#                 ans = ref.rotateTo(self.vectors[axis])
-#                 msg = f'rotate refframe to, order: {order}, offset: {ref.offset}' \
-#                       f', axis tested: {axis}'
-#                 self.assertTrue(self.vector_equal(ans, orderDict[axis]), msg=msg)
-
-#         # test rotate to exceptions
-#         msg = 'refframe rotate to vector argument TypeError'
-#         with self.assertRaises(TypeError, msg=msg):
-#             self.ref.rotateTo(1)
-
-#     def test_refframe_rotate_from(self):
-#         # test rotating to reference frame without offset vector
-#         for order, orderDict in rotation_euler_from_answers.items():
-#             ref = ReferenceFrame(order, self.angs90)
-#             for axis in orderDict:
-#                 ans = ref.rotateFrom(self.vectors[axis])
-#                 msg = f'rotate refframe to, order: {order}, axis tested: {axis}'
-#                 self.assertTrue(self.vector_equal(ans, orderDict[axis]), msg=msg)
-
-#         # test rotating to reference frame with offset vector
-#         for order, orderDict in rotation_offset_from_answers.items():
-#             ref = ReferenceFrame(order, self.angs90, offset=self.offset)
-#             for axis in orderDict:
-#                 ans = ref.rotateFrom(self.vectors[axis])
-#                 msg = f'rotate refframe to, order: {order}, offset: {ref.offset}' \
-#                       f', axis tested: {axis}'
-#                 self.assertTrue(self.vector_equal(ans, orderDict[axis]), msg=msg)
-
-#         # test rotate from exceptions
-#         msg = 'refframe rotate from vector argument TypeError'
-#         with self.assertRaises(TypeError, msg=msg):
-#             self.ref.rotateFrom(1)
-
-#     def test_refframe_between_frames(self):
-#         # test rotating to another reference frame
-#         for orderFrom, fromDict in rotation_refframe_from_to_answers.items():
-#             refFrom = ReferenceFrame(orderFrom, self.angs90)
-#             for orderTo, toDict in fromDict.items():
-#                 refTo = ReferenceFrame(orderTo, self.angs90)
-#                 for axis, ans in toDict.items():
-#                     vec = refFrom.rotateToFrame(refTo, self.vectors[axis])
-#                     msg = f'rotate refframe to frame, orderFrom: {orderFrom}, orderTo: ' \
-#                           f'{orderTo}, axis tested: {axis}'
-#                     self.assertTrue(self.vector_equal(vec, ans), msg=msg)
-#                     vec = refTo.rotateFromFrame(refFrom, self.vectors[axis])
-#                     msg = f'rotate refframe from frame, orderFrom: {orderFrom}, orderTo: ' \
-#                           f'{orderTo}, axis tested: {axis}'
-#                     self.assertTrue(self.vector_equal(vec, ans), msg=msg)
-
-#         # test exceptions
-#         msg = 'refframe rotate to reference frame argument TypeError'
-#         with self.assertRaises(TypeError, msg=msg):
-#             self.ref.rotateTo(1, self.offset)
-
-#         msg = 'refframe rotate from reference frame argument TypeError'
-#         with self.assertRaises(TypeError, msg=msg):
-#             self.ref.rotateFrom(1, self.offset)
-
-#         msg = 'refframe rotate to vector argument TypeError'
-#         with self.assertRaises(TypeError, msg=msg):
-#             self.ref.rotateTo(self.ref_offset, 1)
-
-#         msg = 'refframe rotate from vector argument TypeError'
-#         with self.assertRaises(TypeError, msg=msg):
-#             self.ref.rotateFrom(self.ref_offset, 2)
-
-#     def test_refframe_between_frames_offset(self):
-#         # test rotation to another reference frame with offset
-#         for orderFrom, fromDict in rotation_refframe_from_to_offset_answers.items():
-#             refFrom = ReferenceFrame(orderFrom, self.angs90)
-#             for orderTo, toDict in fromDict.items():
-#                 refTo = ReferenceFrame(orderTo, self.angs90, offset=self.offset)
-#                 for axis, ans in toDict.items():
-#                     vec = refFrom.rotateToFrame(refTo, self.vectors[axis])
-#                     msg = f'rotate refframe to offset frame, orderFrom: ' \
-#                           f'{orderFrom}, orderTo: {orderTo}, axis tested: {axis}'
-#                     self.assertTrue(self.vector_equal(vec, ans), msg=msg)
+@pytest.fixture
+def data() -> TestData:
+    return TestData()
 
 
-# if __name__ == '__main__':
-#     unittest.main()
+def test_refframe_new(subtests) -> None:
+    angles = EulerAngles(0, 0, 0)
+    frame = ReferenceFrame(XYZ, angles)
+
+    assert frame.get_matrix() == Matrix.IDENTITY
+    assert frame.offset is None
+    assert frame.intrinsic is True
+    
+    for i in range(3):
+        with subtests.test(i=i):
+            assert frame.get_angles()[i] == angles[i]
+    assert frame.get_angles() is not angles
+
+    frame = ReferenceFrame(XYZ, angles, intrinsic=False, offset=Vector(1, 1, 1))
+    assert frame.intrinsic is False
+    assert frame.offset == Vector(1, 1, 1)
+
+    frame = ReferenceFrame(XYZ, angles, offset=None)
+    assert frame.offset is None
+
+    frame = ReferenceFrame(XYZ, angles, intrinsic=(1 > 2))
+    assert frame.intrinsic is False
+
+    with pytest.raises(TypeError):
+        ReferenceFrame(3, angles)
+    
+    with pytest.raises(TypeError):
+        ReferenceFrame(XYZ, [])
+    
+    with pytest.raises(TypeError):
+        ReferenceFrame(XYZ)
+
+    with pytest.raises(TypeError):
+        ReferenceFrame(XYZ, angles, 0)
+    
+    with pytest.raises(TypeError):
+        ReferenceFrame(XYZ, angles, intrinsic=NotImplemented)
+    
+    with pytest.raises(TypeError):
+        ReferenceFrame(XYZ, angles, offset=5)
+
+
+def test_refframe_angles(subtests) -> None:
+    frame = ReferenceFrame(XYZ, EulerAngles())
+
+    angles = frame.get_angles()
+    for i in range(3):
+        with subtests.test(i=i):
+            assert angles[i] == 0.0
+
+    frame.set_angles(alpha=1)
+    assert frame.get_angles()[0] == 1.0
+    assert frame.get_angles()[1] == 0.0
+    assert frame.get_angles()[2] == 0.0
+
+    frame.set_angles(beta=2)
+    assert frame.get_angles()[0] == 1.0
+    assert frame.get_angles()[1] == 2.0
+    assert frame.get_angles()[2] == 0.0
+
+    frame.set_angles(gamma=3)
+    assert frame.get_angles()[0] == 1.0
+    assert frame.get_angles()[1] == 2.0
+    assert frame.get_angles()[2] == 3.0
+
+    frame.set_angles(alpha=0.0, beta=None, gamma=None)
+    assert frame.get_angles()[0] == 0.0
+    assert frame.get_angles()[1] == 2.0
+    assert frame.get_angles()[2] == 3.0
+
+    frame.set_angles(alpha=None, beta=0.0, gamma=None)
+    assert frame.get_angles()[0] == 0.0
+    assert frame.get_angles()[1] == 0.0
+    assert frame.get_angles()[2] == 3.0
+
+    frame.set_angles(alpha=None, beta=None, gamma=0.0)
+    assert frame.get_angles()[0] == 0.0
+    assert frame.get_angles()[1] == 0.0
+    assert frame.get_angles()[2] == 0.0
+
+    angles = EulerAngles(7, 8, 9)
+    frame.set_angles(angles)
+    assert frame.get_angles()[0] == 7.0
+    assert frame.get_angles()[1] == 8.0
+    assert frame.get_angles()[2] == 9.0
+
+    with pytest.raises(TypeError):
+        frame.get_angles(5)
+    
+    with pytest.raises(TypeError):
+        frame.set_angles('abc')
+    
+    with pytest.raises(TypeError):
+        frame.set_angles(alpha='a')
+    
+    with pytest.raises(TypeError):
+        frame.set_angles(beta=[])
+    
+    with pytest.raises(TypeError):
+        frame.set_angles(gamma=list)
+
+
+def test_refframe_matrix(data: TestData) -> None:
+    for order in data.orders:
+        for angle, answer in zip(data.angles, rotation_euler_answers[order]):
+            angles = EulerAngles(angle, angle, angle)
+            frame = ReferenceFrame(order, angles)
+            assert frame.get_matrix() == answer
+
+    for order in data.orders:
+        reversed_order = reversed_rotation_order(order)
+        reversed_order_answers = rotation_euler_answers[reversed_order]
+        for angle, answer in zip(data.angles, reversed_order_answers):
+            angles = EulerAngles(angle, angle, angle)
+            frame = ReferenceFrame(order, angles, intrinsic=False)
+            assert frame.get_matrix() == answer
+
+
+def test_refframe_rotate_to(data: TestData) -> None:
+    for order in data.orders:
+        frame = ReferenceFrame(order, data.angs90)
+        for axis in data.axes:
+            vector = frame.rotate_to(data.vectors[axis])
+            answer = rotation_euler_to_answers[order][axis]
+            assert vector == answer
+
+    # extrinsic
+    for order in data.orders:
+        reversed_order = reversed_rotation_order(order)
+        frame = ReferenceFrame(order, data.angs90, intrinsic=False)
+        for axis in data.axes:
+            vector = frame.rotate_to(data.vectors[axis])
+            answer = rotation_euler_to_answers[reversed_order][axis]
+            assert vector == answer
+
+    # offsets
+    for order in data.orders:
+        frame = ReferenceFrame(order, data.angs90, offset=data.offset)
+        for axis in data.axes:
+            vector = frame.rotate_to(data.vectors[axis])
+            answer = rotation_offset_to_answers[order][axis]
+            assert vector == answer
+
+    # extrinsic
+    for order in data.orders:
+        reversed_order = reversed_rotation_order(order)
+        frame = ReferenceFrame(order, data.angs90, intrinsic=False,
+                               offset=data.offset)
+        for axis in data.axes:
+            vector = frame.rotate_to(data.vectors[axis])
+            answer = rotation_offset_to_answers[reversed_order][axis]
+            assert vector == answer
+
+    frame = ReferenceFrame(XYZ, EulerAngles())
+    with pytest.raises(TypeError):
+        frame.rotate_to(5)
+
+    with pytest.raises(TypeError):
+        frame.rotate_to(frame, 'a')
+
+    with pytest.raises(TypeError):
+        frame.rotate_to()
+
+    with pytest.raises(TypeError):
+        frame.rotate_to(Vector.E1, 0)
+
+    with pytest.raises(TypeError):
+        frame.rotate_to(frame, Vector.E1, 'a')
+
+
+def test_refframe_rotate_from(data: TestData) -> None:
+    for order in data.orders:
+        frame = ReferenceFrame(order, data.angs90)
+        for axis in data.axes:
+            vector = frame.rotate_from(data.vectors[axis])
+            answer = rotation_euler_from_answers[order][axis]
+            assert vector == answer
+
+    # extrinsic
+    for order in data.orders:
+        reversed_order = reversed_rotation_order(order)
+        frame = ReferenceFrame(order, data.angs90, intrinsic=False)
+        for axis in data.axes:
+            vector = frame.rotate_from(data.vectors[axis])
+            answer = rotation_euler_from_answers[reversed_order][axis]
+            assert vector == answer
+
+    # offsets
+    for order in data.orders:
+        frame = ReferenceFrame(order, data.angs90, offset=data.offset)
+        for axis in data.axes:
+            vector = frame.rotate_from(data.vectors[axis])
+            answer = rotation_offset_from_answers[order][axis]
+            assert vector == answer
+
+    # extrinsic
+    for order in data.orders:
+        reversed_order = reversed_rotation_order(order)
+        frame = ReferenceFrame(order, data.angs90, intrinsic=False,
+                               offset=data.offset)
+        for axis in data.axes:
+            vector = frame.rotate_from(data.vectors[axis])
+            answer = rotation_offset_from_answers[reversed_order][axis]
+            assert vector == answer
+
+    frame = ReferenceFrame(XYZ, EulerAngles())
+    with pytest.raises(TypeError):
+        frame.rotate_from(5)
+
+    with pytest.raises(TypeError):
+        frame.rotate_from(frame, 'a')
+
+    with pytest.raises(TypeError):
+        frame.rotate_from()
+
+    with pytest.raises(TypeError):
+        frame.rotate_from(Vector.E1, 0)
+
+    with pytest.raises(TypeError):
+        frame.rotate_from(frame, Vector.E1, 'a')
+
+
+def test_refframe_rotate_between(data: TestData) -> None:
+    for order_from in data.orders:
+        frame_from = ReferenceFrame(order_from, data.angs90)
+        for order_to in data.orders:
+            frame_to = ReferenceFrame(order_to, data.angs90)
+            answer = rotate_from_to_answers[order_from][order_to]
+            for i, test_vector in enumerate(data.vectors):
+                vector_to = frame_to.rotate_to(frame_from, test_vector)
+                vector_from = frame_from.rotate_from(frame_to, test_vector)
+                assert vector_to == vector_from
+                assert vector_to == answer[i]
+
+    # order_from being extrinsic
+    for order_from in data.orders:
+        frame_from = ReferenceFrame(order_from, data.angs90, intrinsic=False)
+        reversed_order_from = reversed_rotation_order(order_from)
+        for order_to in data.orders:
+            frame_to = ReferenceFrame(order_to, data.angs90)
+            answer = rotate_from_to_answers[reversed_order_from][order_to]
+            for i, test_vector in enumerate(data.vectors):
+                vector_to = frame_to.rotate_to(frame_from, test_vector)
+                vector_from = frame_from.rotate_from(frame_to, test_vector)
+                assert vector_to == vector_from
+                assert vector_to == answer[i]
+
+    # order_to being extrinsic
+    for order_to in data.orders:
+        reversed_order_to = reversed_rotation_order(order_to)
+        frame_to = ReferenceFrame(order_to, data.angs90, intrinsic=False)
+        for order_from in data.orders:
+            frame_from = ReferenceFrame(order_from, data.angs90)
+            answer = rotate_from_to_answers[order_from][reversed_order_to]
+            for i, test_vector in enumerate(data.vectors):
+                vector_to = frame_to.rotate_to(frame_from, test_vector)
+                vector_from = frame_from.rotate_from(frame_to, test_vector)
+                assert vector_to == vector_from
+                assert vector_to == answer[i]
+
+    # both extrinsic
+    for order_from in data.orders:
+        reversed_order_from = reversed_rotation_order(order_from)
+        frame_from = ReferenceFrame(order_from, data.angs90, intrinsic=False)
+        for order_to in data.orders:
+            reversed_order_to = reversed_rotation_order(order_to)
+            frame_to = ReferenceFrame(order_to, data.angs90, intrinsic=False)
+            answer = rotate_from_to_answers[reversed_order_from][reversed_order_to]
+            for i, test_vector in enumerate(data.vectors):
+                vector_to = frame_to.rotate_to(frame_from, test_vector)
+                vector_from = frame_from.rotate_from(frame_to, test_vector)
+                assert vector_to == vector_from
+                assert vector_to == answer[i]
+
+    # offset
+    # This would require an astronomical amount of time to visual inspect what
+    # the answers should be for all combinations of intrinsic and offset frames.
+    # We'll only generate data for going between two frames that do not produce a
+    # symetric matrix for now and hope that's enough (it should be).
+
+    #from XZY to ZYX
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_to"][axis]
+        frame_from = ReferenceFrame(XZY, data.angs90)
+        frame_to = ReferenceFrame(ZYX, data.angs90, offset=data.offset)
+        vector_to = frame_to.rotate_to(frame_from, test_vector)
+        vector_from = frame_from.rotate_from(frame_to, test_vector)
+        assert vector_to == vector_from
+        assert vector_to == answer
+
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_from"][axis]
+        frame_from = ReferenceFrame(XZY, data.angs90, offset=data.offset)
+        frame_to = ReferenceFrame(ZYX, data.angs90)
+        vector_to = frame_to.rotate_to(frame_from, test_vector)
+        vector_from = frame_from.rotate_from(frame_to, test_vector)
+        assert vector_to == vector_from
+        assert vector_to == answer
+
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_both"][axis]
+        frame_from = ReferenceFrame(XZY, data.angs90, offset=data.offset)
+        frame_to = ReferenceFrame(ZYX, data.angs90, offset=data.offset)
+        vector_to = frame_to.rotate_to(frame_from, test_vector)
+        vector_from = frame_from.rotate_from(frame_to, test_vector)
+        assert vector_to == vector_from
+        assert vector_to == answer
+
+    # extrinsic from (not we must use 'YZX' as from order)
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_to"][axis]
+        frame_from = ReferenceFrame(YZX, data.angs90, intrinsic=False)
+        frame_to = ReferenceFrame(ZYX, data.angs90, offset=data.offset)
+        vector_to = frame_to.rotate_to(frame_from, test_vector)
+        vector_from = frame_from.rotate_from(frame_to, test_vector)
+        assert vector_to == vector_from
+        assert vector_to == answer
+
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_from"][axis]
+        frame_from = ReferenceFrame(YZX, data.angs90, offset=data.offset,
+                                    intrinsic=False)
+        frame_to = ReferenceFrame(ZYX, data.angs90)
+        vector_to = frame_to.rotate_to(frame_from, test_vector)
+        vector_from = frame_from.rotate_from(frame_to, test_vector)
+        assert vector_to == vector_from
+        assert vector_to == answer
+
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_both"][axis]
+        frame_from = ReferenceFrame(YZX, data.angs90, offset=data.offset,
+                                    intrinsic=False)
+        frame_to = ReferenceFrame(ZYX, data.angs90, offset=data.offset)
+        vector_to = frame_to.rotate_to(frame_from, test_vector)
+        vector_from = frame_from.rotate_from(frame_to, test_vector)
+        assert vector_to == vector_from
+        assert vector_to == answer
+
+    # extrinsic to (note we must use 'XYZ' as to order)
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_to"][axis]
+        frame_from = ReferenceFrame(XZY, data.angs90)
+        frame_to = ReferenceFrame(XYZ, data.angs90, offset=data.offset,
+                                  intrinsic=False)
+        vector_to = frame_to.rotate_to(frame_from, test_vector)
+        vector_from = frame_from.rotate_from(frame_to, test_vector)
+        assert vector_to == vector_from
+        assert vector_to == answer
+
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_from"][axis]
+        frame_from = ReferenceFrame(XZY, data.angs90, offset=data.offset)
+        frame_to = ReferenceFrame(XYZ, data.angs90, intrinsic=False)
+        vector_to = frame_to.rotate_to(frame_from, test_vector)
+        vector_from = frame_from.rotate_from(frame_to, test_vector)
+        assert vector_to == vector_from
+        assert vector_to == answer
+
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_both"][axis]
+        frame_from = ReferenceFrame(XZY, data.angs90, offset=data.offset)
+        frame_to = ReferenceFrame(XYZ, data.angs90, offset=data.offset,
+                                  intrinsic=False)
+        vector_to = frame_to.rotate_to(frame_from, test_vector)
+        vector_from = frame_from.rotate_from(frame_to, test_vector)
+        assert vector_to == vector_from
+        assert vector_to == answer
+
+    # both extrinsic (note we use YZX -> XYZ)
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_to"][axis]
+        frame_from = ReferenceFrame(YZX, data.angs90, intrinsic=False)
+        frame_to = ReferenceFrame(XYZ, data.angs90, offset=data.offset,
+                                  intrinsic=False)
+        vector_to = frame_to.rotate_to(frame_from, test_vector)
+        vector_from = frame_from.rotate_from(frame_to, test_vector)
+        assert vector_to == vector_from
+        assert vector_to == answer
+
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_from"][axis]
+        frame_from = ReferenceFrame(YZX, data.angs90, offset=data.offset,
+                                    intrinsic=False)
+        frame_to = ReferenceFrame(XYZ, data.angs90, intrinsic=False)
+        vector_to = frame_to.rotate_to(frame_from, test_vector)
+        vector_from = frame_from.rotate_from(frame_to, test_vector)
+        assert vector_to == vector_from
+        assert vector_to == answer
+
+    for axis, test_vector in zip(data.axes, data.vectors):
+        answer = rotate_from_XZY_to_ZYX["offset_both"][axis]
+        frame_from = ReferenceFrame(YZX, data.angs90, offset=data.offset,
+                                    intrinsic=False)
+        frame_to = ReferenceFrame(XYZ, data.angs90, offset=data.offset,
+                                  intrinsic=False)
+        vector_to = frame_to.rotate_to(frame_from, test_vector)
+        vector_from = frame_from.rotate_from(frame_to, test_vector)
+        assert vector_to == vector_from
+        assert vector_to == answer
