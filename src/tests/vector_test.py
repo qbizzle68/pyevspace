@@ -33,14 +33,14 @@ def vector_values() -> VectorValues:
 
 
 def test_vector_new() -> None:
-    ans = Vector()
-    ans = Vector(1, 2, 3)
-    ans = Vector((1, 2, 3))
-    ans = Vector(i for i in range(1, 4))
+    _ = Vector()
+    _ = Vector(1, 2, 3)
+    _ = Vector((1, 2, 3))
+    _ = Vector(i for i in range(1, 4))
 
     with pytest.raises(TypeError):
         Vector(1, 2)
-    
+
     with pytest.raises(ValueError):
         Vector((1, 2))
 
@@ -49,10 +49,10 @@ def test_vector_new() -> None:
 
     with pytest.raises(ValueError):
         Vector((1, 2, 3, 4))
-    
+
     with pytest.raises(TypeError):
         Vector('a', 2, 3)
-    
+
     with pytest.raises(TypeError):
         Vector((1, 'b', 3))
 
@@ -131,7 +131,7 @@ def test_vector_iadd(vector_values):
 
     with pytest.raises(TypeError):
         vector_values.v123 += 1.0
-    
+
     with pytest.raises(TypeError):
         vector_values.v123 += 'a'
 
@@ -182,6 +182,7 @@ def test_vector_isubtract(vector_values: VectorValues) -> None:
     with pytest.raises(TypeError):
         vector_values.v111 -= [1, 2, 3]
 
+
 def test_vector_multiply(vector_values: VectorValues) -> None:
     v = vector_values.v123 * 2
     assert v == Vector(2, 4, 6)
@@ -220,7 +221,7 @@ def test_vector_imultiply(vector_values: VectorValues) -> None:
     assert v == Vector(-0.5, -1, -1.5)
 
     mat = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
-    v = Vector(1, 2 ,3)
+    v = Vector(1, 2, 3)
     v @= mat
     assert v == Vector(30, 36, 42)
 
@@ -243,7 +244,7 @@ def test_vector_divide(vector_values: VectorValues) -> None:
 
     with pytest.raises(TypeError):
         vector_values.v123 /= 'a'
-    
+
     with pytest.raises(TypeError):
         vector_values.v123 /= vector_values.v111
 
@@ -259,7 +260,7 @@ def test_vector_idivide(vector_values: VectorValues) -> None:
 
     with pytest.raises(TypeError):
         vector_values.v111 /= 'a'
-    
+
     with pytest.raises(TypeError):
         vector_values.v111 /= vector_values.v123
 
@@ -267,7 +268,7 @@ def test_vector_idivide(vector_values: VectorValues) -> None:
 def test_vector_mag(vector_values: VectorValues) -> None:
     v = Vector(3, 4, 0)
     assert v.magnitude() == 5
-    
+
     v = Vector(-3, 4, 0)
     assert v.magnitude() == 5
 
@@ -307,7 +308,7 @@ def test_vector_normalize(vector_values: VectorValues) -> None:
 
     with pytest.raises(TypeError):
         vector_values.v111.normalize(1)
-    
+
     with pytest.raises(TypeError):
         vector_values.v111.norm(0)
 
@@ -345,7 +346,7 @@ def test_vector_sequence(vector_values: VectorValues) -> None:
 
     with pytest.raises(IndexError):
         vector_values.v111[3] = 5
-    
+
     with pytest.raises(IndexError):
         vector_values.v111[-4] = 5
 
@@ -413,7 +414,7 @@ def test_vector_compare_ulp(vector_values: VectorValues) -> None:
     rhs[2] = advance_ulps(1e200, 10, math.inf)
     assert lhs.compare_to_ulp(rhs, 10)
     assert lhs.compare_to_ulp(rhs, 9) is False
-    
+
     # infinities and NaNs
     lhs[2] = math.inf
     rhs[2] = math.inf
@@ -473,7 +474,7 @@ def test_vector_compare(vector_values: VectorValues) -> None:
     rhs[1] = 1e10 + 100     # relative error ~1e-8
     assert lhs != rhs
     assert lhs.compare_to_tol(rhs, 1e-8, 1e-15)
-    
+
     lhs[1] = 1e15
     rhs[1] = 1e15 * 1.000001    # relative error ~1e-5
     assert (lhs == rhs) is False
@@ -631,7 +632,7 @@ def test_vector_buffer() -> None:
 
     with pytest.raises(IndexError):
         view[3]
-    
+
     with pytest.raises(TypeError):
         view[0] = 'a'
 
@@ -723,7 +724,7 @@ def test_vector_exclude() -> None:
 
     with pytest.raises(TypeError):
         vector_exclude(v1, v2, v2)
-    
+
     with pytest.raises(TypeError):
         vector_exclude(1.0, v1)
 

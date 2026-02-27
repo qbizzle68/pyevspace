@@ -64,12 +64,12 @@ def test_matrix_strings(matrix_values: MatrixValues) -> None:
     assert str(matrix_values.m123) == '[[1, 2, 3]\n[4, 5, 6]\n[7, 8, 9]]'
     assert (repr(matrix_values.m123) ==
             'Matrix([1, 2, 3], [4, 5, 6], [7, 8, 9])')
-    
+
     m = Matrix((1.1, 2.2, 3.3), (4.4, 5.5, 6.6), (7.7, 8.8, 9.9))
     assert str(m) == '[[1.1, 2.2, 3.3]\n[4.4, 5.5, 6.6]\n[7.7, 8.8, 9.9]]'
     assert (repr(m) ==
             'Matrix([1.1, 2.2, 3.3], [4.4, 5.5, 6.6], [7.7, 8.8, 9.9])')
-    
+
 
 def test_matrix_add(matrix_values: MatrixValues) -> None:
     ans = Matrix((2, 6, 10), (6, 10, 14), (10, 14, 18))
@@ -124,7 +124,7 @@ def test_matrix_isubtract(matrix_values: MatrixValues) -> None:
 
     with pytest.raises(TypeError):
         matrix_values.m123 -= 1
-    
+
     with pytest.raises(TypeError):
         matrix_values.m123 -= (1, 2, 3)
 
@@ -139,7 +139,7 @@ def test_matrix_multiply(matrix_values: MatrixValues) -> None:
     assert 2 * matrix_values.m123 == matrix_values.m2
 
     assert matrix_values.m123 @ matrix_values.v123 == Vector(14, 32, 50)
-    
+
     answer = Matrix((14, 32, 50), (32, 77, 122), (50, 122, 194))
     assert matrix_values.m123 @ matrix_values.m147 == answer
 
@@ -151,7 +151,7 @@ def test_matrix_multiply(matrix_values: MatrixValues) -> None:
 
     with pytest.raises(TypeError):
         matrix_values.m123 @ 1
-    
+
     with pytest.raises(TypeError):
         1 @ matrix_values.m123
 
@@ -212,7 +212,7 @@ def test_matrix_idivide(matrix_values: MatrixValues) -> None:
 
     with pytest.raises(TypeError):
         matrix_values.m123 /= matrix_values.m147
-    
+
     with pytest.raises(TypeError):
         matrix_values.m123 /= [1, 2, 3]
 
@@ -226,7 +226,7 @@ def test_matrix_get(matrix_values: MatrixValues) -> None:
 
     with pytest.raises(TypeError):
         matrix_values.m123['a', 0]
-    
+
     with pytest.raises(TypeError):
         matrix_values.m123(0, [1])
 
@@ -320,7 +320,7 @@ def test_matrix_set() -> None:
 
     with pytest.raises(TypeError):
         m['a', 2] = 1
-    
+
     with pytest.raises(TypeError):
         m[1, [3]] = 1
 
@@ -332,7 +332,7 @@ def test_matrix_set() -> None:
 
     with pytest.raises(IndexError):
         m[-4, 2] = 7
-    
+
     with pytest.raises(IndexError):
         m[0, -5] = 8
 
@@ -356,7 +356,7 @@ def test_matrix_compare(matrix_values: MatrixValues) -> None:
     # Vector extensively tests the advanced component comparisons
     # only need to check a few here to ensure matrix also uses
     # ULP based mechanics
-    
+
     lhs = m
     rhs = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
     lhs[0, 0] = 1.0

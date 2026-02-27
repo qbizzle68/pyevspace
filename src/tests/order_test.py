@@ -17,16 +17,16 @@ def test_order_new():
 
     with pytest.raises(TypeError):
         RotationOrder(0, 'a', 2)
-        
+
     with pytest.raises(TypeError):
         RotationOrder(0, 1, [])
-    
+
     with pytest.raises(ValueError):
         RotationOrder(-1, 0, 1)
-    
+
     with pytest.raises(ValueError):
         RotationOrder(0, 3, 1)
-    
+
     with pytest.raises(ValueError):
         RotationOrder(1, 0, 4)
 
@@ -83,7 +83,6 @@ def test_order_compare():
     assert d.get(new_XYZ) == 'foo'
 
 
-# todo: should RotationOrder be able to be created for persistance?
 def test_order_persistance(subtests):
     buffer = pickle.dumps(XYZ)
     o = pickle.loads(buffer)

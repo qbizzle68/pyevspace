@@ -58,7 +58,7 @@ def test_angles_get(angles):
     with pytest.raises(TypeError):
         angles['a']
 
-    
+
 def test_angles_set(angles):
     angles[0] = 11
     angles[1] = 12

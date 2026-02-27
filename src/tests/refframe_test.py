@@ -1,7 +1,19 @@
 import pytest
 
-from pyevspace import ReferenceFrame, XYZ, EulerAngles, Vector, Matrix
-from .rotation_answers import *
+from pyevspace import (
+    ReferenceFrame, XYZ, XZY, ZYX, YZX, EulerAngles, Vector, Matrix
+)
+from .rotation_answers import (
+    reversed_rotation_order,
+    TestData,
+    rotation_euler_answers,
+    rotation_euler_to_answers,
+    rotation_euler_from_answers,
+    rotation_offset_to_answers,
+    rotation_offset_from_answers,
+    rotate_from_to_answers,
+    rotate_from_XZY_to_ZYX_offset,
+)
 
 
 @pytest.fixture
@@ -16,13 +28,14 @@ def test_refframe_new(subtests) -> None:
     assert frame.get_matrix() == Matrix.IDENTITY
     assert frame.offset is None
     assert frame.intrinsic is True
-    
+
     for i in range(3):
         with subtests.test(i=i):
             assert frame.get_angles()[i] == angles[i]
     assert frame.get_angles() is not angles
 
-    frame = ReferenceFrame(XYZ, angles, intrinsic=False, offset=Vector(1, 1, 1))
+    frame = ReferenceFrame(XYZ, angles, intrinsic=False,
+                           offset=Vector(1, 1, 1))
     assert frame.intrinsic is False
     assert frame.offset == Vector(1, 1, 1)
 
@@ -34,19 +47,19 @@ def test_refframe_new(subtests) -> None:
 
     with pytest.raises(TypeError):
         ReferenceFrame(3, angles)
-    
+
     with pytest.raises(TypeError):
         ReferenceFrame(XYZ, [])
-    
+
     with pytest.raises(TypeError):
         ReferenceFrame(XYZ)
 
     with pytest.raises(TypeError):
         ReferenceFrame(XYZ, angles, 0)
-    
+
     with pytest.raises(TypeError):
         ReferenceFrame(XYZ, angles, intrinsic=NotImplemented)
-    
+
     with pytest.raises(TypeError):
         ReferenceFrame(XYZ, angles, offset=5)
 
@@ -97,16 +110,16 @@ def test_refframe_angles(subtests) -> None:
 
     with pytest.raises(TypeError):
         frame.get_angles(5)
-    
+
     with pytest.raises(TypeError):
         frame.set_angles('abc')
-    
+
     with pytest.raises(TypeError):
         frame.set_angles(alpha='a')
-    
+
     with pytest.raises(TypeError):
         frame.set_angles(beta=[])
-    
+
     with pytest.raises(TypeError):
         frame.set_angles(gamma=list)
 
@@ -276,7 +289,8 @@ def test_refframe_rotate_between(data: TestData) -> None:
         for order_to in data.orders:
             reversed_order_to = reversed_rotation_order(order_to)
             frame_to = ReferenceFrame(order_to, data.angs90, intrinsic=False)
-            answer = rotate_from_to_answers[reversed_order_from][reversed_order_to]
+            _from_answers = rotate_from_to_answers[reversed_order_from]
+            answer = _from_answers[reversed_order_to]
             for i, test_vector in enumerate(data.vectors):
                 vector_to = frame_to.rotate_to(frame_from, test_vector)
                 vector_from = frame_from.rotate_from(frame_to, test_vector)
@@ -285,13 +299,14 @@ def test_refframe_rotate_between(data: TestData) -> None:
 
     # offset
     # This would require an astronomical amount of time to visual inspect what
-    # the answers should be for all combinations of intrinsic and offset frames.
-    # We'll only generate data for going between two frames that do not produce a
-    # symetric matrix for now and hope that's enough (it should be).
+    # the answers should be for all combinations of intrinsic and offset
+    # frames. We'll only generate data for going between two frames that do
+    # not produce a symetric matrix for now and hope that's enough (it should
+    # be).
 
-    #from XZY to ZYX
+    # from XZY to ZYX
     for axis, test_vector in zip(data.axes, data.vectors):
-        answer = rotate_from_XZY_to_ZYX["offset_to"][axis]
+        answer = rotate_from_XZY_to_ZYX_offset["offset_to"][axis]
         frame_from = ReferenceFrame(XZY, data.angs90)
         frame_to = ReferenceFrame(ZYX, data.angs90, offset=data.offset)
         vector_to = frame_to.rotate_to(frame_from, test_vector)
@@ -300,7 +315,7 @@ def test_refframe_rotate_between(data: TestData) -> None:
         assert vector_to == answer
 
     for axis, test_vector in zip(data.axes, data.vectors):
-        answer = rotate_from_XZY_to_ZYX["offset_from"][axis]
+        answer = rotate_from_XZY_to_ZYX_offset["offset_from"][axis]
         frame_from = ReferenceFrame(XZY, data.angs90, offset=data.offset)
         frame_to = ReferenceFrame(ZYX, data.angs90)
         vector_to = frame_to.rotate_to(frame_from, test_vector)
@@ -309,7 +324,7 @@ def test_refframe_rotate_between(data: TestData) -> None:
         assert vector_to == answer
 
     for axis, test_vector in zip(data.axes, data.vectors):
-        answer = rotate_from_XZY_to_ZYX["offset_both"][axis]
+        answer = rotate_from_XZY_to_ZYX_offset["offset_both"][axis]
         frame_from = ReferenceFrame(XZY, data.angs90, offset=data.offset)
         frame_to = ReferenceFrame(ZYX, data.angs90, offset=data.offset)
         vector_to = frame_to.rotate_to(frame_from, test_vector)
@@ -319,7 +334,7 @@ def test_refframe_rotate_between(data: TestData) -> None:
 
     # extrinsic from (not we must use 'YZX' as from order)
     for axis, test_vector in zip(data.axes, data.vectors):
-        answer = rotate_from_XZY_to_ZYX["offset_to"][axis]
+        answer = rotate_from_XZY_to_ZYX_offset["offset_to"][axis]
         frame_from = ReferenceFrame(YZX, data.angs90, intrinsic=False)
         frame_to = ReferenceFrame(ZYX, data.angs90, offset=data.offset)
         vector_to = frame_to.rotate_to(frame_from, test_vector)
@@ -328,7 +343,7 @@ def test_refframe_rotate_between(data: TestData) -> None:
         assert vector_to == answer
 
     for axis, test_vector in zip(data.axes, data.vectors):
-        answer = rotate_from_XZY_to_ZYX["offset_from"][axis]
+        answer = rotate_from_XZY_to_ZYX_offset["offset_from"][axis]
         frame_from = ReferenceFrame(YZX, data.angs90, offset=data.offset,
                                     intrinsic=False)
         frame_to = ReferenceFrame(ZYX, data.angs90)
@@ -338,7 +353,7 @@ def test_refframe_rotate_between(data: TestData) -> None:
         assert vector_to == answer
 
     for axis, test_vector in zip(data.axes, data.vectors):
-        answer = rotate_from_XZY_to_ZYX["offset_both"][axis]
+        answer = rotate_from_XZY_to_ZYX_offset["offset_both"][axis]
         frame_from = ReferenceFrame(YZX, data.angs90, offset=data.offset,
                                     intrinsic=False)
         frame_to = ReferenceFrame(ZYX, data.angs90, offset=data.offset)
@@ -349,7 +364,7 @@ def test_refframe_rotate_between(data: TestData) -> None:
 
     # extrinsic to (note we must use 'XYZ' as to order)
     for axis, test_vector in zip(data.axes, data.vectors):
-        answer = rotate_from_XZY_to_ZYX["offset_to"][axis]
+        answer = rotate_from_XZY_to_ZYX_offset["offset_to"][axis]
         frame_from = ReferenceFrame(XZY, data.angs90)
         frame_to = ReferenceFrame(XYZ, data.angs90, offset=data.offset,
                                   intrinsic=False)
@@ -359,7 +374,7 @@ def test_refframe_rotate_between(data: TestData) -> None:
         assert vector_to == answer
 
     for axis, test_vector in zip(data.axes, data.vectors):
-        answer = rotate_from_XZY_to_ZYX["offset_from"][axis]
+        answer = rotate_from_XZY_to_ZYX_offset["offset_from"][axis]
         frame_from = ReferenceFrame(XZY, data.angs90, offset=data.offset)
         frame_to = ReferenceFrame(XYZ, data.angs90, intrinsic=False)
         vector_to = frame_to.rotate_to(frame_from, test_vector)
@@ -368,7 +383,7 @@ def test_refframe_rotate_between(data: TestData) -> None:
         assert vector_to == answer
 
     for axis, test_vector in zip(data.axes, data.vectors):
-        answer = rotate_from_XZY_to_ZYX["offset_both"][axis]
+        answer = rotate_from_XZY_to_ZYX_offset["offset_both"][axis]
         frame_from = ReferenceFrame(XZY, data.angs90, offset=data.offset)
         frame_to = ReferenceFrame(XYZ, data.angs90, offset=data.offset,
                                   intrinsic=False)
@@ -379,7 +394,7 @@ def test_refframe_rotate_between(data: TestData) -> None:
 
     # both extrinsic (note we use YZX -> XYZ)
     for axis, test_vector in zip(data.axes, data.vectors):
-        answer = rotate_from_XZY_to_ZYX["offset_to"][axis]
+        answer = rotate_from_XZY_to_ZYX_offset["offset_to"][axis]
         frame_from = ReferenceFrame(YZX, data.angs90, intrinsic=False)
         frame_to = ReferenceFrame(XYZ, data.angs90, offset=data.offset,
                                   intrinsic=False)
@@ -389,7 +404,7 @@ def test_refframe_rotate_between(data: TestData) -> None:
         assert vector_to == answer
 
     for axis, test_vector in zip(data.axes, data.vectors):
-        answer = rotate_from_XZY_to_ZYX["offset_from"][axis]
+        answer = rotate_from_XZY_to_ZYX_offset["offset_from"][axis]
         frame_from = ReferenceFrame(YZX, data.angs90, offset=data.offset,
                                     intrinsic=False)
         frame_to = ReferenceFrame(XYZ, data.angs90, intrinsic=False)
@@ -399,7 +414,7 @@ def test_refframe_rotate_between(data: TestData) -> None:
         assert vector_to == answer
 
     for axis, test_vector in zip(data.axes, data.vectors):
-        answer = rotate_from_XZY_to_ZYX["offset_both"][axis]
+        answer = rotate_from_XZY_to_ZYX_offset["offset_both"][axis]
         frame_from = ReferenceFrame(YZX, data.angs90, offset=data.offset,
                                     intrinsic=False)
         frame_to = ReferenceFrame(XYZ, data.angs90, offset=data.offset,

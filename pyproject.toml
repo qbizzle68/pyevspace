@@ -8,22 +8,37 @@ version = "0.15.0"
 authors = [
     { name="Quinton Barnes", email="devqbizzle68@gmail.com" }
 ]
-description = "A Python 3-dimensional Euclidean vector space."
+description = "A Python 3-dimensional Euclidean vector space library."
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.7"
+requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Scientific/Engineering :: Mathematics",
     "Topic :: Scientific/Engineering :: Physics",
     "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "flake8",
+    "flake8-pyproject",
+]
+docs = [
+    "sphinx",
+]
+dev = [
+    "matplotlib",
+    "numpy",
 ]
 
 [project.urls]
@@ -39,4 +54,20 @@ include-dirs = [
 ]
 sources = [
     "src/pyevspace/pyevspacemodule.cpp",
+]
+
+[tool.flake8]
+exclude = [
+    ".git",
+    ".github",
+    "__pycache__",
+    "build",
+    ".venv",
+    ".tox",
+    "docs",
+]
+
+[tool.pytest.ini_options]
+testpaths= [
+    "src/tests",
 ]
