@@ -29,3 +29,14 @@ classifiers = [
 [project.urls]
 "Homepage" = "https://github.com/qbizzle68/pyevspace"
 "Bug Tracker" = "https://github.com/qbizzle68/pyevspace/issues"
+
+[[tool.setuptools.ext-modules]]
+name = "pyevspace._pyevspace"
+include-dirs = [
+    "include",
+    "cpp/evspace/include",
+    "cpp/evspace/external",
+]
+sources = [
+    "src/pyevspace/pyevspacemodule.cpp",
+]
