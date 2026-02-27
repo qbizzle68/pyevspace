@@ -3,7 +3,7 @@
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
-#if PY_VERSION_HEX < 0x030a0000
+#if PY_VERSION_HEX < 0x030c0000
 #   include <structmember.h>
 #endif
 

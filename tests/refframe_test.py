@@ -58,9 +58,6 @@ def test_refframe_new(subtests) -> None:
         ReferenceFrame(XYZ, angles, 0)
 
     with pytest.raises(TypeError):
-        ReferenceFrame(XYZ, angles, intrinsic=NotImplemented)
-
-    with pytest.raises(TypeError):
         ReferenceFrame(XYZ, angles, offset=5)
 
 

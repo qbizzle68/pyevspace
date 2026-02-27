@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -55,6 +55,7 @@ include-dirs = [
 sources = [
     "src/pyevspace/pyevspacemodule.cpp",
 ]
+extra-compile-args = ["-std=c++17"]
 
 [tool.flake8]
 exclude = [
@@ -62,12 +63,12 @@ exclude = [
     ".github",
     "__pycache__",
     "build",
-    ".venv",
+    ".venv*",
     ".tox",
     "docs",
 ]
 
 [tool.pytest.ini_options]
 testpaths= [
-    "src/tests",
+    "tests",
 ]

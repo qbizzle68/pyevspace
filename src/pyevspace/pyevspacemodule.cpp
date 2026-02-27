@@ -1,6 +1,6 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
-#if PY_VERSION_HEX < 0x030a0000
+#if PY_VERSION_HEX < 0x030c0000
 #   include <structmember.h>
 #endif
 
@@ -143,8 +143,12 @@ EVSpaceIterable_GetItems(PyObject* obj, std::array<PyObject*, 3>& items)
         return -1;
     }
 
+#if PY_VERSION_HEX >= 0x030e0000
     int result;
     while ((result = PyIter_NextItem(iterator, &item)) > 0)
+#else
+    while ((item = PyIter_Next(iterator)))
+#endif
     {
         if (count > 2)
         {
@@ -161,7 +165,13 @@ EVSpaceIterable_GetItems(PyObject* obj, std::array<PyObject*, 3>& items)
 
         tmp[count++] = item;
     }
-    if (result == -1) {
+
+#if PY_VERSION_HEX >= 0x030e0000
+    if (result == -1)
+#else
+    if (PyErr_Occurred())
+#endif
+    {
         Py_XDECREF(tmp[0]);
         Py_XDECREF(tmp[1]);
         Py_XDECREF(tmp[2]);
@@ -1861,14 +1871,21 @@ _EVSpaceMatrix_GetBuffer(EVSpace_Matrix* obj, Py_buffer* view)
 static PyObject*
 Matrix_map_subscript(EVSpace_Matrix* self, PyObject* indices)
 {
+#if PY_VERSION_HEX >= 0x030d0000
     int index0, index1, result;
+#else
+    long index0, index1, result;
+#endif
     PyObject* key0, *key1, *slice0, *slice1;
     Py_ssize_t start0, stop0, step0, slicelength0, start1, stop1, step1, slicelength1;
     EVSpace_MatrixView* matrix_view;
 
+    // todo: the index lookups should rely on __index__ to behave properly
     if (PyLong_Check(indices))
     {
-        start0 = PyLong_AsInt(indices);
+        // fixme:
+        // start0 = PyLong_AsInt(indices);
+        start0 = static_cast<int>(PyLong_AsLong(indices));
         if (start0 == -1 && PyErr_Occurred()) {
             return NULL;
         }
@@ -1909,7 +1926,9 @@ Matrix_map_subscript(EVSpace_Matrix* self, PyObject* indices)
 
         if (PyLong_Check(key0))
         {
-            index0 = PyLong_AsInt(key0);
+            // fixme: this doesn't check overflow
+            // index0 = PyLong_AsInt(key0);
+            index0 = static_cast<int>(PyLong_AsLong(key0));
             if (index0 == -1 && PyErr_Occurred()) {
                 return NULL;
             }
@@ -1927,7 +1946,9 @@ Matrix_map_subscript(EVSpace_Matrix* self, PyObject* indices)
             // (int, int)
             if (PyLong_Check(key1))
             {
-                index1 = PyLong_AsInt(key1);
+                // fixme: this doesn't check overflow
+                // index1 = PyLong_AsInt(key1);
+                index1 = static_cast<int>(PyLong_AsLong(key1));
                 if (index0 == -1 && PyErr_Occurred()) {
                     return NULL;
                 }
@@ -1978,7 +1999,9 @@ Matrix_map_subscript(EVSpace_Matrix* self, PyObject* indices)
             // (slice, int)
             if (PyLong_Check(key1))
             {
-                index1 = PyLong_AsInt(key1);
+                // fixme: 
+                // index1 = PyLong_AsInt(key1);
+                index1 = static_cast<int>(PyLong_AsLong(key1));
                 if (index1 == -1 && PyErr_Occurred()) {
                     return NULL;
                 }
@@ -2028,6 +2051,7 @@ Matrix_map_assignment(EVSpace_Matrix* self, PyObject* indices, PyObject* rhs)
     double value;
 
     // If indices is (int, int) we don't want a memoryview
+    // fixme: use a format type that will call __index__
     if (PyArg_ParseTuple(indices, "nn:pyevspace.Matrix.__setitem__", &index0, &index1))
     {
         value = PyFloat_AsDouble(rhs);
@@ -2493,7 +2517,6 @@ Angles_get_item(const EVSpace_Angles* self, Py_ssize_t index)
 static int
 Angles_set_item(EVSpace_Angles* self, Py_ssize_t index, PyObject* arg)
 {
-    EVSpace_ReferenceFrame* master = NULL;
     double value;
 
     if (!EVSpaceObject_AsDouble(arg, value)) {
@@ -3823,7 +3846,7 @@ __EVSpaceRotate_CheckKeywordException(void)
             return NULL;
         }
 
-        keyword_error = (error_mesage != NULL &&
+        keyword_error = (error_message != NULL &&
                          strstr(error_message, error_template));
         Py_DECREF(str_obj);
 #else
@@ -3975,7 +3998,7 @@ _EVSpaceRotate_ProcessArgs(PyObject* args, PyObject* kwargs, evspace::Matrix** m
 
     PyObject* offset = Py_None;
     evspace::Matrix* matrix_tmp;
-    evspace::Vector* vector_tmp;
+    // evspace::Vector* vector_tmp;
     EVSpace_Matrix* matrix_wrapper;
     EVSpace_Vector* vector_wrapper, *vector_axis;
     EVSpace_Order* order;
@@ -4410,7 +4433,7 @@ struct _EVSpaceOrder_InitDelegate<evspace::RotationOrder<first, second, third>> 
                                                              second::direction,
                                                              third::direction));
         
-#if PY_VERSION_HEX >= 0x030c0000
+#if PY_VERSION_HEX >= 0x030d0000
         if (PyModule_Add(module, name, order) < 0) {
             return -1;
         }
