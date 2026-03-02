@@ -9,6 +9,7 @@ from pyevspace import (
     Vector, Matrix, vector_dot, vector_cross, vector_angle, vector_exclude,
     vector_proj
 )
+from .common import DummyIndex
 
 
 def advance_ulps(x: float, n: int, direction: float) -> float:
@@ -352,6 +353,18 @@ def test_vector_sequence(vector_values: VectorValues) -> None:
 
     with pytest.raises(TypeError):
         vector_values.v111[0] = 'a'
+
+    # __index__() support
+    idx = DummyIndex(0)
+    assert vector_values.v123[idx] == 1
+    idx.value = -1
+    assert vector_values.v123[idx] == 3
+    idx.value = 3
+    with pytest.raises(IndexError):
+        vector_values.v123[idx]
+    idx.value = -4
+    with pytest.raises(IndexError):
+        vector_values.v123[idx]
 
 
 def test_vector_compare_ulp(vector_values: VectorValues) -> None:

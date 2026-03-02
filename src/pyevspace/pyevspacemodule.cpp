@@ -1868,41 +1868,69 @@ _EVSpaceMatrix_GetBuffer(EVSpace_Matrix* obj, Py_buffer* view)
     return 0;
 }
 
+// Converts `obj` to an index value using __index__() if necessary. If an exception
+// that should be propagated (any exception other than PyExc_TypeError) is encountered
+// return -1. If a PyExc_TypeError is encountered return 0 with the exception state
+// cleared, otherwise fill `index` with the converted value and return 1.
+static int
+_EVSpace_AsIndex(PyObject* obj, Py_ssize_t* index)
+{
+    Py_ssize_t tmp_index, stop;
+    PyObject* as_index = PyNumber_Index(obj);
+
+    if (!as_index) {
+        PyErr_Clear();
+        return 0;
+    }
+
+    tmp_index = PyLong_AsSsize_t(as_index);
+    Py_DECREF(as_index);
+    if (tmp_index == -1 && PyErr_Occurred())
+    {
+        if (PyErr_ExceptionMatches(PyExc_TypeError)) {
+            PyErr_Clear();
+            return 0;
+        }
+        else {   
+            return -1;
+        }
+    }
+
+    stop = tmp_index + 1;
+    PySlice_AdjustIndices(3, &tmp_index, &stop, 1);
+    if (tmp_index == stop)
+    {
+        PyErr_Format(PyExc_IndexError, "index %i out of bounds, must be in [0-2]", tmp_index);
+        return -1;
+    }
+
+    *index = tmp_index;
+    return 1;
+}
+
 static PyObject*
 Matrix_map_subscript(EVSpace_Matrix* self, PyObject* indices)
 {
-#if PY_VERSION_HEX >= 0x030d0000
-    int index0, index1, result;
-#else
-    long index0, index1, result;
-#endif
+    Py_ssize_t index0, index1, result;
     PyObject* key0, *key1, *slice0, *slice1;
     Py_ssize_t start0, stop0, step0, slicelength0, start1, stop1, step1, slicelength1;
     EVSpace_MatrixView* matrix_view;
 
-    // todo: the index lookups should rely on __index__ to behave properly
-    if (PyLong_Check(indices))
+    // fixme: I think I way overthought this... PyArg_ParseTuple() might default int types
+    // to call __index__ which may be able to simplify the logic here
+
+    // single arg that supports __index__()
+    switch (_EVSpace_AsIndex(indices, &start0))
     {
-        // fixme:
-        // start0 = PyLong_AsInt(indices);
-        start0 = static_cast<int>(PyLong_AsLong(indices));
-        if (start0 == -1 && PyErr_Occurred()) {
-            return NULL;
-        }
-
-        stop0 = start0 + 1;
-        step0 = 1;
-        PySlice_AdjustIndices(3, &start0, &stop0, step0);
-        // todo: do we raise an error here or just return the empty view like below?
-        if (start0 == stop0) {
-            PyErr_Format(PyExc_IndexError, "index %i out of bounds, must "
-                                           "be between [0-2]", start0);
-            return NULL;
-        }
-
-        matrix_view = EVSpaceMatrixView_New(self, 1, 3 * start0, 3, -1, sizeof(double), -1);
+        case -1: return NULL;
+        case 0: break;
+        case 1:
+            matrix_view = EVSpaceMatrixView_New(self, 1, 3 * start0, 3, -1, sizeof(double), -1);
+            return PyMemoryView_FromObject(EVS_PyObject_Cast(matrix_view));
     }
-    else if (PySlice_Check(indices))
+
+    // single arg as slice type
+    if (PySlice_Check(indices))
     {
         if (PySlice_GetIndicesEx(indices, 3, &start0, &stop0, &step0, &slicelength0) < 0) {
             return NULL;
@@ -1916,76 +1944,19 @@ Matrix_map_subscript(EVSpace_Matrix* self, PyObject* indices)
             matrix_view = EVSpaceMatrixView_New(self, 2, 3 * start0, slicelength0, 3,
                                                 3 * step0 * sizeof(double), sizeof(double));
         }
+        return PyMemoryView_FromObject(EVS_PyObject_Cast(matrix_view));
     }
-    else if (PyTuple_Check(indices))
+
+    // multiple args as tuple
+    if (PyTuple_Check(indices))
     {
         // possible combination is (int, int), (int, slice), (slice, int), (slice, slice)
         if (PyArg_ParseTuple(indices, "OO:pyevspace.Matrix.__getitem__", &key0, &key1) < 0) {
             return NULL;
         }
 
-        if (PyLong_Check(key0))
-        {
-            // fixme: this doesn't check overflow
-            // index0 = PyLong_AsInt(key0);
-            index0 = static_cast<int>(PyLong_AsLong(key0));
-            if (index0 == -1 && PyErr_Occurred()) {
-                return NULL;
-            }
-
-            start0 = index0;
-            stop0 = start0 + 1;
-            PySlice_AdjustIndices(3, &start0, &stop0, 1);
-            // I think we can rely on start0 != stop0 signaling valid index
-            if (start0 == stop0) {
-                PyErr_Format(PyExc_IndexError, "first index (got %i) out of range",
-                                index0);
-                return NULL;
-            }
-
-            // (int, int)
-            if (PyLong_Check(key1))
-            {
-                // fixme: this doesn't check overflow
-                // index1 = PyLong_AsInt(key1);
-                index1 = static_cast<int>(PyLong_AsLong(key1));
-                if (index0 == -1 && PyErr_Occurred()) {
-                    return NULL;
-                }
-
-                start1 = index1;
-                stop1 = index1 + 1;
-                PySlice_AdjustIndices(3, &start1, &stop1, 1);
-
-                if (start1 == stop1) {
-                    PyErr_Format(PyExc_IndexError, "second index (got %i) out of range",
-                                 index1);
-                    return NULL;
-                }
-
-                return PyFloat_FromDouble(EVSpaceMatrix_MATRIX(self)(start0, start1));
-            }
-            // (int, slice)
-            else if (PySlice_Check(key1))
-            {
-                if (PySlice_GetIndicesEx(key1, 3, &start1, &stop1, &step1, &slicelength1) < 0) {
-                    return NULL;
-                }
-
-                if (start1 == stop1) {
-                    matrix_view = EVSpaceMatrixView_New(self, 1, 0, 0, -1,
-                                                        sizeof(double), -1);
-                }
-                else {
-                    matrix_view = EVSpaceMatrixView_New(self, 1, 3 * index0 + start1, slicelength1,
-                                                        -1, step1 * sizeof(double), -1);
-                }
-            }
-            else {
-                PyErr_SetString(PyExc_TypeError, "second index must be int or slice type");
-            }
-        }
-        else if (PySlice_Check(key0))
+        // (slice, ...)
+        if (PySlice_Check(key0))
         {
             if (PySlice_GetIndicesEx(key0, 3, &start0, &stop0, &step0, &slicelength0) < 0) {
                 return NULL;
@@ -1995,22 +1966,9 @@ Matrix_map_subscript(EVSpace_Matrix* self, PyObject* indices)
                 matrix_view = EVSpaceMatrixView_New(self, 1, 0, 0, -1, sizeof(double), -1);
                 return PyMemoryView_FromObject(EVS_PyObject_Cast(matrix_view));
             }
-            
-            // (slice, int)
-            if (PyLong_Check(key1))
-            {
-                // fixme: 
-                // index1 = PyLong_AsInt(key1);
-                index1 = static_cast<int>(PyLong_AsLong(key1));
-                if (index1 == -1 && PyErr_Occurred()) {
-                    return NULL;
-                }
-                
-                matrix_view = EVSpaceMatrixView_New(self, 1, 3 * start0 + index1, slicelength0,
-                                                        -1, 3 * step0 * sizeof(double), -1);
-            }
+
             // (slice, slice)
-            else if (PySlice_Check(key1))
+            if (PySlice_Check(key1))
             {
                 if (PySlice_GetIndicesEx(key1, 3, &start1, &stop1, &step1, &slicelength1) < 0) {
                     return NULL;
@@ -2024,23 +1982,65 @@ Matrix_map_subscript(EVSpace_Matrix* self, PyObject* indices)
                                                         slicelength1, 3 * step0 * sizeof(double),
                                                         step1 * sizeof(double));
                 }
+                return PyMemoryView_FromObject(EVS_PyObject_Cast(matrix_view));
             }
-            else {
-                PyErr_SetString(PyExc_TypeError, "second index must be int or slice type");
+            // (slice, int)
+            switch (_EVSpace_AsIndex(key1, &index1))
+            {
+                case -1: return NULL;
+                case 0: 
+                    PyErr_SetString(PyExc_TypeError, "second index must be int or slice type");
+                    return NULL;
+                case 1:
+                    matrix_view = EVSpaceMatrixView_New(self, 1, 3 * start0 + index1, slicelength0,
+                                                        -1, 3 * step0 * sizeof(double), -1);
+                    return PyMemoryView_FromObject(EVS_PyObject_Cast(matrix_view));
+            }
+        }
+
+        // (int, ...)
+        switch (_EVSpace_AsIndex(key0, &index0))
+        {
+            case -1: return NULL;
+            case 0: 
+                PyErr_SetString(PyExc_TypeError, "first index must be int or slice type");
+                return NULL;
+            case 1: break;
+        }
+
+        // (int, slice)
+        if (PySlice_Check(key1))
+        {
+            if (PySlice_GetIndicesEx(key1, 3, &start1, &stop1, &step1, &slicelength1) < 0) {
                 return NULL;
             }
+
+            if (start1 == stop1) {
+                matrix_view = EVSpaceMatrixView_New(self, 1, 0, 0, -1,
+                                                    sizeof(double), -1);
+            }
+            else {
+                matrix_view = EVSpaceMatrixView_New(self, 1, 3 * index0 + start1, slicelength1,
+                                                    -1, step1 * sizeof(double), -1);
+            }
+            return PyMemoryView_FromObject(EVS_PyObject_Cast(matrix_view));
         }
-        else {
-            PyErr_SetString(PyExc_TypeError, "first index must be int or slice type");
-            return NULL;
+
+        // (int, int)
+        switch (_EVSpace_AsIndex(key1, &index1))
+        {
+            case -1: return NULL;
+            case 0:
+                PyErr_SetString(PyExc_TypeError, "second index must be int or slice type");
+                return NULL;
+            case 1: return PyFloat_FromDouble(EVSpaceMatrix_MATRIX(self)(index0, index1));
         }
     }
-    else {
-        PyErr_SetString(PyExc_TypeError, "first index must be int or slice type");
+    else
+    {
+        PyErr_SetString(PyExc_TypeError, "index must be int or slice type");
         return NULL;
     }
-
-    return PyMemoryView_FromObject(EVS_PyObject_Cast(matrix_view));
 }
 
 static int
@@ -2051,7 +2051,6 @@ Matrix_map_assignment(EVSpace_Matrix* self, PyObject* indices, PyObject* rhs)
     double value;
 
     // If indices is (int, int) we don't want a memoryview
-    // fixme: use a format type that will call __index__
     if (PyArg_ParseTuple(indices, "nn:pyevspace.Matrix.__setitem__", &index0, &index1))
     {
         value = PyFloat_AsDouble(rhs);

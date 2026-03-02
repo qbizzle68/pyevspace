@@ -4,6 +4,7 @@ import pickle
 import pytest
 
 from pyevspace import RotationOrder, XYZ, YZX, ZXZ, X_AXIS, Y_AXIS, Z_AXIS
+from .common import DummyIndex
 
 
 def test_order_new():
@@ -66,6 +67,18 @@ def test_order_get_set():
 
     with pytest.raises(TypeError):
         XYZ[0] = 1
+
+    # __index__() support
+    idx = DummyIndex(0)
+    assert XYZ[idx] == 0
+    idx.value = -1
+    assert XYZ[idx] == 2
+    idx.value = 3
+    with pytest.raises(IndexError):
+        XYZ[idx]
+    idx.value = -4
+    with pytest.raises(IndexError):
+        XYZ[idx]
 
 
 def test_order_compare():

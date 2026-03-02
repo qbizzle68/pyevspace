@@ -4,6 +4,7 @@ import pickle
 import pytest
 
 from pyevspace import EulerAngles
+from .common import DummyIndex
 
 
 @pytest.fixture
@@ -57,6 +58,18 @@ def test_angles_get(angles):
 
     with pytest.raises(TypeError):
         angles['a']
+
+    # __index__() support
+    idx = DummyIndex(0)
+    assert angles[idx] == 1
+    idx.value = -1
+    assert angles[idx] == 3
+    idx.value = 3
+    with pytest.raises(IndexError):
+        angles[idx]
+    idx.value = -4
+    with pytest.raises(IndexError):
+        angles[idx]
 
 
 def test_angles_set(angles):

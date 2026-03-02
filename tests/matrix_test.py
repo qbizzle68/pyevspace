@@ -5,6 +5,7 @@ import math
 import pytest
 
 from pyevspace import Matrix, Vector
+from .common import DummyIndex
 
 
 def advance_ulps(x: float, n: int, direction: float) -> float:
@@ -302,6 +303,30 @@ def test_matrix_get(matrix_values: MatrixValues) -> None:
     assert view.shape == (0,)
     assert view.format == 'd'
     assert view.tolist() == []
+
+    # __index__ support
+    idx = DummyIndex(0)
+    assert matrix_values.m123[idx].tolist() == [1, 2, 3]
+    idx.value = -1
+    assert matrix_values.m123[idx].tolist() == [7, 8, 9]
+    idx.value = 3
+    with pytest.raises(IndexError):
+        matrix_values.m123[idx]
+    idx.value = -4
+    with pytest.raises(IndexError):
+        matrix_values.m123[idx]
+
+    idx.value = 0
+    assert matrix_values.m123[idx, idx] == 1.0
+    assert matrix_values.m123[idx, 0:1].tolist() == [1.0]
+    assert matrix_values.m123[0:1, idx].tolist() == [1.0]
+
+    # overflow errors
+    idx.value = 1 << 65
+    with pytest.raises(OverflowError):
+        matrix_values.m123[idx]
+    with pytest.raises(OverflowError):
+        matrix_values.m123[1 << 65]
 
 
 def test_matrix_set() -> None:
