@@ -2827,7 +2827,7 @@ EVSpaceReferenceFrame_UpdateMatrix(EVSpace_ReferenceFrame* frame)
 
 static EVSpace_ReferenceFrame*
 _EVSpaceReferenceFrame_New(evspace::AxisDirection first, evspace::AxisDirection second,
-                           evspace::AxisDirection third, evspace::EulerAngles* angles,
+                           evspace::AxisDirection third, const evspace::EulerAngles& angles,
                            PyObject* offset, bool intrinsic, PyTypeObject* type)
 {
     EVSpace_ReferenceFrame* self = (EVSpace_ReferenceFrame*)(type->tp_alloc(type, 0));
@@ -2839,9 +2839,9 @@ _EVSpaceReferenceFrame_New(evspace::AxisDirection first, evspace::AxisDirection 
     self->second = second;
     self->third = third;
 
-    self->angles[0] = (*angles)[0];
-    self->angles[1] = (*angles)[1];
-    self->angles[2] = (*angles)[2];
+    self->angles[0] = (angles)[0];
+    self->angles[1] = (angles)[1];
+    self->angles[2] = (angles)[2];
 
     self->intrinsic = intrinsic;
 
@@ -2889,7 +2889,7 @@ _EVSpaceReferenceFrame_New(evspace::AxisDirection first, evspace::AxisDirection 
 
 static EVSpace_ReferenceFrame*
 EVSpaceReferenceFrame_New(evspace::AxisDirection first, evspace::AxisDirection second,
-                          evspace::AxisDirection third, evspace::EulerAngles* angles,
+                          evspace::AxisDirection third, const evspace::EulerAngles& angles,
                           PyObject* offset, bool intrinsic)
 {
     // offset should be NULL to represent no offset value i.e. offset should by Py_None
@@ -2931,7 +2931,7 @@ ReferenceFrame_New(PyTypeObject* type, PyObject* args, PyObject* kwargs)
 
     return reinterpret_cast<PyObject*>(
         EVSpaceReferenceFrame_New(order->first, order->second, order->third,
-                                  angles->angles, offset, static_cast<bool>(intrinsic))
+                                  *angles->angles, offset, static_cast<bool>(intrinsic))
     );
 }
 
