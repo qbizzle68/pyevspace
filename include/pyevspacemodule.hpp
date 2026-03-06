@@ -77,10 +77,4 @@ typedef struct {
 #define EVSpaceVector_Cast(o)           reinterpret_cast<EVSpace_Vector*>(o)
 #define EVSpaceMatrix_Cast(o)           reinterpret_cast<EVSpace_Matrix*>(o)
 
-// todo: add capsule api 
-
-typedef struct {
-
-} EVSpace_CAPI;
-
 #endif // _PYEVSPACEMODULE_H_

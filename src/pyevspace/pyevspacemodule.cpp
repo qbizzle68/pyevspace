@@ -5,6 +5,8 @@
 #endif
 
 #include <pyevspacemodule.hpp>
+#define _EVS_PYEVSPACE_IMPL
+#include <pyevspace-api.hpp>
 #include <cfloat>       // DBL_EPSILON
 #include <cstdint>      // int64_t
 #include <cstddef>      // offsetof
@@ -4374,6 +4376,322 @@ static PyModuleDef EVSpace_Module = {
     evspace_methods     // m_methods
 };
 
+// Capsule functions
+
+static int EVSpaceVector_GetState(PyObject* obj, double arr[3])
+{
+    EVSpace_Vector* vector;
+    double* state;
+
+    if (!EVSpaceVector_Check(obj))
+    {
+        PyErr_Format(PyExc_TypeError,
+                     "cannot interpret %s as Vector type",
+                     __EVSpace_GetTypeName(obj));
+        return -1;
+    }
+
+    vector = reinterpret_cast<EVSpace_Vector*>(obj);
+    state = EVSpaceVector_VECTOR(vector).data().data();
+    std::memcpy(arr, state, 3 * sizeof(double));
+
+    return 0;
+}
+
+static int EVSpaceMatrix_GetState(PyObject* obj, double arr[9])
+{
+    EVSpace_Matrix* matrix;
+    double* state;
+
+    if (!EVSpaceMatrix_Check(obj))
+    {
+        PyErr_Format(PyExc_TypeError,
+                     "cannot interpret %s as Matrix type",
+                     __EVSpace_GetTypeName(obj));
+        return -1;
+    }
+
+    matrix = reinterpret_cast<EVSpace_Matrix*>(obj);
+    state = EVSpaceMatrix_MATRIX(matrix).data().data();
+    std::memcpy(arr, state, 9 * sizeof(double));
+
+    return 0;
+}
+
+static int EVSpaceAngles_GetState(PyObject* obj, double arr[3])
+{
+    EVSpace_Angles* angles;
+
+    if (!EVSpaceAngles_Check(obj))
+    {
+        PyErr_Format(PyExc_TypeError,
+                     "cannot interpret %s as EulerAngles type",
+                     __EVSpace_GetTypeName(obj));
+        return -1;
+    }
+
+    angles = reinterpret_cast<EVSpace_Angles*>(obj);
+    arr[0] = EVSpaceAngles_ALPHA(angles);
+    arr[1] = EVSpaceAngles_BETA(angles);
+    arr[2] = EVSpaceAngles_GAMMA(angles);
+
+    return 0;
+}
+
+static int EVSpaceOrder_GetState(PyObject* obj, unsigned int arr[3])
+{
+    EVSpace_Order* order;
+
+    if (!EVSpaceOrder_Check(obj))
+    {
+        PyErr_Format(PyExc_TypeError,
+                     "cannot interpret %s as RotationOrder type",
+                     __EVSpace_GetTypeName(obj));
+        return -1;
+    }
+
+    order = reinterpret_cast<EVSpace_Order*>(obj);
+    arr[0] = static_cast<int>(order->first);
+    arr[1] = static_cast<int>(order->second);
+    arr[2] = static_cast<int>(order->third);
+
+    return 0;
+}
+
+static int EVSpaceFrame_GetState(PyObject* obj, unsigned int order[3], double angles[3],
+                                 double offset[3], int* intrinsic)
+{
+    EVSpace_ReferenceFrame* frame;
+    EVSpace_Vector* offset_vector;
+
+    if (!EVSpaceReferenceFrame_Check(obj))
+    {
+        PyErr_Format(PyExc_TypeError,
+                     "cannot interpret %s as ReferenceFrame type",
+                     __EVSpace_GetTypeName(obj));
+        return -1;
+    }
+
+    frame = reinterpret_cast<EVSpace_ReferenceFrame*>(obj);
+    order[0] = static_cast<int>(frame->first);
+    order[1] = static_cast<int>(frame->second);
+    order[2] = static_cast<int>(frame->third);
+    angles[0] = frame->angles[0];
+    angles[1] = frame->angles[1];
+    angles[2] = frame->angles[2];
+    
+#if PY_VERSION_HEX >= 0x030a0000
+    if (Py_IsNone(frame->offset))
+#else
+    if (frame->offset == Py_None)
+#endif
+    {
+        offset[0] = offset[1] = offset[2] = 0.0;
+    }
+    else {
+        offset_vector = reinterpret_cast<EVSpace_Vector*>(frame->offset);
+        std::memcpy(offset,
+                    EVSpaceVector_VECTOR(offset_vector).data().data(),
+                    3 * sizeof(double));
+    }
+
+    *intrinsic = static_cast<int>(frame->intrinsic);
+
+    return 0;
+}
+
+PyObject* EVSpaceVector_FromState(double x, double y, double z)
+{
+    EVSpace_Vector* vector = EVSpaceVector_New(std::move(evspace::Vector(x, y, z)));
+    return EVS_PyObject_Cast(vector);
+}
+
+PyObject* EVSpaceVector_FromStateArray(double arr[3])
+{
+    // todo: evspace::Vector should be able to take a evspace::span_t
+    evspace::Vector vector{arr[0], arr[1], arr[2]};
+    EVSpace_Vector* rtn = EVSpaceVector_New(std::move(vector));
+
+    return EVS_PyObject_Cast(rtn);
+}
+
+PyObject* EVSpaceMatrix_FromState(double arr[9])
+{
+    evspace::span_t<double> span(arr, 9);
+    evspace::Matrix matrix{span};
+    EVSpace_Matrix* rtn = EVSpaceMatrix_New(std::move(matrix));
+
+    return EVS_PyObject_Cast(rtn);
+}
+
+PyObject* EVSpaceAngles_FromState(double alpha, double beta, double gamma)
+{
+    EVSpace_Angles* angles = EVSpaceAngles_New(alpha, beta, gamma);
+
+    return EVS_PyObject_Cast(angles);
+}
+
+PyObject* EVSpaceAngles_FromStateArray(double arr[3])
+{
+    EVSpace_Angles* angles = EVSpaceAngles_New(arr[0], arr[1], arr[2]);
+
+    return EVS_PyObject_Cast(angles);
+}
+
+PyObject* EVSpaceOrder_FromState(unsigned int first, unsigned int second, unsigned int third)
+{
+    if (!(first >= 0 && first <= 2)) {
+        PyErr_Format(PyExc_ValueError, "first rotation order axis must be in [0-2], got %u",
+                     first);
+        return NULL;
+    }
+    if (!(second >= 0 && second <= 2)) {
+        PyErr_Format(PyExc_ValueError, "second rotation order axis must be in [0-2], got %u",
+                     second);
+        return NULL;
+    }
+    if (!(third >= 0 && third <= 2)) {
+        PyErr_Format(PyExc_ValueError, "third rotation order axis must be in [0-2], got %u",
+                     third);
+        return NULL;
+    }
+
+    EVSpace_Order* order = EVSpaceOrder_New(
+        static_cast<evspace::AxisDirection>(first),
+        static_cast<evspace::AxisDirection>(second),
+        static_cast<evspace::AxisDirection>(third)
+    );
+
+    return EVS_PyObject_Cast(order);
+}
+
+PyObject* EVSpaceOrder_FromStateArray(unsigned int arr[3])
+{
+    if (!(arr[0] >= 0 && arr[0] <= 2)) {
+        PyErr_Format(PyExc_ValueError, "first rotation order axis must be in [0-2], got %u",
+                     arr[0]);
+        return NULL;
+    }
+    if (!(arr[1] >= 0 && arr[1] <= 2)) {
+        PyErr_Format(PyExc_ValueError, "second rotation order axis must be in [0-2], got %u",
+                     arr[1]);
+        return NULL;
+    }
+    if (!(arr[2] >= 0 && arr[2] <= 2)) {
+        PyErr_Format(PyExc_ValueError, "third rotation order axis must be in [0-2], got %u",
+                     arr[2]);
+        return NULL;
+    }
+    EVSpace_Order* order = EVSpaceOrder_New(
+        static_cast<evspace::AxisDirection>(arr[0]),
+        static_cast<evspace::AxisDirection>(arr[1]),
+        static_cast<evspace::AxisDirection>(arr[2])
+    );
+
+    return EVS_PyObject_Cast(order);
+}
+
+PyObject* EVSpaceFrame_FromState(unsigned int first, unsigned int second, unsigned int third,
+                                 double alpha, double beta, double gamma, double* offset,
+                                 int intrinsic)
+{
+    evspace::EulerAngles angles{alpha, beta, gamma};
+    evspace::Vector tmp_offset;
+    EVSpace_Vector* offset_vector;
+    PyObject* offset_arg;
+    EVSpace_ReferenceFrame* frame;
+    
+    if (!(first >= 0 && first <= 2)) {
+        PyErr_Format(PyExc_ValueError, "first rotation order axis must be in [0-2], got %u",
+                     first);
+        return NULL;
+    }
+    if (!(second >= 0 && second <= 2)) {
+        PyErr_Format(PyExc_ValueError, "second rotation order axis must be in [0-2], got %u",
+                     second);
+        return NULL;
+    }
+    if (!(third >= 0 && third <= 2)) {
+        PyErr_Format(PyExc_ValueError, "third rotation order axis must be in [0-2], got %u",
+                     third);
+        return NULL;
+    }
+    
+    if (!offset) {
+#if PY_VERSION_HEX >= 0x030a0000
+        offset_arg = Py_NewRef(Py_None);
+#else
+        Py_INCREF(Py_None);
+        offset_arg = Py_None;
+#endif
+    }
+    else {
+        tmp_offset = evspace::Vector(offset[0], offset[1], offset[2]);
+        offset_vector = EVSpaceVector_New(std::move(tmp_offset));
+        if (!offset_vector) {
+            return NULL;
+        }
+        offset_arg = reinterpret_cast<PyObject*>(offset_vector);
+    }
+
+    frame = EVSpaceReferenceFrame_New(
+        static_cast<evspace::AxisDirection>(first),
+        static_cast<evspace::AxisDirection>(second),
+        static_cast<evspace::AxisDirection>(third),
+        angles, offset_arg, static_cast<bool>(intrinsic)
+    );
+}
+
+static PyObject*
+EVSpaceFrame_FromStateArray(unsigned int order[3], double angles[3], double* offset, int intrinsic)
+{
+    evspace::EulerAngles angles_arg{angles[0], angles[1], angles[2]};
+    evspace::Vector tmp_offset;
+    EVSpace_Vector* offset_vector;
+    PyObject* offset_arg;
+    EVSpace_ReferenceFrame* frame;
+    
+    if (!(order[0] >= 0 && order[0] <= 2)) {
+        PyErr_Format(PyExc_ValueError, "first rotation order axis must be in [0-2], got %u",
+                     order[0]);
+        return NULL;
+    }
+    if (!(order[1] >= 0 && order[1] <= 2)) {
+        PyErr_Format(PyExc_ValueError, "second rotation order axis must be in [0-2], got %u",
+                     order[1]);
+        return NULL;
+    }
+    if (!(order[2] >= 0 && order[2] <= 2)) {
+        PyErr_Format(PyExc_ValueError, "third rotation order axis must be in [0-2], got %u",
+                     order[2]);
+        return NULL;
+    }
+    
+    if (!offset) {
+#if PY_VERSION_HEX >= 0x030a0000
+        offset_arg = Py_NewRef(Py_None);
+#else
+        Py_INCREF(Py_None);
+        offset_arg = Py_None;
+#endif
+    }
+    else {
+        tmp_offset = evspace::Vector(offset[0], offset[1], offset[2]);
+        offset_vector = EVSpaceVector_New(std::move(tmp_offset));
+        if (!offset_vector) {
+            return NULL;
+        }
+        offset_arg = reinterpret_cast<PyObject*>(offset_vector);
+    }
+
+    frame = EVSpaceReferenceFrame_New(
+        static_cast<evspace::AxisDirection>(order[0]),
+        static_cast<evspace::AxisDirection>(order[1]),
+        static_cast<evspace::AxisDirection>(order[2]),
+        angles_arg, offset_arg, static_cast<bool>(intrinsic)
+    );
+}
+
 static PyObject*
 _initialize_vector_constants(PyObject* dict)
 {
@@ -4482,6 +4800,42 @@ _initialize_order_constants(PyObject* module)
     if (_EVSpaceOrder_AddToModule<evspace::ZYZ>(module, "ZYZ") < 0) { return module; }
 
     return module;
+}
+
+static inline EVSpace_CAPI*
+_create_evspace_api(void)
+{
+    EVSpace_CAPI* evspace_api = (EVSpace_CAPI*)malloc(sizeof(EVSpace_CAPI));
+    if (!evspace_api) {
+        PyErr_NoMemory();
+        return NULL;
+    }
+
+    evspace_api->version = PYEVSPACE_CAPSULE_VERSION;
+
+    evspace_api->Vector_Type = reinterpret_cast<PyTypeObject*>(&EVSpace_VectorType);
+    evspace_api->Matrix_Type = reinterpret_cast<PyTypeObject*>(&EVSpace_MatrixType);
+    evspace_api->EulerAngles_Type = reinterpret_cast<PyTypeObject*>(&EVSpace_AnglesType);
+    evspace_api->RotationOrder_Type = reinterpret_cast<PyTypeObject*>(&EVSpace_OrderType);
+    evspace_api->ReferenceFrame_Type = reinterpret_cast<PyTypeObject*>(&EVSpace_ReferenceFrameType);
+
+    evspace_api->EVSpaceVector_GetState = EVSpaceVector_GetState;
+    evspace_api->EVSpaceMatrix_GetState = EVSpaceMatrix_GetState;
+    evspace_api->EVSpaceAngles_GetState = EVSpaceAngles_GetState;
+    evspace_api->EVSpaceOrder_GetState = EVSpaceOrder_GetState;
+    evspace_api->EVSpaceFrame_GetState = EVSpaceFrame_GetState;
+
+    evspace_api->EVSpaceVector_FromState = EVSpaceVector_FromState;
+    evspace_api->EVSpaceVector_FromStateArray = EVSpaceVector_FromStateArray;
+    evspace_api->EVSpaceMatrix_FromState = EVSpaceMatrix_FromState;
+    evspace_api->EVSpaceAngles_FromState = EVSpaceAngles_FromState;
+    evspace_api->EVSpaceAngles_FromStateArray = EVSpaceAngles_FromStateArray;
+    evspace_api->EVSpaceOrder_FromState = EVSpaceOrder_FromState;
+    evspace_api->EVSpaceOrder_FromStateArray = EVSpaceOrder_FromStateArray;
+    evspace_api->EVSpaceFrame_FromState = EVSpaceFrame_FromState;
+    evspace_api->EVSpaceFrame_FromStateArray = EVSpaceFrame_FromStateArray;
+
+    return evspace_api;
 }
 
 static PyTypeObject* const EVSpace_Types[] = {
@@ -4654,6 +5008,32 @@ static int initialize_module(PyObject* module)
     if (!_initialize_order_constants(module)) {
         return -1;
     }
+
+    // Add capsule
+    EVSpace_CAPI* c_api = _create_evspace_api();
+    if (!c_api) {
+        free(c_api);
+        return -1;
+    }
+
+    PyObject* capsule = PyCapsule_New((void*)c_api, PYEVSPACE_CAPSULE_NAME, NULL);
+    if (!capsule) {
+        free(c_api);
+        return -1;
+    }
+    
+#if PY_VERSION_HEX >= 0x030d0000
+    if (PyModule_Add(module, "_C_API", capsule) < 0) {
+        free(c_api);
+        return -1;
+    }
+#else
+    if (PyModule_AddObject(module, "_C_API", capsule) < 0) {
+        Py_XDECREF(capsule);
+        free(c_api);
+        return -1;
+    }
+#endif
 
     return 0;
 }
