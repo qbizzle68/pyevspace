@@ -261,7 +261,7 @@ _EVSpaceVector_New(PyTypeObject* type) noexcept
 }
 
 static EVSpace_Vector*
-_EVSpaceVector_New(const varray_t array, PyTypeObject* type) noexcept
+_EVSpaceVector_New(const varray_t& array, PyTypeObject* type) noexcept
 {
     EXCEPTION_WRAPPER(
         EVSpace_Vector* self = EVSpaceVector_Cast(type->tp_alloc(type, 0));
@@ -312,7 +312,7 @@ EVSpaceVector_New() noexcept
 }
 
 static inline EVSpace_Vector*
-EVSpaceVector_New(const varray_t array) noexcept
+EVSpaceVector_New(const varray_t& array) noexcept
 {
     return _EVSpaceVector_New(array, &EVSpace_VectorType);
 }
@@ -1323,7 +1323,7 @@ _EVSpaceMatrix_New(PyTypeObject* type) noexcept
 }
 
 static EVSpace_Matrix*
-_EVSpaceMatrix_New(const marray_t array, PyTypeObject* type) noexcept
+_EVSpaceMatrix_New(const marray_t& array, PyTypeObject* type) noexcept
 {
     EVSpace_Matrix* self = EVSpaceMatrix_Cast(type->tp_alloc(type, 0));
     if (!self) {
@@ -1372,7 +1372,7 @@ EVSpaceMatrix_New() noexcept
 }
 
 static EVSpace_Matrix*
-EVSpaceMatrix_New(const marray_t array) noexcept
+EVSpaceMatrix_New(const marray_t& array) noexcept
 {
     return _EVSpaceMatrix_New(array, &EVSpace_MatrixType);
 }
