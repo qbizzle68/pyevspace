@@ -4,8 +4,9 @@ env_list = ["3.14", "3.13", "3.12", "3.11", "3.10", "lint"]
 description = "run the test suite with pytest"
 deps = [
     "pytest>=8",
+    "setuptools>=68",
 ]
-commands = [["pytest"]]
+commands = [["pytest", {replace = "posargs", extend = true}]]
 
 [env.lint]
 description = "run linters"
@@ -14,4 +15,4 @@ deps = [
     "flake8",
     "flake8-pyproject",
 ]
-commands = [["flake8"]]
+commands = [["flake8", {replace = "posargs", extend = true}]]
