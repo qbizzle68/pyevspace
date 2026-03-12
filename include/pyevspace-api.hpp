@@ -52,7 +52,7 @@ typedef struct
 static PyEVSpace_CAPI* PyEVSpace_API;
 
 static int
-import_pyevspace(void)
+PyEVSpace_ImportCapsule(void)
 {
     PyEVSpace_API = (PyEVSpace_CAPI*)(PyCapsule_Import(PYEVSPACE_CAPSULE_NAME, 0));
     return (PyEVSpace_API != NULL) ? 0: -1;

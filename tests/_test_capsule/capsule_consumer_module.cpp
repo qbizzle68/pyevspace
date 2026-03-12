@@ -670,7 +670,7 @@ PyInit_capsule_consumer_cpp(void)
 {
     PyObject* module = PyModule_Create(&Consumer_Module);
 
-    if (import_pyevspace() < 0) {
+    if (PyEVSpace_ImportCapsule() < 0) {
         Py_XDECREF(module);
         return NULL;
     }
