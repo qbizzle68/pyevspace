@@ -3357,8 +3357,8 @@ PyDoc_STRVAR(refframe_get_angles_doc, "get_angles() -> EulerAngles\n\
 \n\
 Get a new EulerAngles object representing the current values of the rotation angles.");
 
-PyDoc_STRVAR(refframe_set_angles_doc, "get_angles(angles: EulerAngles) -> None\n\
-get_angles(alpha: float = None, beta: float = None, gamma: float = None) -> None\n\
+PyDoc_STRVAR(refframe_set_angles_doc, "set_angles(angles: EulerAngles) -> None\n\
+set_angles(*, alpha: float = None, beta: float = None, gamma: float = None) -> None\n\
 \n\
 Update rotation angles and recompute internal rotation matrix.");
 
