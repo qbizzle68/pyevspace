@@ -90,8 +90,10 @@ PyEVSpace_ToVector(PyObject* obj, evspace::Vector& vector)
     return 0;
 }
 
+// todo: make these const references
+
 static inline PyObject*
-PyEVSpaceVector_ToObject(evspace::Vector vector)
+PyEVSpaceVector_ToObject(const evspace::Vector& vector)
 {
     double state[3];
     std::memcpy(state, vector.data().data(), 3 * sizeof(double));
@@ -113,7 +115,7 @@ PyEVSpace_ToMatrix(PyObject* obj, evspace::Matrix& matrix)
 }
 
 static inline PyObject*
-PyEVSpaceMatrix_ToObject(evspace::Matrix matrix)
+PyEVSpaceMatrix_ToObject(const evspace::Matrix& matrix)
 {
     double state[9];
     std::memcpy(state, matrix.data().data(), 3 * sizeof(double));
@@ -133,7 +135,7 @@ PyEVSpace_ToAngles(PyObject* obj, evspace::EulerAngles& angles)
 }
 
 static inline PyObject*
-PyEVSpaceAngles_ToObject(evspace::EulerAngles angles)
+PyEVSpaceAngles_ToObject(const evspace::EulerAngles& angles)
 {
     double tmp[3]{angles[0], angles[1], angles[2]};
     return PyEVSpace_API->PyEVSpaceAngles_FromState(tmp);
