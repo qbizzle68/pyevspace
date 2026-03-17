@@ -1,10 +1,13 @@
 PyEVSpace User Guide
 ====================
 
+This guide gives a general overview of what the library is and how to use it.
+
 .. toctree::
 	:maxdepth: 1
 
 	What is PyEVSpace? <desc>
-	Installing PyEVSpace <install>
-	Usage <usage>
-	Working examples <examples>
+	Install <install>
+	Basic Usage <usage>
+
+.. Advanced Usage

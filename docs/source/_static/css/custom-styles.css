@@ -1,0 +1,32 @@
+:root {
+    --custom-green-accent: #abe338;
+}
+
+/* Accent C function signatures
+    .kt - keyword types
+    .p - symbols in signatures (*, [, ])
+*/
+.sig.c > :is(.kt, .p) > .pre {
+    color: var(--custom-green-accent);
+}
+
+/* Accent C++ function signatures
+    .kt - keyword types
+    .p - symbols in signatures (*, &, [, ])
+    .n:not(.sig-param) - return types that are not build-ins e.g. PyObject
+*/
+.sig.cpp > :is(.kt, .p, .n:not(.sig-param)) > .pre {
+    color: var(--custom-green-accent)
+}
+
+/* Accent Python signatures
+    .n ~ .n - names that are not the first in a .sig-param (annotation, not name)
+*/
+.sig.py > .sig-param > .n ~ .n > .pre {
+    color: var(--custom-green-accent);
+}
+
+/* I really like the color, but coloring these elements seems too much
+/* .sig.py > .property > .k > .pre {
+    color: #00ccff
+} */

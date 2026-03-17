@@ -2,10 +2,67 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.15.0] - 2026-03-16
+
+### Added
+
+- `Vector.E1`, `Vector.E2`, and `Vector.E3` are now the elementary vector attribute names.
+- `Matrix.IDENTITY` is the identity matrix attribute name.
+- `EulerAngles` type name which replaces the `Angles` type.
+- `vector_angle()`, `vector_cross()`, `vector_dot()`, `vector_exclude()`, and `vector_proj()`
+  module functions replace old functions with similar abreviated names.
+- `Vector.norm()`, `Vector.magnitude()`, and `Vector.magnitude_squared()` added to `Vector`.
+- `Matrix.determinate()`, `Matrix.inverse()`, `Matrix.transpose()`, and
+  `Matrix.transpose_inplace()` added to `Matrix`.
+- `Matrix.__getitem__()` supports slicing semantics now.
+- `compute_rotation_matrix()` to compute all rotation matrices.
+- `rotate_from()`, `rotate_to()`, and `rotate_between()` for rotating vectors.
+
+### Changed
+
+- Completely re-implemented the library.
+- New rotation function library names.
+- Module vector functions have new names.
+- Some `Vector` instance methods have expanded names.
+- `Matrix` module methods are now instance methods.
+- `pyevspace.norm()` is now an instance method.
+- Elementary vectors on `Vector` are now capitalized
+- Identity matrix on `Matrix` is now named Matrix.IDENTITY
+- Renamed `Angles` type to `EulerAngles` type.
+- `RotationOrder` is now hashable.
+- Renamed `ReferenceFrame.rotateTo()` and `ReferenceFrame.rotateFrom()` methods.
+
+### Removed
+
+- Removed `Vector.e1` attribute, use `Vector.E1` now.
+- Removed `Vector.e2` attribute, use `Vector.E2` now.
+- Removed `Vector.e3` attribute, use `Vector.E3` now.
+- Removed `Vector.mag()` function, use `Vector.magnitude()` now.
+- Removed `Vector.mag2()` function, use `Vector.magnitude_squared()` now.
+- Removed `Matrix.id` attribute, use `Matrix.IDENTITY` now.
+- Removed `det()` module function, use `Matrix.determinate()` now.
+- Removed `transpose()` module function, use `Matrix.transpose()` now.
+- Removed `Angles` type, now named `EulerAngles`.
+- Removed `EulerAngles.alpha`, `EulerAngles.beta`, and `EulerAngles.gamma`. Use
+  `EulerAngles.__getitem__()` instead.
+- Removed `getMatrixAxis()` function.
+- Removed `getMatrixEuler()` function.
+- Removed `getMatrixFromTo()` function.
+- Removed `rotateAxisFrom()` function.
+- Removed `rotateAxisTo()` function.
+- Removed `rotateEulerFrom()` function.
+- Removed `rotateEulerTo()` function.
+- Removed `rotateMatrixFrom()` function.
+- Removed `rotateMatrixTo()` function.
+- Removed `rotateOffsetFrom()` function.
+- Removed `rotateOffsetTo()` function.
+- Removed `ReferenceFrame.rotateToFrame()` method.
+- Removed `ReferenceFrame.rotateFromFrame()` method.
 
 ## [0.14.2] - 2023-08-04
 
@@ -252,7 +309,10 @@ release will be removed from pip and git releases.
 
 Initial version of project.
 
-[unreleased]: https://github.com/qbizzle68/pyevspace/compare/v0.14.0...HEAD
+[unreleased]: https://github.com/qbizzle68/pyevspace/compare/v0.15.0...HEAD
+[0.15.0]: https://github.com/qbizzle68/pyevspace/compare/v0.15.0...v0.14.2
+[0.14.2]: https://github.com/qbizzle68/pyevspace/compare/v0.14.2...v0.14.1
+[0.14.1]: https://github.com/qbizzle68/pyevspace/compare/v0.14.1...v0.14.0
 [0.14.0]: https://github.com/qbizzle68/pyevspace/compare/v0.14.0...v0.13.1
 [0.13.1]: https://github.com/qbizzle68/pyevspace/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/qbizzle68/pyevspace/compare/v0.12.5...v0.13.0

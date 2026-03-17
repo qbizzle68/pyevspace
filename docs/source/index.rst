@@ -21,19 +21,21 @@ PyEVSpace Documentation
     :target: https://opensource.org/licenses/MIT
     :alt: PyPI - License
 
-.. line-block::
-
-    **Links**: :doc:`Install <user/install>` | https://github.com/qbizzle68/pyevspace | `Issues <https://github.com/qbizzle68/pyevspace/issues>`_
+.. rst-class:: mt-5
 
 .. toctree::
    :maxdepth: 2
    
-   User Guide <user/index>
-   Reference <reference/index>
+    User Guide <user/index>
+    API Reference <reference/index>
+    Extending <extend/index>
 
-Indices and tables
-==================
+.. toctree::
+    :titlesonly:
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+    Release Notes <notes.rst>
+
+.. toctree::
+    :maxdepth: 2
+
+    Learn <learn/index>

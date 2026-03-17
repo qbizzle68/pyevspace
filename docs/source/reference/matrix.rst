@@ -1,0 +1,477 @@
+.. include:: /global.rst
+
+====================
+Matrix API Reference
+====================
+
+.. currentmodule:: pyevspace
+
+The Matrix Type
+===============
+
+.. py:class:: Matrix()
+    Matrix(row1: Iterable, row2: Iterable, row3: Iterable)
+    Matrix(container: Iterable)
+
+    The Matrix type represents a matrix of a 3-dimensional vector space
+    over the real numbers. Matrices represent linear transformations
+    between vector spaces. In PyEVSpace, each reference frame can be thought
+    of as a unique vector space, and matrices transform vectors between them.
+    For users comfortable working with matrices, the Matrix type overloads
+    most of the arithmetic operators and, provides several methods useful
+    for working with matrices such as computing determinates, inverses, and
+    transposing. For those not familiar with matrices, PyEVSpace has several
+    functions for handling rotations for you, and it's possible to leverage
+    full use of the library without even handling matrices directly!
+
+    A matrix can be initialized by specifying each row directly, or wrapped
+    in a container. All containers must have a length of exactly `3`, where
+    the row containers have components of :class:`Real` types. The components
+    do not need to be a subtype of :class:`Real`, but custom types must
+    provide either :meth:`__float__` or :meth:`__index__`.
+
+    If no arguments are provided the matrix components are initialized
+    to zero.
+
+        .. code-block:: python
+
+            >>> row0 = (1, 2, 3)
+            >>> row1 = (4, 5, 6)
+            >>> row2 = (7, 8, 9)
+            >>> matrix = Matrix(row0, row1, row2)
+            >>> # or via a top-level container
+            >>> container = (row0, row1, row2)
+            >>> matrix = Matrix(container)
+
+    :param row0: an iterable object of length `3` whose values are
+        :class:`Real` types
+    :param row1: an iterable object of length `3` whose values are
+        :class:`Real` types
+    :param row2: an iterable object of length `3` whose values are
+        :class:`Real` types
+    :param container: a container of length `3` whose values would
+        otherwise be identical to `row0`, `row1`, and `row2`. If this
+        parameter is provided it must be the only one.
+    :raises TypeError: if any initializer is not an iterable
+    :raises TypeError: if any value of an initializer is not a :class:`Real` type
+    :raises ValueError: if `container` or any of the sub-iterables of
+        `container` are not exactly length `3`
+
+Other Constructors
+------------------
+
+.. py:classmethod:: Matrix.__new__(cls: type) -> Matrix
+
+    Create a new, uninitialized :class:`Matrix` object. All components
+    of the matrix default to zero.
+
+    :param cls: must be a subtype of :class:`Matrix`
+    :return: an uninitialized :class:`Matrix` object
+    :raises TypeError: if `cls` is not a subtype of :class:`Matrix`
+
+.. py:method:: Matrix.__init__()
+    Matrix.__init__(row0: Iterable, row1: Iterable, row2: Iterable)
+    Matrix.__init__(container: Iterable)
+
+    Initialize a :class:`Matrix` depending on the parameters. This method and
+    parameters behave identrically to the :class:`Matrix` constructor.
+
+    :param row0: an iterable object of length `3` whose values are
+        :class:`Real` types
+    :param row1: an iterable object of length `3` whose values are
+        :class:`Real` types
+    :param row2: an iterable object of length `3` whose values are
+        :class:`Real` types
+    :param container: a container of length `3` whose values would
+        otherwise be identical to `row0`, `row1`, and `row2`. If this
+        parameter is provided it must be the only one.
+    :raises TypeError: if any initializer is not an iterable
+    :raises TypeError: if any value of an initializer is not a :class:`Real` type
+    :raises ValueError: if `container` or any of the sub-iterables of
+        `container` are not exactly length `3`
+
+
+Instance Methods
+================
+
+General Protocols
+-----------------
+
+.. py:method:: Matrix.__len__() -> int
+
+    Returns the length of the matrix object. This always returns `3`.
+
+    :return: the method always returns `3`
+
+.. py:method:: Matrix.__getitem__(row_index: int | slice, col_index: int | slice) -> int | memoryview
+
+    Retrieves a portion of the matrix using the mapping protocol. If `row_index` and
+    `col_index` are of type :class:`int` (or provide an :meth:`__index__` method)
+    the value at that index is returned. If either (or both) indices are a
+    :class:`slice` type, a :class:`memoryview` object is returned with attributes
+    that map to the specified indices.
+
+    :param row_index: the row(s) of the matrix to retrieve
+    :param col_index: the column(s) of the matrix to retrieve
+    :return: either a component of the matrix or a view of the indexed memory
+    :raises TypeError: if `row_index` or `col_index` are not :class:`int` or
+        :class:`slice` types
+    :raises IndexError: if `row_index` or `col_index` are integers outside the
+        range [0-2] (after adjusting for negative indexing)
+
+.. py:method:: Matrix.__setitem__(row_index: int, col_index: int, value: Real) -> Real
+
+    Sets a components of the matrix to `value`. This version of PyEVSpace currently
+    only supports map assignment of single components, and therefore :class:`slice`
+    arguments will raise a :exc:`TypeError`.
+
+    :param row_index: the row of the component to set
+    :param col_index: the col of the component to set
+    :param value: the value to assign the component at (row, col)
+    :return: `value`
+    :raise TypeError: if `row_index` or `col_index` are not :class:`int` types
+        and do not provide :meth:`__index__`
+    :raise TypeError: if `value` is not a :class:`Real` type
+    :raise IndexError: if `row_index` or `col_index` are not in the range [0-2]
+        (after adjusting for negative indexing)
+
+.. py:method:: Matrix..__repr__() -> str
+
+    Returns a string representation of `self`, representative of a constructor
+    call with the component values of the matrix. The format of the components
+    follows the same as :meth:`Matrix.__str__()`.
+
+    :return: a string representation of `self`
+
+.. py:method:: Matrix.__str__() -> str
+
+    Returns a string representation of self, formatted similarly to a
+    :class:`list` of :class:`list` s. The format of the components are
+    either decimal of scientific notation, whichever requires fewer
+    bytes to store their string representation.
+
+    :return: a string representation of `self`
+
+.. py:method:: Matrix.__reduce__()
+
+    Allows support for pickling and deep copying.
+
+    :return: a :class:`tuple` used for reconstructing self's state
+    :rtype: tuple[type, tuple[tulpe[float, ...], ...]]
+
+Arithmetic Operators
+--------------------
+
+.. py:method:: Matrix.__add__(other: Matrix) -> Matrix
+
+    Standard matrix addition of two matrices.
+
+    :param other: the matrix to be added to `self`
+    :return: the matrix sum of `self` and `other`
+    :raises TypeError: if `other` is not a :class:`Matrix` type
+
+.. py:method:: Matrix.__sub__(other: Matrix) -> Matrix
+
+    Standard matrix subtraction of two matrices.
+
+    :param other: the matrix to be subtracted from `self`
+    :return: the matrix difference of `self` and `other`
+    :raises TypeError: if `other` is not a :class:`Matrix` type
+
+.. py:method:: Matrix.__mul__(scalar: Real) -> Matrix
+
+    Scalar matrix multiplication.
+
+    :param scalar: the scalar to multiply the components of `self` by
+    :return: the scalar product of `self` and `scalar`
+    :raises TypeError: if `scalar` is not a :class:`Real` type
+
+.. py:method:: Matrix.__matmul__(other: Matrix) -> Matrix
+    Matrix.__matmul__(vector: Vector) -> Vector
+
+    Matrix-matrix or matrix-vector multiplcation.
+
+    :param other: the matrix to multiply `self` by
+    :param vector: the vector to multiply `self` by
+    :return: the result of the multiplication, the return type is the
+        same type as the right-hand operand
+
+.. py:method:: Matrix.__truediv__(scalar: Real) -> Matrix
+
+    Standard scalar division.
+
+    :param scalar: the scalar to divide each component of `self` by
+    :return: the scalar quotient
+    :raises TypeError: if `scalar` is not a :class:`Real` type
+
+.. py:method:: Matrix.__neg__() -> Matrix
+
+    Negates each component of `self`.
+
+    :return: the negative of `self`
+
+.. py:method:: Matrix.__iadd__(other: Matrix) -> Matrix
+
+    Inplace standard vector addition.
+
+    :param other: the matrix to add to `self`
+    :raises TypeError: if `other` is not a :class:`Matrix` type
+
+.. py:method:: Matrix.__isub__(other: Matrix) -> Matrix
+
+    Inplace standard vector subtraction.
+
+    :param other: the matrix to subtract from `self`
+    :raises TypeError: if `other` is not a :class:`Matrix` type
+
+.. py:method:: Matrix.__imul__(scalar: Real) -> Matrix
+
+    Inplace standard scalar multiplication.
+
+    :param scalar: the scalar to multiply each element of `self` by
+    :raises TypeError: if `scalar` is not a :class:`Real` type
+
+.. py:method:: Matrix.__imatmul__(other: Matrix) -> Matrix
+
+    Inplace matrix multiplication.
+
+    :param other: the other matrix to multiply `self` inplace by
+    :raises TypeError: if `other` is not a :class:`Matrix` type
+
+.. py:method:: Matrix.__itruediv__(scalar: Real) -> Matrix
+
+    Inplace standard scalar division.
+
+    :param scalar: the scalar to divide each component of `self` by
+    :raises TypeError: if `scalar` is not a :class:`Real` type
+
+Logical Operators
+-----------------
+
+.. py:method:: Matrix.__eq__(other: Matrix) -> bool
+
+    Compares each component of two matrices for equality.
+
+    .. seealso::
+
+        Checkout :meth:`Matrix.compare_to_tol` and :meth:`Matrix.compare_to_ulp`
+        for finer control over evaluating equality.
+
+    :param other: The matrix to compare to `self`
+    :return: True if each component of `other` and `self` are equivalent, False otherwise
+    :raises TypeError: if `other` is not a :class:`Matrix` type
+
+.. py:method:: Matrix.__ne__(other: Matrix) -> bool
+
+    Compares each component of two matrices for an inequality.
+
+    :return: True if any component of `other` and self are not equivalent, False otherwise
+    :raises TypeError: if `other` is not a :class:`Matrix` type
+
+.. note::
+
+    All other logic operators are not implemented and will raise a
+    :py:exc:`TypeError`.
+
+Matrix Operators
+----------------
+
+.. py:method:: Matrix.compare_to_tol(other: Vector, rel_tol: float = 1e-9, abs_tol: float = 1e-15) -> bool
+
+    Compares `self` to `other` using tolerance based mechanics. This is the
+    same way :meth:`Matrix.__eq__` and :meth:`Matrix.__ne__` compare vectors.
+    This function allows customization of the relative and absolute tolerance
+    values. using the default tolerance values, this function is equivalent
+    to :meth:`Matrix.__eq__`. For comparing any two components of `self` and
+    `other`, the components are considered equal if, for :python:`diff = abs(a - b)`,
+    :python:`diff <= abs_tol + rel_tol * max((abs(a), abs(b)))`.
+
+    :param other: the matrix to compare to `self`
+    :param rel_tol: the relative tolerance of the comparison
+    :param abs_tol: the absolute tolerance of the comparison
+    :return: True if all components are equal, False otherwise
+    :raises TypeError: if `other` is not a :class:`Matrix` type or `rel_tol` or `abs_tol`
+        are not :class:`float` types.
+
+.. py:method:: Matrix.compare_to_ulp(other: Matrix, max_ulps: int) -> bool
+
+    Compares `self` to `other` using `ULP <https://en.wikipedia.org/wiki/Unit_in_the_last_place>`_
+    (Unit in the Last Place) based mechanics. The number of ULPs between two
+    floating-point numbers is the number of representable floating-point value
+    between the two numbers. This can be a valid way of comparing two
+    floating-point numbers in certan domains, however for the types of projects
+    PyEVSpace was built to support, it is not sufficient, which is why
+    :meth:`Matrix.__eq__` uses tolerance based comparisons.
+
+    The most obvious example of why ULP based comparison does not suffice for
+    our uses is comparing two values that would be very common to encounter. The
+    values :python:`cos(math.pi / 4)` and :python:`sin(math.pi / 4)` should be
+    identical, however because of the binary representation of floating-point
+    values, the number of ULPs between these values is quite large. In fact these
+    values evaluate as False using the built-in Python equality operator:
+
+    .. code-block:: python
+
+        >>> print(cos(pi / 4))
+        0.7071067811865476
+        >>> print(sin(pi / 4))
+        0.7071067811865475
+        >>> #            ^ notice the rounding differences
+        >>> print(cos(pi / 4) == sin(pi / 4))
+        False
+
+    Using a default number of ULPs that accommodates this equality would also
+    allow other, less equivalent values to evaluate as equal which should not
+    be accepted.
+
+    This method still allows users who would like an ULP based comparison to
+    be able to use it. In some cases, a very high level of matrix equality may
+    be waranted. If tolerance based comparison is still ideal for you
+    but you want finer controls over the tolerance values, see :meth:`Matrix.compare_to_tol`.
+
+    :param other: the matrix to compare to `self`
+    :param max_ulps: the maximum amount of ULPs two components can differ by and
+        still evaluate as equal
+    :return: True if all components are equal, False otherwise
+    :raises TypeError: if `other` is not a :class:`Matrix` type or `max_ulps` is not
+        an :class:`int` type
+
+.. py:method:: Matrix.determinate() -> float
+
+    Computes the determinate of a matrix.
+
+    :return: the detminate of `self`
+
+.. py:method:: Matrix.inverse() -> Matrix
+
+    Computes the inverse of a matrix. A matrix whose determinate is equal to `0` is
+    said to be *singular*. A singular matrix is not invertible, therefore be aware this
+    method may not succeed. A purely rotational matrix, by definition, has a determinate
+    of `1`, so if you are calling this method on a matrix returned by :func:`compute_rotation_matrix`
+    you won't have any problems with invertibility. While much more can be said about
+    invertibile matrices, in the scope of this package the inverse of a matrix can be
+    used to apply the opposite rotation a matrix represents.
+
+    .. code-block:: python
+
+        >>> v = Vector(1, 2, 3)
+        >>> m = compute_rotation_matrix(1.5, X_AXIS) # rotation 1.5 radians around the x-axis
+        >>> rotated_vector = v @ m
+        >>> print(rotated_vector)
+        [1, 3.13396, -1.78278]
+        >>> unrotated_vector = rotated_vector @ m.inverse() # 'reverse' the rotation
+        >>> print(unrotated_vector)
+        [1, 2, 3]
+        >>> print(unrotated_vector == v)
+        True
+
+    :return: the inverse of `self` if `self` is a non-singular matrix
+    :raises ValueError: if `self` is a singular matrix, i.e. :python:`self.determinate() == 0.0`
+
+.. py:method:: Matrix.transpose() -> Matrix
+
+    Creates a new matrix equal to the transpose of `self`. The *ith* row and *jth* column
+    component of the resulting matrix will be the *jth* row and *ith* column component of
+    `self`.
+
+    :return: the transpose of `self`
+
+.. py:method:: Matrix.transpose_inplace() -> None
+
+    Same as :meth:`Matrix.transpose` except the calling matrix is modified in place.
+    This would be equivalent to :python:`m = m.transpose()`.
+
+    :return: None
+
+Attributes
+==========
+
+.. py:attribute:: Matrix.IDENTITY
+
+    Identity matrix with ones on the diagonal and zeros everwhere else.
+    **This value should not be edited.**
+
+    :value: :python:`Matrix((1, 0, 0), (0, 1, 0), (0, 0, 1))`
+    :type: Matrix
+
+.. py:attribute:: Matrix.id
+
+    .. deprecated:: 0.15.0
+        Use :attr:`Matrix.IDENTITY`
+
+Module Methods
+==============
+
+.. function:: det(matrix)
+
+    .. deprecated:: 0.15.0
+        Use :meth:`Matrix.determinate`
+
+.. function:: transpose(matrix)
+
+    .. deprecated:: 0.15.0
+        Use :meth:`Matrix.transpose`
+
+Buffer Protocol
+===============
+
+.. method:: Matrix.__buffer__(flags: int) -> memoryview
+
+    Returns a :class:`memoryview` object with `self` as the reference object.
+
+    :param flags: a combined enumerated value from :class:`inspect.BufferFlags`
+        to control the exported :class:`memoryview` object
+    :return: the exported :class:`memoryview` object
+
+The :class:`Matrix` class supports the buffer protocol and can be used
+by other objects which also support the buffer interface. For example
+it can be used to instantiate a :py:class:`memoryview` object
+
+.. code-block:: python
+
+    >>> matrix = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+    >>> view = memoryview(matrix)
+    >>> view[1, 1] = 1.69
+    >>> print(matrix)
+    [[1, 2, 3]
+    [4, 1.69, 6]
+    [7, 8, 9]]
+
+This can also be used for interfacing with buffer supporting libraries
+like `NumPy <https://numpy.org>`_
+
+.. code-block:: python
+
+    >>> import numpy as np
+    >>> from pyevspace import Matrix
+    >>>
+    >>> matrix = Matrix()
+    >>> print(matrix)
+    [[0, 0, 0]
+    [0, 0, 0]
+    [0, 0, 0]]
+    >>> # give arr access to the underlying data buffer of matrix
+    >>> arr = np.ndarray((3, 3), buffer=matrix)
+    [[0. 0. 0.]
+     [0. 0. 0.]
+     [0. 0. 0.]]
+    >>> # changes to arr also modify matrix as they share the same memory
+    >>> arr[0, 0] = 10
+    >>> print(arr)
+    [[10.  0.  0.]
+     [ 0.  0.  0.]
+     [ 0.  0.  0.]]
+    >>> print(matrix)
+    [[10, 0, 0]
+    [0, 0, 0]
+    [0, 0, 0]]
+
+MatrixView Type
+===============
+
+.. class:: _MatrixView
+
+    .. note::
+        This type is not part of the public API and should not be instantiated directly.
+        It is returned internally by :meth:`Matrix.__getitem__` when a :class:`slice` is
+        used and exposes a :class:`memoryview` of the underlying matrix data.
