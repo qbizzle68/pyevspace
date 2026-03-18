@@ -33,6 +33,7 @@ test = [
     "setuptools",
     "flake8",
     "flake8-pyproject",
+    "tox",
 ]
 docs = [
     "sphinx",
@@ -57,7 +58,7 @@ include-dirs = [
 sources = [
     "src/pyevspace/pyevspacemodule.cpp",
 ]
-extra-compile-args = ["-std=c++17"]
+# extra-compile-args is platform dependent and handled in setup.py
 
 [tool.flake8]
 exclude = [
