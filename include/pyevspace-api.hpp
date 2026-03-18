@@ -70,7 +70,7 @@ template<typename T, std::size_t N>
 static inline std::array<T, N>
 _PyEVSpace_PointerToArray(T arr[N])
 {
-    std::array<T, N> result;
+    std::array<T, N> result{0.0};
     std::copy(arr, arr + N, result.begin());
 
     return result;
@@ -79,7 +79,7 @@ _PyEVSpace_PointerToArray(T arr[N])
 static inline int
 PyEVSpace_ToVector(PyObject* obj, evspace::Vector& vector)
 {
-    double state[3];
+    double state[3]{0};
 
     if (PyEVSpace_API->PyEVSpaceVector_GetState(obj, state) < 0) {
         return -1;
@@ -95,7 +95,7 @@ PyEVSpace_ToVector(PyObject* obj, evspace::Vector& vector)
 static inline PyObject*
 PyEVSpaceVector_ToObject(const evspace::Vector& vector)
 {
-    double state[3];
+    double state[3]{0};
     std::memcpy(state, vector.data().data(), 3 * sizeof(double));
     return PyEVSpace_API->PyEVSpaceVector_FromState(state);
 }
@@ -103,7 +103,7 @@ PyEVSpaceVector_ToObject(const evspace::Vector& vector)
 static inline int
 PyEVSpace_ToMatrix(PyObject* obj, evspace::Matrix& matrix)
 {
-    double state[9];
+    double state[9]{0};
 
     if (PyEVSpace_API->PyEVSpaceMatrix_GetState(obj, state) < 0) {
         return -1;
@@ -117,15 +117,15 @@ PyEVSpace_ToMatrix(PyObject* obj, evspace::Matrix& matrix)
 static inline PyObject*
 PyEVSpaceMatrix_ToObject(const evspace::Matrix& matrix)
 {
-    double state[9];
-    std::memcpy(state, matrix.data().data(), 3 * sizeof(double));
+    double state[9]{0};
+    std::memcpy(state, matrix.data().data(), 9 * sizeof(double));
     return PyEVSpace_API->PyEVSpaceMatrix_FromState(state);
 }
 
 static inline int
 PyEVSpace_ToAngles(PyObject* obj, evspace::EulerAngles& angles)
 {
-    double state[3];
+    double state[3]{0};
     if (PyEVSpace_API->PyEVSpaceAngles_GetState(obj, state) < 0) {
         return -1;
     }
@@ -147,8 +147,8 @@ PyEVSpaceAngles_ToObject(const evspace::EulerAngles& angles)
 static inline int
 PyEVSpaceFrame_ToAngles(PyObject* obj, evspace::EulerAngles& angles)
 {
-    PyObject* angles_obj;
-    double state[3];
+    PyObject* angles_obj = NULL;
+    double state[3]{0};
 
     angles_obj = PyEVSpace_API->PyEVSpaceFrame_GetAngles(obj);
     if (!angles_obj) {
@@ -171,8 +171,8 @@ PyEVSpaceFrame_ToAngles(PyObject* obj, evspace::EulerAngles& angles)
 static inline int
 PyEVSpaceFrame_ToOffset(PyObject* obj, evspace::Vector& offset)
 {
-    PyObject* offset_obj;
-    double state[3];
+    PyObject* offset_obj = NULL;
+    double state[3]{0};
 
     offset_obj = PyEVSpace_API->PyEVSpaceFrame_GetOffset(obj);
     if (!offset_obj) {
@@ -186,6 +186,7 @@ PyEVSpaceFrame_ToOffset(PyObject* obj, evspace::Vector& offset)
 #endif
     {
         for (int i = 0; i < 3; i++) offset[i] = 0.0;
+        Py_DECREF(offset_obj);
         return 0;
     }
 
@@ -203,26 +204,16 @@ PyEVSpaceFrame_ToOffset(PyObject* obj, evspace::Vector& offset)
 static inline int
 PyEVSpaceFrame_SetAngles(PyObject* obj, const evspace::EulerAngles& angles)
 {
-    PyObject* angles_obj;
     double state[3]{angles[0], angles[1], angles[2]};
-    int result = 0;
 
-    angles_obj = PyEVSpace_API->PyEVSpaceFrame_GetAngles(obj);
-    if (!angles_obj) {
-        return -1;
-    }
-
-    result = PyEVSpace_API->PyEVSpaceAngles_SetState(angles_obj, state);
-    Py_DECREF(angles_obj);
-    
-    return result;
+    return PyEVSpace_API->PyEVSpaceFrame_SetAngles(obj, state);
 }
 
 static inline int
 PyEVSpaceFrame_SetOffset(PyObject* obj, const evspace::Vector& offset)
 {
-    PyObject* offset_obj;
-    double state[3];
+    PyObject* offset_obj = NULL;
+    double state[3]{0};
     int result = 0;
 
     offset_obj = PyEVSpace_API->PyEVSpaceFrame_GetOffset(obj);

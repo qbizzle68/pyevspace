@@ -499,8 +499,8 @@ Test_FrameCapsule(PyObject* Py_UNUSED(_), PyObject* args)
 
     PyObject* frame, *frame_offset, *frame_from = NULL, *frame_from_offset = NULL,
         *frame_set = NULL, *frame_set_offset = NULL, *frame_set_cpp = NULL, *rtn = NULL;
-    unsigned int order_state[3];
-    double angles_state[3], offset_state[3], tmp[3] = {0, 0, 0};
+    unsigned int order_state[3]{0, 1, 2};
+    double angles_state[3]{1, 2, 3}, offset_state[3]{1, 2, 3}, tmp[3] = {0.0};
     evspace::EulerAngles angles;
     evspace::Vector offset;
 
@@ -569,6 +569,9 @@ Test_FrameCapsule(PyObject* Py_UNUSED(_), PyObject* args)
     }
 
     frame_set_cpp = PyEVSpace_API->PyEVSpaceFrame_FromState(order_state, tmp, tmp, 0);
+    if (!frame_set_cpp) {
+        goto error;
+    }
     if (PyEVSpaceFrame_SetAngles(frame_set_cpp, angles) < 0) {
         goto error;
     }
@@ -599,7 +602,7 @@ Test_FrameCapsule(PyObject* Py_UNUSED(_), PyObject* args)
         goto error;
     }
 
-    rtn = Py_BuildValue("(OO)(OO)", frame_from, frame_set, frame_from_offset,
+    rtn = Py_BuildValue("(OO)(OOO)", frame_from, frame_set, frame_from_offset,
                         frame_set_offset, frame_set_cpp);
     Py_XDECREF(frame_from);
     Py_XDECREF(frame_from_offset);

@@ -87,6 +87,7 @@ def test_frame_capsule(subtests) -> None:
     frame_offset_arg = ReferenceFrame(XYZ, angles, offset=offset,
                                       intrinsic=False)
 
+    # todo: add get_matrix() tests
     frames, offset_frames = frame_capsule_c(frame_arg, frame_offset_arg)
     for i, frame in enumerate(frames):
         with subtests.test(i=i):

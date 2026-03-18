@@ -4,6 +4,8 @@ import sys
 from setuptools import Extension
 from setuptools.dist import Distribution
 import setuptools.command.build_ext
+from distutils.ccompiler import new_compiler
+from distutils.sysconfig import customize_compiler
 
 
 def build_test_extension():
@@ -23,6 +25,13 @@ def build_test_extension():
     cmd = setuptools.command.build_ext.build_ext(dist)
     cmd.build_lib = "tests/_test_capsule"
     cmd.ensure_finalized()
+
+    compiler = new_compiler()
+    customize_compiler(compiler)
+    cpp_17flag = '/std:c++17' if compiler.compiler_type == 'msvc' else\
+        '-std=c++17'
+    ext_cpp.extra_compile_args = [cpp_17flag]
+
     cmd.run()
 
 
