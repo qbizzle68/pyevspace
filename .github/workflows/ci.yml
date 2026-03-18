@@ -1,0 +1,57 @@
+name: Test
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'pyproject.toml'
+      - 'MANIFEST.in'
+      - 'src/pyevspace/**'
+      - 'tests/**'
+      - 'tox.toml'
+      - '.github/workflows/ci.yml'
+    tags-ignore:
+      - '*'
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Run linter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout/@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - run: pip install tox
+      - run: pip -e lint
+
+  build:
+    name: Build and run tests
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest, macOS-latest ]
+        python-version: [ '3.10', '3.11', '3.12', '3.13', '3.14' ]
+    
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Set up Python ${{ matrix.python-version }} on ${{ matrix.os }}
+      uses: actions/setup-python@v6
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+    
+    - run: pip install tox tox-gh-actions
+    - run: tox

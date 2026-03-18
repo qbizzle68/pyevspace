@@ -74,3 +74,6 @@ exclude = [
 testpaths = [
     "tests",
 ]
+
+[tool.cibuildwheel]
+build = "cp310-* cp311-* cp312-* cp313-* cp314-*"
