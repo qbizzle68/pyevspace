@@ -86,6 +86,16 @@ def test_frame_capsule(subtests) -> None:
     frame_arg = ReferenceFrame(XYZ, angles, offset=None, intrinsic=True)
     frame_offset_arg = ReferenceFrame(XYZ, angles, offset=offset,
                                       intrinsic=False)
+    rotation_matrix_intrinsic = Matrix(
+        (0.411982245665683, 0.05872664492762098, 0.9092974268256817),
+        (-0.6812427202564033, -0.642872836134547, 0.35017548837401463),
+        (0.6051272472413688, -0.7637183366502791, -0.2248450953661529)
+    )
+    rotation_matrix_extrinsic = Matrix(
+        (0.411982245665683, -0.8337376517741567, -0.3676304629248992),
+        (-0.05872664492762098, -0.42691762127620736, 0.9023815854833308),
+        (-0.9092974268256817, -0.35017548837401463, -0.2248450953661529)
+    )
 
     # todo: add get_matrix() tests
     frames, offset_frames = frame_capsule_c(frame_arg, frame_offset_arg)
@@ -97,6 +107,7 @@ def test_frame_capsule(subtests) -> None:
             assert a[0] == 1. and a[1] == 2. and a[2] == 3.
             assert frame.offset is None
             assert frame.intrinsic is True
+            assert frame.get_matrix() == rotation_matrix_intrinsic
 
     for i, frame in enumerate(offset_frames):
         with subtests.test(i=i):
@@ -106,6 +117,7 @@ def test_frame_capsule(subtests) -> None:
             assert a[0] == 1. and a[1] == 2. and a[2] == 3.
             assert frame.offset == offset
             assert frame.intrinsic is False
+            assert frame.get_matrix() == rotation_matrix_extrinsic
 
     frames, offset_frames = frame_capsule_cpp(frame_arg, frame_offset_arg)
     for i, frame in enumerate(frames):
@@ -116,6 +128,7 @@ def test_frame_capsule(subtests) -> None:
             assert a[0] == 1. and a[1] == 2. and a[2] == 3.
             assert frame.offset is None
             assert frame.intrinsic is True
+            assert frame.get_matrix() == rotation_matrix_intrinsic
 
     for i, frame in enumerate(offset_frames):
         with subtests.test(i=i):
@@ -125,3 +138,4 @@ def test_frame_capsule(subtests) -> None:
             assert a[0] == 1. and a[1] == 2. and a[2] == 3.
             assert frame.offset == offset
             assert frame.intrinsic is False
+            assert frame.get_matrix() == rotation_matrix_extrinsic

@@ -4750,6 +4750,8 @@ EVSpaceFrame_SetAngles(PyObject* obj, double state[3])
     frame = reinterpret_cast<EVSpace_ReferenceFrame*>(obj);
     std::memcpy(frame->angles.data(), state, 3 * sizeof(double));
 
+    EVSpaceReferenceFrame_UpdateMatrix(frame);
+
     return 0;
 }
 
