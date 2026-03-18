@@ -28,11 +28,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout/@v6
+        with:
+          submodules: true
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
       - run: pip install tox
-      - run: pip -e lint
+      - run: tox -e lint
 
   build:
     name: Build and run tests
@@ -46,6 +48,8 @@ jobs:
     
     steps:
     - uses: actions/checkout@v6
+      with:
+        submodules: true
 
     - name: Set up Python ${{ matrix.python-version }} on ${{ matrix.os }}
       uses: actions/setup-python@v6
