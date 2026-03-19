@@ -79,6 +79,7 @@ jobs:
       url: https://pypi.org/p/pyevspace
     permissions:
       id-token: write
+      contents: write
     steps:
       - uses: actions/checkout@v6
 
