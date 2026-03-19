@@ -3837,14 +3837,14 @@ __EVSpaceRotate_CheckKeywordException(void)
         // This must outlive error_message as the garbage collection will release the memory for error_message
         PyObject* str_obj = PyObject_Str(exc);
         if (!str_obj) {
-            return NULL;
+            return false;
         }
 
         error_message = PyUnicode_AsUTF8(str_obj);
         
         if (!error_message) {
             Py_DECREF(str_obj);
-            return NULL;
+            return false;
         }
 
         keyword_error = (error_message != NULL &&
