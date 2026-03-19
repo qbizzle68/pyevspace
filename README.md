@@ -1,6 +1,6 @@
-# PyEVSpace 0.14.2
+# PyEVSpace 0.15.0
 
-[![Github test action](https://github.com/qbizzle68/pyevspace/actions/workflows/test-builds.yml/badge.svg)](https://github.com/qbizzle68/pyevspace/actions)
+[![Test](https://github.com/qbizzle68/pyevspace/actions/workflows/ci.yml/badge.svg)](https://github.com/qbizzle68/pyevspace/actions/workflows/ci.yml)
 [![PyPi](https://img.shields.io/pypi/v/pyevspace?style=plastic)](https://pypi.org/project/pyevspace/#history)
 ![Supported Python versions](https://img.shields.io/pypi/pyversions/pyevspace?style=plastic)
 [![License](https://img.shields.io/pypi/l/pyevspace?style-plastic)](https://opensource.org/licenses/MIT)
