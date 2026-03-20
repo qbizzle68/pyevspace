@@ -16,6 +16,7 @@ the :doc:`basic usage </user/usage>` page.
 .. toctree::
 	:maxdepth: 2
 	
+	module
 	vector
 	matrix
 	rotation

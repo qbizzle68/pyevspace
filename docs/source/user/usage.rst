@@ -1,6 +1,8 @@
 .. role:: python(code)
     :language: python
 
+.. currentmodule:: pyevspace
+
 ===========
 Basic Usage
 ===========
@@ -95,7 +97,7 @@ Vector Functions
 ****************
 There are several instance methods and module functions that can be
 used to compute useful data for vectors. For example the length of a
-vector can be computed using the :py:method::`Vector.magintude` method:
+vector can be computed using the :py:meth:`Vector.magintude` method:
 
 .. code-block:: python
 
@@ -109,7 +111,7 @@ length of exactly one, sometimes called a unit vector.
 
 .. code-block:: python
 
-    >>> vector == evs.Vector(0, 3, 4)
+    >>> vector = evs.Vector(0, 3, 4)
     >>> vector_norm1 = vector / vector.magnitude()
     >>> print(vector_norm1)
     [0, 0.6, 0.8]
@@ -127,11 +129,11 @@ length of exactly one, sometimes called a unit vector.
 Other module level functions compute values or new vectors from two
 vector arguments:
 
-* vector_angle(vec1, vec2)
-* vector_cross(vec1, vec2)
-* vector_dot(vec1, vec2)
-* vector_exclude(vec1, vec2)
-* vector_proj(vec1, vec2)
+* :py:func:`vector_angle`
+* :py:func:`vector_cross`
+* :py:func:`vector_dot`
+* :py:func:`vector_exclude`
+* :py:func:`vector_proj`
 
 Check the :doc:`API reference </reference/index>` for more information
 on these methods.
@@ -201,10 +203,10 @@ Matrix Methods
 Several common matrix utilities are implemented as instance methods
 on the Matrix class. They are
 
-* determinate()
-* inverse()
-* transpose()
-* transpose_inplace()
+* :py:meth:`Matrix.determinate`
+* :py:meth:`Matrix.inverse`
+* :py:meth:`Matrix.transpose`
+* :py:meth:`Matrix.transpose_inplace`
 
 Check the :doc:`API reference </reference/index>` for more information
 on these methods.

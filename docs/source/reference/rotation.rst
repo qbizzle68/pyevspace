@@ -37,15 +37,21 @@ y, and z axes of any reference frame.
 
 .. py:data:: X_AXIS
 
+    **This value should not be modified!**
+
     :value: 0
     :type: int
 
 .. py:data:: Y_AXIS
 
+    **This value should not be modified!**
+
     :value: 1
     :type: int
 
 .. py:data:: Z_AXIS
+
+    **This value should not be modified!**
 
     :value: 2
     :type: int
@@ -71,6 +77,10 @@ RotationOrder Type
     While new RotationOrder variables can be instantiated, the :ref:`global order <order_globals>`
     instances should be prefered.
 
+    .. versionchanged:: 0.16.0
+        RotationOrder is now subclassable, and is no longer an immutable type,
+        meaning class members can be directly modified or added.
+
     :param first: the first axis of the rotation
     :param second: the second axis of the rotation
     :param third: the third axis of the rotation
@@ -80,13 +90,25 @@ RotationOrder Type
 Other Constructors
 ^^^^^^^^^^^^^^^^^^
 
-.. py:method:: RotationOrder.__new__(cls: type) -> RotationOrder
+.. py:method:: RotationOrder.__new__(cls: type, first: int, second: int, third: int) -> Self
 
-    Creates a new uninitialized RotationOrder object. Because there is
-    no initialization, each axis defaults to :data:`X_AXIS`.
+    Creates a new instance of a `cls` object if `cls` is a subclass
+    of :class:`RotationOrder`. Initialize the axes to the remaining parameters.
 
     :param cls: the type of the variable to create
+    :param first: the first axis of the rotation
+    :param second: the second axis of the rotation
+    :param third: the third axis of the rotation
     :raises TypeError: if `cls` is not a subtype of RotationOrder
+    :raises TypeError: if any argument is not an :class:`int` type
+    :raises ValueError: if any argument is not in the range [0-2]
+
+    .. versionchanged:: 0.16.0
+        `type` can be a subtype of :class:`RotationOrder`, and an object of
+        that type will be created and returned.
+    
+    .. versionchanged:: 0.16.0
+        All initialization takes place here instead of :meth:`RotationOrder.__init__`.
 
 .. py:method:: RotationOrder.__init__(first: int, second: int, third: int)
 
@@ -98,6 +120,34 @@ Other Constructors
     :return: a new RotationOrder object
     :raises TypeError: if any argument is not an :class:`int` type
     :raises ValueError: if any argument is not in the range [0-2]
+
+    .. versionremoved:: 0.16.0
+        Since the :class:`RotationOrder` type is immutable, and this method
+        can be called any number of times, in order to avoid manipulating
+        the state of the object, all initialization of this type is done in
+        :meth:`RotationOrder.__new__` and this method is removed.
+
+Subclassing :class:`RotationOrder`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+As of version `0.16.0` the :class:`RotationOrder` class supports subclassing. As the
+:class:`RotationOrder` class is implemented as a C struct, it has a specific memory
+layout, and as a consequence of that it is a :deco:`distjoint-base`. This
+means :class:`RotationOrder` cannot be combined with any other types whose layout
+is defined as a C struct when inheriting, which most Python built-in types
+such as :class:`list` or :class:`tuple` are. For example combining
+:class:`RotationOrder` and :class:`list` as base classes will raise a
+:exc:`TypeError`:
+
+.. code-block:: python
+
+	>>> class Foo(RotationOrder, list):
+	...     pass
+	...
+	TypeError: multiple bases have instance lay-out conflict
+
+This limitation does not apply when combining a :deco:`distjoin-base` with a
+pure python class, and of course is not an issue if :class:`RotationOrder` is the
+only base class for a derived type.
 
 Instance Methods
 ^^^^^^^^^^^^^^^^
@@ -126,6 +176,10 @@ Instance Methods
 
     :return: a string representation of `self`
 
+	.. versionchanged:: 0.16.0
+		The method now prepends the output with the module name for better
+		scope resolution support when using the output with :func:`exec`.
+
 .. py:method:: RotationOrder.__str__() -> str
 
     Returns a string representation of the order that looks
@@ -142,10 +196,36 @@ Instance Methods
 
 .. py:method:: RotationOrder.__reduce__()
 
-    Provides support for pickling and copying.
+    Provides support for pickling and copying. This function returns a
+    2-tuple containing a reference to the type constructor and a tuple of
+    arguments to initialize an equivalent instance. For types inheriting from
+    :class:`RotationOrder`, this function may need to be overloaded and modified
+    to return your own type.
 
     :return: a tuple containing the type and internal state of `self`
     :rtype: tuple[type, tuple[int, int, int]]
+
+Iterability
+^^^^^^^^^^^
+
+While the :py:class:`RotationOrder` class does not define an :py:meth:`__iter__`
+method directly, the class does support iterability via the sequence protocol.
+Attempting to access :py:meth:`RotationOrder.__iter__` will raise an
+:py:exc:`AttributeError`, however a :py:class:`RotationOrder` can be used
+anywhere an iterable is expected.
+
+.. code-block:: python
+
+	>>> order = RotationOrder(X_AXIS, Y_AXIS, Z_AXIS)
+	>>> itr = iter(order)
+	>>> print(list(itr))
+	[0, 1, 2]
+	>>> for i in order:
+	...     print(i)
+	...
+	0
+	1
+	2
 
 Logical Operators
 ^^^^^^^^^^^^^^^^^
@@ -191,73 +271,97 @@ Properties
 .. _order_globals:
 
 Global Variables
-^^^^^^^^^^^^^^^^
+----------------
 
 .. py:data:: XYZ
+
+    **This value should not be modified!**
 
     :type: RotationOrder
     :value: RotationOrder(X_AXIS, Y_AXIS, Z_AXIS)
 
 .. py:data:: XZY
 
+    **This value should not be modified!**
+
     :type: RotationOrder
     :value: RotationOrder(X_AXIS, Z_AXIS, Y_AXIS)
 
 .. py:data:: YXZ
+
+    **This value should not be modified!**
 
     :type: RotationOrder
     :value: RotationOrder(Y_AXIS, X_AXIS, Z_AXIS)
 
 .. py:data:: YZX
 
+    **This value should not be modified!**
+
     :type: RotationOrder
     :value: RotationOrder(Y_AXIS, Z_AXIS, X_AXIS)
 
 .. py:data:: ZXY
+
+    **This value should not be modified!**
 
     :type: RotationOrder
     :value: RotationOrder(Z_AXIS, X_AXIS, Y_AXIS)
 
 .. py:data:: ZYX
 
+    **This value should not be modified!**
+
     :type: RotationOrder
     :value: RotationOrder(Z_AXIS, Y_AXIS, X_AXIS)
 
 .. py:data:: XYX
+
+    **This value should not be modified!**
 
     :type: RotationOrder
     :value: RotationOrder(X_AXIS, Y_AXIS, X_AXIS)
 
 .. py:data:: XZX
 
+    **This value should not be modified!**
+
     :type: RotationOrder
     :value: RotationOrder(X_AXIS, Z_AXIS, X_AXIS)
 
 .. py:data:: YXY
+
+    **This value should not be modified!**
 
     :type: RotationOrder
     :value: RotationOrder(Y_AXIS, X_AXIS, Y_AXIS)
 
 .. py:data:: YZY
 
+    **This value should not be modified!**
+
     :type: RotationOrder
     :value: RotationOrder(Y_AXIS, Z_AXIS, Y_AXIS)
 
 .. py:data:: ZXZ
+
+    **This value should not be modified!**
 
     :type: RotationOrder
     :value: RotationOrder(Z_AXIS, X_AXIS, Z_AXIS)
 
 .. py:data:: ZYZ
 
+    **This value should not be modified!**
+
     :type: RotationOrder
     :value: RotationOrder(Z_AXIS, Y_AXIS, Z_AXIS)
 
-EulerAngles
------------
+EulerAngles Type
+----------------
 
 .. py:class:: EulerAngles()
-    EulerAngles(alpha: Real, beta: Real, gamma: Real)
+    EulerAngles(alpha: SupportsFloat, beta: SupportsFloat, gamma: SupportsFloat)
 
     An EulerAngles object is a container class for angles, used in
     conjunction with the :class:`RotationOrder`` type. Each angle
@@ -271,26 +375,34 @@ EulerAngles
     initialized to `0.0`. The constructor only accepts three or zero
     parameters, all unneeded angles should explicitly set to `0.0`.
 
+    .. versionchanged:: 0.16.0
+        EulerAngles is now subclassable, and is no longer an immutable type,
+        meaning class members can be directly modified or added.
+
     :param alpha: the first angle of the rotation
     :param beta: the second angle of the rotation
     :param gamma: the third angle of the rotation
-    :raises TypeError: if `alpha`, `beta`, or `gamma` are not :class:`Real`
-        types
+    :raises TypeError: if `alpha`, `beta`, or `gamma` are not or cannot be
+        converted to a :class:`float`
 
 Other Constructors
 ^^^^^^^^^^^^^^^^^^
 
-.. py:method:: EulerAngles.__new__(cls: type) -> EulerAngles
+.. py:method:: EulerAngles.__new__(cls: type) -> Self
 
-    Creates an uninitialized :class:`EulerAngles` instance. Each angle
-    defaules to `0.0`.
+    Creates an uninitialized `cls` object if `cls` is a subclass
+    of :class:`EulerAngles`. Each angle defaules to `0.0`.
 
     :param cls: type of the instance to create
     :return: a new EulerAngles object
     :raises TypeError: if `cls` is not a subtype of :class:`EulerAngles`
 
+    .. versionchanged:: 0.16.0
+        `type` can be a subtype of :class:`EulerAngles`, and an object of that
+        type will be created and returned.
+
 .. py:method:: EulerAngles.__init__()
-    EulerAngles.__init__(alpha: Real, beta: Real, gamma: Real)
+    EulerAngles.__init__(alpha: SupportsFloat, beta: SupportsFloat, gamma: SupportsFloat)
 
     Initializes an :class:`EulerAngles` variable to the specified angles.
     If no angles are provided they default to `0.0`. This method only
@@ -300,8 +412,31 @@ Other Constructors
     :param alpha: the first angle of the rotation
     :param beta: the second angle of the rotation
     :param gamma: the third angle of the rotation
-    :raises TypeError: if `alpha`, `beta`, or `gamma` are not :class:`Real`
-        types
+    :raises TypeError: if `alpha`, `beta`, or `gamma` are not or cannot be
+        converted to a :class:`float`
+
+Subclassing :class:`EulerAngles`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+As of version `0.16.0` the :class:`EulerAngles` class supports subclassing. As the
+:class:`EulerAngles` class is implemented as a C struct, it has a specific memory
+layout, and as a consequence of that it is a :deco:`distjoint-base`. This
+means :class:`EulerAngles` cannot be combined with any other types whose layout
+is defined as a C struct when inheriting, which most Python built-in types
+such as :class:`list` or :class:`tuple` are. For example combining
+:class:`EulerAngles` and :class:`list` as base classes will raise a
+:exc:`TypeError`:
+
+.. code-block:: python
+
+	>>> class Foo(EulerAngles, list):
+	...     pass
+	...
+	TypeError: multiple bases have instance lay-out conflict
+
+This limitation does not apply when combining a :deco:`distjoin-base` with a
+pure python class, and of course is not an issue if :class:`EulerAngles` is the
+only base class for a derived type.
 
 Instance Methods
 ^^^^^^^^^^^^^^^^
@@ -323,7 +458,7 @@ Instance Methods
     :raises IndexError: if `index` is not in the range [0-2] (after
         adjusting for negative indexing)
 
-.. py:method:: EulerAngles.__setitem__(index: int, value: Real) -> Real
+.. py:method:: EulerAngles.__setitem__(index: int, value: SupportsFloat) -> float
 
     Sets the angle at `index` to `value`.
 
@@ -332,7 +467,7 @@ Instance Methods
     :return: `value`
     :raises TypeError: if `index` is not an :class:`int` type and does
         not provide :meth:`__index__`
-    :raises TypeError: if `value` is not a :class:`Real` type
+    :raises TypeError: if `value` is not or cannot be converted to a :class:`float`
     :raises IndexError: if `index` is not in the range [0-2] (after
         adjusting for negative indexing)
 
@@ -343,6 +478,10 @@ Instance Methods
 
     :return: a string representation of `self`
 
+	.. versionchanged:: 0.16.0
+		The method now prepends the output with the module name for better
+		scope resolution support when using the output with :func:`exec`.
+
 .. py:method:: EulerAngles.__str__() -> str
 
     Returns a string representation of `self`, similar to a :class:`list`
@@ -352,10 +491,36 @@ Instance Methods
 
 .. py:method:: EulerAngles.__reduce__()
 
-    Provides support for pickling and copying.
+    Provides support for pickling and copying. This function returns a
+	2-tuple containing a reference to the type constructor and a tuple of
+	arguments to initialize an equivalent instance. For types inheriting from
+	:class:`EulerAngles`, this function may need to be overloaded and modified
+	to return your own type.
 
     :return: a tuple containing the type and internal state of `self`
     :rtype: tuple[type, tuple[float, float, float]]
+
+Iterability
+^^^^^^^^^^^
+
+While the :py:class:`EulerAngles` class does not define an :py:meth:`__iter__`
+method directly, the class does support iterability via the sequence protocol.
+Attempting to access :py:meth:`EulerAngles.__iter__` will raise an
+:py:exc:`AttributeError`, however a :py:class:`EulerAngles` can be used anywhere
+an iterable is expected.
+
+.. code-block:: python
+
+	>>> angles = EulerAngles(1, 2, 3)
+	>>> itr = iter(angles)
+	>>> print(list(itr))
+	[1.0, 2.0, 3.0]
+	>>> for i in angles:
+	...     print(i)
+	...
+	1.0
+	2.0
+	3.0
 
 Explaining Relative Reference Frames
 ====================================
@@ -448,7 +613,7 @@ in real world systems, extrinsic matrices can still be computed, but
 Computing Matricies
 -------------------
 
-.. py:function:: compute_rotation_matrix(angle: Real, axis: int | Vector) -> Matrix
+.. py:function:: compute_rotation_matrix(angle: SupportsFloat, axis: int | Vector) -> Matrix
     compute_rotation_matrix(order: RotationOrder, angles: EulerAngles, *, intrinsic: bool = True) -> Matrix
     compute_rotation_matrix(order_from: RotationOrder, angles_from: EulerAngles, order_to: RotationOrder,\
         angles_to: EulerAngles, *, intrinsic_from: bool = True, intrinsic_to: bool = True) -> Matrix
@@ -521,7 +686,7 @@ arguments to achieve the same thing for the respective reference frames.
     reference frame's origin to the rotated reference frame's origin.
 
 .. py:function:: rotate_from(matrix: Matrix, vector: Vector, *, offset: Optional[Vector] = None) -> Vector
-    rotate_from(angle: Real, axis: int | Vector, vector: Vector, *, offset: Optional[Vector] = None) -> Vector
+    rotate_from(angle: SupportsFloat, axis: int | Vector, vector: Vector, *, offset: Optional[Vector] = None) -> Vector
     rotate_from(order: RotationOrder, angles: EulerAngles, vector: Vector, *, intrinsic: bool = True,\
         offset: Optional[Vector] = None) -> Vector
 
@@ -555,7 +720,7 @@ arguments to achieve the same thing for the respective reference frames.
     :raises ValueError: if `axis` is provided as an integer but is not in the range of [0-2]
 
 .. py:function:: rotate_to(matrix: Matrix, vector: Vector, *, offset: Optional[Vector] = None) -> Vector
-    rotate_to(angle: Real, axis: int | Vector, vector: Vector, *, offset: Optional[Vector] = None) -> Vector
+    rotate_to(angle: SupportsFloat, axis: int | Vector, vector: Vector, *, offset: Optional[Vector] = None) -> Vector
     rotate_to(order: RotationOrder, angles: EulerAngles, vector: Vector, *, intrinsic: bool = True,\
         offset: Optional[Vector] = None) -> Vector
 
@@ -610,7 +775,7 @@ arguments to achieve the same thing for the respective reference frames.
     :param vector: the vector to rotate
     :keyword intrinsic_from: determines if the rotation from is intrinsic (default) or extrinsic
     :keyword intrinsic_to: determines if the rotation to is intrinsic (default) or extrinsic
-    :keyword offset_from: offset of the from reference frame origin relative to the inertial frame (default is None)
-    :keyword offset_to: offset of the to reference frame origin relative to the inertial frame (default is None)
+    :keyword offset_from: offset of the from reference frame origin relative to the inertial frame (default is :data:`None`)
+    :keyword offset_to: offset of the to reference frame origin relative to the inertial frame (default is :data:`None`)
     :return: the rotated vector
     :raises TypeError: if any parameters are not their explicit type

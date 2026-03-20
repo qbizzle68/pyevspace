@@ -53,6 +53,16 @@ during tests.
 Additional Features Documentation
 =================================
 
+.. versionchanged:: 0.16.0
+    Because the module is now multi-phase initialized, there is no global state,
+    and therefore no global module capsule :c:expr:`PyEVSpace_CAPI*` variable.
+    As these functions are helpers that wrap :doc:`capsule functions </extend/capsule>`,
+    there is now no direct access to the capsule to make these function calls.
+    As the user of these methods should be using the capsule anyway, these
+    functions now require the caller to pass a pointer to the module capsule
+    in order to avoid relying on a global state variable, which is mandatory
+    to support multi-phase initialization.
+
 Macros
 ------
 
@@ -71,9 +81,12 @@ Macros
 To EVSpace Conversions
 ----------------------
 
+.. versionchanged:: 0.16.0
+    These functions all now require a pointer to the PyEVSpace module capsule.
+
 .. todo: add references to the evspace documentation when it is finished
 
-.. cpp:function:: int PyEVSpace_ToVector(PyObject* obj, evspace::Vector& vector)
+.. cpp:function:: int PyEVSpace_ToVector(PyObject* obj, evspace::Vector& vector, PyEVSpace_CAPI* capsule)
 
     Modify `vector` so that its internal state matches the state of a
     :py:type:`pyevspace.Vector` type. Return `0` on success, and `-1` on failure
@@ -81,10 +94,11 @@ To EVSpace Conversions
 
     :param obj: must be a :c:type:`PyObject`\* with the same type as :c:var:`PyEVSpace_CAPI.Vector_Type`
     :param vector: the vector instance to set equal to `obj`
+    :param capsule: a pointer to the module capsule
     :retval 0: on success
     :retval -1: on failure with an appropriate exception set
 
-.. cpp:function:: int PyEVSpace_ToMatrix(PyObject* obj, evspace::Matrix& matrix)
+.. cpp:function:: int PyEVSpace_ToMatrix(PyObject* obj, evspace::Matrix& matrix, PyEVSpace_CAPI* capsule)
 
     Modify `matrix` so that its internal state matches the state of a
     :py:type:`pyevspace.Matrix` type. Return `0` on success, and `-1` on failure
@@ -92,10 +106,11 @@ To EVSpace Conversions
 
     :param obj: must be a :c:type:`PyObject`\* with the same type as :c:var:`PyEVSpace_CAPI.Matrix_Type`
     :param matrix: the matrix instance to set equal to `obj`
+    :param capsule: a pointer to the module capsule
     :retval 0: on success
     :retval -1: on failure with an appropriate exception set
 
-.. cpp:function:: int PyEVSpace_ToAngles(PyObject* obj, evspace::EulerAngles& angles)
+.. cpp:function:: int PyEVSpace_ToAngles(PyObject* obj, evspace::EulerAngles& angles, PyEVSpace_CAPI* capsule)
 
     Modify `angles` so that its internal state matches the state of a
     :py:type:`pyevspace.EulerAngles` type. Return `0` on success, and `-1` on failure
@@ -103,13 +118,14 @@ To EVSpace Conversions
 
     :param obj: must be a :c:type:`PyObject`\* with the same type as :c:var:`PyEVSpace_CAPI.EulerAngles_Type`
     :param angles: the angles instance to set equal to `obj`
+    :param capsule: a pointer to the module capsule
     :retval 0: on success
     :retval -1: on failure with an appropriate exception set
 
 To :c:type:`PyObject`\* Conversions
 -----------------------------------
 
-.. cpp:function:: PyObject* PyEVSpaceVector_ToObject(evspace::Vector vector)
+.. cpp:function:: PyObject* PyEVSpaceVector_ToObject(const evspace::Vector& vector, PyEVSpace_CAPI* capsule)
 
     Creates a :py:type:`pyevspace.Vector` object as a :c:type:`PyObject`\*,
     specifically a :c:var:`PyEVSpace_CAPI.Vector_Type`, whose internal state
@@ -117,10 +133,11 @@ To :c:type:`PyObject`\* Conversions
     reference* owned by the caller, or NULL on error.
 
     :param vector: the vector whose state is used when creating the PyObject
-    :return: a new reference to a :c:var:`Vector_Type` as a PyObject*
+    :param capsule: a pointer to the module capsule
+    :return: a new reference to a :c:var:`Vector_Type` as a :c:expr:`PyObject*`
     :retval NULL: on failure with an appropriate exception set
 
-.. cpp:function:: PyObject* PyEVSpaceMatrix_ToObject(evspace::Matrix matrix)
+.. cpp:function:: PyObject* PyEVSpaceMatrix_ToObject(const evspace::Matrix& matrix, PyEVSpace_CAPI* capsule)
 
     Creates a :py:type:`pyevspace.Matrix` object as a :c:type:`PyObject`\*,
     specifically a :c:var:`PyEVSpace_CAPI.Matrix_Type`, whose internal state
@@ -128,10 +145,11 @@ To :c:type:`PyObject`\* Conversions
     reference* owned by the caller, or NULL on error.
 
     :param matrix: the matrix whose state is used when creating the PyObject
-    :return: a new reference to a :c:var:`Matrix_Type` as a PyObject*
+    :param capsule: a pointer to the module capsule
+    :return: a new reference to a :c:var:`Matrix_Type` as a :c:expr:`PyObject*`
     :retval NULL: on failure with an appropriate exception set
 
-.. cpp:function:: PyObject* PyEVSpaceAngles_ToObject(evspace::EulerAngles angles)
+.. cpp:function:: PyObject* PyEVSpaceAngles_ToObject(const evspace::EulerAngles& angles, PyEVSpace_CAPI* capsule)
 
     Creates a :py:type:`pyevspace.EulerAngles` object as a :c:type:`PyObject`\*,
     specifically a :c:var:`PyEVSpace_CAPI.EulerAngles_Type`, whose internal state
@@ -139,13 +157,14 @@ To :c:type:`PyObject`\* Conversions
     reference* owned by the caller, or NULL on error.
 
     :param angles: the angles whose state is used when creating the PyObject
-    :return: a new reference to a :c:var:`EulerAngles_Type` as a PyObject*
+    :param capsule: a pointer to the module capsule
+    :return: a new reference to a :c:var:`EulerAngles_Type` as a :c:expr:`PyObject*`
     :retval NULL: on failure with an appropriate exception set
 
 ReferenceFrame Components
 -------------------------
 
-.. cpp:function:: int PyEVSpaceFrame_ToAngles(PyObject* obj, evspace::EulerAngles& angles)
+.. cpp:function:: int PyEVSpaceFrame_ToAngles(PyObject* obj, evspace::EulerAngles& angles, PyEVSpace_CAPI* capsule)
 
     Retrieve the rotation angles state from a :py:type:`pyevspace.ReferenceFrame` object
     as a :c:type:`PyObject`\*, by setting the state of `angles` equal to the angles state in `obj`.
@@ -153,10 +172,11 @@ ReferenceFrame Components
 
     :param obj: must be a PyObject* with the same type as :c:var:`PyEVSpace_CAPI.ReferenceFrame_Type`
     :param angles: output variable to set equal to the `obj` angles state
+    :param capsule: a pointer to the module capsule
     :retval 0: on success
     :retval -1: on failure with an appropriate exception set
 
-.. cpp:function:: int PyEVSpaceFrame_ToOffset(PyObject* obj, evspace::Vector& offset)
+.. cpp:function:: int PyEVSpaceFrame_ToOffset(PyObject* obj, evspace::Vector& offset, PyEVSpace_CAPI* capsule)
 
     Retrive the rotation order state from a :py:type:`pyevspace.ReferenceFrame` object
     as a :c:type:`PyObject`\*, by setting the state of `offset` equal to the offset state in `obj`.
@@ -174,10 +194,11 @@ ReferenceFrame Components
         
     :param obj: must be a PyObject* with the same type as :c:var:`PyEVSpace_CAPI.ReferenceFrame_Type`
     :param offset: output variable to set equal to the `obj` offset state
+    :param capsule: a pointer to the module capsule
     :retval 0: on success
     :retval -1: on failure with an appropriate exception set
 
-.. cpp:function:: int PyEVSpaceFrame_SetAngles(PyObject* obj, const evspace::EulerAngles& angles)
+.. cpp:function:: int PyEVSpaceFrame_SetAngles(PyObject* obj, const evspace::EulerAngles& angles, PyEVSpace_CAPI* capsule)
 
     Set the internal Euler angles state of a :py:type:`pyevspace.ReferenceFrame`
     object as a :c:type:`PyObject`\* (`obj`) from a :c:`evspace::EulerAngles` object.
@@ -185,10 +206,11 @@ ReferenceFrame Components
 
     :param obj: must be a PyObject* with the same type as :c:var:`PyEVSpace_CAPI.ReferenceFrame_Type`
     :param angles: angles variable whose state the `obj` angles state will be set to
+    :param capsule: a pointer to the module capsule
     :retval 0: on success
     :retval -1: on failure with an appropriate exception set
 
-.. cpp:function:: int PyEVSpaceFrame_SetOffset(PyObject* obj, const evspace::Vector& offset)
+.. cpp:function:: int PyEVSpaceFrame_SetOffset(PyObject* obj, const evspace::Vector& offset, PyEVSpace_CAPI* capsule)
 
     Set the internal offset vector state of a :py:type:`pyevspace.ReferenceFrame`
     object as a :c:type:`PyObject`\* (`obj`) from a :c:`evspace::Vector` object. Returns
@@ -207,5 +229,6 @@ ReferenceFrame Components
 
     :param obj: must be a PyObject* with the same type as :c:var:`PyEVSpace_CAPI.ReferenceFrame_Type`
     :param offset: offset variable whose state the `obj` offset state will be set to
+    :param capsule: a pointer to the module capsule
     :retval 0: on success
     :retval -1: on failure with an appropriate exception set

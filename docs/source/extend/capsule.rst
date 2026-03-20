@@ -27,6 +27,15 @@ that use these functions. They can be referenced as `examples <https://github.co
 for how to use the capsule functions, but keep in mind they are farily trivial,
 only meant to test behavior.
 
+.. versionchanged:: 0.16.0
+    Because the module is now multi-phase initialized, there is no global
+    state, and therefore there is no global :c:expr:`PyTypeObject*` variables for
+    use in type checking and creating new instances. While the capsule methods
+    that create and return new :c:expr:`PyObject*` can lookup the module
+    state, any caller already has direct access to the types via the capsule.
+    Therefore, these functions now require the caller to pass the :c:expr:`PyTypeObject*`
+    of the desired return type (or a subclass of the type) to the capsule method.
+
 Capsule Utilities
 -----------------
 
@@ -35,13 +44,27 @@ Capsule Utilities
     A global static pointer to the PyEVSpace capsule struct :c:struct:`PyEVSpace_CAPI`
     This value can be filled using the :c:func:`PyEVSpace_ImportCapsule` function.
 
-.. c:function:: int PyEVSpace_ImportCapsule(void)
+    .. versionremoved:: 0.16.0
+        As the module uses multi-phase initialization there can no longer be
+        any modifiable global state. Therefore this variable is removed and
+        any user of the capsule needs to define a pointer to a capsule instance
+        somewhere within their module layout.
 
-    Fills the global :c:var:`PyEVSpace_API` pointer to the :c:type:`PyCapsule`
-    attached to the imported PyEVSpace module. The
-    :c:macro:`PYEVSPACE_CAPSULE_VERSION` macro should be used to verify the
+.. c:function:: int PyEVSpace_ImportCapsule(PyEVSpace_CAPI** out)
+
+    Imports the PyEVSpace module if not already imported, and fills the `out`
+    parameter to the capsule pointer attached to the PyEVSpace module. The
+    source of the `out` parameter is up to the caller to define, if creating
+    a single-phase intialized module a global static variable is most common,
+    or within your own module's state for multi-phased initialization is best.
+    The :c:macro:`PYEVSPACE_CAPSULE_VERSION` macro should be used to verify the
     :c:member:`PyEVSpace_CAPI.version` value of the capsule matches the version
     that is included in your extension.
+    
+    .. versionchanged:: 0.16.0
+        This function now takes a required :c:expr:`PyEVSpace_CAPI**` argument
+        to set the capsule to, as there is no longer a global instance
+        of this type (see :c:var:`EVSpace_API`).
 
     :retval 0: on successful import of the capsule
     :retval -1: if an error occurred
@@ -57,6 +80,10 @@ Capsule Utilities
     The version of the PyEVSpace capsule defined in the header. This should be
     verified against :c:var:`PyEVSpace_CAPI.version` to ensure the version
     of the imported capsule and the header definition are compatible.
+
+    .. versionchanged:: 0.16.0
+        This value was bumped up as there are backwards incompatible changes
+        within the capsule.
 
 Capsule Definition
 ------------------
@@ -93,11 +120,11 @@ Capsule Definition
             int (*PyEVSpaceFrame_GetIntrinsic)(PyObject*);
 
             // Python type constructors via state
-            PyObject* (*PyEVSpaceVector_FromState)(double[3]);
-            PyObject* (*PyEVSpaceMatrix_FromState)(double[9]);
-            PyObject* (*PyEVSpaceAngles_FromState)(double[3]);
-            PyObject* (*PyEVSpaceOrder_FromState)(unsigned int[3]);
-            PyObject* (*PyEVSpaceFrame_FromState)(unsigned int[3], double[3], double*, int);
+            PyObject* (*PyEVSpaceVector_FromState)(PyTypeObject*, double[3]);
+            PyObject* (*PyEVSpaceMatrix_FromState)(PyTypeObject*, double[9]);
+            PyObject* (*PyEVSpaceAngles_FromState)(PyTypeObject*, double[3]);
+            PyObject* (*PyEVSpaceOrder_FromState)(PyTypeObject*, unsigned int[3]);
+            PyObject* (*PyEVSpaceFrame_FromState)(PyTypeObject*, unsigned int[3], double[3], double*, int);
 
             // Python type modifiers
             int (*PyEVSpaceVector_SetState)(PyObject*, double[3]);
@@ -107,6 +134,10 @@ Capsule Definition
             int (*PyEVSpaceFrame_SetOffset)(PyObject*, double*);
 
         } PyEVSpace_CAPI;
+    
+    .. versionchanged:: 0.16.0
+        The PyEVSpace*_FromState methods now require a :c:type:`PyTypeObject`
+        pointer to the type they are meant to create.
 
 Capsule Documentation
 =====================
@@ -126,6 +157,10 @@ do not match you should set an exception and return an error status.
 
 PyTypeObjects
 -------------
+
+.. versionchanged:: 0.16.0
+    These are now heap types, created from :c:type:`PyType_Spec` definitions
+    for each module created.
 
 .. c:var:: PyTypeObject* PyEVSpace_CAPI.Vector_Type
     
@@ -293,59 +328,94 @@ State Getters
 PyObject Constructors
 ---------------------
 
-.. c:function:: PyObject* PyEVSpace_CAPI.PyEVSpaceVector_FromState(double state[3])
+.. c:function:: PyObject* PyEVSpace_CAPI.PyEVSpaceVector_FromState(PyTypeObject* type, double state[3])
 
-    Creates a PyObject for a :py:class:`pyevspace.Vector` type from the
-    vector state as a C :c:expr:`double` array. The returned object is
-    a *new reference* owned by the caller.
+    Creates a :c:expr:`PyObject*` for a :py:class:`pyevspace.Vector` or
+    a subclass of that type, depending on `type`, from the vector state
+    as a C :c:expr:`double`. If wanting to create a :py:class:`pyevspace.Vector`
+    instance, `type` should be :c:member:`PyEVSpace_CAPI.Vector_Type`. The
+    returned object is a *new reference* owned by the caller.
 
+    :param type: the type of instance to create. This must be exactly or
+        a subclass of :c:member:`PyEVSpace_CAPI.Vector_Type`
     :param state: the state of the vector to return
     :return: a new vector as a PyObject
     :retval NULL: if an error occurred with an appropriate exception set
 
-.. c:function:: PyObject* PyEVSpace_CAPI.PyEVSpaceMatrix_FromState(double state[9])
+    .. versionchanged:: 0.16.0
+        This function now takes a :c:expr:`PyTypeObject*` referencing the type
+        to create.
 
-    Creates a PyObject for a :py:class:`pyevspace.Matrix` type from the
-    vector state as a C :c:expr:`double` array. This is a `1-dimensional`
-    contiguous array as explained in :c:func:`PyEVSpaceMatrix_GetState`.
-    The returned object is a *new reference* owned by the caller.
+.. c:function:: PyObject* PyEVSpace_CAPI.PyEVSpaceMatrix_FromState(PyTypeObject* type, double state[9])
 
+    Creates a :c:expr:`PyObject*` for a :py:class:`pyevspace.Matrix` or
+    a subclass of that type, depending on `type`, from the matrix state
+    as a C :c:expr:`double`. If wanting to create a :py:class:`pyevspace.Matrix`
+    instance, `type` should be :c:member:`PyEVSpace_CAPI.Matrix_Type`. The
+    returned object is a *new reference* owned by the caller.
+
+    :param type: the type of instance to create. This must be exactly or
+        a subclass of :c:member:`PyEVSpace_CAPI.Matrix_Type`
     :param state: the state of the matrix to return
     :return: a new matrix as a PyObject
     :retval NULL: if an error occurred with an appropriate exception set
 
-.. c:function:: PyObject* PyEVSpace_CAPI.PyEVSpaceAngles_FromState(double state[3])
+    .. versionchanged:: 0.16.0
+        This function now takes a :c:expr:`PyTypeObject*` referencing the type
+        to create.
 
-    Creates a PyObject for a :py:class:`pyevspace.EulerAngles` type from the
-    angles state as a C :c:expr:`double` array. The returned object is
-    a *new reference* owned by the caller.
+.. c:function:: PyObject* PyEVSpace_CAPI.PyEVSpaceAngles_FromState(PyTypeObject* type, double state[3])
 
+    Creates a :c:expr:`PyObject*` for a :py:class:`pyevspace.EulerAngles` or
+    a subclass of that type, depending on `type`, from the angles state
+    as a C :c:expr:`double`. If wanting to create a :py:class:`pyevspace.EulerAngles`
+    instance, `type` should be :c:member:`PyEVSpace_CAPI.EulerAngles_Type`.
+    The returned object is a *new reference* owned by the caller.
+
+    :param type: the type of instance to create. This must be exactly or
+        a subclass of :c:member:`PyEVSpace_CAPI.EulerAngles_Type`
     :param state: the state of the Euler angles to return
     :return: a new Euler angles object as a PyObject
     :retval NULL: if an error occurred with an appropriate exception set
 
-.. c:function:: PyObject* PyEVSpace_CAPI.PyEVSpaceOrder_FromState(unsigned int state[3])
+    .. versionchanged:: 0.16.0
+        This function now takes a :c:expr:`PyTypeObject*` referencing the type
+        to create.
 
-    Creates a PyObject for a :py:class:`pyevspace.RotationOrder` type from
-    the order state as a C :c:expr:`unsigned int` array. The returned object is
-    a *new reference* owned by the caller.
+.. c:function:: PyObject* PyEVSpace_CAPI.PyEVSpaceOrder_FromState(PyTypeObject* type, unsigned int state[3])
 
+    Creates a :c:expr:`PyObject*` for a :py:class:`pyevspace.RotationOrder` or
+    a subclass of that type, depending on `type`, from the order state as a
+    :c:expr:`double`. If wanting to create a :py:class:`pyevspace.RotationOrder`
+    instance, `type` should be :c:member:`PyEVSpace_CAPI.RotationOrder_Type`.
+    The returned object is a *new reference* owned by the caller.
+
+    :param type: the type of instance to create. This must be exactly or
+        a subclass of :c:member:`PyEVSpace_CAPI.RotationOrder_Type`
     :param state: the state of the rotation order to return
     :return: a new rotation order as a PyObject
     :retval NULL: if an error occurred with an appropriate exception set
 
-.. c:function:: PyObject* PyEVSpace_CAPI.PyEVSpaceFrame_FromState(unsigned int order[3], double angles[3], double* offset, int intrinsic)
+    .. versionchanged:: 0.16.0
+        This function now takes a :c:expr:`PyTypeObject*` referencing the type
+        to create.
 
-    Creates a PyObject for a :py:class:`pyevspace.ReferenceFrame` type from
-    the reference frame state. The parameters used are similar to those as
-    :c:func:`PyEVSpaceFrame_GetState`, with the exception of the `offset`
-    type. As this is an input parameter and not an output parameter, `offset`
-    may be :c:expr:`NULL`. Otherwise, `offset` is treated to have type
+.. c:function:: PyObject* PyEVSpace_CAPI.PyEVSpaceFrame_FromState(PyTypeObject* type, unsigned int order[3], double angles[3], double* offset, int intrinsic)
+
+    Creates a :c:expr:`PyObject*` for a :py:class:`pyevspace.ReferenceFrame` type or
+    a subclass of that type, depending on `type`, using the parameters similar
+    to those as :c:func:`PyEVSpaceFrame_GetState`, with the exception of the
+    `offset` type. As this is an input parameter and not an output parameter,
+    `offset` may be :c:expr:`NULL`. Otherwise, `offset` is treated to have type
     :c:expr:`double[3]`, and anything else may cause undefined behavior, or
     worse, crash the program.
 
-    The returned object is a *new reference* owned by the caller.
+    If wanting to create a :py:class:`pyevspace.ReferenceFrame` instance,
+    `type` should be :c:member:`PyEVSpace_CAPI.ReferenceFrame_Type`. The
+    returned object is a *new reference* owned by the caller.
 
+    :param type: the type of instance to create. This must be exactly or
+        a subclass of :c:member:`PyEVSpace_CAPI.ReferenceFrame_Type`
     :param order: the rotation order state of the reference frame
     :param angles: the rotation angles state of the reference frame
     :param offset: :c:expr:`NULL` to be equivalent to :c:var:`Py_None`, otherwise
@@ -353,6 +423,10 @@ PyObject Constructors
     :param intrinsic: `1` for an intrinsic rotation, `0` for extrinsic
     :return: a new reference frame as a PyObject
     :retval NULL: if an error occurred with an appropriate exception set
+
+    .. versionchanged:: 0.16.0
+        This function now takes a :c:expr:`PyTypeObject*` referencing the type
+        to create.
 
 PyObject Modifiers
 ------------------

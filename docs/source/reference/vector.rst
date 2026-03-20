@@ -10,7 +10,7 @@ The Vector Type
 ===============
 
 .. py:class:: Vector()
-	Vector(x: Real, y: Real, z: Real)
+	Vector(x: SupportsFloat, y: SupportsFloat, z: SupportsFloat)
 	Vector(container: Iterable)
 
 	The Vector type represents a vector of a 3-dimensional vector space
@@ -38,33 +38,41 @@ The Vector Type
 	supplying any arguments the vector components will be initialized to zero.
 	If initializing by provided components, all components must be specified.
 
-	Direct elements or elements of `container` must be a :python:`Real` type. While
-	custom types need not be a subclass of :python:`Real`, they must implement
-	either :python:`__float__` or :python:`__index__`.
+	Direct elements or elements of `container` must be a :class:`float`, or
+	compatible with :py:class:`SupportsFloat`, meaning they can be converted to
+	a float by defining a :meth:`__float__` method.
+
+	.. versionchanged:: 0.16.0
+		Vector is now subclassable, and is no longer an immutable type,
+		meaning class members can be directly modified or added.
 
 	:param x: value to initialize the x-component to
 	:param y: value to initialize the y-component to
 	:param z: value to initialize the z-component to
-	:param container: an iterable object of length three with :python:`Real`
-		values (this must be the only parameter when initializing from an iterable)
-	:raises TypeError: if `x`, `y`, or `z` is not a :python:`Real` type
-	:raises TypeError: if a value of `container` is not a :python:`Real` type
+	:param container: an iterable object of length three with elements compatible
+		with :py:class:`SupportsFloat` (this must be the only parameter if present)
+	:raises TypeError: if `x`, `y`, or `z` cannot be converted to a :py:class:`float`
+	:raises TypeError: if a value of `container` cannot be converted to a :py:class:`float`
 	:raises ValueError: if :python:`len(container) != 3`
 
 Other Constructors
 ------------------
 
-.. py:classmethod:: Vector.__new__(cls: type) -> Vector
+.. py:classmethod:: Vector.__new__(cls: type) -> Self
 
-	Creates a new, uninitialized :class:`Vector` object. All components
-	of the vector default to zero.
+	Creates a new, uninitialized `cls` object if `cls` is a subclass
+	of :py:class:`Vector`. All components of the vector default to zero.
 
 	:param cls: must be a subtype of :class:`Vector`
 	:return: an uninitialized :class:`Vector` object
 	:raises TypeError: if `cls` is not a subtype of :class:`Vector`
+	
+	.. versionchanged:: 0.16.0
+		`type` can be a subtype of :py:class:`Vector`, and an object of that
+		type will be created and returned.
 
 .. py:method:: Vector.__init__()
-	Vector.__init__(x: Real, y: Real, z: Real)
+	Vector.__init__(x: SupportsFloat, y: SupportsFloat, z: SupportsFloat)
 	Vector.__init__(container: Iterable)
 
 	Initialize a :class:`Vector` depending on the arguments. This method and arguments
@@ -73,11 +81,56 @@ Other Constructors
 	:param x: value to initialize the x-component to
 	:param y: value to initialize the y-component to
 	:param z: value to initialize the z-component to
-	:param container: an iterable object of length three with :python:`Real`
-		values (this must be the only parameter when initializing from an iterable)
-	:raises TypeError: if `x`, `y`, or `z` is not a :python:`Real` type
-	:raises TypeError: if a value of `container` is not a :python:`Real` type
+	:param container: an iterable object of length three with elements compatible
+		with :py:class:`SupportsFloat` (this must be the only parameter if present)
+	:raises TypeError: if `x`, `y`, or `z` cannot be converted to a :py:class:`float`
+	:raises TypeError: if a value of `container` cannot be converted to a :py:class:`float`
 	:raises ValueError: if :python:`len(container) != 3`
+
+Subclassing :class:`Vector`
+===========================
+
+As of version `0.16.0` the :class:`Vector` class supports subclassing. As the
+:class:`Vector` class is implemented as a C struct, it has a specific memory
+layout, and as a consequence of that it is a :deco:`distjoint-base`. This
+means :class:`Vector` cannot be combined with any other types whose layout
+is defined as a C struct when inheriting, which most Python built-in types
+such as :class:`list` or :class:`tuple` are. For example combining :class:`Vector`
+and :class:`list` as base classes will raise a :exc:`TypeError`:
+
+.. code-block:: python
+
+	>>> class Foo(Vector, list):
+	...     pass
+	...
+	TypeError: multiple bases have instance lay-out conflict
+
+This limitation does not apply when combining a :deco:`distjoin-base` with a
+pure python class, and of course is not an issue if :class:`Vector` is the only
+base class for a derived type.
+
+While :class:`Vector` supports inheritance, there is no way for the
+constructor to know how to initialize an inherited type. Because of this,
+any function (except :meth:`Vector.__new__`) that returns a :class:`Vector`
+type will always return a :class:`Vector` instance, even on inherited types.
+To change this, you will need to override the function you want to return your
+type, and wrap the returned value in the constructor of your type. For example:
+
+.. code-block:: python
+
+	>>> class MyType(Vector):
+	...     def __init__(self, container, foo, bar):
+	...         super().__init__(self, container)
+	...         self.foo = foo
+	...         self.bar = bar
+	...     def __add__(self, other: MyType) -> MyType:
+	...         super().__add__(other)
+	...         return MyType(result, self.foo, self.bar)
+
+In this example the result of the :meth:`Vector.__add__` call is used to
+create a :class:`MyType` instance. Any method you want to have this behavior must
+be implemented yourself, including module level functions that normally
+return a :class:`Vector` type.
 
 Instance Methods
 ================
@@ -97,26 +150,20 @@ General Protocols
 
 	:param index: the index of the value to retrieve
 	:return: the indexed value of self
-	:raises TypeError: if `index` is not or cannot be converted to an int
+	:raises TypeError: if `index` is not or cannot be converted to an :py:class:`int`
 	:raises ValueError: if `index` is not in the interval [0, 2] (after
 		adjusting for negative indexing)
 
-.. py:method:: Vector.__setitem__(index: int, value: Real) -> Real
+.. py:method:: Vector.__setitem__(index: int, value: SupportsFloat) -> float
 
 	Sets the indexed value of the underlying array.
 
 	:param index: the index of the value to set
 	:param value: the value to set the array component to
 	:return: `value`
-	:raises TypeError: if `index` is not or cannot be converted to an int
-	:raises TypeError: if `value` is not a :python:`Real` type
+	:raises TypeError: if `index` is not or cannot be converted to an :py:class:`int`
+	:raises TypeError: if `value` is not or cannot be converted to a :py:class:`float`
 	:raises ValueError: if `index` is not in the interval [0, 2]
-
-.. py:method:: Vector.__iter__() -> iterator
-
-	Returns an iterator object for the vector.
-
-	:return: an iterator for a vector
 
 .. py:method:: Vector.__repr__() -> str
 
@@ -125,6 +172,10 @@ General Protocols
 	follows the same as :py:meth:`Vector.__str__()`.
 
 	:return: a string representation of self
+
+	.. versionchanged:: 0.16.0
+		The method now prepends the output with the module name for better
+		scope resolution support when using the output with :func:`exec`.
 
 .. py:method:: Vector.__str__() -> str
 
@@ -138,10 +189,35 @@ General Protocols
 
 .. py:method:: Vector.__reduce__()
 
-	Allows support for pickling and deep copying.
+	Allows support for pickling and deep copying. This function returns a
+	2-tuple containing a reference to the type constructor and a tuple of
+	arguments to initialize an equivalent instance. For types inheriting from
+	:class:`Vector`, this function may need to be overloaded and modified
+	to return your own type.
 
 	:return: a tuple used for reconstructing self's state
 	:rtype: tuple[type, tuple[float, float, float]]
+
+Iterability
+-----------
+
+While the :py:class:`Vector` class does not define an :py:meth:`__iter__` method
+directly, the class does support iterability via the sequence protocol. Attempting
+to access :py:meth:`Vector.__iter__` will raise an :py:exc:`AttributeError`, however
+a :py:class:`Vector` can be used anywhere an iterable is expected.
+
+.. code-block:: python
+
+	>>> v = Vector(1, 2, 3)
+	>>> itr = iter(v)
+	>>> print(list(itr))
+	[1.0, 2.0, 3.0]
+	>>> for i in v:
+	...     print(i)
+	...
+	1.0
+	2.0
+	3.0
 
 Arithmetic Operators
 --------------------
@@ -162,13 +238,13 @@ Arithmetic Operators
 	:return: the vector subtraction of `self` and `other`
 	:raises TypeError: if `other` is not a :class:`Vector` type
 
-.. py:method:: Vector.__mul__(scalar: Real) -> Vector
+.. py:method:: Vector.__mul__(scalar: SupportsFloat) -> Vector
 
 	Standard scalar multiplication.
 
 	:param scalar: the scalar to multiply each element of self by
 	:return: the scalar product
-	:raises TypeError: if `scalar` is not a :python:`Real` type
+	:raises TypeError: if `scalar` is not or cannot be converted to a :py:class:`float`
 
 .. py:method:: Vector.__matmul__(matrix: Matrix) -> Vector
 
@@ -178,13 +254,13 @@ Arithmetic Operators
 	:return: the transformation of self by matrix
 	:raises TypeError: if `matrix` is not a Matrix type
 
-.. py:method:: Vector.__truediv__(scalar: Real) -> Vector
+.. py:method:: Vector.__truediv__(scalar: SupportsFloat) -> Vector
 
 	Standard scalar division.
 
 	:param scalar: the scalar to divide each element of self by
 	:return: the scalar quotient
-	:raises TypeError: if `scalar` is not a :python:`Real` type
+	:raises TypeError: if `scalar` is not or cannot be converted to a :py:class:`float`
 
 .. py:method:: Vector.__neg__() -> Vector
 
@@ -207,28 +283,28 @@ Arithmetic Operators
 	:param other: the vector to subtract from self
 	:raises TypeError: if `other` is not an :class:`Vector` type
 
-.. py:method:: Vector.__imul__(scalar: Real) -> Vector
+.. py:method:: Vector.__imul__(scalar: SupportsFloat) -> Vector
 
 	Inplace standard scalar multiplication.
 
 	:param scalar: the scalar to multiply each element of self by
-	:raises TypeError: if `scalar` is not a :python:`Real` type
+	:raises TypeError: if `scalar` is not or cannot be converted to a :class:`float`
 
-.. py:method:: Vector.__itruediv__(scalar: Real) -> Vector
+.. py:method:: Vector.__itruediv__(scalar: SupportsFloat) -> Vector
 
 	Inplace standard scalar division.
 
 	:param scalar: the scalar to divide each element of self by
-	:raises TypeError: if `scalar` is not a :python:`Real` type
+	:raises TypeError: if `scalar` is not or cannot be converted to a :class:`float`
 
-.. py:method:: Vector.__rmul__(scalar: Real) -> Vector:
+.. py:method:: Vector.__rmul__(scalar: SupportsFloat) -> Vector:
 
 	Provides support for right-hand side scalar multiplication of
 	Vector types, e.g. :python:`1.5 * vector`.
 
 	:param rhs: scalar to multiply `self` by
 	:return: `self` multiplied by `scalar`
-	:raises TypeError: if `scalar` is not a :python:`Real` type
+	:raises TypeError: if `scalar` is not or cannot be converted to a :class:`float`
 
 Logical Operators
 -----------------
@@ -357,12 +433,12 @@ Vector Operators
 
 .. py:method:: Vector.mag()
 
-	.. deprecated:: 0.15.0
+	.. versionremoved:: 0.15.0
 		Use :meth:`Vector.magnitude`
 
 .. py:method:: Vector.mag2()
 
-	.. deprecated:: 0.15.0
+	.. versionremoved:: 0.15.0
 		Use :meth:`Vector.magnitude_squared`
 
 Attributes
@@ -394,17 +470,17 @@ Attributes
 
 .. py:attribute:: Vector.e1
 
-	.. deprecated:: 0.15.0
+	.. versionremoved:: 0.15.0
 		Use :attr:`Vector.E1` instead.
 
 .. py:attribute:: Vector.e2
 
-	.. deprecated:: 0.15.0
+	.. versionremoved:: 0.15.0
 		Use :attr:`Vector.E2` instead.
 
 .. py:attribute:: Vector.e3
 
-	.. deprecated:: 0.15.0
+	.. versionremoved:: 0.15.0
 		Use :attr:`Vector.E3` instead.
 
 Module Methods
@@ -485,32 +561,32 @@ Module Methods
 
 .. function:: dot(lhs, rhs)
 
-	.. deprecated:: 0.15.0
+	.. versionremoved:: 0.15.0
 		Use :func:`vector_dot`
 
 .. function:: cross(lhs, rhs)
 
-	.. deprecated:: 0.15.0
+	.. versionremoved:: 0.15.0
 		Use :func:`vector_cross`
 
 .. function:: norm(vector)
 
-	.. deprecated:: 0.15.0
+	.. versionremoved:: 0.15.0
 		Use :meth:`Vector.norm`
 
 .. function:: vang(lhs, rhs)
 
-	.. deprecated:: 0.15.0
+	.. versionremoved:: 0.15.0
 		Use :func:`vector_angle`
 
 .. function:: vxcl(vector, exclude)
 
-	.. deprecated:: 0.15.0
+	.. versionremoved:: 0.15.0
 		Use :func:`vector_exclude`
 
 .. function:: proj(vector, onto)
 
-	.. deprecated:: 0.15.0
+	.. versionremoved:: 0.15.0
 		Use :func:`vector_proj`
 
 Buffer Protocol

@@ -16,7 +16,7 @@
     .n:not(.sig-param) - return types that are not build-ins e.g. PyObject
 */
 .sig.cpp > :is(.kt, .p, .n:not(.sig-param)) > .pre {
-    color: var(--custom-green-accent)
+    color: var(--custom-green-accent);
 }
 
 /* Accent Python signatures
@@ -30,3 +30,24 @@
 /* .sig.py > .property > .k > .pre {
     color: #00ccff
 } */
+
+/* The following are required to make removed banners appear like deprecated 
+(currently the removed banners have no color, and the deprecated signal danger more) */
+div.versionremoved {
+    border-left: .2rem solid;
+    border-radius: .25rem;
+    margin: 1.5625rem auto;
+    overflow: hidden;
+    padding: 0 .6rem;
+    background-color: var(--pst-color-danger-bg);
+    border-color: var(--pst-color-danger);
+}
+
+div.versionremoved > p {
+    margin-bottom: .6rem;
+    margin-top: .6rem;
+}
+
+span.versionmodified.removed:before {
+    color: var(--pst-color-danger)
+}

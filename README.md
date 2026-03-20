@@ -14,7 +14,7 @@ space only, and ideal for projects and apps modeling real world systems.
 ## Documentation
 
 The full documentation of this project with both Python and C APIs can
-be found [here](https://qbizzle68/pyevspace).
+be found [here](https://qbizzle/pyevspace).
 
 ## Install
 

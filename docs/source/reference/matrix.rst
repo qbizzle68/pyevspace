@@ -26,48 +26,57 @@ The Matrix Type
 
     A matrix can be initialized by specifying each row directly, or wrapped
     in a container. All containers must have a length of exactly `3`, where
-    the row containers have components of :class:`Real` types. The components
-    do not need to be a subtype of :class:`Real`, but custom types must
-    provide either :meth:`__float__` or :meth:`__index__`.
+    the row containers have components that are compatible with
+    :class:`SupportsFloat`, meaning they can be converted to a :class:`float` by
+    defining a :meth:`__float__` method.
 
     If no arguments are provided the matrix components are initialized
     to zero.
 
-        .. code-block:: python
+    .. code-block:: python
 
-            >>> row0 = (1, 2, 3)
-            >>> row1 = (4, 5, 6)
-            >>> row2 = (7, 8, 9)
-            >>> matrix = Matrix(row0, row1, row2)
-            >>> # or via a top-level container
-            >>> container = (row0, row1, row2)
-            >>> matrix = Matrix(container)
+        >>> row0 = (1, 2, 3)
+        >>> row1 = (4, 5, 6)
+        >>> row2 = (7, 8, 9)
+        >>> matrix = Matrix(row0, row1, row2)
+        >>> # or via a top-level container
+        >>> container = (row0, row1, row2)
+        >>> matrix = Matrix(container)
 
-    :param row0: an iterable object of length `3` whose values are
-        :class:`Real` types
-    :param row1: an iterable object of length `3` whose values are
-        :class:`Real` types
-    :param row2: an iterable object of length `3` whose values are
-        :class:`Real` types
+    .. versionchanged:: 0.16.0
+        Matrix is now subclassable, and is no longer an immutable type,
+        meaning class members can be directly modified or added.
+
+    :param row0: an iterable object of length `3` whose values are or can be
+        converted to a :class:`float`
+    :param row1: an iterable object of length `3` whose values are or can be
+        converted to a :class:`float`
+    :param row2: an iterable object of length `3` whose values are or can be
+        converted to a :class:`float`
     :param container: a container of length `3` whose values would
         otherwise be identical to `row0`, `row1`, and `row2`. If this
         parameter is provided it must be the only one.
     :raises TypeError: if any initializer is not an iterable
-    :raises TypeError: if any value of an initializer is not a :class:`Real` type
+    :raises TypeError: if any value of an initializer is not or cannot be
+        converted to a :class:`float`
     :raises ValueError: if `container` or any of the sub-iterables of
         `container` are not exactly length `3`
 
 Other Constructors
 ------------------
 
-.. py:classmethod:: Matrix.__new__(cls: type) -> Matrix
+.. py:classmethod:: Matrix.__new__(cls: type) -> Self
 
-    Create a new, uninitialized :class:`Matrix` object. All components
-    of the matrix default to zero.
+    Create a new, uninitialized `cls` object if `cls` is a subclass of
+    :class:`Matrix`. All components of the matrix default to zero.
 
     :param cls: must be a subtype of :class:`Matrix`
     :return: an uninitialized :class:`Matrix` object
     :raises TypeError: if `cls` is not a subtype of :class:`Matrix`
+
+    .. versionchanged:: 0.16.0
+        `type` can be a subtype of :class:`Matrix`, and an object of that
+        type will be created and returned.
 
 .. py:method:: Matrix.__init__()
     Matrix.__init__(row0: Iterable, row1: Iterable, row2: Iterable)
@@ -76,20 +85,64 @@ Other Constructors
     Initialize a :class:`Matrix` depending on the parameters. This method and
     parameters behave identrically to the :class:`Matrix` constructor.
 
-    :param row0: an iterable object of length `3` whose values are
-        :class:`Real` types
-    :param row1: an iterable object of length `3` whose values are
-        :class:`Real` types
-    :param row2: an iterable object of length `3` whose values are
-        :class:`Real` types
+    :param row0: an iterable object of length `3` whose values are or can be
+        converted to a :class:`float`
+    :param row1: an iterable object of length `3` whose values are or can be
+        converted to a :class:`float`
+    :param row2: an iterable object of length `3` whose values are or can be
+        converted to a :class:`float`
     :param container: a container of length `3` whose values would
         otherwise be identical to `row0`, `row1`, and `row2`. If this
         parameter is provided it must be the only one.
     :raises TypeError: if any initializer is not an iterable
-    :raises TypeError: if any value of an initializer is not a :class:`Real` type
+    :raises TypeError: if any value of an initializer is not or cannot be
+        converted to a :class:`float`
     :raises ValueError: if `container` or any of the sub-iterables of
         `container` are not exactly length `3`
 
+Subclassing :class:`Matrix`
+===========================
+As of version `0.16.0` the :class:`Matrix` class supports subclassing. As the
+:class:`Matrix` class is implemented as a C struct, it has a specific memory
+layout, and as a consequence of that it is a :deco:`distjoint-base`. This
+means :class:`Matrix` cannot be combined with any other types whose layout
+is defined as a C struct when inheriting, which most Python built-in types
+such as :class:`list` or :class:`tuple` are. For example combining :class:`Matrix`
+and :class:`list` as base classes will raise a :exc:`TypeError`:
+
+.. code-block:: python
+
+	>>> class Foo(Matrix, list):
+	...     pass
+	...
+	TypeError: multiple bases have instance lay-out conflict
+
+This limitation does not apply when combining a :deco:`distjoin-base` with a
+pure python class, and of course is not an issue if :class:`Matrix` is the only
+base class for a derived type.
+
+While :class:`Matrix` supports inheritance, there is no way for the
+constructor to know how to initialize an inherited type. Because of this,
+any function (except :meth:`Matrix.__new__`) that returns a :class:`Matrix`
+type will always return a :class:`Matrix` instance, even on inherited types.
+To change this, you will need to override the function you want to return your
+type, and wrap the returned value in the constructor of your type. For example:
+
+.. code-block:: python
+
+	>>> class MyType(Matrix):
+	...     def __init__(self, container, foo, bar):
+	...         super().__init__(self, container)
+	...         self.foo = foo
+	...         self.bar = bar
+	...     def __add__(self, other: MyType) -> MyType:
+	...         super().__add__(other)
+	...         return MyType(result, self.foo, self.bar)
+
+In this example the result of the :meth:`Matrix.__add__` call is used to
+create a :class:`MyType` instance. Any method you want to have this behavior must
+be implemented yourself, including module level functions that normally
+return a :class:`Matrix` type.
 
 Instance Methods
 ================
@@ -103,7 +156,7 @@ General Protocols
 
     :return: the method always returns `3`
 
-.. py:method:: Matrix.__getitem__(row_index: int | slice, col_index: int | slice) -> int | memoryview
+.. py:method:: Matrix.__getitem__(row_index: int | slice, col_index: int | slice) -> float | memoryview
 
     Retrieves a portion of the matrix using the mapping protocol. If `row_index` and
     `col_index` are of type :class:`int` (or provide an :meth:`__index__` method)
@@ -119,7 +172,7 @@ General Protocols
     :raises IndexError: if `row_index` or `col_index` are integers outside the
         range [0-2] (after adjusting for negative indexing)
 
-.. py:method:: Matrix.__setitem__(row_index: int, col_index: int, value: Real) -> Real
+.. py:method:: Matrix.__setitem__(row_index: int, col_index: int, value: SupportsFloat) -> float
 
     Sets a components of the matrix to `value`. This version of PyEVSpace currently
     only supports map assignment of single components, and therefore :class:`slice`
@@ -131,7 +184,7 @@ General Protocols
     :return: `value`
     :raise TypeError: if `row_index` or `col_index` are not :class:`int` types
         and do not provide :meth:`__index__`
-    :raise TypeError: if `value` is not a :class:`Real` type
+    :raise TypeError: if `value` is not or cannot be converted to a :class:`float`
     :raise IndexError: if `row_index` or `col_index` are not in the range [0-2]
         (after adjusting for negative indexing)
 
@@ -143,6 +196,10 @@ General Protocols
 
     :return: a string representation of `self`
 
+    .. versionchanged:: 0.16.0
+        The method now prepends the output with the module name for better
+        scope resolution support when using the output with :func:`exec`.
+
 .. py:method:: Matrix.__str__() -> str
 
     Returns a string representation of self, formatted similarly to a
@@ -152,12 +209,40 @@ General Protocols
 
     :return: a string representation of `self`
 
+    .. versionchanged:: 0.16.0
+        The last two rows are padded for left alignment.
+
 .. py:method:: Matrix.__reduce__()
 
-    Allows support for pickling and deep copying.
+    Allows support for pickling and deep copying. This function returns a
+    2-tuple containing a reference to the type constructor and a tuple of
+    arguments to initialize an equivalent instance. For types inheriting from
+    :class:`Matrix`, this function may beed to be overloaded and modified
+    to return your own type.
 
     :return: a :class:`tuple` used for reconstructing self's state
     :rtype: tuple[type, tuple[tulpe[float, ...], ...]]
+
+Iterability
+-----------
+
+.. versionadded:: 0.16.0
+    :class:`Matrix` now supports iterability.
+
+While the :class:`Matrix` class does not define an :meth:`__iter__` method
+directly, the class does support iterability via the sequence protocol. Attempting
+to access :meth:`Matrix.__iter__` will raise an :exc:`AttributeError`, however
+a :class:`Matrix` can be used anywhere an iterable is expected. Note that when
+iterating on a :class:`Matrix`, a :class:`memoryview` object is returned, which
+itself is iterable. When trying to convert a :class:`Matrix` to a different container
+type, each row of the matrix will also need converting. The :func:`map` function is
+useful for this:
+
+.. code-block:: python
+
+    >>> m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+    >>> container = list(map(lambda o: list(o), m))
+    [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]
 
 Arithmetic Operators
 --------------------
@@ -178,13 +263,13 @@ Arithmetic Operators
     :return: the matrix difference of `self` and `other`
     :raises TypeError: if `other` is not a :class:`Matrix` type
 
-.. py:method:: Matrix.__mul__(scalar: Real) -> Matrix
+.. py:method:: Matrix.__mul__(scalar: SupportsFloat) -> Matrix
 
     Scalar matrix multiplication.
 
     :param scalar: the scalar to multiply the components of `self` by
     :return: the scalar product of `self` and `scalar`
-    :raises TypeError: if `scalar` is not a :class:`Real` type
+    :raises TypeError: if `scalar` is not or cannot be converted to a :class:`float`
 
 .. py:method:: Matrix.__matmul__(other: Matrix) -> Matrix
     Matrix.__matmul__(vector: Vector) -> Vector
@@ -196,13 +281,13 @@ Arithmetic Operators
     :return: the result of the multiplication, the return type is the
         same type as the right-hand operand
 
-.. py:method:: Matrix.__truediv__(scalar: Real) -> Matrix
+.. py:method:: Matrix.__truediv__(scalar: SupportsFloat) -> Matrix
 
     Standard scalar division.
 
     :param scalar: the scalar to divide each component of `self` by
     :return: the scalar quotient
-    :raises TypeError: if `scalar` is not a :class:`Real` type
+    :raises TypeError: if `scalar` is not or cannot be converted to a :class:`float`
 
 .. py:method:: Matrix.__neg__() -> Matrix
 
@@ -224,12 +309,12 @@ Arithmetic Operators
     :param other: the matrix to subtract from `self`
     :raises TypeError: if `other` is not a :class:`Matrix` type
 
-.. py:method:: Matrix.__imul__(scalar: Real) -> Matrix
+.. py:method:: Matrix.__imul__(scalar: SupportsFloat) -> Matrix
 
     Inplace standard scalar multiplication.
 
     :param scalar: the scalar to multiply each element of `self` by
-    :raises TypeError: if `scalar` is not a :class:`Real` type
+    :raises TypeError: if `scalar` is not or cannot be converted to a :class:`float`
 
 .. py:method:: Matrix.__imatmul__(other: Matrix) -> Matrix
 
@@ -238,12 +323,12 @@ Arithmetic Operators
     :param other: the other matrix to multiply `self` inplace by
     :raises TypeError: if `other` is not a :class:`Matrix` type
 
-.. py:method:: Matrix.__itruediv__(scalar: Real) -> Matrix
+.. py:method:: Matrix.__itruediv__(scalar: SupportsFloat) -> Matrix
 
     Inplace standard scalar division.
 
     :param scalar: the scalar to divide each component of `self` by
-    :raises TypeError: if `scalar` is not a :class:`Real` type
+    :raises TypeError: if `scalar` is not or cannot be converted to a :class:`float`
 
 Logical Operators
 -----------------
@@ -396,7 +481,7 @@ Attributes
 
 .. py:attribute:: Matrix.id
 
-    .. deprecated:: 0.15.0
+    .. versionremoved:: 0.15.0
         Use :attr:`Matrix.IDENTITY`
 
 Module Methods
@@ -404,12 +489,12 @@ Module Methods
 
 .. function:: det(matrix)
 
-    .. deprecated:: 0.15.0
+    .. versionremoved:: 0.15.0
         Use :meth:`Matrix.determinate`
 
 .. function:: transpose(matrix)
 
-    .. deprecated:: 0.15.0
+    .. versionremoved:: 0.15.0
         Use :meth:`Matrix.transpose`
 
 Buffer Protocol
