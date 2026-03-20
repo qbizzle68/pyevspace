@@ -47,17 +47,7 @@ Then to install run
 
 Building In Place
 ^^^^^^^^^^^^^^^^^
-While not recommended, it is possible to build the package inplace. PyEVSpace
-has moved all build definitions to the :file:`pyproject.toml` file and no longer
-uses a :file:`setup.py` file. To build in place a minimal :file:`setup.py` file
-is needed in the repository root, which can be created using
-
-.. code-block:: console
-
-    echo -e "from setuptools import setup\nsetup()" > setup.py
-
-Newer versions of setuptools will fill the rest in from the contents of
-:file:`pyproject.toml`. Then with
+While not recommended, it is possible to build the package inplace with:
 
 .. code-block:: console
 
@@ -107,4 +97,4 @@ Tox. For example, to only test PyEVSpace built for python 3.13, use
     tox -e 3.13
 
 The available environments that can be run using Tox are "3.10", "3.11", "3.12",
-"3.13", "3.14", and "lint".
+"3.13", "3.14", "lint", and "stubtest".

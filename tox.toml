@@ -1,4 +1,4 @@
-env_list = ["3.14", "3.13", "3.12", "3.11", "3.10", "lint"]
+env_list = ["3.14", "3.13", "3.12", "3.11", "3.10"]
 
 [env_run_base]
 description = "run the test suite with pytest"
@@ -9,10 +9,17 @@ deps = [
 commands = [["pytest", {replace = "posargs", extend = true}]]
 
 [env.lint]
-description = "run linters"
+description = "run linters on python {base_python}"
 skip_install = true
 deps = [
     "flake8",
     "flake8-pyproject",
 ]
 commands = [["flake8", {replace = "posargs", extend = true}]]
+
+[env.stubtest]
+description = "runtime tests of stubs on python {base_python}"
+deps = [
+    "mypy",
+]
+commands = [["python", "-m", "mypy.stubtest", "pyevspace", {replace = "posargs", extend = true}]]

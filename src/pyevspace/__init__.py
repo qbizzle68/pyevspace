@@ -30,6 +30,8 @@ from ._pyevspace import (
     ZYZ,
 )
 
+__version__ = "0.15.0"
+
 __all__ = (
     'Vector',
     'vector_dot',

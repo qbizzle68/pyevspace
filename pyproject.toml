@@ -33,6 +33,7 @@ test = [
     "setuptools",
     "flake8",
     "flake8-pyproject",
+    "mypy",
     "tox",
 ]
 docs = [
@@ -59,6 +60,9 @@ sources = [
     "src/pyevspace/pyevspacemodule.cpp",
 ]
 # extra-compile-args is platform dependent and handled in setup.py
+
+[tool.setuptools.package-data]
+pyevspace = ["*.pyi", "py.typed"]
 
 [tool.flake8]
 exclude = [

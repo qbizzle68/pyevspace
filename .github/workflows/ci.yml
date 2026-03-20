@@ -36,6 +36,19 @@ jobs:
       - run: pip install tox
       - run: tox -e lint
 
+  stubs:
+    name: Run mypy.stubtest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout/@v6
+        with:
+          submodules: true
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - run: pip install mypy .
+      - run: python -m mypy.stubtest pyevspace
+
   build:
     name: Build and run tests
 
