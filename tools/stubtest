@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# Execuptes mypy.stubtest module while properly setting the MYPYPATH environment variable.
+# When a package is installed with the editable flag (`-e`) a file called `direct_url.json`
+# is created that points an importer of the package to the project root (where the pyproject.toml
+# lives). Because we use a src layout, mypy cannot resolve where the __init__.pyi file is,
+# because it's not looking for pyevspace in 'src/pyevspace'. The environment variable
+# MYPYPATH is used to resolve this, and this script just makes it faster to invoke the
+# mypy.stubtest module without typing out the MYPYPATH variable. Note this isn't required
+# when the package isn't installed as editable, because the importer points directly to
+# where the stub lives and mypy is happy :).
+
+MYPYPATH="./src:$MYPYPATH" python -m mypy.stubtest pyevspace

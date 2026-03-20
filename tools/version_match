@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+# Checks any version values in files across the repo all match. You can
+# pass an argument to enforce the version values match the passed version.
+
+# Add other version stripping here
+pkg_version=$(grep '^version' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+src_version=$(grep '^__version__' src/pyevspace/__init__.py | sed 's/__version__ = "\(.*\)"/\1/')
+
+# Add other computed versions here
+versions=("$pkg_version" "$src_version")
+if [[ "$#" -gt "0" ]]; then
+    versions+=("$1")
+fi
+
+first_value=${versions[0]}
+for item in "${versions[@]:1}"; do
+    if [[ "$item" != "$first_value" ]]; then
+        echo -e "\E[0;31mAt least one version mismatch found\E[0m"
+        exit 1
+    fi
+done
+
+cat CHANGELOG.md | grep -q "##\s*\[${first_value}\]" > /dev/null
+if [[ "$?" -ne "0" ]]; then
+    echo -e "\E[0;31mVersion number ${first_version} doesn't appear in CHANGELOG.md\E[0m"
+    exit 1
+fi
+
+echo -e "\E[0;32mAll versions match\E[0m"
+exit 0

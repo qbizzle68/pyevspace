@@ -10,3 +10,10 @@ that reference new behavior are not pushed until the corresponding release
 tag is ready to be pushed immediately after. Similarly, any issues with the
 `release.yml` workflow need to be addressed ASAP so live documentation
 changes reflect the most recent available release in a timely manner.
+
+## Tools
+The project supports some simple wrappers around commands that can make
+developing a bit easier. None of these commands are complex in nature,
+but the script makes running them a bit easier. There are no '--help'
+support in them but each file has a short description in what they do
+at the top of the file.
