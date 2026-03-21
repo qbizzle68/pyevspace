@@ -63,19 +63,19 @@ def test_vector_new() -> None:
 
 def test_vector_str_methods(vector_values):
     assert str(vector_values.v123) == '[1, 2, 3]'
-    assert repr(vector_values.v123) == 'Vector(1, 2, 3)'
+    assert repr(vector_values.v123) == 'pyevspace.Vector(1, 2, 3)'
 
     v = Vector(1.1, 2.2, 3.3)
     assert str(v) == '[1.1, 2.2, 3.3]'
-    assert repr(v) == 'Vector(1.1, 2.2, 3.3)'
+    assert repr(v) == 'pyevspace.Vector(1.1, 2.2, 3.3)'
 
     v = Vector(123456.1234, 1234567.891, 0.123456)
     assert str(v) == '[123456, 1.23457e+06, 0.123456]'
-    assert repr(v) == 'Vector(123456, 1.23457e+06, 0.123456)'
+    assert repr(v) == 'pyevspace.Vector(123456, 1.23457e+06, 0.123456)'
 
     v = Vector(0.0001234567, 0.00001234567, 0.000001234567)
     assert str(v) == '[0.000123457, 1.23457e-05, 1.23457e-06]'
-    assert repr(v) == 'Vector(0.000123457, 1.23457e-05, 1.23457e-06)'
+    assert repr(v) == 'pyevspace.Vector(0.000123457, 1.23457e-05, 1.23457e-06)'
 
 
 def test_vector_iter(vector_values):

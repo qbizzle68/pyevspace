@@ -34,20 +34,23 @@ def test_order_new():
 
 def test_order_str():
     s = str(XYZ)
-    assert s == '[X_AXIS, Y_AXIS, Z_AXIS]'
+    assert s == 'XYZ'
     s = str(YZX)
-    assert s == '[Y_AXIS, Z_AXIS, X_AXIS]'
+    assert s == 'YZX'
     s = str(ZXZ)
-    assert s == '[Z_AXIS, X_AXIS, Z_AXIS]'
+    assert s == 'ZXZ'
 
 
 def test_order_repr():
     s = repr(XYZ)
-    assert s == 'RotationOrder(X_AXIS, Y_AXIS, Z_AXIS)'
+    assert s == 'pyevspace.RotationOrder(pyevspace.X_AXIS, pyevspace.Y_AXIS,'\
+                ' pyevspace.Z_AXIS)'
     s = repr(YZX)
-    assert s == 'RotationOrder(Y_AXIS, Z_AXIS, X_AXIS)'
+    assert s == 'pyevspace.RotationOrder(pyevspace.Y_AXIS, pyevspace.Z_AXIS,'\
+                ' pyevspace.X_AXIS)'
     s = repr(ZXZ)
-    assert s == 'RotationOrder(Z_AXIS, X_AXIS, Z_AXIS)'
+    assert s == 'pyevspace.RotationOrder(pyevspace.Z_AXIS, pyevspace.X_AXIS,'\
+                ' pyevspace.Z_AXIS)'
 
 
 def test_order_get_set():

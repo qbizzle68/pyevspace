@@ -62,14 +62,14 @@ def test_matrix_construction(subtests, matrix_values: MatrixValues):
 
 
 def test_matrix_strings(matrix_values: MatrixValues) -> None:
-    assert str(matrix_values.m123) == '[[1, 2, 3]\n[4, 5, 6]\n[7, 8, 9]]'
+    assert str(matrix_values.m123) == '[[1, 2, 3]\n [4, 5, 6]\n [7, 8, 9]]'
     assert (repr(matrix_values.m123) ==
-            'Matrix([1, 2, 3], [4, 5, 6], [7, 8, 9])')
+            'pyevspace.Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))')
 
     m = Matrix((1.1, 2.2, 3.3), (4.4, 5.5, 6.6), (7.7, 8.8, 9.9))
-    assert str(m) == '[[1.1, 2.2, 3.3]\n[4.4, 5.5, 6.6]\n[7.7, 8.8, 9.9]]'
+    assert str(m) == '[[1.1, 2.2, 3.3]\n [4.4, 5.5, 6.6]\n [7.7, 8.8, 9.9]]'
     assert (repr(m) ==
-            'Matrix([1.1, 2.2, 3.3], [4.4, 5.5, 6.6], [7.7, 8.8, 9.9])')
+            'pyevspace.Matrix((1.1, 2.2, 3.3), (4.4, 5.5, 6.6), (7.7, 8.8, 9.9))')
 
 
 def test_matrix_add(matrix_values: MatrixValues) -> None:

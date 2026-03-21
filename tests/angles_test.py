@@ -20,12 +20,12 @@ def test_angles_construction(subtests, angles):
 
 def test_angles_str(angles):
     s = str(angles)
-    assert s == '[1.000000, 2.000000, 3.000000]'
+    assert s == '[1, 2, 3]'
 
 
 def test_angles_repr(angles):
     s = repr(angles)
-    assert s == 'EulerAngles(1.000000, 2.000000, 3.000000)'
+    assert s == 'pyevspace.EulerAngles(1, 2, 3)'
 
 
 def test_angles_persistance(subtests, angles):

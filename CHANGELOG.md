@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Module types now have module name prepended in `__repr__()` methods.
+
+### Changed
+
+- Matrix `__str__()` added spacing for left alignment on last two rows.
+
 ## [0.15.0] - 2026-03-16
 
 ### Added

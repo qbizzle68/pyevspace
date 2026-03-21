@@ -402,43 +402,83 @@ Vector_dealloc(EVSpace_Vector* self)
 
 }
 
-// Creates a python unicode string as a PyObject* from the C style format
-// string on the data in self->vector. On failure an exception is set and
-// NULL is returned, otherwise a PyObject* object equal to a unicode string
-// object is returned.
-static inline PyObject*
-_EVSpaceVector_String(const EVSpace_Vector* self, const char* format)
+// Creates a const char* buffer containing the numeric values of the Vector
+// class's str and repr methods. On failure an exception is set and NULL is
+// returned. If the result is not NULL, it is up to the caller to free the
+// memory by calling `delete` on the returned pointer.
+static inline const char*
+_EVSpaceVector_String(const EVSpace_Vector* self)
 {
+    // CALLER MUST FREE BUFFER IF NOT NULL!!!!!!!!!!!!!
+
+    char* buffer;
+    const char* format = "%g, %g, %g";
     std::size_t buffer_size = snprintf(NULL, 0, format, EVSpaceVector_X(self),
         EVSpaceVector_Y(self), EVSpaceVector_Z(self));
 
-    EXCEPTION_WRAPPER(
-        char* buffer = new char[buffer_size + 1];
-        if (sprintf(buffer, format, EVSpaceVector_X(self),
-                    EVSpaceVector_Y(self), EVSpaceVector_Z(self)) < 0)
+    try {
+        buffer = new char[buffer_size + 1];
+        if (sprintf(buffer, format, EVSpaceVector_X(self), EVSpaceVector_Y(self),
+                     EVSpaceVector_Z(self)) < 0)
         {
-            PyErr_SetString(PyExc_RuntimeError, "failed to fill buffer on string operator");
+            PyErr_SetString(PyExc_RuntimeError, "failed to fill buffer on string operation");
             delete [] buffer;
             return NULL;
         }
 
-        PyObject* rtn = PyUnicode_FromString(buffer);
-        delete [] buffer;
-
-        return rtn;
-    )
+        return buffer;
+    }
+    catch (const std::bad_alloc&) {
+        PyErr_NoMemory();
+        return NULL;
+    }
 }
 
 static PyObject*
 Vector_str(const EVSpace_Vector* self)
 {
-    return _EVSpaceVector_String(self, "[%g, %g, %g]");
+    PyObject* str = NULL;
+    // We must free this when done!
+    const char* buffer = _EVSpaceVector_String(self);
+    if (!buffer) {
+        return NULL;
+    }
+
+    str = PyUnicode_FromFormat("[%s]", buffer);
+    delete [] buffer;
+    return str;
 }
 
 static PyObject*
 Vector_repr(const EVSpace_Vector* self)
 {
-    return _EVSpaceVector_String(self, "Vector(%g, %g, %g)");
+    const char* buffer = NULL;
+    PyObject* repr = NULL;
+    PyObject* type = (PyObject*)Py_TYPE(self);
+    PyObject* module = PyObject_GetAttrString(type, "__module__");
+    PyObject* qualname = PyObject_GetAttrString(type, "__qualname__");
+
+    if (!module || !qualname) {
+        Py_XDECREF(module);
+        Py_XDECREF(qualname);
+        return NULL;
+    }
+
+    // We must free this!
+    buffer = _EVSpaceVector_String(self);
+    if (!buffer)
+    {
+        Py_DECREF(module);
+        Py_DECREF(qualname);
+        return NULL;
+    }
+
+    repr = PyUnicode_FromFormat("%U.%U(%s)", module, qualname, buffer);
+    Py_DECREF(module);
+    Py_DECREF(qualname);
+    delete [] buffer;
+
+    return repr;
 }
 
 static PyObject*
@@ -1491,47 +1531,86 @@ Matrix_dealloc(EVSpace_Matrix* self)
     Py_TYPE(self)->tp_free(EVS_PyObject_Cast(self));
 }
 
-static inline PyObject*
+// Creates and fills a string buffer for the inner data of a Matrix based
+// on `format`. On failure set an exception and return NULL. If non-NULL,
+// the caller must free the buffer by calling `delete`.
+static inline const char*
 _EVSpaceMatrix_String(const EVSpace_Matrix* matrix, const char* format)
 {
-    const size_t buffer_size = snprintf(NULL, 0, format,
-        EVSpaceMatrix_MATRIX(matrix)(0, 0), EVSpaceMatrix_MATRIX(matrix)(0, 1),
-        EVSpaceMatrix_MATRIX(matrix)(0, 2), EVSpaceMatrix_MATRIX(matrix)(1, 0),
-        EVSpaceMatrix_MATRIX(matrix)(1, 1), EVSpaceMatrix_MATRIX(matrix)(1, 2),
-        EVSpaceMatrix_MATRIX(matrix)(2, 0), EVSpaceMatrix_MATRIX(matrix)(2, 1),
-        EVSpaceMatrix_MATRIX(matrix)(2, 2)
-    );
-    char* buffer = reinterpret_cast<char*>(malloc(buffer_size + 1));
-    if (!buffer) {
-        return PyErr_NoMemory();
+    char* buffer = NULL;
+    double* data = EVSpaceMatrix_MATRIX(matrix).data().data();
+    const size_t buffer_size = snprintf(NULL, 0, format, data[0], data[1],
+                                        data[2], data[3], data[4], data[5],
+                                        data[6], data[7], data[8]);
+
+    try {
+        buffer = new char[buffer_size + 1];
+    }
+    catch (const std::bad_alloc&) {
+        PyErr_NoMemory();
+        return NULL;
     }
 
-    if (sprintf(buffer, format, EVSpaceMatrix_MATRIX(matrix)(0, 0),
-        EVSpaceMatrix_MATRIX(matrix)(0, 1), EVSpaceMatrix_MATRIX(matrix)(0, 2),
-        EVSpaceMatrix_MATRIX(matrix)(1, 0), EVSpaceMatrix_MATRIX(matrix)(1, 1),
-        EVSpaceMatrix_MATRIX(matrix)(1, 2), EVSpaceMatrix_MATRIX(matrix)(2, 0),
-        EVSpaceMatrix_MATRIX(matrix)(2, 1), EVSpaceMatrix_MATRIX(matrix)(2, 2)) < 0)
+    if (sprintf(buffer, format, data[0], data[1], data[2], data[3], data[4],
+                data[5], data[6], data[7], data[8]) < 0)
     {
         PyErr_SetString(PyExc_RuntimeError, "error filling string buffer");
         delete buffer;
         return NULL;
     }
-    PyObject* rtn = PyUnicode_FromString(buffer);
-    delete buffer;
 
-    return rtn;
+    return buffer;
 }
 
 static PyObject*
 Matrix_str(const EVSpace_Matrix* self)
 {
-    return _EVSpaceMatrix_String(self, "[[%g, %g, %g]\n[%g, %g, %g]\n[%g, %g, %g]]");
+    PyObject* str = NULL;
+    // We must free this when done!
+    const char* buffer = _EVSpaceMatrix_String(
+        self, "[[%g, %g, %g]\n [%g, %g, %g]\n [%g, %g, %g]]"
+    );
+    if (!buffer) {
+        return NULL;
+    }
+
+    str = PyUnicode_FromString(buffer);
+    delete [] buffer;
+
+    return str;
 }
 
 static PyObject*
 Matrix_repr(const EVSpace_Matrix* self)
 {
-    return _EVSpaceMatrix_String(self, "Matrix([%g, %g, %g], [%g, %g, %g], [%g, %g, %g])");
+    const char* buffer = NULL;
+    PyObject* repr = NULL;
+    PyObject* type = (PyObject*)Py_TYPE(self);
+    PyObject* module = PyObject_GetAttrString(type, "__module__");
+    PyObject* qualname = PyObject_GetAttrString(type, "__qualname__");
+
+    if (!module || !qualname)
+    {
+        Py_XDECREF(module);
+        Py_XDECREF(qualname);
+        return NULL;
+    }
+
+    // We must free this when done!
+    buffer = _EVSpaceMatrix_String(self, "(%g, %g, %g), (%g, %g, %g), (%g, %g, %g)");
+    if (!buffer)
+    {
+        Py_DECREF(module);
+        Py_DECREF(qualname);
+        return NULL;
+    }
+
+    repr = PyUnicode_FromFormat("%U.%U(%s)", module, qualname, buffer);
+    Py_DECREF(module);
+    Py_DECREF(qualname);
+    delete [] buffer;
+
+    return repr;
 }
 
 static PyObject*
@@ -2458,42 +2537,82 @@ Angles_dealloc(EVSpace_Angles* self)
     Py_TYPE(self)->tp_free(EVS_PyObject_Cast(self));
 }
 
-static inline PyObject*
-_EVSpaceAngles_String(const EVSpace_Angles* angles, const char* format)
+// Creates and fills a string buffer for the inner data of an EulerAngles
+// object. On failure set an exception and return NULL. If non-NULL, the
+// caller must free the buffer by calling `delete`.
+static inline const char*
+_EVSpaceAngles_String(const EVSpace_Angles* angles)
 {
-    std::size_t buffer_length = snprintf(NULL, 0, format,
-                                         EVSpaceAngles_ALPHA(angles), EVSpaceAngles_BETA(angles),
-                                         EVSpaceAngles_GAMMA(angles));
-    char* buffer = (char*)malloc(buffer_length + 1);
-    if (!buffer) {
+    const char* format = "%g, %g, %g";
+    char* buffer = NULL;
+    std::size_t buffer_length = snprintf(NULL, 0, format, EVSpaceAngles_ALPHA(angles),
+                                         EVSpaceAngles_BETA(angles), EVSpaceAngles_GAMMA(angles));
+
+    try {
+        buffer = new char[buffer_length + 1];
+    }
+    catch (const std::bad_alloc*) {
+        PyErr_NoMemory();
         return NULL;
     }
 
-    int bytes_written = sprintf(buffer, format, EVSpaceAngles_ALPHA(angles),
-                                EVSpaceAngles_BETA(angles), EVSpaceAngles_GAMMA(angles));
-    if (bytes_written < 0)
+    if (sprintf(buffer, format, EVSpaceAngles_ALPHA(angles), EVSpaceAngles_BETA(angles),
+                EVSpaceAngles_GAMMA(angles)) < 0)
     {
         PyErr_SetString(PyExc_RuntimeError, "error filling string buffer");
-        delete buffer;
+        delete [] buffer;
         return NULL;
     }
 
-    PyObject* rtn = PyUnicode_FromString(buffer);
-    free(buffer);
-
-    return rtn;
+    return buffer;
 }
 
 static PyObject*
 Angles_str(const EVSpace_Angles* angles)
 {
-    return _EVSpaceAngles_String(angles, "[%f, %f, %f]");
+    PyObject* str = NULL;
+    // We must delete this!
+    const char* buffer = _EVSpaceAngles_String(angles);
+    if (!buffer) {
+        return NULL;
+    }
+
+    str = PyUnicode_FromFormat("[%s]", buffer);
+    delete [] buffer;
+
+    return str;
 }
 
 static PyObject*
-Angles_repr(const EVSpace_Angles* angles)
+Angles_repr(const EVSpace_Angles* self)
 {
-    return _EVSpaceAngles_String(angles, "EulerAngles(%f, %f, %f)");
+    const char* buffer = NULL;
+    PyObject* repr = NULL;
+    PyObject* type = (PyObject*)Py_TYPE(self);
+    PyObject* module = PyObject_GetAttrString(type, "__module__");
+    PyObject* qualname = PyObject_GetAttrString(type, "__qualname__");
+
+    if (!module || !qualname) {
+        Py_XDECREF(module);
+        Py_XDECREF(qualname);
+        return NULL;
+    }
+
+    // We must delete this!
+    buffer = _EVSpaceAngles_String(self);
+    if (!buffer)
+    {
+        Py_DECREF(module);
+        Py_DECREF(qualname);
+        return NULL;
+    }
+
+    repr = PyUnicode_FromFormat("%U.%U(%s)", module, qualname, buffer);
+    Py_DECREF(module);
+    Py_DECREF(qualname);
+    delete [] buffer;
+
+    return repr;
 }
 
 static PyObject*
@@ -2645,40 +2764,37 @@ _EVSpaceAxis_GetName(evspace::AxisDirection direction, char* string)
 }
 
 static PyObject*
-_EVSpaceOrder_String(const EVSpace_Order* order, const char* format, std::size_t alloc_size)
+Order_str(const EVSpace_Order* self)
 {
-    char first[7], second[7], third[7];
+    char buffer[4] = "";
+    buffer[0] = static_cast<int>(self->first) + 'X';
+    buffer[1] = static_cast<int>(self->second) + 'X';
+    buffer[2] = static_cast<int>(self->third) + 'X';
 
-    char* buffer = reinterpret_cast<char*>(malloc(alloc_size));
-    if (!buffer) {
-        return NULL;
-    }
+    return PyUnicode_FromString(buffer);
+}
 
-    if (sprintf(buffer, format,
-            _EVSpaceAxis_GetName(order->first, first),
-            _EVSpaceAxis_GetName(order->second, second),
-            _EVSpaceAxis_GetName(order->third, third)) < 0)
+static PyObject*
+Order_repr(const EVSpace_Order* self)
+{
+    PyObject* type = NULL, *module = NULL, *qualname = NULL;
+    char buffer[] = "pyevspace.X_AXIS, pyevspace.X_AXIS, pyevspace.X_AXIS";
+    
+    // Axis name indices are at 10, 28, 46
+    buffer[10] += static_cast<int>(self->first);
+    buffer[28] += static_cast<int>(self->second);
+    buffer[46] += static_cast<int>(self->third);
+
+    type = (PyObject*)Py_TYPE(self);
+    module = PyObject_GetAttrString(type, "__module__");
+    qualname = PyObject_GetAttrString(type, "__qualname__");
+    if (!module || !qualname)
     {
-        PyErr_SetString(PyExc_RuntimeError, "unable to allocate string buffer");
-        free(buffer);
-        return NULL;
+        Py_XDECREF(module);
+        Py_XDECREF(qualname);
     }
 
-    PyObject* rtn = PyUnicode_FromString(buffer);
-    free(buffer);
-    return rtn;
-}
-
-static PyObject*
-Order_str(const EVSpace_Order* order)
-{
-    return _EVSpaceOrder_String(order, "[%s, %s, %s]", 25);
-}
-
-static PyObject*
-Order_repr(const EVSpace_Order* order)
-{
-    return _EVSpaceOrder_String(order, "RotationOrder(%s, %s, %s)", 40);
+    return PyUnicode_FromFormat("%U.%U(%s)", module, qualname, buffer);
 }
 
 static PyObject*
