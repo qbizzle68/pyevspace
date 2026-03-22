@@ -16,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Matrix `__str__()` added spacing for left alignment on last two rows.
 
+### Removed
+
+- Removed old compilation branches to support implementations before CPython
+  functions added in 3.10. This should only reduce source code size and readability
+  and shouldn't affect any installable files (sdist/wheels).
+
 ## [0.15.0] - 2026-03-16
 
 ### Added

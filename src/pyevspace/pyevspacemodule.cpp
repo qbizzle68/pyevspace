@@ -109,34 +109,16 @@ EVSpaceIterable_GetItems(PyObject* obj, std::array<PyObject*, 3>& items)
 
     if (PyTuple_Check(obj) && PyTuple_GET_SIZE(obj) == 3)
     {
-#if PY_VERSION_HEX >= 0x030a0000
         items[0] = Py_NewRef(PyTuple_GET_ITEM(obj, 0));
         items[1] = Py_NewRef(PyTuple_GET_ITEM(obj, 1));
         items[2] = Py_NewRef(PyTuple_GET_ITEM(obj, 2));
-#else
-        items[0] = PyTuple_GET_ITEM(obj, 0);
-        Py_INCREF(items[0]);
-        items[1] = PyTuple_GET_ITEM(obj, 1);
-        Py_INCREF(items[1]);
-        items[2] = PyTuple_GET_ITEM(obj, 2);
-        Py_INCREF(items[2]);
-#endif
         return 0;
     }
     else if (PyList_Check(obj) && PyList_GET_SIZE(obj) == 3)
     {
-#if PY_VERSION_HEX >= 0x030a0000
         items[0] = Py_NewRef(PyList_GET_ITEM(obj, 0));
         items[1] = Py_NewRef(PyList_GET_ITEM(obj, 1));
         items[2] = Py_NewRef(PyList_GET_ITEM(obj, 2));
-#else
-        items[0] = PyList_GET_ITEM(obj, 0);
-        Py_INCREF(items[0]);
-        items[1] = PyList_GET_ITEM(obj, 1);
-        Py_INCREF(items[1]);
-        items[2] = PyList_GET_ITEM(obj, 2);
-        Py_INCREF(items[2]);
-#endif
         return 0;
     }
 
@@ -644,12 +626,7 @@ Vector_inplace_add(EVSpace_Vector* self, PyObject* other)
     {
         EVSpaceVector_VECTOR(self) += EVSpaceVector_VECTOR(rhs);
 
-#if PY_VERSION_HEX >= 0x030a0000
-            return Py_NewRef(self);
-#else
-            Py_INCREF(self);
-            return EVS_PyObject_Cast(self);
-#endif
+        return Py_NewRef(self);
     }
 
     Py_RETURN_NOTIMPLEMENTED;
@@ -663,12 +640,7 @@ Vector_inplace_subtract(EVSpace_Vector* self, PyObject* other)
     {
         EVSpaceVector_VECTOR(self) -= EVSpaceVector_VECTOR(rhs);
 
-#if PY_VERSION_HEX >= 0x030a0000
-            return Py_NewRef(self);
-#else
-            Py_INCREF(self);
-            return EVS_PyObject_Cast(self);
-#endif
+        return Py_NewRef(self);
     }
 
     Py_RETURN_NOTIMPLEMENTED;
@@ -696,12 +668,7 @@ Vector_inplace_multiply(EVSpace_Vector* self, PyObject* other)
 
         EVSpaceVector_VECTOR(self) *= scalar;
 
-#if PY_VERSION_HEX >= 0x030a0000
         return Py_NewRef(self);
-#else
-        Py_INCREF(self);
-        return (PyObject*)self;
-#endif
     }
 
     Py_RETURN_NOTIMPLEMENTED;
@@ -715,12 +682,7 @@ Vector_inplace_multiply_matrix(EVSpace_Vector* self, PyObject* arg)
         rhs = EVSpaceMatrix_Cast(arg);
         EVSpaceVector_VECTOR(self) *= EVSpaceMatrix_MATRIX(rhs);
 
-#if PY_VERSION_HEX >= 0x030a0000
         return Py_NewRef(self);
-#else
-        Py_INCREF(self);
-        return (PyObject*)self;
-#endif
     }
 
     Py_RETURN_NOTIMPLEMENTED;
@@ -745,12 +707,7 @@ Vector_inplace_divide(EVSpace_Vector* self, PyObject* other)
 
         EVSpaceVector_VECTOR(self) /= scalar;
 
-#if PY_VERSION_HEX >= 0x030a0000
         return Py_NewRef(self);
-#else
-        Py_INCREF(self);
-        return (PyObject*)self;
-#endif
     }
 
     Py_RETURN_NOTIMPLEMENTED;
@@ -859,12 +816,7 @@ Vector_get_buffer(EVSpace_Vector* obj, Py_buffer* view, int flags)
     }
     *internal = EVS_BUFFER_NO_STRIDES;
 
-#if PY_VERSION_HEX >= 0x030a0000
     view->obj           = Py_NewRef(EVS_PyObject_Cast(obj));
-#else
-    Py_INCREF(obj);
-    view->obj           = EVS_PyObject_Cast(obj);
-#endif
     view->buf           = EVSpaceVector_VECTOR(obj).data().data();
     view->len           = sizeof(double) * 3;
     view->readonly      = 0;
@@ -1319,12 +1271,7 @@ MatrixView_dealloc(EVSpace_MatrixView* self)
 static int
 MatrixView_GetBuffer(EVSpace_MatrixView* obj, Py_buffer* view, int flags)
 {
-#if PY_VERSION_HEX >= 0x030a0000
     view->obj           = Py_NewRef(obj);
-#else
-    Py_INCREF(obj);
-    view->obj           = EVS_PyObject_Cast(obj);
-#endif
     view->buf           = obj->data;
     view->readonly      = 0;
     view->itemsize      = sizeof(double);
@@ -1773,12 +1720,7 @@ Matrix_inplace_add(EVSpace_Matrix* self, PyObject* other)
     {
         EVSpaceMatrix_MATRIX(self) += EVSpaceMatrix_MATRIX(rhs);
 
-#if PY_VERSION_HEX >= 0x030a0000
         return Py_NewRef(self);
-#else
-        Py_INCREF(self);
-        return EVS_PyObject_Cast(self);
-#endif
     }
 
     Py_RETURN_NOTIMPLEMENTED;
@@ -1793,12 +1735,7 @@ Matrix_inplace_subtract(EVSpace_Matrix* self, PyObject* other)
     {
         EVSpaceMatrix_MATRIX(self) -= EVSpaceMatrix_MATRIX(rhs);
 
-#if PY_VERSION_HEX >= 0x030a0000
         return Py_NewRef(self);
-#else
-        Py_INCREF(self);
-        return EVS_PyObject_Cast(self);
-#endif
     }
 
     Py_RETURN_NOTIMPLEMENTED;
@@ -1823,12 +1760,7 @@ Matrix_inplace_multiply(EVSpace_Matrix* self, PyObject* other)
 
         EVSpaceMatrix_MATRIX(self) *= scalar;
 
-#if PY_VERSION_HEX >= 0x030a0000
         return Py_NewRef(self);
-#else
-        Py_INCREF(self);
-        return EVS_PyObject_Cast(self);
-#endif
     }
 
     Py_RETURN_NOTIMPLEMENTED;
@@ -1845,12 +1777,7 @@ Matrix_inplace_multiply_matrix(EVSpace_Matrix* self, PyObject* other)
         {
             EVSpaceMatrix_MATRIX(self) *= EVSpaceMatrix_MATRIX(rhs);
 
-#if PY_VERSION_HEX >= 0x030a0000
             return Py_NewRef(self);
-#else
-            Py_INCREF(self);
-            return EVS_PyObject_Cast(self);
-#endif
         }
         else if (EVSpaceVector_Check(other))
         {
@@ -1886,12 +1813,7 @@ Matrix_inplace_divide(EVSpace_Matrix* self, PyObject* other)
 
         EVSpaceMatrix_MATRIX(self) /= scalar;
 
-#if PY_VERSION_HEX >= 0x030a0000
         return Py_NewRef(self);
-#else
-        Py_INCREF(self);
-        return EVS_PyObject_Cast(self);
-#endif
     }
 
     Py_RETURN_NOTIMPLEMENTED;
@@ -1934,12 +1856,7 @@ _EVSpaceMatrix_GetBuffer(EVSpace_Matrix* obj, Py_buffer* view)
     }
     *internal = EVS_BUFFER_EMPTY;
 
-#if PY_VERSION_HEX >= 0x030a0000
     view->obj           = Py_NewRef(obj);
-#else
-    Py_INCREF(obj);
-    view->obj           = EVS_PyObject_Cast(obj);
-#endif
     view->buf           = EVSpaceMatrix_MATRIX(obj).data().data();
     view->len           = sizeof(double) * 9;
     view->readonly      = 0;
@@ -2236,12 +2153,7 @@ Matrix_get_buffer(EVSpace_Matrix* self, Py_buffer* view, int flags)
     *internal = internal_tmp;
     view->internal = reinterpret_cast<void*>(internal);
 
-#if PY_VERSION_HEX >= 0x030a0000
     view->obj           = Py_NewRef(self);
-#else
-    Py_INCREF(self);
-    view->obj           = EVS_PyObject_Cast(self);
-#endif
 
     return 0;
 }
@@ -2974,21 +2886,11 @@ _EVSpaceReferenceFrame_New(evspace::AxisDirection first, evspace::AxisDirection 
     }
 
     if (!offset) {
-#if PY_VERSION_HEX >= 0x030a0000
         self->offset = Py_NewRef(Py_None);
-#else
-        Py_INCREF(Py_None);
-        self->offset = Py_None;
-#endif
     }
     else if (EVSpaceVector_Check(offset))
     {
-#if PY_VERSION_HEX >= 0x030a0000
         self->offset = Py_NewRef(offset);
-#else
-        Py_INCREF(offset);
-        self->offset = offset;
-#endif
     }
     else {
         PyErr_Format(PyExc_TypeError, "offset must be Vector type or None, got %s",
@@ -3033,11 +2935,7 @@ ReferenceFrame_New(PyTypeObject* type, PyObject* args, PyObject* kwargs)
     }
 
     // If offset is explicitly set to None re-set it to NULL
-#if PY_VERSION_HEX >= 0x030a0000
     if (offset && Py_IsNone(offset))
-#else
-    if (offset && offset == Py_None)
-#endif
     {
         offset = NULL;
     }
@@ -3115,30 +3013,16 @@ ReferenceFrame_SetAngles(EVSpace_ReferenceFrame* self, PyObject* args, PyObject*
                                     const_cast<char**>(kwarg_names),
                                     &arg1, &arg2, &arg3))
     {
-    // Reset args to NULL if they're None
-#if PY_VERSION_HEX >= 0x030a0000
-        if (Py_IsNone(arg1))
-#else
-        if (arg1 == Py_None)
-#endif
-        {
+        // Reset args to NULL if they're None
+        if (Py_IsNone(arg1)) {
             arg1 = NULL;
         }
 
-#if PY_VERSION_HEX >= 0x030a0000
-        if (Py_IsNone(arg2))
-#else
-        if (arg2 == Py_None)
-#endif
-        {
+        if (Py_IsNone(arg2)) {
             arg2 = NULL;
         }
 
-#if PY_VERSION_HEX >= 0x030a0000
         if (Py_IsNone(arg3))
-#else
-        if (arg3 == Py_None)
-#endif
         {
             arg3 = NULL;
         }
@@ -3185,12 +3069,7 @@ ReferenceFrame_GetOrder(EVSpace_ReferenceFrame* self, void* closure)
 static PyObject*
 ReferenceFrame_GetOffset(EVSpace_ReferenceFrame* self, void* closure)
 {
-#if PY_VERSION_HEX >= 0x030a0000
     return Py_NewRef(self->offset);
-#else
-    Py_INCREF(self->offset);
-    return self->offset;
-#endif
 }
 
 static int
@@ -3202,23 +3081,14 @@ ReferenceFrame_SetOffset(EVSpace_ReferenceFrame* self, PyObject* arg,
         return -1;
     }
 
-#if PY_VERSION_HEX >= 0x030a0000
     if (!Py_IsNone(arg) && !EVSpaceVector_Check(arg))
-#else
-    if ((arg != Py_None) && !EVSpaceVector_Check(arg))
-#endif
     {
         PyErr_Format(PyExc_TypeError, "expected offset to be Vector type or None, got %s",
                      __EVSpace_GetTypeName(arg));
         return -1;
     }
 
-#if PY_VERSION_HEX >= 0x030a0000
     Py_SETREF(self->offset, Py_NewRef(arg));
-#else
-    Py_INCREF(arg);
-    Py_SETREF(self->offset, arg);
-#endif
 
     return 0;
 }
@@ -3268,11 +3138,7 @@ ReferenceFrame_RotateTo(EVSpace_ReferenceFrame* self, PyObject* args)
 
         vector = EVSpaceVector_Cast(arg1);
 
-#if PY_VERSION_HEX >= 0x030a0000
         if (Py_IsNone(self->offset))
-#else
-        if (self->offset == Py_None)
-#endif
         {
             return reinterpret_cast<PyObject*>(
                 EVSpaceVector_New(std::move(*_EVSpaceRotate_To(self->matrix, vector->vector)))
@@ -3309,11 +3175,7 @@ ReferenceFrame_RotateTo(EVSpace_ReferenceFrame* self, PyObject* args)
         other_frame = reinterpret_cast<EVSpace_ReferenceFrame*>(arg1);
         vector = EVSpaceVector_Cast(arg2);
 
-#if PY_VERSION_HEX >= 0x030a0000
         if (Py_IsNone(other_frame->offset))
-#else
-        if (other_frame->offset == Py_None)
-#endif
         {
             tmp = _EVSpaceRotate_From(other_frame->matrix, vector->vector);
             if (!tmp) {
@@ -3329,11 +3191,7 @@ ReferenceFrame_RotateTo(EVSpace_ReferenceFrame* self, PyObject* args)
             }
         }
 
-#if PY_VERSION_HEX >= 0x030a0000
         if (Py_IsNone(self->offset))
-#else
-        if (self->offset == Py_None)
-#endif
         {
             return reinterpret_cast<PyObject*>(
                 EVSpaceVector_New(std::move(*_EVSpaceRotate_To(self->matrix, tmp)))
@@ -3355,6 +3213,7 @@ ReferenceFrame_RotateTo(EVSpace_ReferenceFrame* self, PyObject* args)
         return NULL;
     }
 }
+
 static PyObject*
 ReferenceFrame_RotateFrom(EVSpace_ReferenceFrame* self, PyObject* args)
 {
@@ -3377,11 +3236,7 @@ ReferenceFrame_RotateFrom(EVSpace_ReferenceFrame* self, PyObject* args)
 
         vector = EVSpaceVector_Cast(arg1);
 
-#if PY_VERSION_HEX >= 0x030a0000
         if (Py_IsNone(self->offset))
-#else
-        if (self->offset == Py_None)
-#endif
         {
             return reinterpret_cast<PyObject*>(
                 EVSpaceVector_New(std::move(*_EVSpaceRotate_From(self->matrix, vector->vector)))
@@ -3418,11 +3273,7 @@ ReferenceFrame_RotateFrom(EVSpace_ReferenceFrame* self, PyObject* args)
         other_frame = reinterpret_cast<EVSpace_ReferenceFrame*>(arg1);
         vector = EVSpaceVector_Cast(arg2);
 
-#if PY_VERSION_HEX >= 0x030a0000
         if (Py_IsNone(self->offset))
-#else
-        if (self->offset == Py_None)
-#endif
         {
             tmp = _EVSpaceRotate_From(self->matrix, vector->vector);
             if (!tmp) {
@@ -3438,11 +3289,7 @@ ReferenceFrame_RotateFrom(EVSpace_ReferenceFrame* self, PyObject* args)
             }
         }
 
-#if PY_VERSION_HEX >= 0x030a0000
         if (Py_IsNone(other_frame->offset))
-#else
-        if (other_frame->offset == Py_None)
-#endif
         {
             return reinterpret_cast<PyObject*>(
                 EVSpaceVector_New(std::move(*_EVSpaceRotate_To(other_frame->matrix, tmp)))
@@ -3895,11 +3742,7 @@ static inline int
 __EVSpaceRotate_HandleOffset(PyObject* offset, evspace::Vector** vector_offset,
                              bool& offset_not_none)
 {
-#if PY_VERSION_HEX >= 0x030a0000
     if (!Py_IsNone(offset))
-#else
-    if (offset != Py_None)
-#endif
     {
         if (!EVSpaceVector_Check(offset)) {
             PyErr_SetString(PyExc_TypeError, "offset keyword argument expected pyevspace.Vector type");
@@ -4348,11 +4191,7 @@ EVSpaceRotate_Between(PyObject* Py_UNUSED(_), PyObject* args, PyObject* kwargs)
         return NULL;
     }
 
-#if PY_VERSION_HEX >= 0x030a0000
     if (!Py_IsNone(offset_from))
-#else
-    if (offset_from != Py_None)
-#endif
     {
         if (!EVSpaceVector_Check(offset_from)) {
             PyErr_SetString(PyExc_TypeError, "offset_from argument cannot be interpreted as Vector");
@@ -4361,11 +4200,7 @@ EVSpaceRotate_Between(PyObject* Py_UNUSED(_), PyObject* args, PyObject* kwargs)
         vector_offset_from = EVSpaceVector_Cast(offset_from)->vector;
     }
 
-#if PY_VERSION_HEX >= 0x030a0000
     if (!Py_IsNone(offset_to))
-#else
-    if (offset_from != Py_None)
-#endif
     {
         if (!EVSpaceVector_Check(offset_to)) {
             PyErr_SetString(PyExc_TypeError, "offset_to argument cannot be interpreted as Vector");
@@ -4597,11 +4432,7 @@ static int EVSpaceFrame_GetState(PyObject* obj, unsigned int order[3], double an
     angles[1] = frame->angles[1];
     angles[2] = frame->angles[2];
     
-#if PY_VERSION_HEX >= 0x030a0000
     if (Py_IsNone(frame->offset))
-#else
-    if (frame->offset == Py_None)
-#endif
     {
         offset[0] = offset[1] = offset[2] = 0.0;
     }
@@ -4666,11 +4497,7 @@ EVSpaceFrame_GetOffset(PyObject* obj)
 
     frame = reinterpret_cast<EVSpace_ReferenceFrame*>(obj);
 
-#if PY_VERSION_HEX >= 0x030a0000
     if (Py_IsNone(frame->offset))
-#else
-    if (frame->offset == Py_None)
-#endif
     {
         Py_RETURN_NONE;
     }
@@ -4890,11 +4717,7 @@ EVSpaceFrame_SetOffset(PyObject* obj, double* state)
 
     if (!state)
     {
-#if PY_VERSION_HEX >= 0x030a0000
         if (Py_IsNone(frame->offset))
-#else
-        if (frame->offset == Py_None)
-#endif
         {
             return 0;
         }
@@ -5094,11 +4917,7 @@ static int initialize_module(PyObject* module)
     EVSpace_VectorType.tp_as_sequence   = &vector_as_sequence;
     EVSpace_VectorType.tp_str           = (reprfunc)Vector_str;
     EVSpace_VectorType.tp_as_buffer     = &vector_buffer;
-#if PY_VERSION_HEX >= 0x030a0000
     EVSpace_VectorType.tp_flags         = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE | Py_TPFLAGS_BASETYPE;
-#else
-    EVSpace_VectorType.tp_flags         = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
-#endif
     EVSpace_VectorType.tp_doc           = vector_doc;
     EVSpace_VectorType.tp_richcompare   = (richcmpfunc)&Vector_richcompare;
     EVSpace_VectorType.tp_iter          = (getiterfunc)Vector_iter;
@@ -5134,11 +4953,7 @@ static int initialize_module(PyObject* module)
     EVSpace_MatrixType.tp_as_mapping    = &matrix_as_map;
     EVSpace_MatrixType.tp_str           = (reprfunc)Matrix_str;
     EVSpace_MatrixType.tp_as_buffer     = &matrix_as_buffer;
-#if PY_VERSION_HEX >= 0x030a0000
     EVSpace_MatrixType.tp_flags         = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE | Py_TPFLAGS_BASETYPE;
-#else
-    EVSpace_MatrixType.tp_flags         = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
-#endif
     EVSpace_MatrixType.tp_doc           = matrix_doc;
     EVSpace_MatrixType.tp_richcompare   = (richcmpfunc)&Matrix_richcompare;
     EVSpace_MatrixType.tp_methods       = matrix_methods;
@@ -5152,11 +4967,7 @@ static int initialize_module(PyObject* module)
     EVSpace_AnglesType.tp_repr          = (reprfunc)Angles_repr;
     EVSpace_AnglesType.tp_as_sequence   = &angles_as_sequence;
     EVSpace_AnglesType.tp_str           = (reprfunc)Angles_str;
-#if PY_VERSION_HEX >= 0x030a0000
     EVSpace_AnglesType.tp_flags         = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE | Py_TPFLAGS_BASETYPE;
-#else
-    EVSpace_AnglesType.tp_flags         = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
-#endif
     EVSpace_AnglesType.tp_doc           = angles_doc;
     EVSpace_AnglesType.tp_methods       = angles_methods;
     EVSpace_AnglesType.tp_init          = (initproc)Angles_init;
@@ -5170,11 +4981,7 @@ static int initialize_module(PyObject* module)
     EVSpace_OrderType.tp_as_sequence    = &order_as_sequence;
     EVSpace_OrderType.tp_hash           = (hashfunc)Order_hash;
     EVSpace_OrderType.tp_str            = (reprfunc)Order_str;
-#if PY_VERSION_HEX >= 0x030a0000
     EVSpace_OrderType.tp_flags          = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE | Py_TPFLAGS_BASETYPE;
-#else
-    EVSpace_OrderType.tp_flags          = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
-#endif
     EVSpace_OrderType.tp_doc            = order_doc;
     EVSpace_OrderType.tp_richcompare    = (richcmpfunc)&Order_richcompare;
     EVSpace_OrderType.tp_methods        = order_methods;
@@ -5195,28 +5002,9 @@ static int initialize_module(PyObject* module)
     int count = sizeof(EVSpace_Types) / sizeof(EVSpace_Types[0]);
     for (int i = 0; i < count; i++)
     {
-#if PY_VERSION_HEX >= 0x03090000
         if (PyModule_AddType(module, EVSpace_Types[i]) < 0) {
             return -1;
         }
-#else
-        const char* type_name = Py_TYPE(EVSpace_Types[i]).tp_name;
-        const char* name = strrchr(type_name, '.');
-        if (name == nullptr) {
-            return -1;
-        }
-        else {
-            name += 1;
-        }
-
-        if (PyType_Ready(EVSpace_Types[i]) < 0) {
-            return -1;
-        }
-
-        if (PyModule_AddObject(module, name (PyObject*)EVSpace_Types[i]) < 0) {
-            return -1;
-        }
-#endif
     }
 
     PyObject* dict = EVSpace_VectorType.tp_dict;
