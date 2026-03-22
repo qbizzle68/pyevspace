@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Module types now have module name prepended in `__repr__()` methods.
+- Types now support subclassing.
 
 ### Changed
 

@@ -4,7 +4,8 @@ import math
 
 import pytest
 
-from pyevspace import Matrix, Vector
+from pyevspace import Matrix, Vector, rotate_from, rotate_to
+from .inherited_types import DerivedMatrix, DerivedVector
 from .common import DummyIndex
 
 
@@ -68,8 +69,8 @@ def test_matrix_strings(matrix_values: MatrixValues) -> None:
 
     m = Matrix((1.1, 2.2, 3.3), (4.4, 5.5, 6.6), (7.7, 8.8, 9.9))
     assert str(m) == '[[1.1, 2.2, 3.3]\n [4.4, 5.5, 6.6]\n [7.7, 8.8, 9.9]]'
-    assert (repr(m) ==
-            'pyevspace.Matrix((1.1, 2.2, 3.3), (4.4, 5.5, 6.6), (7.7, 8.8, 9.9))')
+    assert (repr(m) == 'pyevspace.Matrix((1.1, 2.2, 3.3), (4.4, 5.5, 6.6),'
+                       ' (7.7, 8.8, 9.9))')
 
 
 def test_matrix_add(matrix_values: MatrixValues) -> None:
@@ -465,3 +466,48 @@ def test_matrix_transpose(matrix_values: MatrixValues) -> None:
 
     with pytest.raises(TypeError):
         m.transpose_inplace('a')
+
+
+def test_matrix_inheritance() -> None:
+    derived = DerivedMatrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+    derived_vector = DerivedVector()
+
+    assert type(derived) is DerivedMatrix
+    assert isinstance(derived, Matrix)
+    assert issubclass(DerivedMatrix, Matrix)
+
+    assert list(derived[0]) == [1, 2, 3]
+    assert list(derived[1]) == [4, 5, 6]
+    assert list(derived[2]) == [7, 8, 9]
+
+    # Test new return types
+    assert derived + derived
+    assert derived - derived
+    assert -derived
+    assert derived * 1.5
+    assert derived / 1.5
+    assert derived @ derived_vector
+    assert derived @ derived
+    assert derived.compare_to_tol(derived)
+    assert derived.compare_to_ulp(derived, 10)
+    assert derived.transpose()
+    non_singular = DerivedMatrix((1, 0, 0), (0, 1, 0), (0, 0, 1))
+    assert non_singular.inverse()
+    assert derived.determinate() == 0.0
+
+    # Test global methods
+    assert rotate_from(derived, Vector.E1)
+    assert rotate_to(derived, Vector.E2)
+
+    # Test repr
+    assert repr(derived).startswith('tests.inherited_types')
+
+    # test __new__
+    obj = DerivedMatrix.__new__(DerivedMatrix)
+    obj.__init__((1, 2, 3), (4, 5, 6), (7, 8, 9))
+
+    assert type(obj) is DerivedMatrix
+    assert obj == derived
+
+    # Test __dict__ support
+    assert derived.foo

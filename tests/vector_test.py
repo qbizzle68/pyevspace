@@ -6,10 +6,12 @@ import pickle
 import pytest
 
 from pyevspace import (
-    Vector, Matrix, vector_dot, vector_cross, vector_angle, vector_exclude,
-    vector_proj
+    XYZ, EulerAngles, ReferenceFrame, Vector, Matrix, compute_rotation_matrix,
+    rotate_between, rotate_from, rotate_to, vector_dot, vector_cross,
+    vector_angle, vector_exclude, vector_proj
 )
 from .common import DummyIndex
+from .inherited_types import DerivedMatrix, DerivedVector
 
 
 def advance_ulps(x: float, n: int, direction: float) -> float:
@@ -749,8 +751,7 @@ def test_vector_projection() -> None:
     v1 = Vector(1, 1, 7)
     v2 = Vector(1, 1, 1)
     assert vector_proj(v1, v2) == Vector(3, 3, 3)
-    # todo: uncomment this when elementary vectors are defined
-    # assert vector_proj(Vector.e1, Vector.e2) == Vector(0, 0, 0)
+    assert vector_proj(Vector.E1, Vector.E2) == Vector(0, 0, 0)
 
     with pytest.raises(TypeError):
         vector_proj(v1)
@@ -763,3 +764,56 @@ def test_vector_projection() -> None:
 
     with pytest.raises(TypeError):
         vector_proj(0, v2)
+
+
+def test_vector_inheritance() -> None:
+    derived = DerivedVector(1, 2, 3)
+
+    assert type(derived) is DerivedVector
+    assert issubclass(DerivedVector, Vector)
+    assert isinstance(derived, Vector)
+
+    assert list(derived) == [1, 2, 3]
+
+    # Test new return types are constructed
+    assert derived + derived
+    assert derived - derived
+    assert derived * 1.5
+    assert derived / 1.5
+    assert derived @ DerivedMatrix()
+    assert -derived
+
+    # Test global methods evaluate and don't raise
+    assert vector_dot(derived, derived)
+    assert vector_cross(derived, DerivedVector.E1)
+    assert vector_exclude(derived, derived)
+    assert vector_proj(derived, derived)
+    assert vector_angle(derived, DerivedVector.E1)
+    assert rotate_to(Matrix.IDENTITY, derived, offset=derived)
+    assert rotate_to(1.5, derived, derived, offset=derived)
+    assert rotate_from(Matrix.IDENTITY, derived, offset=derived)
+    assert rotate_from(1.5, derived, derived, offset=derived)
+    assert rotate_between(XYZ, EulerAngles(), XYZ, EulerAngles(), derived,
+                          offset_from=derived, offset_to=derived)
+    assert compute_rotation_matrix(1.5, derived)
+    frame = ReferenceFrame(XYZ, EulerAngles(), offset=derived)
+    assert frame
+    assert frame.rotate_to(derived)
+    assert frame.rotate_to(frame, derived)
+    assert frame.rotate_from(derived)
+    assert frame.rotate_from(frame, derived)
+    frame.offset = derived
+    assert type(frame.offset) is DerivedVector
+
+    # Test repr
+    assert repr(derived).startswith('tests.inherited_types')
+
+    # Test __new__()
+    obj = Vector.__new__(DerivedVector)
+    obj.__init__(derived)
+
+    assert type(derived) is DerivedVector
+    assert obj == derived
+
+    # Test __dict__ support
+    assert derived.foo

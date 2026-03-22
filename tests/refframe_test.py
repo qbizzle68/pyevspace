@@ -3,6 +3,7 @@ import pytest
 from pyevspace import (
     ReferenceFrame, XYZ, XZY, ZYX, YZX, EulerAngles, Vector, Matrix
 )
+from tests.inherited_types import DerivedReferenceFrame
 from .rotation_answers import (
     reversed_rotation_order,
     TestData,
@@ -420,3 +421,31 @@ def test_refframe_rotate_between(data: TestData) -> None:
         vector_from = frame_from.rotate_from(frame_to, test_vector)
         assert vector_to == vector_from
         assert vector_to == answer
+
+
+def test_refframe_inheritance() -> None:
+    derived = DerivedReferenceFrame(XYZ, EulerAngles(1, 2, 3))
+
+    assert type(derived) is DerivedReferenceFrame
+    assert isinstance(derived, ReferenceFrame)
+    assert issubclass(DerivedReferenceFrame, ReferenceFrame)
+
+    frame = ReferenceFrame(XYZ, EulerAngles(1, 2, 3))
+    assert derived.get_matrix() == frame.get_matrix()
+
+    # Test global methods
+    assert derived.rotate_to(Vector.E1)
+    assert derived.rotate_to(frame, Vector.E1)
+    assert frame.rotate_to(derived, Vector.E1)
+    assert derived.rotate_from(Vector.E1)
+    assert derived.rotate_from(frame, Vector.E1)
+    assert frame.rotate_from(derived, Vector.E1)
+
+    # Test __new__
+    obj = ReferenceFrame.__new__(DerivedReferenceFrame, XYZ,
+                                 EulerAngles(1, 2, 3))
+    assert obj.order == derived.order
+    assert obj.get_matrix() == derived.get_matrix()
+
+    # Test __dict__ support
+    assert derived.foo

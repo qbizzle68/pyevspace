@@ -3,7 +3,11 @@ import pickle
 
 import pytest
 
-from pyevspace import EulerAngles
+from pyevspace import (
+    XYZ, EulerAngles, ReferenceFrame, Vector, compute_rotation_matrix,
+    rotate_between, rotate_from, rotate_to
+)
+from .inherited_types import DerivedEulerAngles
 from .common import DummyIndex
 
 
@@ -100,3 +104,38 @@ def test_angles_set(angles):
 
     with pytest.raises(TypeError):
         angles[0] = 'a'
+
+
+def test_angles_inheritance() -> None:
+    derived = DerivedEulerAngles(1, 2, 3)
+
+    assert type(derived) is DerivedEulerAngles
+    assert isinstance(derived, EulerAngles)
+    assert issubclass(DerivedEulerAngles, EulerAngles)
+
+    assert derived[0] == 1
+    assert derived[1] == 2
+    assert derived[2] == 3
+
+    # Test global functions
+    assert compute_rotation_matrix(XYZ, derived)
+    assert compute_rotation_matrix(XYZ, derived, XYZ, derived)
+    assert rotate_to(XYZ, derived, Vector.E1)
+    assert rotate_from(XYZ, derived, Vector.E1)
+    assert rotate_between(XYZ, derived, XYZ, derived, Vector.E1)
+    frame = ReferenceFrame(XYZ, derived)
+    frame.set_angles(derived)
+    assert frame
+
+    # Test repr
+    assert repr(derived).startswith('tests.inherited_types')
+
+    # Test __new__
+    obj = EulerAngles.__new__(DerivedEulerAngles)
+    obj.__init__(1, 2, 3)
+
+    assert type(obj) is DerivedEulerAngles
+    assert obj[0] == 1 and obj[1] == 2 and obj[2] == 3
+
+    # Test __dict__ support
+    assert derived.foo

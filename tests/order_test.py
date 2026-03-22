@@ -3,7 +3,12 @@ import pickle
 
 import pytest
 
-from pyevspace import RotationOrder, XYZ, YZX, ZXZ, X_AXIS, Y_AXIS, Z_AXIS
+from pyevspace import (
+    EulerAngles, ReferenceFrame, RotationOrder, XYZ, YZX, ZXZ, X_AXIS, Y_AXIS,
+    Z_AXIS, Vector, compute_rotation_matrix, rotate_between, rotate_from,
+    rotate_to
+)
+from .inherited_types import DerivedRotationOrder
 from .common import DummyIndex
 
 
@@ -111,3 +116,34 @@ def test_order_persistance(subtests):
     assert o[0] == 1
     assert o[1] == 2
     assert o[2] == 0
+
+
+def test_order_inheritance() -> None:
+    derived = DerivedRotationOrder(0, 1, 2)
+
+    assert type(derived) is DerivedRotationOrder
+    assert isinstance(derived, RotationOrder)
+    assert issubclass(DerivedRotationOrder, RotationOrder)
+
+    # Test global Methods
+    assert compute_rotation_matrix(derived, EulerAngles())
+    assert compute_rotation_matrix(derived, EulerAngles(),
+                                   derived, EulerAngles())
+    assert rotate_to(derived, EulerAngles(), Vector.E1)
+    assert rotate_from(derived, EulerAngles(), Vector.E1)
+    assert rotate_between(derived, EulerAngles(), derived, EulerAngles(),
+                          Vector.E1)
+    assert ReferenceFrame(derived, EulerAngles())
+
+    # Test repr
+    assert repr(derived).startswith('tests.inherited_types')
+
+    # Test __new__()
+    obj = RotationOrder.__new__(DerivedRotationOrder)
+    obj.__init__(0, 1, 2)
+
+    assert type(obj) is DerivedRotationOrder
+    assert obj == derived
+
+    # Test __dict__ suppport
+    assert derived.foo

@@ -334,7 +334,7 @@ EVSpaceVector_New(evspace::Vector&& vector) noexcept
 static PyObject*
 Vector_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED)
 {
-    EVSpace_Vector* self = EVSpaceVector_New();
+    EVSpace_Vector* self = _EVSpaceVector_New(type);
     
     return EVS_PyObject_Cast(self);
 }
@@ -1435,11 +1435,12 @@ static PyObject*
 Matrix_new(PyTypeObject* type, PyObject* arg, PyObject* Py_UNUSED)
 {
     marray_t array{};
-    EVSpace_Matrix* self = EVSpaceMatrix_New(array);
+    EVSpace_Matrix* self = _EVSpaceMatrix_New(array, type);
 
     return EVS_PyObject_Cast(self);
 }
 
+// todo: make an __init__ method for Matrix and also add sequence support to Vector and Matrix instantiation
 static int
 Matrix_init(EVSpace_Matrix* self, PyObject* args, PyObject* Py_UNUSED)
 {
@@ -2479,7 +2480,7 @@ are present each component is defaulet to zero.");
 /* EulerAngles type constructors */
 
 static EVSpace_Angles*
-_EVSpace_Angles_New(double alpha, double beta, double gamma, PyTypeObject* type)
+_EVSpaceAngles_New(double alpha, double beta, double gamma, PyTypeObject* type)
 {
     EVSpace_Angles* angles = reinterpret_cast<EVSpace_Angles*>(type->tp_alloc(type, 0));
     if (!angles) {
@@ -2495,19 +2496,19 @@ _EVSpace_Angles_New(double alpha, double beta, double gamma, PyTypeObject* type)
 static inline EVSpace_Angles*
 EVSpaceAngles_New()
 {
-    return _EVSpace_Angles_New(0.0, 0.0, 0.0, &EVSpace_AnglesType);
+    return _EVSpaceAngles_New(0.0, 0.0, 0.0, &EVSpace_AnglesType);
 }
 
 static inline EVSpace_Angles*
 EVSpaceAngles_New(double alpha, double beta, double gamma)
 {
-    return _EVSpace_Angles_New(alpha, beta, gamma, &EVSpace_AnglesType);
+    return _EVSpaceAngles_New(alpha, beta, gamma, &EVSpace_AnglesType);
 }
 
 static PyObject*
 Angles_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED)
 {
-    return reinterpret_cast<PyObject*>(EVSpaceAngles_New(0.0, 0.0, 0.0));
+    return reinterpret_cast<PyObject*>(_EVSpaceAngles_New(0.0, 0.0, 0.0, type));
 }
 
 static int
@@ -3048,8 +3049,8 @@ ReferenceFrame_New(PyTypeObject* type, PyObject* args, PyObject* kwargs)
     }
 
     return reinterpret_cast<PyObject*>(
-        EVSpaceReferenceFrame_New(order->first, order->second, order->third,
-                                  *angles->angles, offset, static_cast<bool>(intrinsic))
+        _EVSpaceReferenceFrame_New(order->first, order->second, order->third,
+                                  *angles->angles, offset, static_cast<bool>(intrinsic), type)
     );
 }
 
@@ -5094,9 +5095,9 @@ static int initialize_module(PyObject* module)
     EVSpace_VectorType.tp_str           = (reprfunc)Vector_str;
     EVSpace_VectorType.tp_as_buffer     = &vector_buffer;
 #if PY_VERSION_HEX >= 0x030a0000
-    EVSpace_VectorType.tp_flags         = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE;
+    EVSpace_VectorType.tp_flags         = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE | Py_TPFLAGS_BASETYPE;
 #else
-    EVSpace_VectorType.tp_flags         = Py_TPFLAGS_DEFAULT;
+    EVSpace_VectorType.tp_flags         = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
 #endif
     EVSpace_VectorType.tp_doc           = vector_doc;
     EVSpace_VectorType.tp_richcompare   = (richcmpfunc)&Vector_richcompare;
@@ -5134,9 +5135,9 @@ static int initialize_module(PyObject* module)
     EVSpace_MatrixType.tp_str           = (reprfunc)Matrix_str;
     EVSpace_MatrixType.tp_as_buffer     = &matrix_as_buffer;
 #if PY_VERSION_HEX >= 0x030a0000
-    EVSpace_MatrixType.tp_flags         = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE;
+    EVSpace_MatrixType.tp_flags         = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE | Py_TPFLAGS_BASETYPE;
 #else
-    EVSpace_MatrixType.tp_flags         = Py_TPFLAGS_DEFAULT;
+    EVSpace_MatrixType.tp_flags         = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
 #endif
     EVSpace_MatrixType.tp_doc           = matrix_doc;
     EVSpace_MatrixType.tp_richcompare   = (richcmpfunc)&Matrix_richcompare;
@@ -5152,9 +5153,9 @@ static int initialize_module(PyObject* module)
     EVSpace_AnglesType.tp_as_sequence   = &angles_as_sequence;
     EVSpace_AnglesType.tp_str           = (reprfunc)Angles_str;
 #if PY_VERSION_HEX >= 0x030a0000
-    EVSpace_AnglesType.tp_flags         = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE;
+    EVSpace_AnglesType.tp_flags         = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE | Py_TPFLAGS_BASETYPE;
 #else
-    EVSpace_AnglesType.tp_flags         = Py_TPFLAGS_DEFAULT;
+    EVSpace_AnglesType.tp_flags         = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
 #endif
     EVSpace_AnglesType.tp_doc           = angles_doc;
     EVSpace_AnglesType.tp_methods       = angles_methods;
@@ -5170,9 +5171,9 @@ static int initialize_module(PyObject* module)
     EVSpace_OrderType.tp_hash           = (hashfunc)Order_hash;
     EVSpace_OrderType.tp_str            = (reprfunc)Order_str;
 #if PY_VERSION_HEX >= 0x030a0000
-    EVSpace_OrderType.tp_flags          = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE;
+    EVSpace_OrderType.tp_flags          = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE | Py_TPFLAGS_BASETYPE;
 #else
-    EVSpace_OrderType.tp_flags          = Py_TPFLAGS_DEFAULT;
+    EVSpace_OrderType.tp_flags          = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
 #endif
     EVSpace_OrderType.tp_doc            = order_doc;
     EVSpace_OrderType.tp_richcompare    = (richcmpfunc)&Order_richcompare;
@@ -5185,7 +5186,7 @@ static int initialize_module(PyObject* module)
     EVSpace_ReferenceFrameType.tp_basicsize = sizeof(EVSpace_ReferenceFrame);
     EVSpace_ReferenceFrameType.tp_itemsize  = 0;
     EVSpace_ReferenceFrameType.tp_dealloc   = (destructor)ReferenceFrame_Dealloc;
-    EVSpace_ReferenceFrameType.tp_flags     = Py_TPFLAGS_DEFAULT;
+    EVSpace_ReferenceFrameType.tp_flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
     EVSpace_ReferenceFrameType.tp_methods   = reference_frame_methods;
     EVSpace_ReferenceFrameType.tp_members   = reference_frame_members;
     EVSpace_ReferenceFrameType.tp_getset    = reference_frame_getset;
