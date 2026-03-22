@@ -1,7 +1,6 @@
 from typing import Optional, SupportsFloat, final, overload, Self
 from collections.abc import Iterator, Iterable
 from numbers import Real
-from typing_extensions import disjoint_base
 
 __all__ = (
     'Vector',
@@ -286,7 +285,8 @@ def rotate_to(order: RotationOrder, angles: EulerAngles, vector: Vector, *,
               -> Vector: ...
 
 def rotate_between(order_from: RotationOrder, angles_from: EulerAngles,
-                   order_to: RotationOrder, angles_to: EulerAngles, *,
+                   order_to: RotationOrder, angles_to: EulerAngles,
+                   vector: Vector, *,
                    intrinsic_from: bool = True, intrinsic_to: bool = True,
                    offset_from: Optional[Vector] = None,
                    offset_to: Optional[Vector] = None) -> Vector: ...
