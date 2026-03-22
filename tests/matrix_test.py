@@ -330,6 +330,16 @@ def test_matrix_get(matrix_values: MatrixValues) -> None:
         matrix_values.m123[1 << 65]
 
 
+def test_matrix_iter() -> None:
+    m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+    itr = iter(m)
+    for i, row in enumerate(itr):
+        assert list(row) == list(m[i])
+    
+    other = Matrix(m)
+    assert other == m
+
+
 def test_matrix_set() -> None:
     m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
     m[0, 0] = 10

@@ -207,6 +207,12 @@ EVSpaceItems_AsArray(std::array<PyObject*, 3> items, varray_t& array)
     return 0;
 }
 
+static Py_ssize_t
+EVSpaceObject_Length(PyObject* Py_UNUSED())
+{
+    return 3;
+}
+
 /* Rotation forward declarations */
 
 static evspace::Vector* _EVSpaceRotate_From(const evspace::Matrix*, const evspace::Vector*);
@@ -461,12 +467,6 @@ Vector_repr(const EVSpace_Vector* self)
     delete [] buffer;
 
     return repr;
-}
-
-static PyObject*
-Vector_iter(EVSpace_Vector* self)
-{
-    return PySeqIter_New(EVS_PyObject_Cast(self));
 }
 
 static PyObject*
@@ -729,12 +729,6 @@ Vector_negative(EVSpace_Vector* self)
 }
 
 /* Vector sequence functions */
-
-static Py_ssize_t
-Vector_length(EVSpace_Vector* self)
-{
-    return 3;
-}
 
 static PyObject*
 Vector_get_item(EVSpace_Vector* self, Py_ssize_t index)
@@ -1146,7 +1140,7 @@ if no argument is specified.");
 static PyNumberMethods vector_as_number;
 
 static PySequenceMethods vector_as_sequence = {
-    (lenfunc)Vector_length,                 /* sq_length */
+    (lenfunc)EVSpaceObject_Length,          /* sq_length */
     0,                                      /* sq_concat */
     0,                                      /* sq_repeat */
     (ssizeargfunc)Vector_get_item,          /* sq_item */
@@ -1836,12 +1830,6 @@ Matrix_negative(EVSpace_Matrix* self)
 
 /* Mapping and buffer methods */
 
-static Py_ssize_t
-Matrix_length(EVSpace_Matrix* self)
-{
-    return 3;
-}
-
 static int
 _EVSpaceMatrix_GetBuffer(EVSpace_Matrix* obj, Py_buffer* view)
 {
@@ -2093,6 +2081,28 @@ Matrix_map_assignment(EVSpace_Matrix* self, PyObject* indices, PyObject* rhs)
     return -1;
 }
 
+/* Matrix sequence support. This is for internals only for iter support. */
+
+static PyObject*
+Matrix_get_item(EVSpace_Matrix* self, Py_ssize_t index_arg)
+{
+    EVSpace_MatrixView* matrix_view = NULL;
+    Py_ssize_t index = index_arg;
+
+    if (index < 0) {
+        index += 3;
+    }
+
+    if (index < 0 || index > 2)
+    {
+        PyErr_Format(PyExc_IndexError, "index must be between [0-2], got %dl", index_arg);
+        return NULL;
+    }
+
+    matrix_view = EVSpaceMatrixView_New(self, 1, 3 * index, 3, -1, sizeof(double), -1);
+    return PyMemoryView_FromObject(EVS_PyObject_Cast(matrix_view));
+}
+
 static int
 Matrix_get_buffer(EVSpace_Matrix* self, Py_buffer* view, int flags)
 {
@@ -2321,9 +2331,18 @@ Matrix_compare_to_tol(EVSpace_Matrix* self, PyObject* args)
 static PyNumberMethods matrix_as_number;
 
 static PyMappingMethods matrix_as_map = {
-    (lenfunc)Matrix_length,             /* mp_length */
+    (lenfunc)EVSpaceObject_Length,      /* mp_length */
     (binaryfunc)Matrix_map_subscript,   /* mp_subscript */
     (objobjargproc)Matrix_map_assignment, /* mp_ass_subscript */
+};
+
+static PySequenceMethods matrix_as_sequence = {
+    (lenfunc)EVSpaceObject_Length,          /* sq_length */
+    0,                                      /* sq_concat */
+    0,                                      /* sq_repeat */
+    (ssizeargfunc)Matrix_get_item,          /* sq_item */
+    0,                                      /* was_sq_slice */
+    0,                                      /* sq_ass_item */
 };
 
 static PyBufferProcs matrix_as_buffer = {
@@ -2568,7 +2587,7 @@ Angles_set_item(EVSpace_Angles* self, Py_ssize_t index, PyObject* arg)
 }
 
 static PySequenceMethods angles_as_sequence = {
-    (lenfunc)Vector_length,             /* sq_length */
+    (lenfunc)EVSpaceObject_Length,      /* sq_length */
     0,                                  /* sq_concat */
     0,                                  /* sq_repeat */
     (ssizeargfunc)Angles_get_item,      /* sq_item */
@@ -2793,7 +2812,7 @@ Order_reduce(const EVSpace_Order* self, PyObject* Py_UNUSED)
 }
 
 static PySequenceMethods order_as_sequence = {
-    (lenfunc)Vector_length,             /* sq_length */
+    (lenfunc)EVSpaceObject_Length,      /* sq_length */
     0,                                  /* sq_concat */
     0,                                  /* sq_repeat */
     (ssizeargfunc)Order_get_item,       /* sq_item */
@@ -4920,7 +4939,6 @@ static int initialize_module(PyObject* module)
     EVSpace_VectorType.tp_flags         = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE | Py_TPFLAGS_BASETYPE;
     EVSpace_VectorType.tp_doc           = vector_doc;
     EVSpace_VectorType.tp_richcompare   = (richcmpfunc)&Vector_richcompare;
-    EVSpace_VectorType.tp_iter          = (getiterfunc)Vector_iter;
     EVSpace_VectorType.tp_methods       = vector_methods;
     EVSpace_VectorType.tp_init          = (initproc)Vector_init;
     EVSpace_VectorType.tp_new           = (newfunc)Vector_new;
@@ -4950,6 +4968,8 @@ static int initialize_module(PyObject* module)
     EVSpace_MatrixType.tp_dealloc       = (destructor)Matrix_dealloc;
     EVSpace_MatrixType.tp_repr          = (reprfunc)Matrix_repr;
     EVSpace_MatrixType.tp_as_number     = &matrix_as_number;
+    // This is only for internal CPython support
+    EVSpace_MatrixType.tp_as_sequence   = &matrix_as_sequence;
     EVSpace_MatrixType.tp_as_mapping    = &matrix_as_map;
     EVSpace_MatrixType.tp_str           = (reprfunc)Matrix_str;
     EVSpace_MatrixType.tp_as_buffer     = &matrix_as_buffer;
