@@ -49,6 +49,15 @@ def test_matrix_construction(subtests, matrix_values: MatrixValues):
             with subtests.test(i=i, j=j):
                 assert matrix_values.m123[i, j] == value
 
+    m = Matrix((1, 2, 3), (4, 5, 6), (7, 8, 9))
+    assert m == matrix_values.m123
+    m = Matrix(((1, 2, 3), (4, 5, 6), (7, 8, 9)))
+    assert m == matrix_values.m123
+    m = Matrix(iter((1, 2, 3)), iter((4, 5, 6)), iter((7, 8, 9)))
+    assert m == matrix_values.m123
+    m = Matrix(iter((iter((1, 2, 3)), iter((4, 5, 6)), iter((7, 8, 9)))))
+    assert m == matrix_values.m123
+
     with pytest.raises(TypeError):
         Matrix(1, (1, 2, 3), (4, 5, 6))
 

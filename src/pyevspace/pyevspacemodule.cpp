@@ -12,10 +12,7 @@
 #include <cstddef>      // offsetof
 #include <array>        // std::array
 #include <string_view>
-
-// todo: remove this when done developing
-#include <iostream>
-#include <cstdio>
+#include <vector>
 
 static PyTypeObject EVSpace_VectorType = {
     PyVarObject_HEAD_INIT(NULL, 0)
@@ -62,8 +59,29 @@ catch (const std::exception& e) {\
 //  minimum Vector length to allow for extrinsic single axis rotation
 #define VECTOR_LENGTH_SMALL     0.000001
 
+// Support using std::array as function args instead of raw pointers
 typedef std::array<double, 3> varray_t;
 typedef std::array<double, 9> marray_t;
+
+/* Rotation forward declarations */
+static evspace::Vector* _EVSpaceRotate_From(const evspace::Matrix*, const evspace::Vector*);
+static evspace::Vector* _EVSpaceRotate_From(const evspace::Matrix*, const evspace::Vector*,
+                                            const evspace::Vector*);
+static evspace::Vector* _EVSpaceRotate_To(const evspace::Matrix*, const evspace::Vector*);
+static evspace::Vector* _EVSpaceRotate_To(const evspace::Matrix*, const evspace::Vector*,
+                                          const evspace::Vector*);
+static evspace::Vector* _EVSpaceRotate_Between(const evspace::Matrix*, const evspace::Matrix*,
+                                               const evspace::Vector*, const evspace::Vector*,
+                                               const evspace::Vector*);
+static evspace::Matrix* _EVSpaceRotate_ComputeMatrix(double, evspace::AxisDirection);
+static evspace::Matrix* _EVSpaceRotate_ComputeMatrix(double, const evspace::Vector*);
+static evspace::Matrix* _EVSpaceRotate_ComputeMatrix(const EVSpace_Order*,
+                                                     const EVSpace_Angles*, bool);
+static evspace::Matrix* _EVSpaceRotate_ComputeMatrix(evspace::AxisDirection, evspace::AxisDirection,
+                                                     evspace::AxisDirection, double, double, double,
+                                                     bool);
+static bool __EVSpaceRotate_CheckKeywordException(void);
+static inline const char* __EVSpace_GetTypeName(PyObject*);
 
 static void
 EVSpaceBuffer_Release(PyObject* obj, Py_buffer* view)
@@ -96,115 +114,120 @@ EVSpaceObject_AsDouble(PyObject* obj, double& value)
     return obj;
 }
 
-// Iterate over obj to fill the items array. The function fails if
-// obj is not iterable or the number of items in obj is not exactly
-// 3. Exception is set and return -1 on failure, otherwise items is
-// filled and return 0 on success. items is only modified on success.
+// Parse arg as an iterable and fill values with the contents. This
+// only succeeds if there is exactly 3 elements in arg. On any error
+// return 0 with an exception set, return 1 on success. The `values`
+// array is not filled unless this function succeeds, and it must be
+// able to hold at least 3 elements.
 static int
-EVSpaceIterable_GetItems(PyObject* obj, std::array<PyObject*, 3>& items)
+EVSpaceIter_ParseObject(PyObject* arg, std::array<PyObject*, 3>& values)
 {
-    PyObject *item;
-    Py_ssize_t count = 0;
-    PyObject* tmp[3]{NULL};
+    PyObject* tmp = NULL;
+    std::vector<PyObject*> tmp_values;
 
-    if (PyTuple_Check(obj) && PyTuple_GET_SIZE(obj) == 3)
-    {
-        items[0] = Py_NewRef(PyTuple_GET_ITEM(obj, 0));
-        items[1] = Py_NewRef(PyTuple_GET_ITEM(obj, 1));
-        items[2] = Py_NewRef(PyTuple_GET_ITEM(obj, 2));
-        return 0;
-    }
-    else if (PyList_Check(obj) && PyList_GET_SIZE(obj) == 3)
-    {
-        items[0] = Py_NewRef(PyList_GET_ITEM(obj, 0));
-        items[1] = Py_NewRef(PyList_GET_ITEM(obj, 1));
-        items[2] = Py_NewRef(PyList_GET_ITEM(obj, 2));
+    PyObject* iter = PyObject_GetIter(arg);
+    if (!iter) {
         return 0;
     }
 
-    PyObject* iterator = PyObject_GetIter(obj);
-    if (!iterator) {
-        return -1;
-    }
-
 #if PY_VERSION_HEX >= 0x030e0000
-    int result;
-    while ((result = PyIter_NextItem(iterator, &item)) > 0)
+    int result = 0;
+    while ((result = PyIter_NextItem(iter, &tmp)) > 0)
+    {
+        tmp_values.push_back(tmp);
+    }
+    Py_DECREF(iter);
+
+    if (result == -1) {
+        goto error;
+    }
 #else
-    while ((item = PyIter_Next(iterator)))
+    while (tmp = PyIter_Next(iter))
+    {
+        tmp_values.push_back(tmp);
+    }
+    Py_DECREF(iter);
+
+    if (PyErr_Occurred()) {
+        goto error;
+    }
 #endif
-    {
-        if (count > 2)
-        {
-            PyErr_SetString(PyExc_ValueError,
-                            "iterable must have exactly 3 items "
-                            "(iterable contains more than 3)");
-            Py_XDECREF(item);
-            Py_XDECREF(tmp[0]);
-            Py_XDECREF(tmp[1]);
-            Py_XDECREF(tmp[2]);
-            Py_DECREF(iterator);
-            return -1;
-        }
 
-        tmp[count++] = item;
+    if (tmp_values.size() != 3)
+    {
+        PyErr_Format(PyExc_ValueError, "expected 3 items in iterable, found %d", tmp_values.size());
+        goto error;
     }
 
-#if PY_VERSION_HEX >= 0x030e0000
-    if (result == -1)
-#else
-    if (PyErr_Occurred())
-#endif
-    {
-        Py_XDECREF(tmp[0]);
-        Py_XDECREF(tmp[1]);
-        Py_XDECREF(tmp[2]);
-        Py_XDECREF(iterator);
-        return -1;
-    }
+    for (int i = 0; i < 3; i++) values[i] = tmp_values[i];
+    return 1;
 
-    if (count != 3)
-    {
-        PyErr_Format(PyExc_ValueError,
-            "iterable must have exactly 3 items, not %i",
-            count);
-        Py_XDECREF(tmp[0]);
-        Py_XDECREF(tmp[1]);
-        Py_XDECREF(tmp[2]);
-        Py_DECREF(iterator);
-        return -1;
-    }
-
-    items[0] = tmp[0];
-    items[1] = tmp[1];
-    items[2] = tmp[2];
-    Py_DECREF(iterator);
-
+error:
+    for (const auto vec : tmp_values) Py_DECREF(vec);
     return 0;
 }
 
-// Parse items as doubles and populates array on success. If any item of
-// items fails conversion to a C double then return -1 otherwise return 0.
-// array is not modified unless the function succeeds.
+// Parse arg as an iterable and fill values with the contents. This
+// only succeeds if there is exactly 3 elements in arg. On an error
+// parsing the iterable return 0, on an error about the contents
+// of the iterator (e.g. arg type, iterator length) return -1. On
+// success return 1. The `values` array is not filled unless this
+// function succeeds, and it must be able to hold at least 3 elements.
 static int
-EVSpaceItems_AsArray(std::array<PyObject*, 3> items, varray_t& array)
+EVSpaceIter_ParseDouble(PyObject* arg, varray_t& values)
 {
-    double tmp[3]{0.0};
-    if (EVSpaceObject_AsDouble(items[0], tmp[0]) != items[0]) {
-        return -1;
+    double tmp_double = 0;
+    PyObject* tmp = NULL;
+    std::vector<double> tmp_values;
+
+    PyObject* iter = PyObject_GetIter(arg);
+    if (!iter) {
+        return 0;
     }
-    if (EVSpaceObject_AsDouble(items[1], tmp[1]) != items[1]) {
-        return -1;
+
+#if PY_VERSION_HEX >= 0x030e0000
+    int result = 0;
+    while ((result = PyIter_NextItem(iter, &tmp)) > 0)
+    {
+        if (!EVSpaceObject_AsDouble(tmp, tmp_double)) {
+            Py_DECREF(iter);
+            Py_DECREF(tmp);
+            return -1;
+        }
+        Py_DECREF(tmp);
+        tmp_values.push_back(tmp_double);
     }
-    if (EVSpaceObject_AsDouble(items[2], tmp[2]) != items[2]) {
+    Py_DECREF(iter);
+
+    if (result == -1) {
+        return 0;
+    }
+#else
+    while (tmp = PyIter_Next(iter))
+    {
+        if (!EVSpaceObject_AsDouble(tmp, tmp_double)) {
+            Py_DECREF(iter);
+            Py_DECREF(tmp);
+            return -1;
+        }
+        Py_DECREF(tmp);
+        tmp_values.push_back(tmp_double);
+    }
+    Py_DECREF(iter);
+
+    if (PyErr_Occurred()) {
+        return 0;
+    }
+#endif
+
+    if (tmp_values.size() != 3)
+    {
+        PyErr_Format(PyExc_ValueError, "expected 3 items in iterable, found %d", tmp_values.size());
         return -1;
     }
 
-    array[0] = tmp[0];
-    array[1] = tmp[1];
-    array[2] = tmp[2];
-
-    return 0;
+    for (int i = 0; i < 3; i++) values[i] = tmp_values[i];
+    return 1;
 }
 
 static Py_ssize_t
@@ -212,27 +235,6 @@ EVSpaceObject_Length(PyObject* Py_UNUSED())
 {
     return 3;
 }
-
-/* Rotation forward declarations */
-
-static evspace::Vector* _EVSpaceRotate_From(const evspace::Matrix*, const evspace::Vector*);
-static evspace::Vector* _EVSpaceRotate_From(const evspace::Matrix*, const evspace::Vector*,
-                                            const evspace::Vector*);
-static evspace::Vector* _EVSpaceRotate_To(const evspace::Matrix*, const evspace::Vector*);
-static evspace::Vector* _EVSpaceRotate_To(const evspace::Matrix*, const evspace::Vector*,
-                                          const evspace::Vector*);
-static evspace::Vector* _EVSpaceRotate_Between(const evspace::Matrix*, const evspace::Matrix*,
-                                               const evspace::Vector*, const evspace::Vector*,
-                                               const evspace::Vector*);
-static evspace::Matrix* _EVSpaceRotate_ComputeMatrix(double, evspace::AxisDirection);
-static evspace::Matrix* _EVSpaceRotate_ComputeMatrix(double, const evspace::Vector*);
-static evspace::Matrix* _EVSpaceRotate_ComputeMatrix(const EVSpace_Order*,
-                                                     const EVSpace_Angles*, bool);
-static evspace::Matrix* _EVSpaceRotate_ComputeMatrix(evspace::AxisDirection, evspace::AxisDirection,
-                                                     evspace::AxisDirection, double, double, double,
-                                                     bool);
-static bool __EVSpaceRotate_CheckKeywordException(void);
-static inline const char* __EVSpace_GetTypeName(PyObject*);
 
 /* EVSpaceVector new functions */
 
@@ -335,7 +337,9 @@ Vector_init(EVSpace_Vector* self, PyObject* args, PyObject* Py_UNUSED)
     //  Vector.__init__(iterable: Iterable) -> None: ...
     //  Vector.__init__(x: float, y: float, z: float) -> None: ...
 
-    varray_t buffer{};
+    int result = 0;
+    varray_t buffer{0.0};
+    double* buffer_data = buffer.data();
     PyObject* parameter = NULL;
 
     Py_ssize_t tuple_size = PyTuple_Size(args);
@@ -348,26 +352,39 @@ Vector_init(EVSpace_Vector* self, PyObject* args, PyObject* Py_UNUSED)
     }
     else if (tuple_size == 1)
     {
-        // Single arg must be an iterable
+        // Try parsing as a sequence
+        if (PyArg_ParseTuple(args, "(ddd)", buffer_data,
+                             buffer_data + 1, buffer_data + 2))
+        {
+            EVSpaceVector_X(self) = buffer[0];
+            EVSpaceVector_Y(self) = buffer[1];
+            EVSpaceVector_Z(self) = buffer[2];
+            return 0;
+        }
+
+        // Try parsing as an iterable
+        PyErr_Clear();
+
         if (!PyArg_ParseTuple(args, "O:pyevspace.Vector.__init__", &parameter)) {
             return -1;
         }
 
-        std::array<PyObject*, 3> items{NULL};
-        if (EVSpaceIterable_GetItems(parameter, items) < 0) {
+        result = EVSpaceIter_ParseDouble(PyTuple_GET_ITEM(args, 0), buffer);
+        if (result == 1)
+        {
+            EVSpaceVector_X(self) = buffer[0];
+            EVSpaceVector_Y(self) = buffer[1];
+            EVSpaceVector_Z(self) = buffer[2];
+            return 0;
+        }
+        else if (result == -1) {
             return -1;
         }
-        
-        if (EVSpaceItems_AsArray(items, buffer) < 0) {
-            Py_DECREF(items[0]);
-            Py_DECREF(items[1]);
-            Py_DECREF(items[2]);
+        else
+        {
+            PyErr_SetString(PyExc_TypeError, "expected a sequence or iterable");
             return -1;
         }
-        
-        EVSpaceVector_X(self) = buffer[0];
-        EVSpaceVector_Y(self) = buffer[1];
-        EVSpaceVector_Z(self) = buffer[2];
     }
     else {
         if (!PyArg_ParseTuple(args, "ddd", buffer.data(),
@@ -1381,7 +1398,6 @@ Matrix_new(PyTypeObject* type, PyObject* arg, PyObject* Py_UNUSED)
     return EVS_PyObject_Cast(self);
 }
 
-// todo: make an __init__ method for Matrix and also add sequence support to Vector and Matrix instantiation
 static int
 Matrix_init(EVSpace_Matrix* self, PyObject* args, PyObject* Py_UNUSED)
 {
@@ -1390,7 +1406,13 @@ Matrix_init(EVSpace_Matrix* self, PyObject* args, PyObject* Py_UNUSED)
     // Matrix.__init__(row1: Iterable, row2: Iterable, row3: Iterable)
     // Matrix.__init__(array: Iterable, Iterable, Iterable)
 
+    int result = 0;
     Py_ssize_t tuple_size = PyTuple_Size(args);
+    double* data = EVSpaceMatrix_MATRIX(self).data().data();
+    PyObject* container = NULL;
+    std::array<PyObject*, 3> items{NULL};
+    std::array<varray_t, 3> values{0.0};
+
     if (tuple_size == -1) {
         return -1;
     }
@@ -1399,68 +1421,50 @@ Matrix_init(EVSpace_Matrix* self, PyObject* args, PyObject* Py_UNUSED)
         return 0;
     }
     else if (tuple_size != 3 && tuple_size != 1) {
-        PyErr_Format(PyExc_ValueError, "expected 0 or 3 argument, not %i", tuple_size);
+        PyErr_Format(PyExc_ValueError, "Matrix.__init__() expected 0, 1, or 3 argument, not %i", tuple_size);
         return -1;
     }
 
-    std::array<PyObject*, 3> items{NULL};
-    PyObject* container;
-
     if (tuple_size == 1) {
         // strip the outer container from argument
-        if (!PyArg_ParseTuple(args, "O:pyevspace.Matrix.__init__", &container)) {
-            return -1;
-        }
+        container = PyTuple_GET_ITEM(args, 0);
     }
     else {
         container = args;
     }
 
-    if (EVSpaceIterable_GetItems(container, items) < 0) {
+    if (EVSpaceIter_ParseObject(container, items) < 1)
+    {
         return -1;
     }
 
-    std::array<PyObject*, 3> sub_items{NULL};
-    std::array<varray_t, 3> values;
-    int result;
-
     for (int i = 0; i < 3; i++)
     {
-        if (EVSpaceIterable_GetItems(items[i], sub_items) < 0) {
-            Py_DECREF(items[0]);
-            Py_DECREF(items[1]);
-            Py_DECREF(items[2]);
-            return -1;
+        result = EVSpaceIter_ParseDouble(items[i], values[i]);
+        if (result == 1) {
+            continue;
         }
-
-        result = EVSpaceItems_AsArray(sub_items, values[i]);
-        Py_DECREF(sub_items[0]);
-        Py_DECREF(sub_items[1]);
-        Py_DECREF(sub_items[2]);
-
-        if (result < 0)
-        {
-            Py_DECREF(items[0]);
-            Py_DECREF(items[1]);
-            Py_DECREF(items[2]);
-            return -1;
+        else if (result = 0) {
+            PyErr_Clear();
+            PyErr_Format(PyExc_TypeError, "Matrix.__init__() expected row parameter "
+                            "%d to be sequence or iterable type", i);
         }
+        Py_DECREF(items[0]);
+        Py_DECREF(items[1]);
+        Py_DECREF(items[2]);
+        return -1;
     }
 
     Py_DECREF(items[0]);
     Py_DECREF(items[1]);
     Py_DECREF(items[2]);
 
-    try {
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                EVSpaceMatrix_MATRIX(self)(i, j) = values[i][j];
-            }
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            EVSpaceMatrix_MATRIX(self)(i, j) = values[i][j];
         }
-    }
-    catch (const std::exception& e) {
-        PyErr_SetString(PyExc_RuntimeError, e.what());
-        return -1;
     }
 
     return 0;

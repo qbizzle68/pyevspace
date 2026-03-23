@@ -97,7 +97,6 @@ def test_frame_capsule(subtests) -> None:
         (-0.9092974268256817, -0.35017548837401463, -0.2248450953661529)
     )
 
-    # todo: add get_matrix() tests
     frames, offset_frames = frame_capsule_c(frame_arg, frame_offset_arg)
     for i, frame in enumerate(frames):
         with subtests.test(i=i):

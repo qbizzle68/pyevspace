@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Matrix `__str__()` added spacing for left alignment on last two rows.
 
+### Fixed
+
+- Error in invalid `Matrix.__init__()` parameter count error message.
+
 ### Removed
 
 - Removed old compilation branches to support implementations before CPython

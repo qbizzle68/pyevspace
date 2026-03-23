@@ -35,12 +35,17 @@ def vector_values() -> VectorValues:
     return VectorValues()
 
 
-def test_vector_new() -> None:
+def test_vector_construction(vector_values: VectorValues) -> None:
     _ = Vector()
-    _ = Vector(1, 2, 3)
-    _ = Vector((1, 2, 3))
-    _ = Vector(i for i in range(1, 4))
-
+    v = Vector(1, 2, 3)
+    assert v == vector_values.v123
+    v = Vector((1, 2, 3))
+    assert v == vector_values.v123
+    v = Vector(i for i in range(1, 4))
+    assert v == vector_values.v123
+    v = Vector(iter((1, 2, 3)))
+    assert v == vector_values.v123
+    
     with pytest.raises(TypeError):
         Vector(1, 2)
 
