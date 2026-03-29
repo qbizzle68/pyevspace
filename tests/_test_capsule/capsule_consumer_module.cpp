@@ -5,6 +5,8 @@
 #include <pyevspace-api.hpp>
 #include <evspace.hpp>
 
+PyEVSpace_CAPI* PyEVSpace_API = NULL;
+
 // These functions will take an argument equal to the type the function
 // is testing. Then test various capsule and helper methods to validate
 // they're functional, raising AssertionError when something fails for
@@ -45,14 +47,14 @@ Test_VectorCapsule(PyObject* Py_UNUSED(), PyObject* args)
     // test C++ helper functions
     evspace::Vector v{1, 2, 3};
     evspace::Vector to_vector;
-    if (PyEVSpace_ToVector(vector, to_vector) < 0) {
+    if (PyEVSpace_ToVector(vector, to_vector, PyEVSpace_API) < 0) {
         return NULL;
     }
     if (v != to_vector) {
         PyErr_SetString(PyExc_AssertionError, "PyObject to evspace::Vector equivalence failed");
         return NULL;
     }
-    vector_object = PyEVSpaceVector_ToObject(v);
+    vector_object = PyEVSpaceVector_ToObject(v, PyEVSpace_API);
 
     // test capsule functions
     if (PyEVSpace_API->PyEVSpaceVector_GetState(vector, state) < 0) {
@@ -67,9 +69,9 @@ Test_VectorCapsule(PyObject* Py_UNUSED(), PyObject* args)
         }
     }
 
-    vector_from_state = PyEVSpace_API->PyEVSpaceVector_FromState(state);
+    vector_from_state = PyEVSpace_API->PyEVSpaceVector_FromState(PyEVSpace_API->Vector_Type, state);
 
-    vector_set_state = PyEVSpace_API->PyEVSpaceVector_FromState(tmp);
+    vector_set_state = PyEVSpace_API->PyEVSpaceVector_FromState(PyEVSpace_API->Vector_Type, tmp);
     if (!vector_set_state) {
         goto error;
     }
@@ -125,14 +127,17 @@ Test_MatrixCapsule(PyObject* Py_UNUSED(), PyObject* args)
     // test helper functions
     evspace::Matrix m{1, 2, 3, 4, 5, 6, 7, 8, 9};
     evspace::Matrix to_matrix;
-    if (PyEVSpace_ToMatrix(matrix, to_matrix) < 0) {
+    if (PyEVSpace_ToMatrix(matrix, to_matrix, PyEVSpace_API) < 0) {
         return NULL;
     }
     if (m != to_matrix) {
         PyErr_SetString(PyExc_AssertionError, "PyObject to evspace::Matrix equivalence failed");
         return NULL;
     }
-    matrix_object = PyEVSpaceMatrix_ToObject(m);
+    matrix_object = PyEVSpaceMatrix_ToObject(m, PyEVSpace_API);
+    if (!matrix_object) {
+        return NULL;
+    }
 
     // test capsule functions
     if (PyEVSpace_API->PyEVSpaceMatrix_GetState(matrix, state) < 0) {
@@ -147,9 +152,12 @@ Test_MatrixCapsule(PyObject* Py_UNUSED(), PyObject* args)
         }
     }
 
-    matrix_from_state = PyEVSpace_API->PyEVSpaceMatrix_FromState(state);
+    matrix_from_state = PyEVSpace_API->PyEVSpaceMatrix_FromState(PyEVSpace_API->Matrix_Type, state);
+    if (!matrix_from_state) {
+        goto error;
+    }
 
-    matrix_set_state = PyEVSpace_API->PyEVSpaceMatrix_FromState(tmp);
+    matrix_set_state = PyEVSpace_API->PyEVSpaceMatrix_FromState(PyEVSpace_API->Matrix_Type, tmp);
     if (!matrix_set_state) {
         goto error;
     }
@@ -203,14 +211,14 @@ Test_AnglesCapsule(PyObject* Py_UNUSED(), PyObject* args)
     // test helper functions
     evspace::EulerAngles a{1, 2, 3};
     evspace::EulerAngles to_angles;
-    if (PyEVSpace_ToAngles(angles, to_angles) < 0) {
+    if (PyEVSpace_ToAngles(angles, to_angles, PyEVSpace_API) < 0) {
         return NULL;
     }
     if (a[0] != to_angles[0] && a[1] != to_angles[1] && a[2] != to_angles[2]) {
         PyErr_SetString(PyExc_AssertionError, "PyObject to evspace::EulerAngles equivalence failed");
         return NULL;
     }
-    angles_object = PyEVSpaceAngles_ToObject(a);
+    angles_object = PyEVSpaceAngles_ToObject(a, PyEVSpace_API);
 
     // test capsule functions
     if (PyEVSpace_API->PyEVSpaceAngles_GetState(angles, state) < 0) {
@@ -225,9 +233,9 @@ Test_AnglesCapsule(PyObject* Py_UNUSED(), PyObject* args)
         }
     }
 
-    angles_from_state = PyEVSpace_API->PyEVSpaceAngles_FromState(state);
+    angles_from_state = PyEVSpace_API->PyEVSpaceAngles_FromState(PyEVSpace_API->EulerAngles_Type, state);
 
-    angles_set_state = PyEVSpace_API->PyEVSpaceAngles_FromState(tmp);
+    angles_set_state = PyEVSpace_API->PyEVSpaceAngles_FromState(PyEVSpace_API->EulerAngles_Type, tmp);
     if (!angles_set_state) {
         goto error;
     }
@@ -288,7 +296,7 @@ Test_OrderCapsule(PyObject* Py_UNUSED(), PyObject* args)
         }
     }
     
-    order_from_state = PyEVSpace_API->PyEVSpaceOrder_FromState(state);
+    order_from_state = PyEVSpace_API->PyEVSpaceOrder_FromState(PyEVSpace_API->RotationOrder_Type, state);
 
     rtn = PyTuple_Pack(1, order_from_state);
     Py_XDECREF(order_from_state);
@@ -532,7 +540,7 @@ Test_FrameCapsule(PyObject* Py_UNUSED(_), PyObject* args)
     }
 
     // test helpers
-    if (PyEVSpaceFrame_ToAngles(frame, angles) < 0) {
+    if (PyEVSpaceFrame_ToAngles(frame, angles, PyEVSpace_API) < 0) {
         return NULL;
     }
     for (int i = 0; i < 3; i++)
@@ -544,7 +552,7 @@ Test_FrameCapsule(PyObject* Py_UNUSED(_), PyObject* args)
         }
     }
 
-    if (PyEVSpaceFrame_ToOffset(frame, offset) < 0) {
+    if (PyEVSpaceFrame_ToOffset(frame, offset, PyEVSpace_API) < 0) {
         return NULL;
     }
     for (int i = 0; i < 3; i++)
@@ -556,7 +564,7 @@ Test_FrameCapsule(PyObject* Py_UNUSED(_), PyObject* args)
         }
     }
 
-    if (PyEVSpaceFrame_ToOffset(frame_offset, offset) < 0) {
+    if (PyEVSpaceFrame_ToOffset(frame_offset, offset, PyEVSpace_API) < 0) {
         return NULL;
     }
     for (int i = 0; i < 3; i++)
@@ -568,23 +576,27 @@ Test_FrameCapsule(PyObject* Py_UNUSED(_), PyObject* args)
         }
     }
 
-    frame_set_cpp = PyEVSpace_API->PyEVSpaceFrame_FromState(order_state, tmp, tmp, 0);
+    frame_set_cpp = PyEVSpace_API->PyEVSpaceFrame_FromState(PyEVSpace_API->ReferenceFrame_Type,
+                                                            order_state, tmp, tmp, 0);
     if (!frame_set_cpp) {
         goto error;
     }
-    if (PyEVSpaceFrame_SetAngles(frame_set_cpp, angles) < 0) {
+    if (PyEVSpaceFrame_SetAngles(frame_set_cpp, angles, PyEVSpace_API) < 0) {
         goto error;
     }
-    if (PyEVSpaceFrame_SetOffset(frame_set_cpp, offset) < 0) {
+    if (PyEVSpaceFrame_SetOffset(frame_set_cpp, offset, PyEVSpace_API) < 0) {
         goto error;
     }
 
     // test capsule creation/modifiers
-    frame_from = PyEVSpace_API->PyEVSpaceFrame_FromState(order_state, angles_state, NULL, 1);
-    frame_from_offset = PyEVSpace_API->PyEVSpaceFrame_FromState(order_state, angles_state,
-                                                              offset_state, 0);
-    frame_set = PyEVSpace_API->PyEVSpaceFrame_FromState(order_state, tmp, NULL, 1);
-    frame_set_offset = PyEVSpace_API->PyEVSpaceFrame_FromState(order_state, tmp, tmp, 0);
+    frame_from = PyEVSpace_API->PyEVSpaceFrame_FromState(PyEVSpace_API->ReferenceFrame_Type,
+                                                         order_state, angles_state, NULL, 1);
+    frame_from_offset = PyEVSpace_API->PyEVSpaceFrame_FromState(PyEVSpace_API->ReferenceFrame_Type,
+                                                                order_state, angles_state, offset_state, 0);
+    frame_set = PyEVSpace_API->PyEVSpaceFrame_FromState(PyEVSpace_API->ReferenceFrame_Type, order_state,
+                                                        tmp, NULL, 1);
+    frame_set_offset = PyEVSpace_API->PyEVSpaceFrame_FromState(PyEVSpace_API->ReferenceFrame_Type,
+                                                               order_state, tmp, tmp, 0);
     if (!frame_set || !frame_set_offset) {
         goto error;
     }
@@ -673,7 +685,7 @@ PyInit_capsule_consumer_cpp(void)
 {
     PyObject* module = PyModule_Create(&Consumer_Module);
 
-    if (PyEVSpace_ImportCapsule() < 0) {
+    if (PyEVSpace_ImportCapsule(&PyEVSpace_API) < 0) {
         Py_XDECREF(module);
         return NULL;
     }

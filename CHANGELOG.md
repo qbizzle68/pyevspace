@@ -7,19 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+The module now supports [multi-phase initiation](https://docs.python.org/3.13/c-api/module.html#multi-phase-initialization),
+which enables valid use within multiple [sub-interpreters](https://docs.python.org/3/library/concurrent.interpreters.html).
+All types defined in the modules are now [heap types](https://docs.python.org/3/c-api/typeobj.html#heap-types)
+which gives the benefits of not being immutable, and support being shared across sub-interpreters.
+
 ### Added
 
 - Module types now have module name prepended in `__repr__()` methods.
 - Types now support subclassing.
+- Types are no longer immutable.
 - Matrix type is now iterable.
 
 ### Changed
 
 - Matrix `__str__()` added spacing for left alignment on last two rows.
+- Some C capsule signatures now require a pointer to the `PyTypeObject` to be created.
+  This also bumped the `PYEVSPACE_CAPSULE_VERSION` macro value to `2`.
 
 ### Fixed
 
 - Error in invalid `Matrix.__init__()` parameter count error message.
+- Better error messaging to pinpoint which methods/functions raise the exception.
 
 ### Removed
 

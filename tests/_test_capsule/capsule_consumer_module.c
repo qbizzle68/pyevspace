@@ -2,6 +2,8 @@
 #include <Python.h>
 #include <pyevspace-api.hpp>
 
+PyEVSpace_CAPI* PyEVSpace_API = NULL;
+
 // These functions will take an argument equal to the type the function
 // is testing. Then test various capsule methods to validate they're
 // functional, raising AssertionError when something fails for ideal
@@ -44,10 +46,10 @@ Test_VectorCapsule(PyObject* Py_UNUSED(), PyObject* args)
         }
     }
 
-    vector_from_state = PyEVSpace_API->PyEVSpaceVector_FromState(state);
+    vector_from_state = PyEVSpace_API->PyEVSpaceVector_FromState(PyEVSpace_API->Vector_Type, state);
 
     double tmp[3] = {0.0, 0.0, 0.0};
-    vector_set_state = PyEVSpace_API->PyEVSpaceVector_FromState(tmp);
+    vector_set_state = PyEVSpace_API->PyEVSpaceVector_FromState(PyEVSpace_API->Vector_Type, tmp);
     if (!vector_set_state) {
         goto error;
     }
@@ -108,10 +110,10 @@ Test_MatrixCapsule(PyObject* Py_UNUSED(), PyObject* args)
         }
     }
 
-    matrix_from_state = PyEVSpace_API->PyEVSpaceMatrix_FromState(state);
+    matrix_from_state = PyEVSpace_API->PyEVSpaceMatrix_FromState(PyEVSpace_API->Matrix_Type, state);
 
     double tmp[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-    matrix_set_state = PyEVSpace_API->PyEVSpaceMatrix_FromState(tmp);
+    matrix_set_state = PyEVSpace_API->PyEVSpaceMatrix_FromState(PyEVSpace_API->Matrix_Type, tmp);
     if (!matrix_set_state) {
         goto error;
     }
@@ -171,10 +173,10 @@ Test_AnglesCapsule(PyObject* Py_UNUSED(), PyObject* args)
         }
     }
 
-    angles_from_state = PyEVSpace_API->PyEVSpaceAngles_FromState(state);
+    angles_from_state = PyEVSpace_API->PyEVSpaceAngles_FromState(PyEVSpace_API->EulerAngles_Type, state);
 
     double tmp[3] = {0, 0, 0};
-    angles_set_state = PyEVSpace_API->PyEVSpaceAngles_FromState(tmp);
+    angles_set_state = PyEVSpace_API->PyEVSpaceAngles_FromState(PyEVSpace_API->EulerAngles_Type, tmp);
     if (!angles_set_state) {
         goto error;
     }
@@ -233,7 +235,7 @@ Test_OrderCapsule(PyObject* Py_UNUSED(), PyObject* args)
         }
     }
     
-    order_from_state = PyEVSpace_API->PyEVSpaceOrder_FromState(state);
+    order_from_state = PyEVSpace_API->PyEVSpaceOrder_FromState(PyEVSpace_API->RotationOrder_Type, state);
 
     rtn = PyTuple_Pack(1, order_from_state);
     Py_XDECREF(order_from_state);
@@ -468,11 +470,14 @@ Test_FrameCapsule(PyObject* Py_UNUSED(_), PyObject* args)
         return NULL;
     }
 
-    frame_from = PyEVSpace_API->PyEVSpaceFrame_FromState(order_state, angles_state, NULL, 1);
-    frame_from_offset = PyEVSpace_API->PyEVSpaceFrame_FromState(order_state, angles_state,
-                                                              offset_state, 0);
-    frame_set = PyEVSpace_API->PyEVSpaceFrame_FromState(order_state, tmp, NULL, 1);
-    frame_set_offset = PyEVSpace_API->PyEVSpaceFrame_FromState(order_state, tmp, tmp, 0);
+    frame_from = PyEVSpace_API->PyEVSpaceFrame_FromState(PyEVSpace_API->ReferenceFrame_Type,
+                                                         order_state, angles_state, NULL, 1);
+    frame_from_offset = PyEVSpace_API->PyEVSpaceFrame_FromState(PyEVSpace_API->ReferenceFrame_Type,
+                                                                order_state, angles_state, offset_state, 0);
+    frame_set = PyEVSpace_API->PyEVSpaceFrame_FromState(PyEVSpace_API->ReferenceFrame_Type,
+                                                        order_state, tmp, NULL, 1);
+    frame_set_offset = PyEVSpace_API->PyEVSpaceFrame_FromState(PyEVSpace_API->ReferenceFrame_Type,
+                                                               order_state, tmp, tmp, 0);
     if (!frame_set || !frame_set_offset) {
         goto error;
     }
@@ -558,7 +563,7 @@ PyInit_capsule_consumer_c(void)
 {
     PyObject* module = PyModule_Create(&Consumer_Module);
 
-    if (PyEVSpace_ImportCapsule() < 0) {
+    if (PyEVSpace_ImportCapsule(&PyEVSpace_API) < 0) {
         Py_XDECREF(module);
         return NULL;
     }

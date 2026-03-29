@@ -45,7 +45,7 @@ def test_vector_construction(vector_values: VectorValues) -> None:
     assert v == vector_values.v123
     v = Vector(iter((1, 2, 3)))
     assert v == vector_values.v123
-    
+
     with pytest.raises(TypeError):
         Vector(1, 2)
 
@@ -455,7 +455,7 @@ def test_vector_compare_ulp(vector_values: VectorValues) -> None:
         lhs.compare_to_ulp(rhs, -1)
 
 
-def test_vector_compare(vector_values: VectorValues) -> None:
+def test_vector_compare() -> None:
     lhs = Vector(1, 2, 3)
     rhs = Vector(1, 2, 3)
 

@@ -1,3 +1,8 @@
+// Memory allocation should used using C-style allocators like malloc/calloc and
+// use free() to release the memory. For allocating memory for C++ types, the `new`
+// operator should be used, as the associated `delete` operator will call the
+// destructor unlike free().
+
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #if PY_VERSION_HEX < 0x030c0000
@@ -14,29 +19,9 @@
 #include <string_view>
 #include <vector>
 
-static PyTypeObject EVSpace_VectorType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-};
-
-static PyTypeObject EVSpace_MatrixType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-};
-
-static PyTypeObject EVSpace_MatrixViewType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-};
-
-static PyTypeObject EVSpace_AnglesType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-};
-
-static PyTypeObject EVSpace_OrderType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-};
-
-static PyTypeObject EVSpace_ReferenceFrameType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-};
+// todo: pick a single allocator function and use it consistently so
+// the free/delete call is identical across the package. opt for malloc
+// as poitner check is cleaner code that a lot of try blocks with std::bad_alloc
 
 // Don't return PyErr_NoMemory() so this can be used in
 // methods that be used anywhere a pointer is returned.
@@ -57,34 +42,201 @@ catch (const std::exception& e) {\
 #define EVS_BUFFER_NO_STRIDES       (~(1 << 2))
 #define EVS_BUFFER_RELEASE_STRIDES  (1 << 2)
 //  minimum Vector length to allow for extrinsic single axis rotation
-#define VECTOR_LENGTH_SMALL     0.000001
+#define VECTOR_LENGTH_SMALL         0.000001
+#define EVS_PYCMETHOD               METH_METHOD | METH_FASTCALL | METH_KEYWORDS
 
 // Support using std::array as function args instead of raw pointers
 typedef std::array<double, 3> varray_t;
 typedef std::array<double, 9> marray_t;
 
-/* Rotation forward declarations */
-static evspace::Vector* _EVSpaceRotate_From(const evspace::Matrix*, const evspace::Vector*);
-static evspace::Vector* _EVSpaceRotate_From(const evspace::Matrix*, const evspace::Vector*,
-                                            const evspace::Vector*);
-static evspace::Vector* _EVSpaceRotate_To(const evspace::Matrix*, const evspace::Vector*);
-static evspace::Vector* _EVSpaceRotate_To(const evspace::Matrix*, const evspace::Vector*,
-                                          const evspace::Vector*);
-static evspace::Vector* _EVSpaceRotate_Between(const evspace::Matrix*, const evspace::Matrix*,
-                                               const evspace::Vector*, const evspace::Vector*,
-                                               const evspace::Vector*);
-static evspace::Matrix* _EVSpaceRotate_ComputeMatrix(double, evspace::AxisDirection);
-static evspace::Matrix* _EVSpaceRotate_ComputeMatrix(double, const evspace::Vector*);
-static evspace::Matrix* _EVSpaceRotate_ComputeMatrix(const EVSpace_Order*,
-                                                     const EVSpace_Angles*, bool);
-static evspace::Matrix* _EVSpaceRotate_ComputeMatrix(evspace::AxisDirection, evspace::AxisDirection,
-                                                     evspace::AxisDirection, double, double, double,
-                                                     bool);
-static bool __EVSpaceRotate_CheckKeywordException(void);
-static inline const char* __EVSpace_GetTypeName(PyObject*);
+// Need a forward declaration of the module definition. All NULL
+// values to be initialized in the module initialization function.
+static PyModuleDef EVSpace_Module = {
+    PyModuleDef_HEAD_INIT,  // m_base
+    "pyevspace",            // m_name
+    NULL,                   // m_doc
+    0,                      // m_size
+    NULL,                   // m_methods
+    NULL,                   // m_slots
+    NULL,                   // m_traverse
+    NULL,                   // m_clear
+    NULL                    // m_free
+};
 
+typedef struct {
+    PyTypeObject* Vector_Type;
+    PyTypeObject* Matrix_Type;
+    PyTypeObject* MatrixView_Type;
+    PyTypeObject* EulerAngles_Type;
+    PyTypeObject* RotationOrder_Type;
+    PyTypeObject* ReferenceFrame_Type;
+    PyEVSpace_CAPI* capsule;
+} EVSpace_State;
+
+// When it comes to module state functions, attempting to get the
+// state from a type/object will result in an error if the type is
+// not a subclass of a module type (except when compiled with
+// CPython 3.10; see below). When not running CPython 3.10 it can
+// be safe to assume an error in getting the module state with these
+// functions means the type does not belong to the module, and is not
+// a subclass of a module type, as the internally called functions
+// will walk the MRO ladder to find the first type belonging to the
+// module matching pyevspace's PyModuleDef definition. Success however,
+// does not guarantee that the object/type is correct, as another
+// invalid type of the module could be attempted to be used in an
+// unsupported way (e.g. Vector.__new__(Matrix)). If the function whose
+// parameters are being checked cannot guarantee the `self` or `type`
+// values passed are at lease a subclass (i.e. internal functions not
+// directly part of the Python layer, EVSpaceVector_New() for example),
+// the parameter's type needs to be validated, usually with
+// PyObject_IsInstance, PyObject_IsSubclass, or PyObject_TypeCheck.
+//
+// An error from the EVSpaceState_From* functions is likely not ideal
+// to pass to the interpreter, as it wouldn't make sense to a user of
+// the module. If the error really is a type mismatch, the function
+// should clear the error state with PyErr_Clear() and set a well
+// formed PyExc_TypeError to explain to the user where the error
+// really comes from.
+//
+// In CPython 3.10, fetching the module state using the PyModDef is
+// not supported, so the module must be looked up in sys.modules.
+// This means using one of the EVSpaceState_From* functions should
+// always succeed. This can be misleading to the above statement that
+// an object type not apart of this module will cause the function
+// to fail. Therefore, in CPython 3.10, any function getting the
+// state using one of these functions that cannot guarantee the type
+// of an argument (like `self`) must always directly check the
+// type is a subclass of the expected type (or the exact type if
+// the function requires it).
+
+// Attempts to get the module of `obj` and retrieve the module state.
+// Returns the module state on success or NULL on failure with an
+// exception set. On CPython 3.10 this function gets the module via
+// import and neither argument is used.s
+static inline EVSpace_State*
+EVSpaceState_FromObject(PyObject* obj)
+{
+    PyObject* module = NULL;
+    EVSpace_State* state = NULL;
+
+#if PY_VERSION_HEX >= 0x030b0000
+    module = PyType_GetModuleByDef(Py_TYPE(obj), &EVSpace_Module);
+    if (!module) {
+        return NULL;
+    }
+
+    state = (EVSpace_State*)PyModule_GetState(module);
+#else
+    PyObject* name = PyUnicode_FromString("pyevspace._pyevspace");
+    if (!name) {
+        return NULL;
+    }
+
+    module = PyImport_GetModule(name);
+    Py_DECREF(name);
+
+    if (!module) {
+        return NULL;
+    }
+
+    state = (EVSpace_State*)PyModule_GetState(module);
+    Py_DECREF(module);
+#endif
+
+    if (!state && !PyErr_Occurred())
+    {
+        PyErr_SetString(PyExc_RuntimeError, "unable to get module state for pyevspace._pyevspace");
+    }
+
+    return state;
+}
+
+// Attempts to get the module of `left` first, and on failure the
+// module on `right`. Returns the state from the module on success
+// or NULL on failure with an exception set. On CPython 3.10 this
+// function gets the module via import and neither argument is used.
+static inline EVSpace_State*
+EVSpaceState_FromObject2(PyObject* left, PyObject* right)
+{
+    PyObject* module = NULL;
+    EVSpace_State* state = NULL;
+
+#if PY_VERSION_HEX >= 0x030b0000
+    module = PyType_GetModuleByDef(Py_TYPE(left), &EVSpace_Module);
+    if (!module) {
+        PyErr_Clear();
+        module = PyType_GetModuleByDef(Py_TYPE(right), &EVSpace_Module);
+    }
+    if (!module) {
+        return NULL;
+    }
+
+    state = (EVSpace_State*)PyModule_GetState(module);
+#else
+    PyObject* name = PyUnicode_FromString("pyevspace._pyevspace");
+    if (!name) {
+        return NULL;
+    }
+
+    module = PyImport_GetModule(name);
+    Py_DECREF(name);
+
+    if (!module) {
+        return NULL;
+    }
+
+    state = (EVSpace_State*)PyModule_GetState(module);
+    Py_DECREF(module);
+#endif
+
+    return state;
+}
+
+// Gets the module associated with `type` by walking the MRO ladder until
+// the first super class of `type` in pyevspace is found. On success returns
+// a pointer to the module state, on failure return NULL. On CPython 3.10 this
+// function gets the module via import and the `type` argument is used (and may
+// be set to NULL).
+static inline EVSpace_State*
+EVSpaceState_FromType(PyTypeObject* type)
+{
+    EVSpace_State* state = NULL;
+    PyObject* module = NULL;
+
+#if PY_VERSION_HEX >= 0x030b0000
+    module = PyType_GetModuleByDef(type, &EVSpace_Module);
+
+    if (!module) {
+        return NULL;
+    }
+
+    state = (EVSpace_State*)PyModule_GetState(module);
+#else
+    PyObject* name = PyUnicode_FromString("pyevspace._pyevspace");
+    if (!name) {
+        return NULL;
+    }
+
+    module = PyImport_GetModule(name);
+    Py_DECREF(name);
+
+    if (!module) {
+        return NULL;
+    }
+
+    state = (EVSpace_State*)PyModule_GetState(module);
+    Py_DECREF(module);
+#endif
+
+    return state;
+}
+
+// Used by types supporting the buffer protocol. These objects
+// share similar structure to memory allocated in the process
+// of filling a Py_buffer object, so a single release function
+// simplifies the buffer process.
 static void
-EVSpaceBuffer_Release(PyObject* obj, Py_buffer* view)
+EVSpaceBuffer_Release(PyObject* Py_UNUSED(), Py_buffer* view)
 {
     if (view->internal != NULL)
     {
@@ -101,7 +253,7 @@ EVSpaceBuffer_Release(PyObject* obj, Py_buffer* view)
 }
 
 // Parses obj into a C double type. On success return obj otherwise
-// return NULL.
+// return NULL. `value` is only modified on success.
 static inline PyObject*
 EVSpaceObject_AsDouble(PyObject* obj, double& value)
 {
@@ -222,7 +374,8 @@ EVSpaceIter_ParseDouble(PyObject* arg, varray_t& values)
 
     if (tmp_values.size() != 3)
     {
-        PyErr_Format(PyExc_ValueError, "expected 3 items in iterable, found %d", tmp_values.size());
+        PyErr_Format(PyExc_ValueError, "expected 3 items in iterable, found %d",
+                     tmp_values.size());
         return -1;
     }
 
@@ -230,17 +383,51 @@ EVSpaceIter_ParseDouble(PyObject* arg, varray_t& values)
     return 1;
 }
 
+// This function fits the `lenfunc` signature and always
+// returns 3. All types of the module always have a length
+// of 3 in sequence or mapping protocols and can therefore
+// share the same length function.
 static Py_ssize_t
 EVSpaceObject_Length(PyObject* Py_UNUSED())
 {
     return 3;
 }
 
-/* EVSpaceVector new functions */
+// Get the type name of `obj` as a const char* for printing or
+// string formating.
+static inline const char*
+__EVSpace_GetTypeName(PyObject* obj)
+{
+    return Py_TYPE(obj)->tp_name;
+}
+
+//      EVSpace_Vector new functions
+// These functions validate `type` is a subclass of EVSpace_Vector
+// and allocate and initialize the underlying evspace::Vector object
+// depending on the overloaded parameter types. The EVSpace_Vector.vector
+// instance is allocated using `new` and should be freed with `delete`
+// so the destructor is called.
+//
+// While the type supports subclassing, all methods attached to
+// EVSpace_Vector strictly return EVSpace_Vector instances instead
+// of subclassed types because any additional parameters to a subclasses
+// __init__ methods are not known. Any subclass wanting to return an
+// instance of that subclass should overload that function and use the
+// returned values to initialize an instance of their type.
 
 static EVSpace_Vector*
-_EVSpaceVector_New(PyTypeObject* type) noexcept
+EVSpaceVector_New(PyTypeObject* type)
 {
+    EVSpace_State* state = EVSpaceState_FromType(type);
+
+    if (!state || !PyObject_IsSubclass((PyObject*)type, (PyObject*)state->Vector_Type))
+    {
+        PyErr_Clear();
+        PyErr_Format(PyExc_TypeError, "%s is not a subclass of pyevspace.Vector",
+                     type->tp_name);
+        return NULL;
+    }
+
     EXCEPTION_WRAPPER(
         EVSpace_Vector* self = EVSpaceVector_Cast(type->tp_alloc(type, 0));
         if (!self) {
@@ -252,9 +439,19 @@ _EVSpaceVector_New(PyTypeObject* type) noexcept
     )
 }
 
+[[maybe_unused]]
 static EVSpace_Vector*
-_EVSpaceVector_New(const varray_t& array, PyTypeObject* type) noexcept
+EVSpaceVector_New(const varray_t& array, PyTypeObject* type)
 {
+    EVSpace_State* state = EVSpaceState_FromType(type);
+
+    if (!state || !PyObject_IsSubclass((PyObject*)type, (PyObject*)state->Vector_Type))
+    {
+        PyErr_Clear();
+        PyErr_Format(PyExc_TypeError, "%s is not a subclass of pyevspace.Vector", type->tp_name);
+        return NULL;
+    }
+
     EXCEPTION_WRAPPER(
         EVSpace_Vector* self = EVSpaceVector_Cast(type->tp_alloc(type, 0));
         if (!self) {
@@ -267,8 +464,17 @@ _EVSpaceVector_New(const varray_t& array, PyTypeObject* type) noexcept
 }
 
 static EVSpace_Vector*
-_EVSpaceVector_New(const evspace::Vector& vector, PyTypeObject* type) noexcept
+EVSpaceVector_New(const evspace::Vector& vector, PyTypeObject* type)
 {
+    EVSpace_State* state = EVSpaceState_FromType(type);
+
+    if (!state || !PyObject_IsSubclass((PyObject*)type, (PyObject*)state->Vector_Type))
+    {
+        PyErr_Clear();
+        PyErr_Format(PyExc_TypeError, "%s is not a subclass of pyevspace.Vector", type->tp_name);
+        return NULL;
+    }
+
     EXCEPTION_WRAPPER(
         EVSpace_Vector* self = EVSpaceVector_Cast(type->tp_alloc(type, 0));
         if (!self) {
@@ -282,8 +488,17 @@ _EVSpaceVector_New(const evspace::Vector& vector, PyTypeObject* type) noexcept
 
 // Force call of the new constructor
 static EVSpace_Vector*
-_EVSpaceVector_New(evspace::Vector&& vector, PyTypeObject* type) noexcept
+EVSpaceVector_New(evspace::Vector&& vector, PyTypeObject* type)
 {
+    EVSpace_State* state = EVSpaceState_FromType(type);
+
+    if (!state || !PyObject_IsSubclass((PyObject*)type, (PyObject*)state->Vector_Type))
+    {
+        PyErr_Clear();
+        PyErr_Format(PyExc_TypeError, "%s is not a subclass of pyevspace.Vector", type->tp_name);
+        return NULL;
+    }
+
     EXCEPTION_WRAPPER(
         EVSpace_Vector* self = EVSpaceVector_Cast(type->tp_alloc(type, 0));
         if (!self) {
@@ -295,42 +510,18 @@ _EVSpaceVector_New(evspace::Vector&& vector, PyTypeObject* type) noexcept
     )
 }
 
-/* Helper methods to _EVSpaceVector_New by not needing the PyTypeObject* argument */
-
-static inline EVSpace_Vector*
-EVSpaceVector_New() noexcept
-{
-    return _EVSpaceVector_New(&EVSpace_VectorType);
-}
-
-static inline EVSpace_Vector*
-EVSpaceVector_New(const varray_t& array) noexcept
-{
-    return _EVSpaceVector_New(array, &EVSpace_VectorType);
-}
-
-static inline EVSpace_Vector*
-EVSpaceVector_New(const evspace::Vector& vector) noexcept
-{
-    return _EVSpaceVector_New(vector, &EVSpace_VectorType);
-}
-
-static inline EVSpace_Vector*
-EVSpaceVector_New(evspace::Vector&& vector) noexcept
-{
-    return _EVSpaceVector_New(std::move(vector), &EVSpace_VectorType);
-}
+// EVSpace_Vector slot functions
 
 static PyObject*
-Vector_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED)
+Vector_new(PyTypeObject* type, PyObject* Py_UNUSED(1), PyObject* Py_UNUSED(2))
 {
-    EVSpace_Vector* self = _EVSpaceVector_New(type);
+    EVSpace_Vector* self = EVSpaceVector_New(type);
     
     return EVS_PyObject_Cast(self);
 }
 
 static int
-Vector_init(EVSpace_Vector* self, PyObject* args, PyObject* Py_UNUSED)
+Vector_init(EVSpace_Vector* self, PyObject* args, PyObject* Py_UNUSED())
 {
     //  Possible constructor signatures:
     //  Vector.__init__() -> None: ...
@@ -410,7 +601,7 @@ Vector_dealloc(EVSpace_Vector* self)
 // Creates a const char* buffer containing the numeric values of the Vector
 // class's str and repr methods. On failure an exception is set and NULL is
 // returned. If the result is not NULL, it is up to the caller to free the
-// memory by calling `delete` on the returned pointer.
+// memory by calling `free` on the returned pointer.
 static inline const char*
 _EVSpaceVector_String(const EVSpace_Vector* self)
 {
@@ -421,28 +612,29 @@ _EVSpaceVector_String(const EVSpace_Vector* self)
     std::size_t buffer_size = snprintf(NULL, 0, format, EVSpaceVector_X(self),
         EVSpaceVector_Y(self), EVSpaceVector_Z(self));
 
-    try {
-        buffer = new char[buffer_size + 1];
-        if (sprintf(buffer, format, EVSpaceVector_X(self), EVSpaceVector_Y(self),
-                     EVSpaceVector_Z(self)) < 0)
-        {
-            PyErr_SetString(PyExc_RuntimeError, "failed to fill buffer on string operation");
-            delete [] buffer;
-            return NULL;
-        }
-
-        return buffer;
-    }
-    catch (const std::bad_alloc&) {
+    buffer = (char*)malloc(buffer_size + 1);
+    if (!buffer) {
         PyErr_NoMemory();
         return NULL;
     }
+    buffer[buffer_size] = '\0';
+
+    if (sprintf(buffer, format, EVSpaceVector_X(self), EVSpaceVector_Y(self),
+                    EVSpaceVector_Z(self)) < 0)
+    {
+        PyErr_SetString(PyExc_RuntimeError, "failed to fill buffer on string operation");
+        free((void*)buffer);
+        return NULL;
+    }
+
+    return buffer;
 }
 
 static PyObject*
 Vector_str(const EVSpace_Vector* self)
 {
     PyObject* str = NULL;
+
     // We must free this when done!
     const char* buffer = _EVSpaceVector_String(self);
     if (!buffer) {
@@ -450,7 +642,7 @@ Vector_str(const EVSpace_Vector* self)
     }
 
     str = PyUnicode_FromFormat("[%s]", buffer);
-    delete [] buffer;
+    free((void*)buffer);
     return str;
 }
 
@@ -481,21 +673,28 @@ Vector_repr(const EVSpace_Vector* self)
     repr = PyUnicode_FromFormat("%U.%U(%s)", module, qualname, buffer);
     Py_DECREF(module);
     Py_DECREF(qualname);
-    delete [] buffer;
+    free((void*)buffer);
 
     return repr;
 }
 
 static PyObject*
-Vector_richcompare(EVSpace_Vector* self, PyObject* other, int op)
+Vector_richcompare(PyObject* self, PyObject* other, int op)
 {
-    EVSpace_Vector* rhs;
     bool is_equal;
+    EVSpace_Vector* lhs = NULL, *rhs = NULL;
+
+    EVSpace_State* state = EVSpaceState_FromObject2(self, other);
+    if (!state) {
+        PyErr_Clear();
+        Py_RETURN_NOTIMPLEMENTED;
+    }
     
-    if (EVSpaceVector_Check(other))
+    if (PyObject_TypeCheck(other, state->Vector_Type))
     {
+        lhs = EVSpaceVector_Cast(self);
         rhs = EVSpaceVector_Cast(other);
-        is_equal = EVSpaceVector_VECTOR(self) == EVSpaceVector_VECTOR(rhs);
+        is_equal = EVSpaceVector_VECTOR(lhs) == EVSpaceVector_VECTOR(rhs);
 
         if (op == Py_EQ)
         {
@@ -520,17 +719,48 @@ Vector_richcompare(EVSpace_Vector* self, PyObject* other, int op)
     Py_RETURN_NOTIMPLEMENTED;
 }
 
-/* Vector as number functions */
+//      EVSpace_Vector as number functions
+// Supports __add__, __iadd__, __sub__, __isub__, __mul__, __rmul__,
+// __imul__, __matmul__, __imatmul__, __truediv__, __itruediv__, and
+// __neg__. Notably, __rmul__ is supported for scalar multiplication.
+// Note for CPython 3.10 support, fetching state will always succeed,
+// so explicit checks are needed on `self` for if the function returns
+// Py_NOTIMPLEMENTED CPython will attempt the reflected version of the
+// function. This check is needed to enforce the method is not implemented
+// for unsupported types, where receiving a NULL state doesn't convey that.
 
 static PyObject*
 Vector_add(EVSpace_Vector* self, PyObject* other)
 {
-    if (EVSpaceVector_Check(EVS_PyObject_Cast(self)) && EVSpaceVector_Check(other)) {
-        EVSpace_Vector* other_vector = EVSpaceVector_Cast(other);
+    EVSpace_Vector* rhs = NULL;
 
-        evspace::Vector result = EVSpaceVector_VECTOR(self) + EVSpaceVector_VECTOR(other_vector);
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+    if (!state) {
+        PyErr_Clear();
+        Py_RETURN_NOTIMPLEMENTED;
+    }
 
-        return EVS_PyObject_Cast(EVSpaceVector_New(std::move(result)));
+#if PY_VERSION_HEX < 0x030b0000
+    // state will always be pyevspace state, need to enforce `self` is
+    // a subclass for __radd__ support
+    if (!PyObject_TypeCheck((PyObject*)self, state->Vector_Type))
+    {
+        PyErr_Format(PyExc_TypeError, "pyevspace.Vector.__radd__(): %s "
+                     "is not a subclass of pyevspace.Vector",
+                     __EVSpace_GetTypeName((PyObject*)self));
+        return NULL;
+    }
+#endif
+
+    if (PyObject_TypeCheck(other, state->Vector_Type))
+    {
+        rhs = EVSpaceVector_Cast(other);
+        EXCEPTION_WRAPPER(
+            evspace::Vector result = EVSpaceVector_VECTOR(self) + EVSpaceVector_VECTOR(rhs);
+            
+            return EVS_PyObject_Cast(EVSpaceVector_New(std::move(result),
+                                                       state->Vector_Type));
+        )
     }
 
     Py_RETURN_NOTIMPLEMENTED;
@@ -539,13 +769,34 @@ Vector_add(EVSpace_Vector* self, PyObject* other)
 static PyObject*
 Vector_subtract(EVSpace_Vector* self, PyObject* other)
 {
-    if (EVSpaceVector_Check(EVS_PyObject_Cast(self)) && EVSpaceVector_Check(other)) {
-        EVSpace_Vector* other_vector = EVSpaceVector_Cast(other);
+    EVSpace_Vector* rhs = NULL;
 
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+    if (!state){
+        PyErr_Clear();
+        Py_RETURN_NOTIMPLEMENTED;
+    }
+
+#if PY_VERSION_HEX < 0x030b0000
+    // state will always be pyevspace state, need to enforce `self` is
+    // a subclass for __rsub__ support
+    if (!PyObject_TypeCheck((PyObject*)self, state->Vector_Type))
+    {
+        PyErr_Format(PyExc_TypeError, "pyevspace.Vector.__rsub__(): %s "
+                     "is not a subclass of pyevspace.Vector",
+                     __EVSpace_GetTypeName((PyObject*)self));
+        return NULL;
+    }
+#endif
+
+    if (PyObject_TypeCheck(other, state->Vector_Type))
+    {
+        rhs = EVSpaceVector_Cast(other);
         EXCEPTION_WRAPPER(
-            evspace::Vector result = EVSpaceVector_VECTOR(self) - EVSpaceVector_VECTOR(other_vector);
+            evspace::Vector result = EVSpaceVector_VECTOR(self) - EVSpaceVector_VECTOR(rhs);
 
-            return EVS_PyObject_Cast(EVSpaceVector_New(std::move(result)));
+            return EVS_PyObject_Cast(EVSpaceVector_New(std::move(result),
+                                                       state->Vector_Type));
         )
     }
 
@@ -556,53 +807,86 @@ static PyObject*
 Vector_multiply(PyObject* lhs, PyObject* rhs)
 {
     // Possible signatures:
-    // __mul__(x: double) -> Vector: ...
-    // __mul__(v: Vector) -> Vector: ...
+    // Vector.__mul__(x: double) -> Vector: ...
+    // float.__mul__(v: Vector) -> Vector: ...
 
-    EVSpace_Vector* self;
-    PyObject* scalar_result;
-    double scalar;
+    EVSpace_Vector* self = NULL;
+    PyObject* scalar_result = NULL;
+    double scalar = 0.0;
+
+    EVSpace_State* state = EVSpaceState_FromObject2(lhs, rhs);
+    if (!state) {
+        PyErr_Clear();
+        Py_RETURN_NOTIMPLEMENTED;
+    }
 
     // __mul__
-    if (PyObject_TypeCheck(lhs, &EVSpace_VectorType)) {
+    if (PyObject_TypeCheck(lhs, state->Vector_Type))
+    {
         self = EVSpaceVector_Cast(lhs);
         scalar_result = EVSpaceObject_AsDouble(rhs, scalar);
     }
     // __rmul__
-    else
+    else if (PyObject_TypeCheck(rhs, state->Vector_Type))
     {
         self = EVSpaceVector_Cast(rhs);
         scalar_result = EVSpaceObject_AsDouble(lhs, scalar);
     }
+    else {
+        Py_RETURN_NOTIMPLEMENTED;
+    }
 
-    if (!scalar_result) {
+    if (!scalar_result)
+    {
         if (PyErr_ExceptionMatches(PyExc_TypeError))
         {
             PyErr_Clear();
             Py_RETURN_NOTIMPLEMENTED;
         }
-
-        return NULL;
+        else {
+            return NULL;
+        }
     }
 
     EXCEPTION_WRAPPER(
         evspace::Vector result = EVSpaceVector_VECTOR(self) * scalar;
-        return EVS_PyObject_Cast(EVSpaceVector_New(std::move(result)));
+        return EVS_PyObject_Cast(EVSpaceVector_New(std::move(result),
+                                                   state->Vector_Type));
     )    
 }
 
 static PyObject*
 Vector_matrix_multiply(EVSpace_Vector* self, PyObject* other)
 {
-    if (EVSpaceVector_Check(self)) {
-        if (EVSpaceMatrix_Check(other))
-        {
-            EXCEPTION_WRAPPER(
-                evspace::Vector result = EVSpaceVector_VECTOR(self) *
-                                         EVSpaceMatrix_MATRIX(EVSpaceMatrix_Cast(other));
-                return EVS_PyObject_Cast(EVSpaceVector_New(std::move(result)));
-            )
-        }
+    EVSpace_Matrix* matrix = NULL;
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+    if (!state)
+    {
+        PyErr_Clear();
+        Py_RETURN_NOTIMPLEMENTED;
+    }
+
+#if PY_VERSION_HEX < 0x030b0000
+    // state will always be pyevspace state, need to enforce `self` is
+    // a subclass for __rmatmul__ support
+    if (!PyObject_TypeCheck((PyObject*)self, state->Vector_Type))
+    {
+        PyErr_Format(PyExc_TypeError, "pyevspace.Vector.__rmatmul__(): %s "
+                     "is not a subclass of pyevspace.Vector",
+                     __EVSpace_GetTypeName((PyObject*)self));
+        return NULL;
+    }
+#endif
+
+    if (PyObject_TypeCheck(other, state->Matrix_Type))
+    {
+        matrix = EVSpaceMatrix_Cast(other);
+        EXCEPTION_WRAPPER(
+            evspace::Vector result = EVSpaceVector_VECTOR(self) *
+                                     EVSpaceMatrix_MATRIX(matrix);
+            return EVS_PyObject_Cast(EVSpaceVector_New(std::move(result),
+                                                       state->Vector_Type));
+        )
     }
 
     Py_RETURN_NOTIMPLEMENTED;
@@ -611,24 +895,34 @@ Vector_matrix_multiply(EVSpace_Vector* self, PyObject* other)
 static PyObject*
 Vector_divide(EVSpace_Vector* self, PyObject* other)
 {
-    PyObject* result;
-    double scalar;
+    double scalar = 0;
 
-    if (EVSpaceVector_Check(self))
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+    if (!state)
     {
-        result = EVSpaceObject_AsDouble(other, scalar);
-        if (!result) {
-            if (PyErr_ExceptionMatches(PyExc_TypeError)) {
+        PyErr_Clear();
+        Py_RETURN_NOTIMPLEMENTED;
+    }
+
+    // need to safe guard against __rtruediv__ passing non Vector type as `self`
+    if (PyObject_TypeCheck(self, state->Vector_Type))
+    {
+        if (!EVSpaceObject_AsDouble(other, scalar))
+        {
+            if (PyErr_ExceptionMatches(PyExc_TypeError))
+            {
                 PyErr_Clear();
                 Py_RETURN_NOTIMPLEMENTED;
             }
-
-            return NULL;
+            else {
+                return NULL;
+            }
         }
-        
+
         EXCEPTION_WRAPPER(
             evspace::Vector answer = EVSpaceVector_VECTOR(self) / scalar;
-            return EVS_PyObject_Cast(EVSpaceVector_New(answer));
+            return EVS_PyObject_Cast(EVSpaceVector_New(std::move(answer),
+                                                       state->Vector_Type));
         )
     }
 
@@ -638,11 +932,20 @@ Vector_divide(EVSpace_Vector* self, PyObject* other)
 static PyObject*
 Vector_inplace_add(EVSpace_Vector* self, PyObject* other)
 {
-    EVSpace_Vector* rhs = EVSpaceVector_Cast(other);
-    if (EVSpaceVector_Check(self) && EVSpaceVector_Check(other))
+    EVSpace_Vector* rhs = NULL;
+
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+    if (!state)
+    {
+        PyErr_Clear();
+        Py_RETURN_NOTIMPLEMENTED;
+    }
+
+    rhs = EVSpaceVector_Cast(other);
+    if (PyObject_TypeCheck(rhs, state->Vector_Type))
     {
         EVSpaceVector_VECTOR(self) += EVSpaceVector_VECTOR(rhs);
-
+        
         return Py_NewRef(self);
     }
 
@@ -652,11 +955,20 @@ Vector_inplace_add(EVSpace_Vector* self, PyObject* other)
 static PyObject*
 Vector_inplace_subtract(EVSpace_Vector* self, PyObject* other)
 {
-    EVSpace_Vector* rhs = EVSpaceVector_Cast(other);
-    if (EVSpaceVector_Check(self) && EVSpaceVector_Check(other))
+    EVSpace_Vector* rhs = NULL;
+
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+    if (!state)
+    {
+        PyErr_Clear();
+        Py_RETURN_NOTIMPLEMENTED;
+    }
+
+    rhs = EVSpaceVector_Cast(other);
+    if (PyObject_TypeCheck(rhs, state->Vector_Type))
     {
         EVSpaceVector_VECTOR(self) -= EVSpaceVector_VECTOR(rhs);
-
+        
         return Py_NewRef(self);
     }
 
@@ -666,37 +978,38 @@ Vector_inplace_subtract(EVSpace_Vector* self, PyObject* other)
 static PyObject*
 Vector_inplace_multiply(EVSpace_Vector* self, PyObject* other)
 {
-    double scalar;
-    PyObject* result;
-
-    if (EVSpaceVector_Check(self))
+    double scalar = 0;
+    
+    if (!EVSpaceObject_AsDouble(other, scalar))
     {
-        result = EVSpaceObject_AsDouble(other, scalar);
-
-        if (!result)
+        if (PyErr_ExceptionMatches(PyExc_TypeError))
         {
-            if (PyErr_ExceptionMatches(PyExc_TypeError)) {
-                PyErr_Clear();
-                Py_RETURN_NOTIMPLEMENTED;
-            }
-
-            return NULL;
+            PyErr_Clear();
+            Py_RETURN_NOTIMPLEMENTED;
         }
 
-        EVSpaceVector_VECTOR(self) *= scalar;
-
-        return Py_NewRef(self);
+        return NULL;
     }
 
-    Py_RETURN_NOTIMPLEMENTED;
+    EVSpaceVector_VECTOR(self) *= scalar;
+    return Py_NewRef(self);
 }
 
 static PyObject*
-Vector_inplace_multiply_matrix(EVSpace_Vector* self, PyObject* arg)
+Vector_inplace_multiply_matrix(EVSpace_Vector* self, PyObject* other)
 {
     EVSpace_Matrix* rhs;
-    if (EVSpaceVector_Check(self) && EVSpaceVector_Check(arg)) {
-        rhs = EVSpaceMatrix_Cast(arg);
+
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+    if (!state)
+    {
+        PyErr_Clear();
+        Py_RETURN_NOTIMPLEMENTED;
+    }
+
+    if (PyObject_TypeCheck(other, state->Matrix_Type))
+    {
+        rhs = EVSpaceMatrix_Cast(other);
         EVSpaceVector_VECTOR(self) *= EVSpaceMatrix_MATRIX(rhs);
 
         return Py_NewRef(self);
@@ -710,38 +1023,37 @@ Vector_inplace_divide(EVSpace_Vector* self, PyObject* other)
 {
     double scalar;
 
-    if (EVSpaceVector_Check(self))
+    if (!EVSpaceObject_AsDouble(other, scalar))
     {
-        if (!EVSpaceObject_AsDouble(other, scalar))
+        if (PyErr_ExceptionMatches(PyExc_TypeError))
         {
-            if (PyErr_ExceptionMatches(PyExc_TypeError)) {
-                PyErr_Clear();
-                Py_RETURN_NOTIMPLEMENTED;
-            }
-
-            return NULL;
+            PyErr_Clear();
+            Py_RETURN_NOTIMPLEMENTED;
         }
 
-        EVSpaceVector_VECTOR(self) /= scalar;
-
-        return Py_NewRef(self);
+        return NULL;
     }
 
-    Py_RETURN_NOTIMPLEMENTED;
+    EVSpaceVector_VECTOR(self) /= scalar;
+
+    return Py_NewRef(self);
 }
 
 static PyObject*
 Vector_negative(EVSpace_Vector* self)
 {
-    if (!EVSpaceVector_Check(self)) {
-        PyErr_SetString(PyExc_TypeError, "unary '__neg__' requires a pyevspace.Vector object");
-        return NULL;
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+    if (!state)
+    {
+        PyErr_Clear();
+        Py_RETURN_NOTIMPLEMENTED;
     }
 
     EXCEPTION_WRAPPER(
         evspace::Vector result = -EVSpaceVector_VECTOR(self);
 
-        return EVS_PyObject_Cast(EVSpaceVector_New(std::move(result)));
+        return EVS_PyObject_Cast(EVSpaceVector_New(std::move(result),
+                                                   state->Vector_Type));
     )
 }
 
@@ -840,7 +1152,7 @@ Vector_get_buffer(EVSpace_Vector* obj, Py_buffer* view, int flags)
     }
     else {
         view->shape    = NULL;
-        delete shape;
+        free(shape);
         *internal |= EVS_BUFFER_NO_SHAPE;
     }
 
@@ -864,88 +1176,102 @@ Vector_get_buffer(EVSpace_Vector* obj, Py_buffer* view, int flags)
     return 0;
 }
 
-/* Vector class methods */
+//      Vector instance methods
+// Methods that require the module state must be defined as `CPyMethod`
+// style signatures. This will pass the `defining_class` argument which
+// enables the EVSpaceState_From* functions to properly get the module
+// state to verify arguments and instantiate new objects.
 
 static PyObject*
-Vector_magnitude(EVSpace_Vector* self, PyObject* Py_UNUSED)
+Vector_magnitude(EVSpace_Vector* self, PyObject* Py_UNUSED())
 {
-    if (!EVSpaceVector_Check(self)) {
-        PyErr_SetString(PyExc_TypeError, "calling object must be pyevspace.Vector type");
-        return NULL;
-    }
-
     return PyFloat_FromDouble(EVSpaceVector_VECTOR(self).magnitude());
 }
 
 static PyObject*
-Vector_magnitude_square(EVSpace_Vector* self, PyObject* Py_UNUSED)
+Vector_magnitude_square(EVSpace_Vector* self, PyObject* Py_UNUSED())
 {
-    if (!EVSpaceVector_Check(self))
-    {
-        PyErr_SetString(PyExc_TypeError, "calling object must be pyevspace.Vector type");
-        return NULL;
-    }
-
     return PyFloat_FromDouble(EVSpaceVector_VECTOR(self).magnitude_squared());
 }
 
 static PyObject*
-Vector_normalize(EVSpace_Vector* self, PyObject* Py_UNUSED)
+Vector_normalize(EVSpace_Vector* self, PyObject* Py_UNUSED())
 {
-    if (!EVSpaceVector_Check(self))
-    {
-        PyErr_SetString(PyExc_TypeError, "calling object must be pyevspace.Vector type");
-        return NULL;
-    }
-
     EVSpaceVector_VECTOR(self).normalize();
 
     Py_RETURN_NONE;
 }
 
 static PyObject*
-Vector_norm(EVSpace_Vector* self, PyObject* Py_UNUSED)
+Vector_norm(EVSpace_Vector* self, PyTypeObject* defining_class,
+            PyObject* const *Py_UNUSED(), Py_ssize_t nargs,
+            PyObject* kwargs)
 {
-    if (!EVSpaceVector_Check(self))
+    if (nargs != 0 || kwargs != NULL)
     {
-        PyErr_SetString(PyExc_TypeError, "calling object must be pyevspace.Vector type");
+        PyErr_SetString(PyExc_TypeError, "Vector.norm() takes no arguments");
+        return NULL;
+    }
+
+    EVSpace_State* state = (EVSpace_State*)PyType_GetModuleState(defining_class);
+    if (!state) {
         return NULL;
     }
 
     EXCEPTION_WRAPPER(
         evspace::Vector norm = EVSpaceVector_VECTOR(self).norm();
-        return EVS_PyObject_Cast(EVSpaceVector_New(std::move(norm)));
+        return EVS_PyObject_Cast(EVSpaceVector_New(std::move(norm),
+                                                   state->Vector_Type));
     )
 }
 
 static PyObject*
-Vector_reduce(EVSpace_Vector* self, PyObject* Py_UNUSED)
+Vector_reduce(EVSpace_Vector* self, PyTypeObject* defining_class,
+              PyObject* const *Py_UNUSED(), Py_ssize_t nargs,
+              PyObject* kwargs)
 {
-    return Py_BuildValue("(O(ddd))", Py_TYPE(self), EVSpaceVector_X(self),
+    EVSpace_State* state = NULL;
+
+    if (nargs != 0 || kwargs != NULL)
+    {
+        PyErr_SetString(PyExc_TypeError, "pyevpace.Vector.__reduce__() "
+                        "expects no arguments");
+        return NULL;
+    }
+
+    state = (EVSpace_State*)PyType_GetModuleState(defining_class);
+    if (!state) {
+        return NULL;
+    }
+
+    return Py_BuildValue("(O(ddd))", state->Vector_Type, EVSpaceVector_X(self),
                          EVSpaceVector_Y(self), EVSpaceVector_Z(self));
 }
 
 static PyObject*
 Vector_compare_to_tol(EVSpace_Vector* self, PyObject* args)
 {
-    if (!EVSpaceVector_Check(self)) {
-        PyErr_SetString(PyExc_TypeError, "calling object must be Vector type");
+    double abs_tol = evspace::DEFAULT_ABS_TOL, rel_tol = evspace::DEFAULT_REL_TOL;
+    EVSpace_Vector* rhs;
+
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+    if (!state) {
         return NULL;
     }
 
-    double abs_tol = evspace::DEFAULT_ABS_TOL, rel_tol = evspace::DEFAULT_REL_TOL;
-    EVSpace_Vector* rhs;
-    if (!PyArg_ParseTuple(args, "O!|dd:compare_to_tol", &EVSpace_VectorType,
+    if (!PyArg_ParseTuple(args, "O!|dd:compare_to_tol", state->Vector_Type,
                           &rhs, &rel_tol, &abs_tol)) {
         return NULL;
     }
 
     if (rel_tol < 0) {
-        PyErr_SetString(PyExc_ValueError, "rel_tol must be non-negative");
+        PyErr_SetString(PyExc_ValueError, "pyevspace.Vector.compare_to_tol(): "
+                        "rel_tol must be non-negative");
         return NULL;
     }
     if (abs_tol < 0) {
-        PyErr_SetString(PyExc_ValueError, "abs_tol must be non-negative");
+        PyErr_SetString(PyExc_ValueError, "pyevspace.Vector.compare_to_tol(): "
+                        "abs_tol must be non-negative");
         return NULL;
     }
 
@@ -961,20 +1287,23 @@ Vector_compare_to_tol(EVSpace_Vector* self, PyObject* args)
 
 static PyObject*
 Vector_compare_to_ulp(EVSpace_Vector* self, PyObject* args)
-{
-    if (!EVSpaceVector_Check(self)) {
-        PyErr_SetString(PyExc_TypeError, "calling object must be Vector type");
+{   
+    int max_ulps = 0;
+    EVSpace_Vector* rhs = NULL;
+
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+    if (!state) {
         return NULL;
     }
-    
-    int max_ulps;
-    EVSpace_Vector* rhs;
-    if (!PyArg_ParseTuple(args, "O!i:compare_to_ulp", &EVSpace_VectorType, &rhs, &max_ulps)) {
+
+    if (!PyArg_ParseTuple(args, "O!i:compare_to_ulp", state->Vector_Type,
+                          &rhs, &max_ulps)) {
         return NULL;
     }
 
     if (max_ulps < 0) {
-        PyErr_Format(PyExc_ValueError, "max_ulps must be non-negative (got %i)", max_ulps);
+        PyErr_Format(PyExc_ValueError, "pyevspace.Vector.compare_to_ulp(): "
+                     "max_ulps must be non-negative (got %i)", max_ulps);
         return NULL;
     }
 
@@ -989,28 +1318,40 @@ Vector_compare_to_ulp(EVSpace_Vector* self, PyObject* args)
 /* Vector related module level functions */
 
 static PyObject*
-Vector_dot(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size)
+Vector_dot(PyObject* module, PyObject* const* args, Py_ssize_t size)
 {
+    double dot_product = 0;
+    EVSpace_State* state = NULL;
+    EVSpace_Vector* lhs = NULL, *rhs = NULL;
+
     if (size != 2)
     {
-        PyErr_Format(PyExc_TypeError, "pyevspace.dot() expected exactly 2 arguments (%i given)", size);
+        PyErr_Format(PyExc_TypeError, "pyevspace.vector_dot() expected "
+                     "exactly 2 arguments (%i given)", size);
         return NULL;
     }
 
-    if (!EVSpaceVector_Check(args[0]))
-    {
-        PyErr_SetString(PyExc_TypeError, "first argument must be pyevspace.Vector type");
-        return NULL;
-    }
-    else if (!EVSpaceVector_Check(args[1]))
-    {
-        PyErr_SetString(PyExc_TypeError, "second argument must be pyevspace.Vector type");
+    state = (EVSpace_State*)PyModule_GetState(module);
+    if (!state) {
         return NULL;
     }
 
-    EVSpace_Vector* lhs = EVSpaceVector_Cast(args[0]);
-    EVSpace_Vector* rhs = EVSpaceVector_Cast(args[1]);
-    double dot_product = evspace::vector_dot(
+    if (!PyObject_TypeCheck(args[0], state->Vector_Type))
+    {
+        PyErr_SetString(PyExc_TypeError, "pyevspace.vector_dot(): first "
+                        "argument must be pyevspace.Vector type");
+        return NULL;
+    }
+    else if (!PyObject_TypeCheck(args[1], state->Vector_Type))
+    {
+        PyErr_SetString(PyExc_TypeError, "pyevspace.vector_dot(): second "
+                        "argument must be pyevspace.Vector type");
+        return NULL;
+    }
+
+    lhs = EVSpaceVector_Cast(args[0]);
+    rhs = EVSpaceVector_Cast(args[1]);
+    dot_product = evspace::vector_dot(
         EVSpaceVector_VECTOR(lhs),
         EVSpaceVector_VECTOR(rhs)
     );
@@ -1019,63 +1360,85 @@ Vector_dot(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size)
 }
 
 static PyObject*
-Vector_cross(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size)
+Vector_cross(PyObject* module, PyObject* const* args, Py_ssize_t size)
 {
+    EVSpace_State* state = NULL;
+    EVSpace_Vector* lhs = NULL, *rhs = NULL;
+
     if (size != 2)
     {
-        PyErr_Format(PyExc_TypeError, "pyevspace.cross() expected exactly 2 arguments "
-                                      "(%i given)", size);
+        PyErr_Format(PyExc_TypeError, "pyevspace.vector_cross() expected "
+                     "exactly 2 arguments (%i given)", size);
         return NULL;
     }
 
-    if (!EVSpaceVector_Check(args[0]))
-    {
-        PyErr_SetString(PyExc_TypeError, "first argument must be pyevspace.Vector type");
-        return NULL;
-    }
-    else if (!EVSpaceVector_Check(args[1]))
-    {
-        PyErr_SetString(PyExc_TypeError, "second argument must be pyevspace.Vector type");
+    state = (EVSpace_State*)PyModule_GetState(module);
+    if (!state) {
         return NULL;
     }
 
-    EVSpace_Vector* lhs = EVSpaceVector_Cast(args[0]);
-    EVSpace_Vector* rhs = EVSpaceVector_Cast(args[1]);
+    if (!PyObject_TypeCheck(args[0], state->Vector_Type))
+    {
+        PyErr_SetString(PyExc_TypeError, "pyevspace.vector_cross(): first "
+                        "argument must be pyevspace.Vector type");
+        return NULL;
+    }
+    else if (!PyObject_TypeCheck(args[1], state->Vector_Type))
+    {
+        PyErr_SetString(PyExc_TypeError, "pyevspace.vector_cross(): second "
+                        "argument must be pyevspace.Vector type");
+        return NULL;
+    }
+
+    lhs = EVSpaceVector_Cast(args[0]);
+    rhs = EVSpaceVector_Cast(args[1]);
 
     EXCEPTION_WRAPPER(
         evspace::Vector cross_product = evspace::vector_cross(
             EVSpaceVector_VECTOR(lhs), EVSpaceVector_VECTOR(rhs)
         );
         
-        return EVS_PyObject_Cast(EVSpaceVector_New(std::move(cross_product)));
+        return EVS_PyObject_Cast(EVSpaceVector_New(std::move(cross_product),
+                                                   state->Vector_Type));
     )
 }
 
 static PyObject*
-Vector_angle(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size)
+Vector_angle(PyObject* module, PyObject* const* args, Py_ssize_t size)
 {
+    double angle = 0;
+    EVSpace_State* state = NULL;
+    EVSpace_Vector* lhs = NULL, *rhs = NULL;
+
     if (size != 2)
     {
-        PyErr_Format(PyExc_TypeError, "pyevspace.vang() expected exactly 1 argument "
-                                      "(%i given)", size);
+        PyErr_Format(PyExc_TypeError, "pyevspace.vector_angle() expected "
+                     "exactly 1 argument (%i given)", size);
         return NULL;
     }
 
-    if (!EVSpaceVector_Check(args[0]))
-    {
-        PyErr_SetString(PyExc_TypeError, "first argument must be pyevspace.Vector type");
+    state = (EVSpace_State*)PyModule_GetState(module);
+    if (!state) {
         return NULL;
     }
-    else if (!EVSpaceVector_Check(args[1]))
+
+    if (!PyObject_TypeCheck(args[0], state->Vector_Type))
     {
-        PyErr_SetString(PyExc_TypeError, "second argument must be pyevspace.Vector type");
+        PyErr_SetString(PyExc_TypeError, "pyevspace.vector_angle(): first "
+                        "argument must be pyevspace.Vector type");
+        return NULL;
+    }
+    else if (!PyObject_TypeCheck(args[1], state->Vector_Type))
+    {
+        PyErr_SetString(PyExc_TypeError, "pyevspace.vector_angle(): second "
+                        "argument must be pyevspace.Vector type");
         return NULL;
     }
 
     EXCEPTION_WRAPPER(
-        EVSpace_Vector* lhs = EVSpaceVector_Cast(args[0]);
-        EVSpace_Vector* rhs = EVSpaceVector_Cast(args[1]);
-        double angle = evspace::vector_angle(
+        lhs = EVSpaceVector_Cast(args[0]);
+        rhs = EVSpaceVector_Cast(args[1]);
+        angle = evspace::vector_angle(
             EVSpaceVector_VECTOR(lhs), EVSpaceVector_VECTOR(rhs)
         );
 
@@ -1084,91 +1447,97 @@ Vector_angle(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size)
 }
 
 static PyObject*
-Vector_exclude(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size)
+Vector_exclude(PyObject* module, PyObject* const* args, Py_ssize_t size)
 {
+    EVSpace_State* state = NULL;
+    EVSpace_Vector* lhs = NULL, *rhs = NULL;
+
     if (size != 2)
     {
-        PyErr_Format(PyExc_TypeError, "pyevspace.vector_exclude() expected exactly "
-                                      "1 argument (%i given)", size);
+        PyErr_Format(PyExc_TypeError, "pyevspace.vector_exclude() expected "
+                     "exactly 1 argument (%i given)", size);
         return NULL;
     }
 
-    if (!EVSpaceVector_Check(args[0]))
-    {
-        PyErr_SetString(PyExc_TypeError, "first argument must be pyevspace.Vector type");
+    state = (EVSpace_State*)PyModule_GetState(module);
+    if (!state) {
         return NULL;
     }
-    else if (!EVSpaceVector_Check(args[1]))
+
+    if (!PyObject_TypeCheck(args[0], state->Vector_Type))
     {
-        PyErr_SetString(PyExc_TypeError, "second argument must be pyevspace.Vector type");
+        PyErr_SetString(PyExc_TypeError, "pyevspace.vector_exclude(): first "
+                        "argument must be pyevspace.Vector type");
+        return NULL;
+    }
+    else if (!PyObject_TypeCheck(args[1], state->Vector_Type))
+    {
+        PyErr_SetString(PyExc_TypeError, "pyevspace.vector_exclude(): second "
+                        "argument must be pyevspace.Vector type");
         return NULL;
     }
 
     EXCEPTION_WRAPPER(
-        EVSpace_Vector* lhs = EVSpaceVector_Cast(args[0]);
-        EVSpace_Vector* rhs = EVSpaceVector_Cast(args[1]);
+        lhs = EVSpaceVector_Cast(args[0]);
+        rhs = EVSpaceVector_Cast(args[1]);
         evspace::Vector exclude = evspace::vector_exclude(
             EVSpaceVector_VECTOR(lhs), EVSpaceVector_VECTOR(rhs)
         );
 
-        return EVS_PyObject_Cast(EVSpaceVector_New(std::move(exclude)));
+        return EVS_PyObject_Cast(EVSpaceVector_New(std::move(exclude),
+                                                   state->Vector_Type));
     )
 }
 
 static PyObject*
-Vector_projection(PyObject* Py_UNUSED, PyObject* const* args, Py_ssize_t size)
+Vector_projection(PyObject* module, PyObject* const* args, Py_ssize_t size)
 {
+    EVSpace_State* state = NULL;
+    EVSpace_Vector* lhs = NULL, *rhs = NULL;
+
     if (size != 2)
     {
-        PyErr_Format(PyExc_TypeError, "pyevspace.vector_proj() expected exactly "
-                                      "2 arguments (%i given)", size);
+        PyErr_Format(PyExc_TypeError, "pyevspace.vector_proj() expected "
+                     "exactly 2 arguments (%i given)", size);
         return NULL;
     }
 
-    if (!EVSpaceVector_Check(args[0]))
-    {
-        PyErr_SetString(PyExc_TypeError, "first argument must be pyevspace.Vector type");
+    state = (EVSpace_State*)PyModule_GetState(module);
+    if (!state) {
         return NULL;
     }
-    if (!EVSpaceVector_Check(args[1]))
+
+    if (!PyObject_TypeCheck(args[0], state->Vector_Type))
     {
-        PyErr_SetString(PyExc_TypeError, "second argument must by pyevspace.Vector type");
+        PyErr_SetString(PyExc_TypeError, "pyevspace.vector_proj(): first "
+                        "argument must be pyevspace.Vector type");
+        return NULL;
+    }
+    else if (!PyObject_TypeCheck(args[1], state->Vector_Type))
+    {
+        PyErr_SetString(PyExc_TypeError, "pyevspace.vector_proj(): second "
+                        "argument must by pyevspace.Vector type");
         return NULL;
     }
 
     EXCEPTION_WRAPPER(
-        EVSpace_Vector* lhs = EVSpaceVector_Cast(args[0]);
-        EVSpace_Vector* rhs = EVSpaceVector_Cast(args[1]);
+        lhs = EVSpaceVector_Cast(args[0]);
+        rhs = EVSpaceVector_Cast(args[1]);
         evspace::Vector projection = evspace::vector_projection(
             EVSpaceVector_VECTOR(lhs), EVSpaceVector_VECTOR(rhs)
         );
 
-        return EVS_PyObject_Cast(EVSpaceVector_New(std::move(projection)));
+        return EVS_PyObject_Cast(EVSpaceVector_New(std::move(projection),
+                                                   state->Vector_Type));
     )
 }
 
 PyDoc_STRVAR(vector_doc, "Vector([{x, y, z | iterable}])\n\
 \n\
-The Vector can be constructed with an iterable of length 4, or\n\
+The Vector can be constructed with an iterable of length 3, or\n\
 directly with the x, y, and z components. All components must be\n\
 numeric types. Alternatively the components will default to zero\n\
 if no argument is specified.");
-
-static PyNumberMethods vector_as_number;
-
-static PySequenceMethods vector_as_sequence = {
-    (lenfunc)EVSpaceObject_Length,          /* sq_length */
-    0,                                      /* sq_concat */
-    0,                                      /* sq_repeat */
-    (ssizeargfunc)Vector_get_item,          /* sq_item */
-    0,                                      /* was_sq_slice */
-    (ssizeobjargproc)Vector_set_item,       /* sq_ass_item */
-};
-
-static PyBufferProcs vector_buffer = {
-    (getbufferproc)Vector_get_buffer,       /* bf_getbuffer */
-    (releasebufferproc)EVSpaceBuffer_Release /* bf_releasebuffer */
-};
 
 PyDoc_STRVAR(vector_mag_doc, "magnitude() -> float\n\
 \n\
@@ -1214,39 +1583,107 @@ static PyMethodDef vector_methods[] = {
 
     {"normalize", (PyCFunction)Vector_normalize, METH_NOARGS, vector_normalize_doc},
 
-    {"norm", (PyCFunction)Vector_norm, METH_NOARGS, vector_norm_doc},
+    {"norm", (PyCFunction)(void(*)(void))Vector_norm, EVS_PYCMETHOD, vector_norm_doc},
 
-    {"__reduce__", (PyCFunction)Vector_reduce, METH_NOARGS, vector_reduce_doc},
+    {"__reduce__", (PyCFunction)(void(*)(void))Vector_reduce, EVS_PYCMETHOD, vector_reduce_doc},
 
     {"compare_to_tol", (PyCFunction)Vector_compare_to_tol, METH_VARARGS, vector_compare_to_tol_doc},
 
     {"compare_to_ulp", (PyCFunction)Vector_compare_to_ulp, METH_VARARGS, vector_compare_to_ulp_doc},
 
-    {NULL}
+    {NULL, NULL, 0, NULL}
+};
+
+static PyType_Slot vector_slots[] = {
+    {Py_tp_dealloc,                 (void*)Vector_dealloc},
+    {Py_tp_repr,                    (void*)Vector_repr},
+    {Py_nb_add,                     (void*)Vector_add},
+    {Py_nb_subtract,                (void*)Vector_subtract},
+    {Py_nb_multiply,                (void*)Vector_multiply},
+    {Py_nb_negative,                (void*)Vector_negative},
+    {Py_nb_inplace_add,             (void*)Vector_inplace_add},
+    {Py_nb_inplace_subtract,        (void*)Vector_inplace_subtract},
+    {Py_nb_inplace_multiply,        (void*)Vector_inplace_multiply},
+    {Py_nb_true_divide,             (void*)Vector_divide},
+    {Py_nb_inplace_true_divide,     (void*)Vector_inplace_divide},
+    {Py_nb_matrix_multiply,         (void*)Vector_matrix_multiply},
+    {Py_nb_inplace_matrix_multiply, (void*)Vector_inplace_multiply_matrix},
+    {Py_sq_length,                  (void*)EVSpaceObject_Length},
+    {Py_sq_item,                    (void*)Vector_get_item},
+    {Py_sq_ass_item,                (void*)Vector_set_item},
+    {Py_tp_str,                     (void*)Vector_str},
+    {Py_bf_getbuffer,               (void*)Vector_get_buffer},
+    {Py_bf_releasebuffer,           (void*)EVSpaceBuffer_Release},
+    {Py_tp_doc,                     (void*)vector_doc},
+    {Py_tp_richcompare,             (void*)Vector_richcompare},
+    {Py_tp_methods,                 (void*)vector_methods},
+    {Py_tp_init,                    (void*)Vector_init},
+    {Py_tp_new,                     (void*)Vector_new},
+    {0,                             NULL}
+};
+
+static PyType_Spec vector_spec = {
+    "pyevspace.Vector",     /* name */
+    sizeof(EVSpace_Vector), /* basicsize */
+    0,                      /* itemsize */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE | Py_TPFLAGS_BASETYPE, /* flags */
+    vector_slots            /* slots */
 };
 
 /* EVSpace_MatrixView */
+//      EVSpace_MatrixView
+// This acts simply as an exporter to an internal view of the EVSpace_Matrix
+// type. This type shouldn't be directly exposed to Python via importing
+// the module, however it will be exposed as the `obj` attribute of the
+// `memoryview` object returned from the Matrix `mp_subscript` method.
+//
+// While the type supports subclassing, all methods attached to
+// EVSpace_Matrix strictly return EVSpace_Matrix instances instead
+// of subclassed types because any additional parameters to a subclasses
+// __init__ methods are not known. Any subclass wanting to return an
+// instance of that subclass should overload that function and use the
+// returned values to initialize an instance of their type.
 
 static EVSpace_MatrixView*
-EVSpaceMatrixView_New(EVSpace_Matrix* base, std::size_t ndim, std::size_t offset,
+EVSpaceMatrixView_New(EVSpace_Matrix* base, PyTypeObject* type,
+                      std::size_t ndim, std::size_t offset,
                       Py_ssize_t shape0, Py_ssize_t shape1,
                       Py_ssize_t strides0, Py_ssize_t strides1)
 {
-    EVSpace_MatrixView* view = reinterpret_cast<EVSpace_MatrixView*>(
-        EVSpace_MatrixViewType.tp_alloc(&EVSpace_MatrixViewType, 0)
-    );
+    EVSpace_State* state = EVSpaceState_FromType(type);
+
+    if (!state)
+    {
+        PyErr_Clear();
+        PyErr_Format(PyExc_TypeError, "%s is not a subclass of pyevspace._MatrixView",
+                     type->tp_name);
+        return NULL;
+    }
+
+    if (!PyObject_IsSubclass((PyObject*)type, (PyObject*)state->MatrixView_Type))
+    {
+        PyErr_Format(PyExc_TypeError, "%s is not a subclass of pyevspace._MatrixView",
+                     type->tp_name);
+        return NULL;
+    }
+
+    EVSpace_MatrixView* view = reinterpret_cast<EVSpace_MatrixView*>(type->tp_alloc(type, 0));
+
+    if (!view) {
+        return NULL;
+    }
 
     view->base = base;
     view->data = EVSpaceMatrix_MATRIX(base).data().data() + offset;
     view->shape = reinterpret_cast<Py_ssize_t*>(malloc(ndim * sizeof(Py_ssize_t)));
     if (!view->shape) {
-        view->ob_base.ob_type->tp_dealloc(EVS_PyObject_Cast(view));
+        Py_TYPE(view)->tp_dealloc(EVS_PyObject_Cast(view));
         PyErr_NoMemory();
         return NULL;
     }
     view->strides = reinterpret_cast<Py_ssize_t*>(malloc(ndim * sizeof(Py_ssize_t)));
     if (!view->strides) {
-        view->ob_base.ob_type->tp_dealloc(EVS_PyObject_Cast(view));
+        Py_TYPE(view)->tp_dealloc(EVS_PyObject_Cast(view));
         PyErr_NoMemory();
         free(view->shape);
         return NULL;
@@ -1276,7 +1713,7 @@ MatrixView_dealloc(EVSpace_MatrixView* self)
     self->data = NULL;
 
     Py_DECREF(self->base);
-    Py_TYPE(self)->tp_free(self);
+    Py_TYPE(self)->tp_free((EVS_PyObject_Cast(self)));
 }
 
 static int
@@ -1292,7 +1729,6 @@ MatrixView_GetBuffer(EVSpace_MatrixView* obj, Py_buffer* view, int flags)
     view->suboffsets    = NULL;
     view->ndim          = obj->ndim;
 
-    // len = product(shape) * itemsize
     view->len           = sizeof(double) * obj->shape[0];
     if (obj->ndim > 1) {
         view->len *= obj->shape[1];
@@ -1301,16 +1737,41 @@ MatrixView_GetBuffer(EVSpace_MatrixView* obj, Py_buffer* view, int flags)
     return 0;
 }
 
-static PyBufferProcs matrixview_as_buffer = {
-    (getbufferproc)MatrixView_GetBuffer,    /* bf_getbuffer */
-    NULL,                                   /* bf_releasebuffer */
+static PyType_Slot matrixview_slots[] = {
+    {Py_tp_dealloc,     (void*)MatrixView_dealloc},
+    {Py_bf_getbuffer,   (void*)MatrixView_GetBuffer},
+    {0,                 NULL}
 };
 
-/* EVSpace_Matrix constructors */
+static PyType_Spec matrixview_spec = {
+    "pyevspace._MatrixView",    /* name */
+    sizeof(EVSpace_MatrixView), /* basicsize */
+    0,                          /* itemsize */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_DISALLOW_INSTANTIATION, /* flags */
+    matrixview_slots            /* slots */
+};
 
+//      EVSpace_Matrix new functions
+// These functions validate `type` is a subclass of EVSpace_Matrix
+// and allocate and initialize the underlying evspace::Matrix object
+// depending on the overloaded parameter types. The EVSpace_Matrix.matrix
+// instance is allocated using `new` and should be freed with `delete`
+// so the destructor is called.
+
+[[maybe_unused]]
 static EVSpace_Matrix*
-_EVSpaceMatrix_New(PyTypeObject* type) noexcept
+EVSpaceMatrix_New(PyTypeObject* type)
 {
+    EVSpace_State* state = EVSpaceState_FromType(type);
+
+    if (!state || !PyObject_IsSubclass((PyObject*)type, (PyObject*)state->Matrix_Type))
+    {
+        PyErr_Clear();
+        PyErr_Format(PyExc_TypeError, "%s is not a subtype of pyevspace.Matrix",
+                     type->tp_name);
+        return NULL;
+    }
+
     EVSpace_Matrix* self = EVSpaceMatrix_Cast(type->tp_alloc(type, 0));
     if (!self) {
         return NULL;
@@ -1323,8 +1784,18 @@ _EVSpaceMatrix_New(PyTypeObject* type) noexcept
 }
 
 static EVSpace_Matrix*
-_EVSpaceMatrix_New(const marray_t& array, PyTypeObject* type) noexcept
+EVSpaceMatrix_New(const marray_t& array, PyTypeObject* type)
 {
+    EVSpace_State* state = EVSpaceState_FromType(type);
+
+    if (!state || !PyObject_IsSubclass((PyObject*)type, (PyObject*)state->Matrix_Type))
+    {
+        PyErr_Clear();
+        PyErr_Format(PyExc_TypeError, "%s is not a subtype of pyevspace.Matrix",
+                     type->tp_name);
+        return NULL;
+    }
+
     EVSpace_Matrix* self = EVSpaceMatrix_Cast(type->tp_alloc(type, 0));
     if (!self) {
         return NULL;
@@ -1337,8 +1808,18 @@ _EVSpaceMatrix_New(const marray_t& array, PyTypeObject* type) noexcept
 }
 
 static EVSpace_Matrix*
-_EVSpaceMatrix_New(const evspace::Matrix& matrix, PyTypeObject* type) noexcept
+EVSpaceMatrix_New(const evspace::Matrix& matrix, PyTypeObject* type)
 {
+    EVSpace_State* state = EVSpaceState_FromType(type);
+
+    if (!state || !PyObject_IsSubclass((PyObject*)type, (PyObject*)state->Matrix_Type))
+    {
+        PyErr_Clear();
+        PyErr_Format(PyExc_TypeError, "%s is not a subtype of pyevspace.Matrix",
+                     type->tp_name);
+        return NULL;
+    }
+
     EVSpace_Matrix* self = EVSpaceMatrix_Cast(type->tp_alloc(type, 0));
     if (!self) {
         return NULL;
@@ -1351,8 +1832,17 @@ _EVSpaceMatrix_New(const evspace::Matrix& matrix, PyTypeObject* type) noexcept
 }
 
 static EVSpace_Matrix*
-_EVSpaceMatrix_New(evspace::Matrix&& matrix, PyTypeObject* type) noexcept
+EVSpaceMatrix_New(evspace::Matrix&& matrix, PyTypeObject* type)
 {
+    EVSpace_State* state = EVSpaceState_FromType(type);
+
+    if (!state || !PyObject_IsSubclass((PyObject*)type, (PyObject*)state->Matrix_Type))
+    {
+        PyErr_Clear();
+        PyErr_Format(PyExc_TypeError, "%s is not a subtype of pyevspace.Matrix", type->tp_name);
+        return NULL;
+    }
+
     EVSpace_Matrix* self = EVSpaceMatrix_Cast(type->tp_alloc(type, 0));
     if (!self) {
         return NULL;
@@ -1364,42 +1854,17 @@ _EVSpaceMatrix_New(evspace::Matrix&& matrix, PyTypeObject* type) noexcept
     )
 }
 
-/* Constructor wrappers that provide the `type` argument to constructors above */
-static EVSpace_Matrix*
-EVSpaceMatrix_New() noexcept
-{
-    return _EVSpaceMatrix_New(&EVSpace_MatrixType);
-}
-
-static EVSpace_Matrix*
-EVSpaceMatrix_New(const marray_t& array) noexcept
-{
-    return _EVSpaceMatrix_New(array, &EVSpace_MatrixType);
-}
-
-static EVSpace_Matrix*
-EVSpaceMatrix_New(const evspace::Matrix& matrix) noexcept
-{
-    return _EVSpaceMatrix_New(matrix, &EVSpace_MatrixType);
-}
-
-static EVSpace_Matrix*
-EVSpaceMatrix_New(evspace::Matrix&& matrix) noexcept
-{
-    return _EVSpaceMatrix_New(std::move(matrix), &EVSpace_MatrixType);
-}
-
 static PyObject*
-Matrix_new(PyTypeObject* type, PyObject* arg, PyObject* Py_UNUSED)
+Matrix_new(PyTypeObject* type, PyObject* Py_UNUSED(1), PyObject* Py_UNUSED(2))
 {
-    marray_t array{};
-    EVSpace_Matrix* self = _EVSpaceMatrix_New(array, type);
+    marray_t array{0.0};
+    EVSpace_Matrix* self = EVSpaceMatrix_New(array, type);
 
     return EVS_PyObject_Cast(self);
 }
 
 static int
-Matrix_init(EVSpace_Matrix* self, PyObject* args, PyObject* Py_UNUSED)
+Matrix_init(EVSpace_Matrix* self, PyObject* args, PyObject* Py_UNUSED())
 {
     // Possible signatures:
     // Matrix.__init__()
@@ -1408,7 +1873,7 @@ Matrix_init(EVSpace_Matrix* self, PyObject* args, PyObject* Py_UNUSED)
 
     int result = 0;
     Py_ssize_t tuple_size = PyTuple_Size(args);
-    double* data = EVSpaceMatrix_MATRIX(self).data().data();
+    // double* data = EVSpaceMatrix_MATRIX(self).data().data();
     PyObject* container = NULL;
     std::array<PyObject*, 3> items{NULL};
     std::array<varray_t, 3> values{0.0};
@@ -1444,7 +1909,7 @@ Matrix_init(EVSpace_Matrix* self, PyObject* args, PyObject* Py_UNUSED)
         if (result == 1) {
             continue;
         }
-        else if (result = 0) {
+        else if (result == 0) {
             PyErr_Clear();
             PyErr_Format(PyExc_TypeError, "Matrix.__init__() expected row parameter "
                             "%d to be sequence or iterable type", i);
@@ -1479,7 +1944,7 @@ Matrix_dealloc(EVSpace_Matrix* self)
 
 // Creates and fills a string buffer for the inner data of a Matrix based
 // on `format`. On failure set an exception and return NULL. If non-NULL,
-// the caller must free the buffer by calling `delete`.
+// the caller must free the buffer by calling `free()`.
 static inline const char*
 _EVSpaceMatrix_String(const EVSpace_Matrix* matrix, const char* format)
 {
@@ -1489,19 +1954,18 @@ _EVSpaceMatrix_String(const EVSpace_Matrix* matrix, const char* format)
                                         data[2], data[3], data[4], data[5],
                                         data[6], data[7], data[8]);
 
-    try {
-        buffer = new char[buffer_size + 1];
-    }
-    catch (const std::bad_alloc&) {
+    buffer = (char*)malloc(buffer_size + 1);
+    if (!buffer) {
         PyErr_NoMemory();
         return NULL;
     }
+    buffer[buffer_size] = '\0';
 
     if (sprintf(buffer, format, data[0], data[1], data[2], data[3], data[4],
                 data[5], data[6], data[7], data[8]) < 0)
     {
-        PyErr_SetString(PyExc_RuntimeError, "error filling string buffer");
-        delete buffer;
+        PyErr_SetString(PyExc_RuntimeError, "pyevspace: error filling Matrix string buffer");
+        free((void*)buffer);
         return NULL;
     }
 
@@ -1521,7 +1985,7 @@ Matrix_str(const EVSpace_Matrix* self)
     }
 
     str = PyUnicode_FromString(buffer);
-    delete [] buffer;
+    free((void*)buffer);
 
     return str;
 }
@@ -1554,7 +2018,7 @@ Matrix_repr(const EVSpace_Matrix* self)
     repr = PyUnicode_FromFormat("%U.%U(%s)", module, qualname, buffer);
     Py_DECREF(module);
     Py_DECREF(qualname);
-    delete [] buffer;
+    free((void*)buffer);
 
     return repr;
 }
@@ -1562,7 +2026,14 @@ Matrix_repr(const EVSpace_Matrix* self)
 static PyObject*
 Matrix_richcompare(EVSpace_Matrix* self, PyObject* other, int op)
 {
-    if (EVSpaceMatrix_Check(other))
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+    if (!state)
+    {
+        PyErr_Clear();
+        Py_RETURN_NOTIMPLEMENTED;
+    }
+
+    if (PyObject_TypeCheck(other, state->Matrix_Type))
     {
         bool result = (EVSpaceMatrix_MATRIX(self) ==
                        EVSpaceMatrix_MATRIX(EVSpaceMatrix_Cast(other)));
@@ -1590,17 +2061,51 @@ Matrix_richcompare(EVSpace_Matrix* self, PyObject* other, int op)
     Py_RETURN_NOTIMPLEMENTED;
 }
 
-/* Matrix number method */
+//      EVSpace_Matrix as number functions
+// Supports __add__, __iadd__, __sub__, __isub__, __mul__, __rmul__,
+// __imul__, __matmul__, __imatmul__, __truediv__, __itruediv__, and
+// __neg__. Notable, __rmul__ is supported for scalar multiplication.
+// __imatmul__ must explicitly raise a PyExc_TypeError when the argument
+// is an EVSpace_Vector type since the numeric operator mechanism will
+// delegate to EVSpace_Vector @ EVSpace_Matrix, which will change the
+// type of the left-hand operator, something we don't want to support.
+// Note for CPython 3.10 support, fetching the state will always succeed,
+// so explicity checks are needed on `self` for if the function returns
+// Py_NOTIMPLEMENTED CPython will attempt the reflected version of the
+// operation. This check is needed to enforce the method is not implemented
+// for unsupported types, where receiving a NULL state doesn't convey that.
 
 static PyObject*
-Matrix_add(EVSpace_Matrix* self, PyObject* other) noexcept
+Matrix_add(EVSpace_Matrix* self, PyObject* other)
 {
-    EVSpace_Matrix* rhs = EVSpaceMatrix_Cast(other);
-    if (EVSpaceMatrix_Check(self) && EVSpaceMatrix_Check(rhs))
+    EVSpace_Matrix* rhs = NULL;
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+
+    if (!state)
     {
+        PyErr_Clear();
+        Py_RETURN_NOTIMPLEMENTED;
+    }
+
+#if PY_VERSION_HEX < 0x030b0000
+    // state will always be pyevspace state, need to enforce `self` is
+    // a subclass for __radd__ support
+    if (!PyObject_TypeCheck((PyObject*)self, state->Matrix_Type))
+    {
+        PyErr_Format(PyExc_TypeError, "pyevspace.Matrix.__radd__(): %s "
+                     "is not a subclass of pyevspace.Matrix",
+                     __EVSpace_GetTypeName((PyObject*)self));
+        return NULL;
+    }
+#endif
+
+    if (PyObject_TypeCheck(other, state->Matrix_Type))
+    {
+        rhs = EVSpaceMatrix_Cast(other);
         EXCEPTION_WRAPPER(
             evspace::Matrix result = EVSpaceMatrix_MATRIX(self) + EVSpaceMatrix_MATRIX(rhs);
-            return EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(result)));
+            return EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(result),
+                                                       state->Matrix_Type));
         )
     }
 
@@ -1608,14 +2113,36 @@ Matrix_add(EVSpace_Matrix* self, PyObject* other) noexcept
 }
 
 static PyObject*
-Matrix_subtract(EVSpace_Matrix* self, PyObject* other) noexcept
+Matrix_subtract(EVSpace_Matrix* self, PyObject* other)
 {
-    EVSpace_Matrix* rhs = EVSpaceMatrix_Cast(other);
-    if (EVSpaceMatrix_Check(self) && EVSpaceMatrix_Check(rhs))
+    EVSpace_Matrix* rhs = NULL;
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+
+    if (!state)
     {
+        PyErr_Clear();
+        Py_RETURN_NOTIMPLEMENTED;
+    }
+    
+#if PY_VERSION_HEX < 0x030b0000
+    // state will always be pyevspace state, need to enforce `self` is
+    // a subclass for __rsub__ support
+    if (!PyObject_TypeCheck((PyObject*)self, state->Matrix_Type))
+    {
+        PyErr_Format(PyExc_TypeError, "pyevspace.Matrix.__rsub__(): %s "
+                     "is not a subclass of pyevspace.Matrix",
+                     __EVSpace_GetTypeName((PyObject*)self));
+        return NULL;
+    }
+#endif
+
+    if (PyObject_TypeCheck(other, state->Matrix_Type))
+    {
+        rhs = EVSpaceMatrix_Cast(other);
         EXCEPTION_WRAPPER(
             evspace::Matrix result = EVSpaceMatrix_MATRIX(self) - EVSpaceMatrix_MATRIX(rhs);
-            return EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(result)));
+            return EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(result),
+                                                       state->Matrix_Type));
         )
     }
 
@@ -1625,24 +2152,31 @@ Matrix_subtract(EVSpace_Matrix* self, PyObject* other) noexcept
 static PyObject*
 Matrix_multiply(PyObject* lhs, PyObject* rhs)
 {
-    PyObject* scalar_result;
-    double scalar;
-    
-    EVSpace_Matrix* self;
-    // Matrix.__mul__(rhs)
-    if (EVSpaceMatrix_Check(lhs))
+    double scalar = 0;
+    PyObject *scalar_result = NULL;
+    EVSpace_Matrix* self = NULL;
+    EVSpace_State* state = EVSpaceState_FromObject2(lhs, rhs);
+
+    if (!state) {
+        PyErr_Clear();
+        Py_RETURN_NOTIMPLEMENTED;
+    }
+
+    // __mul__
+    if (PyObject_TypeCheck(lhs, state->Matrix_Type))
     {
         self = EVSpaceMatrix_Cast(lhs);
         scalar_result = EVSpaceObject_AsDouble(rhs, scalar);
     }
-    // lhs.__mul__(self)
+    // __rmul__
     else
     {
         self = EVSpaceMatrix_Cast(rhs);
         scalar_result = EVSpaceObject_AsDouble(lhs, scalar);
     }
 
-    if (!scalar_result) {
+    if (!scalar_result)
+    {
         if (PyErr_ExceptionMatches(PyExc_TypeError))
         {
             PyErr_Clear();
@@ -1654,31 +2188,50 @@ Matrix_multiply(PyObject* lhs, PyObject* rhs)
 
     EXCEPTION_WRAPPER(
         evspace::Matrix result = EVSpaceMatrix_MATRIX(self) * scalar;
-        return EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(result)));
+        return EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(result),
+                                                   state->Matrix_Type));
     )
 }
 
 static PyObject*
 Matrix_matrix_multiply(EVSpace_Matrix* self, PyObject* other)
 {
-    if (EVSpaceMatrix_Check(self))
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+
+    if (!state) {
+        PyErr_Clear();
+        Py_RETURN_NOTIMPLEMENTED;
+    }
+    
+#if PY_VERSION_HEX < 0x030b0000
+    // state will always be pyevspace state, need to enforce `self` is
+    // a subclass for __rmatmul__ support
+    if (!PyObject_TypeCheck((PyObject*)self, state->Matrix_Type))
     {
-        if (EVSpaceMatrix_Check(other))
-        {
-            EXCEPTION_WRAPPER(
-                evspace::Matrix result = EVSpaceMatrix_MATRIX(self) *
-                                         EVSpaceMatrix_MATRIX(EVSpaceMatrix_Cast(other));
-                return EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(result)));
-            )
-        }
-        else if (EVSpaceVector_Check(other))
-        {
-            EXCEPTION_WRAPPER(
-                evspace::Vector result = EVSpaceMatrix_MATRIX(self) *
-                                         EVSpaceVector_VECTOR(EVSpaceVector_Cast(other));
-                return EVS_PyObject_Cast(EVSpaceVector_New(std::move(result)));
-            )
-        }
+        PyErr_Format(PyExc_TypeError, "pyevspace.Matrix.__rmatmul__(): %s "
+                     "is not a subclass of pyevspace.Matrix",
+                     __EVSpace_GetTypeName((PyObject*)self));
+        return NULL;
+    }
+#endif
+
+    if (PyObject_TypeCheck(other, state->Matrix_Type))
+    {
+        EXCEPTION_WRAPPER(
+            evspace::Matrix result = EVSpaceMatrix_MATRIX(self) *
+                                     EVSpaceMatrix_MATRIX(EVSpaceMatrix_Cast(other));
+            return EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(result),
+                                                       state->Matrix_Type));
+        )
+    }
+    else if (PyObject_TypeCheck(other, state->Vector_Type))
+    {
+        EXCEPTION_WRAPPER(
+            evspace::Vector result = EVSpaceMatrix_MATRIX(self) *
+                                     EVSpaceVector_VECTOR(EVSpaceVector_Cast(other));
+            return EVS_PyObject_Cast(EVSpaceVector_New(std::move(result),
+                                                       state->Vector_Type));
+        )
     }
 
     Py_RETURN_NOTIMPLEMENTED;
@@ -1688,34 +2241,45 @@ static PyObject*
 Matrix_divide(EVSpace_Matrix* self, PyObject* other)
 {
     double scalar;
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
 
-    if (EVSpaceMatrix_Check(self))
-    {
-        if (!EVSpaceObject_AsDouble(other, scalar))
-        {
-            if (PyErr_ExceptionMatches(PyExc_TypeError)) {
-                PyErr_Clear();
-                Py_RETURN_NOTIMPLEMENTED;
-            }
-
-            return NULL;
-        }
-
-        EXCEPTION_WRAPPER(
-            evspace::Matrix result = EVSpaceMatrix_MATRIX(self) / scalar;
-            return EVS_PyObject_Cast(EVSpaceMatrix_New(result));
-        )
+    if (!state) {
+        PyErr_Clear();
+        Py_RETURN_NOTIMPLEMENTED;
     }
 
-    Py_RETURN_NOTIMPLEMENTED;
+    if (!EVSpaceObject_AsDouble(other, scalar))
+    {
+        if (PyErr_ExceptionMatches(PyExc_TypeError))
+        {
+            PyErr_Clear();
+            Py_RETURN_NOTIMPLEMENTED;
+        }
+
+        return NULL;
+    }
+
+    EXCEPTION_WRAPPER(
+        evspace::Matrix result = EVSpaceMatrix_MATRIX(self) / scalar;
+        return EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(result),
+                                                   state->Matrix_Type));
+    )
 }
 
 static PyObject*
 Matrix_inplace_add(EVSpace_Matrix* self, PyObject* other)
 {
-    EVSpace_Matrix* rhs = EVSpaceMatrix_Cast(other);
-    if (EVSpaceMatrix_Check(self) && EVSpaceMatrix_Check(rhs))
+    EVSpace_Matrix* rhs;
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+
+    if (!state) {
+        PyErr_Clear();
+        Py_RETURN_NOTIMPLEMENTED;
+    }
+
+    if (PyObject_TypeCheck(other, state->Matrix_Type))
     {
+        rhs = EVSpaceMatrix_Cast(other);
         EVSpaceMatrix_MATRIX(self) += EVSpaceMatrix_MATRIX(rhs);
 
         return Py_NewRef(self);
@@ -1727,10 +2291,17 @@ Matrix_inplace_add(EVSpace_Matrix* self, PyObject* other)
 static PyObject*
 Matrix_inplace_subtract(EVSpace_Matrix* self, PyObject* other)
 {
-    EVSpace_Matrix* rhs = EVSpaceMatrix_Cast(other);
+    EVSpace_Matrix* rhs;
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
 
-    if (EVSpaceMatrix_Check(self) && EVSpaceMatrix_Check(rhs))
+    if (!state) {
+        PyErr_Clear();
+        Py_RETURN_NOTIMPLEMENTED;
+    }
+
+    if (PyObject_TypeCheck(other, state->Matrix_Type))
     {
+        rhs = EVSpaceMatrix_Cast(other);
         EVSpaceMatrix_MATRIX(self) -= EVSpaceMatrix_MATRIX(rhs);
 
         return Py_NewRef(self);
@@ -1742,51 +2313,49 @@ Matrix_inplace_subtract(EVSpace_Matrix* self, PyObject* other)
 static PyObject*
 Matrix_inplace_multiply(EVSpace_Matrix* self, PyObject* other)
 {
-    double scalar;
+    double scalar = 0;
 
-    if (EVSpaceMatrix_Check(self))
+    if (!EVSpaceObject_AsDouble(other, scalar))
     {
-        if (!EVSpaceObject_AsDouble(other, scalar))
+        if (PyErr_ExceptionMatches(PyExc_TypeError))
         {
-            if (PyErr_ExceptionMatches(PyExc_TypeError)) {
-                PyErr_Clear();
-                Py_RETURN_NOTIMPLEMENTED;
-            }
-
-            return NULL;
+            PyErr_Clear();
+            Py_RETURN_NOTIMPLEMENTED;
         }
 
-        EVSpaceMatrix_MATRIX(self) *= scalar;
-
-        return Py_NewRef(self);
+        return NULL;
     }
 
-    Py_RETURN_NOTIMPLEMENTED;
+    EVSpaceMatrix_MATRIX(self) *= scalar;
+
+    return Py_NewRef(self);
 }
 
 static PyObject*
 Matrix_inplace_multiply_matrix(EVSpace_Matrix* self, PyObject* other)
 {
-    EVSpace_Matrix* rhs = EVSpaceMatrix_Cast(other);
+    EVSpace_Matrix* rhs = NULL;
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
 
-    if (EVSpaceMatrix_Check(self))
+    if (!state) {
+        PyErr_Clear();
+        Py_RETURN_NOTIMPLEMENTED;
+    }
+
+    if (PyObject_TypeCheck(other, state->Matrix_Type))
     {
-        if (EVSpaceMatrix_Check(other))
-        {
-            EVSpaceMatrix_MATRIX(self) *= EVSpaceMatrix_MATRIX(rhs);
+        rhs = EVSpaceMatrix_Cast(other);
+        EVSpaceMatrix_MATRIX(self) *= EVSpaceMatrix_MATRIX(rhs);
 
-            return Py_NewRef(self);
-        }
-        else if (EVSpaceVector_Check(other))
-        {
-            // Python will fall back to self = self * other when NotImplemented
-            // is returned, so we must force the TypeError here.
-            PyErr_Format(PyExc_TypeError,
-                         "unsupported operand type(S) for @=: '%s' and '%s'",
-                         self->ob_base.ob_type->tp_name,
-                         EVSpace_VectorType.tp_name);
-            return NULL;
-        }
+        return Py_NewRef(self);
+    }
+    else if (PyObject_TypeCheck(other, state->Vector_Type))
+    {
+        // CPython will fall back to self = self * other when NotImplemented
+        // is returned, so we must force the TypeError here.
+        PyErr_Format(PyExc_TypeError, "unsupported operand type(s) for @=: '%s' and '%s'",
+                     __EVSpace_GetTypeName((PyObject*)self), state->Vector_Type->tp_name);
+        return NULL;
     }
 
     Py_RETURN_NOTIMPLEMENTED;
@@ -1797,67 +2366,40 @@ Matrix_inplace_divide(EVSpace_Matrix* self, PyObject* other)
 {
     double scalar;
 
-    if (EVSpaceMatrix_Check(self))
+    if (!EVSpaceObject_AsDouble(other, scalar))
     {
-        if (!EVSpaceObject_AsDouble(other, scalar))
+        if (PyErr_ExceptionMatches(PyExc_TypeError))
         {
-            if (PyErr_ExceptionMatches(PyExc_TypeError)) {
-                PyErr_Occurred();
-                Py_RETURN_NOTIMPLEMENTED;
-            }
-
-            return NULL;
+            PyErr_Occurred();
+            Py_RETURN_NOTIMPLEMENTED;
         }
 
-        EVSpaceMatrix_MATRIX(self) /= scalar;
-
-        return Py_NewRef(self);
+        return NULL;
     }
 
-    Py_RETURN_NOTIMPLEMENTED;
+    EVSpaceMatrix_MATRIX(self) /= scalar;
+
+    return Py_NewRef(self);
 }
 
 static PyObject*
 Matrix_negative(EVSpace_Matrix* self)
 {
-    if (!EVSpaceMatrix_Check(self)) {
-        PyErr_SetString(PyExc_TypeError, "pyevspace.Matrix.__neg__ must be called "
-                                         "on pyevspace.Matrix type");
-        return NULL;
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+
+    if (!state) {
+        PyErr_Clear();
+        Py_RETURN_NOTIMPLEMENTED;
     }
 
     EXCEPTION_WRAPPER(
         evspace::Matrix result = -EVSpaceMatrix_MATRIX(self);
-        return EVS_PyObject_Cast(EVSpaceMatrix_New(result));
+
+        return EVS_PyObject_Cast(EVSpaceMatrix_New(result, state->Matrix_Type));
     )
 }
 
 /* Mapping and buffer methods */
-
-static int
-_EVSpaceMatrix_GetBuffer(EVSpace_Matrix* obj, Py_buffer* view)
-{
-    // Sets up a basic Py_buffer view with the caller needing to fill
-    // in the more detailed attributes. Return -1 on error.
-
-    int* internal = reinterpret_cast<int*>(malloc(sizeof(int)));
-    if (!internal)
-    {
-        PyErr_NoMemory();
-        return -1;
-    }
-    *internal = EVS_BUFFER_EMPTY;
-
-    view->obj           = Py_NewRef(obj);
-    view->buf           = EVSpaceMatrix_MATRIX(obj).data().data();
-    view->len           = sizeof(double) * 9;
-    view->readonly      = 0;
-    view->itemsize      = sizeof(double);
-    view->suboffsets    = NULL;
-    view->internal      = reinterpret_cast<void*>(internal);
-
-    return 0;
-}
 
 // Converts `obj` to an index value using __index__() if necessary. If an exception
 // that should be propagated (any exception other than PyExc_TypeError) is encountered
@@ -1866,7 +2408,7 @@ _EVSpaceMatrix_GetBuffer(EVSpace_Matrix* obj, Py_buffer* view)
 static int
 _EVSpace_AsIndex(PyObject* obj, Py_ssize_t* index)
 {
-    Py_ssize_t tmp_index, stop;
+    Py_ssize_t tmp_index = 0, stop = 0;
     PyObject* as_index = PyNumber_Index(obj);
 
     if (!as_index) {
@@ -1902,10 +2444,18 @@ _EVSpace_AsIndex(PyObject* obj, Py_ssize_t* index)
 static PyObject*
 Matrix_map_subscript(EVSpace_Matrix* self, PyObject* indices)
 {
-    Py_ssize_t index0, index1, result;
-    PyObject* key0, *key1, *slice0, *slice1;
-    Py_ssize_t start0, stop0, step0, slicelength0, start1, stop1, step1, slicelength1;
-    EVSpace_MatrixView* matrix_view;
+    Py_ssize_t index0{}, index1{};
+    PyObject* key0 = NULL, *key1 = NULL;
+    Py_ssize_t start0{}, stop0{}, step0{}, slicelength0{}, start1{}, stop1{},
+        step1{}, slicelength1{};
+    EVSpace_MatrixView* matrix_view = NULL;
+    PyTypeObject* type = NULL;
+
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+    if (!state) {
+        return NULL;
+    }
+    type = state->MatrixView_Type;
 
     // fixme: I think I way overthought this... PyArg_ParseTuple() might default int types
     // to call __index__ which may be able to simplify the logic here
@@ -1916,7 +2466,8 @@ Matrix_map_subscript(EVSpace_Matrix* self, PyObject* indices)
         case -1: return NULL;
         case 0: break;
         case 1:
-            matrix_view = EVSpaceMatrixView_New(self, 1, 3 * start0, 3, -1, sizeof(double), -1);
+            matrix_view = EVSpaceMatrixView_New(self, type, 1, 3 * start0, 3, -1,
+                                                sizeof(double), -1);
             return PyMemoryView_FromObject(EVS_PyObject_Cast(matrix_view));
     }
 
@@ -1928,11 +2479,11 @@ Matrix_map_subscript(EVSpace_Matrix* self, PyObject* indices)
         }
         
         if (start0 == stop0) {
-            matrix_view = EVSpaceMatrixView_New(self, 1, 0, 0, -1, sizeof(double), -1);
+            matrix_view = EVSpaceMatrixView_New(self, type, 1, 0, 0, -1, sizeof(double), -1);
         }
         else {
             // Second dimensions here all have '3' hardcoded because all columns are included
-            matrix_view = EVSpaceMatrixView_New(self, 2, 3 * start0, slicelength0, 3,
+            matrix_view = EVSpaceMatrixView_New(self, type, 2, 3 * start0, slicelength0, 3,
                                                 3 * step0 * sizeof(double), sizeof(double));
         }
         return PyMemoryView_FromObject(EVS_PyObject_Cast(matrix_view));
@@ -1954,7 +2505,8 @@ Matrix_map_subscript(EVSpace_Matrix* self, PyObject* indices)
             }
 
             if (start0 == stop0) {
-                matrix_view = EVSpaceMatrixView_New(self, 1, 0, 0, -1, sizeof(double), -1);
+                matrix_view = EVSpaceMatrixView_New(self, type, 1, 0, 0, -1,
+                                                    sizeof(double), -1);
                 return PyMemoryView_FromObject(EVS_PyObject_Cast(matrix_view));
             }
 
@@ -1966,11 +2518,13 @@ Matrix_map_subscript(EVSpace_Matrix* self, PyObject* indices)
                 }
 
                 if (start1 == stop1) {
-                    matrix_view = EVSpaceMatrixView_New(self, 1, 0, 0, -1, sizeof(double), -1);
+                    matrix_view = EVSpaceMatrixView_New(self, type, 1, 0, 0, -1,
+                                                        sizeof(double), -1);
                 }
                 else {
-                    matrix_view = EVSpaceMatrixView_New(self, 2, 3 * start0 + start1, slicelength0,
-                                                        slicelength1, 3 * step0 * sizeof(double),
+                    matrix_view = EVSpaceMatrixView_New(self, type, 2, 3 * start0 + start1,
+                                                        slicelength0, slicelength1,
+                                                        3 * step0 * sizeof(double),
                                                         step1 * sizeof(double));
                 }
                 return PyMemoryView_FromObject(EVS_PyObject_Cast(matrix_view));
@@ -1983,8 +2537,9 @@ Matrix_map_subscript(EVSpace_Matrix* self, PyObject* indices)
                     PyErr_SetString(PyExc_TypeError, "second index must be int or slice type");
                     return NULL;
                 case 1:
-                    matrix_view = EVSpaceMatrixView_New(self, 1, 3 * start0 + index1, slicelength0,
-                                                        -1, 3 * step0 * sizeof(double), -1);
+                    matrix_view = EVSpaceMatrixView_New(self, type, 1, 3 * start0 + index1,
+                                                        slicelength0, -1,
+                                                        3 * step0 * sizeof(double), -1);
                     return PyMemoryView_FromObject(EVS_PyObject_Cast(matrix_view));
             }
         }
@@ -2007,12 +2562,13 @@ Matrix_map_subscript(EVSpace_Matrix* self, PyObject* indices)
             }
 
             if (start1 == stop1) {
-                matrix_view = EVSpaceMatrixView_New(self, 1, 0, 0, -1,
+                matrix_view = EVSpaceMatrixView_New(self, type, 1, 0, 0, -1,
                                                     sizeof(double), -1);
             }
             else {
-                matrix_view = EVSpaceMatrixView_New(self, 1, 3 * index0 + start1, slicelength1,
-                                                    -1, step1 * sizeof(double), -1);
+                matrix_view = EVSpaceMatrixView_New(self, type, 1, 3 * index0 + start1,
+                                                    slicelength1, -1,
+                                                    step1 * sizeof(double), -1);
             }
             return PyMemoryView_FromObject(EVS_PyObject_Cast(matrix_view));
         }
@@ -2032,14 +2588,19 @@ Matrix_map_subscript(EVSpace_Matrix* self, PyObject* indices)
         PyErr_SetString(PyExc_TypeError, "index must be int or slice type");
         return NULL;
     }
+
+    // This should be unreachable, but place an informative error in case it happens.
+    PyErr_SetString(PyExc_RuntimeError, "pyevspace.Matirx.__getitem__() an unknown "
+                    "error occurred parsing arguments");
+    return NULL;
 }
 
 static int
 Matrix_map_assignment(EVSpace_Matrix* self, PyObject* indices, PyObject* rhs)
 {
-    PyObject* key0, *key1;
-    Py_ssize_t index0, index1, tmp;
-    double value;
+    PyObject* key0 = NULL, *key1 = NULL;
+    Py_ssize_t index0{}, index1{}, tmp{};
+    double value{};
 
     // If indices is (int, int) we don't want a memoryview
     if (PyArg_ParseTuple(indices, "nn:pyevspace.Matrix.__setitem__", &index0, &index1))
@@ -2052,14 +2613,16 @@ Matrix_map_assignment(EVSpace_Matrix* self, PyObject* indices, PyObject* rhs)
         tmp = index0 + 1;
         PySlice_AdjustIndices(3, &index0, &tmp, 1);
         if (index0 == tmp || index0 < 0 || index0 > 2) {
-            PyErr_Format(PyExc_IndexError, "first index must be in range [0-2] (got %i)", index0);
+            PyErr_Format(PyExc_IndexError,
+                         "first index must be in range [0-2] (got %i)", index0);
             return -1;
         }
 
         tmp = index1 + 1;
         PySlice_AdjustIndices(3, &index1, &tmp, 1);
         if (index1 == tmp || index1 < 0 || index1 > 2) {
-            PyErr_Format(PyExc_IndexError, "second index must be in range [0-2] (got %i)", index1);
+            PyErr_Format(PyExc_IndexError,
+                         "second index must be in range [0-2] (got %i)", index1);
             return -1;
         }
 
@@ -2076,9 +2639,12 @@ Matrix_map_assignment(EVSpace_Matrix* self, PyObject* indices, PyObject* rhs)
 
     // todo: implement slice assignment
     PyErr_Clear();
-    if (PyArg_ParseTuple(indices, "O!O!:pyevspace.Matrix.__getitem__", &PySlice_Type, &key0, &PySlice_Type, &key1) ||
-        PyArg_ParseTuple(indices, "nO!:pyevspace.Matrix.__getitem__", &index0, &PySlice_Type, &key0) ||
-        PyArg_ParseTuple(indices, "O!n:pyevspace.Matrix.__getitem__", &PySlice_Type, &key0, &index0))
+    if (PyArg_ParseTuple(indices, "O!O!:pyevspace.Matrix.__getitem__",
+                         &PySlice_Type, &key0, &PySlice_Type, &key1) ||
+        PyArg_ParseTuple(indices, "nO!:pyevspace.Matrix.__getitem__",
+                         &index0, &PySlice_Type, &key0) ||
+        PyArg_ParseTuple(indices, "O!n:pyevspace.Matrix.__getitem__",
+                         &PySlice_Type, &key0, &index0))
     {
         PyErr_SetString(PyExc_Warning, "slice assignment not available");
     }
@@ -2093,6 +2659,11 @@ Matrix_get_item(EVSpace_Matrix* self, Py_ssize_t index_arg)
     EVSpace_MatrixView* matrix_view = NULL;
     Py_ssize_t index = index_arg;
 
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+    if (!state) {
+        return NULL;
+    }
+
     if (index < 0) {
         index += 3;
     }
@@ -2103,7 +2674,8 @@ Matrix_get_item(EVSpace_Matrix* self, Py_ssize_t index_arg)
         return NULL;
     }
 
-    matrix_view = EVSpaceMatrixView_New(self, 1, 3 * index, 3, -1, sizeof(double), -1);
+    matrix_view = EVSpaceMatrixView_New(self, state->MatrixView_Type, 1, 3 * index,
+                                        3, -1, sizeof(double), -1);
     return PyMemoryView_FromObject(EVS_PyObject_Cast(matrix_view));
 }
 
@@ -2173,11 +2745,31 @@ Matrix_get_buffer(EVSpace_Matrix* self, Py_buffer* view, int flags)
 }
 
 /* Matrix instance methods */
+//      Matrix instance methods
+// Methods that require the module state must be defined as `CPyMethod`
+// style signatures. This will pass the `defining_class` argument which
+// enables the EVSpaceState_From* functions to properly get the module
+// state to verify arguments and instantiate new objects.
 
 static PyObject*
-Matrix_reduce(EVSpace_Matrix* self, PyObject* Py_UNUSED)
+Matrix_reduce(EVSpace_Matrix* self, PyTypeObject* defining_class,
+              PyObject* const *Py_UNUSED(), Py_ssize_t nargs,
+              PyObject* kwargs)
 {
-    return Py_BuildValue("(O((ddd)(ddd)(ddd)))", Py_TYPE(self),
+    EVSpace_State* state = NULL;
+
+    if (nargs != 0 || kwargs != NULL)
+    {
+        PyErr_SetString(PyExc_TypeError, "pyevspace.Matrix.__reduce__() expected no args");
+        return NULL;
+    }
+    
+    state = (EVSpace_State*)PyType_GetModuleState(defining_class);
+    if (!state) {
+        return NULL;
+    }
+
+    return Py_BuildValue("(O((ddd)(ddd)(ddd)))", state->Matrix_Type,
                         EVSpaceMatrix_MATRIX(self)(0, 0), EVSpaceMatrix_MATRIX(self)(0, 1),
                         EVSpaceMatrix_MATRIX(self)(0, 2), EVSpaceMatrix_MATRIX(self)(1, 0),
                         EVSpaceMatrix_MATRIX(self)(1, 1), EVSpaceMatrix_MATRIX(self)(1, 2),
@@ -2186,62 +2778,58 @@ Matrix_reduce(EVSpace_Matrix* self, PyObject* Py_UNUSED)
 }
 
 static PyObject*
-Matrix_determinate(EVSpace_Matrix* self)
+Matrix_determinate(EVSpace_Matrix* self, PyObject* Py_UNUSED())
 {
-    if (!EVSpaceMatrix_Check(self))
-    {
-        PyErr_Format(PyExc_TypeError,
-                     "calling object must be a %s type",
-                     Py_TYPE(self)->tp_name);
-        return NULL;
-    }
-
     double result = EVSpaceMatrix_MATRIX(self).determinate();
 
     return PyFloat_FromDouble(result);
 }
 
 static PyObject*
-Matrix_transpose(EVSpace_Matrix* self)
+Matrix_transpose(EVSpace_Matrix* self, PyTypeObject* defining_class,
+                 PyObject* const *Py_UNUSED(), Py_ssize_t nargs,
+                 PyObject* kwargs)
 {
-    if (!EVSpaceMatrix_Check(self))
+    EVSpace_State* state = (EVSpace_State*)PyType_GetModuleState(defining_class);
+    if (!state) {
+        return NULL;
+    }
+
+    if (nargs != 0 || kwargs != NULL)
     {
-        PyErr_Format(PyExc_TypeError,
-                     "calling object must be a %s type",
-                     Py_TYPE(self)->tp_name);
+        PyErr_SetString(PyExc_TypeError, "pyevspace.Matrix.transpose(): "
+                        "expected no arguments");
         return NULL;
     }
 
     EXCEPTION_WRAPPER(
         evspace::Matrix result = EVSpaceMatrix_MATRIX(self).transpose();
-        return EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(result)));
+        return EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(result), state->Matrix_Type));
     )
 }
 
 static PyObject*
-Matrix_transpose_inplace(EVSpace_Matrix* self)
+Matrix_transpose_inplace(EVSpace_Matrix* self, PyObject* Py_UNUSED())
 {
-    if (!EVSpaceMatrix_Check(self))
-    {
-        PyErr_Format(PyExc_TypeError,
-                     "calling object must be a %s type",
-                     Py_TYPE(self)->tp_name);
-        return NULL;
-    }
-
     EVSpaceMatrix_MATRIX(self).transpose_inplace();
 
     Py_RETURN_NONE;
 }
 
 static PyObject*
-Matrix_inverse(EVSpace_Matrix* self)
+Matrix_inverse(EVSpace_Matrix* self, PyTypeObject* defining_class,
+               PyObject* const *Py_UNUSED(), Py_ssize_t nargs,
+               PyObject* kwargs)
 {
-    if (!EVSpaceMatrix_Check(self))
+    EVSpace_State* state = (EVSpace_State*)PyType_GetModuleState(defining_class);
+    if (!state) {
+        return NULL;
+    }
+
+    if (nargs != 0 || kwargs != NULL)
     {
-        PyErr_Format(PyExc_TypeError,
-                     "calling object must be a %s type",
-                     Py_TYPE(self)->tp_name);
+        PyErr_SetString(PyExc_TypeError, "pyevspace.Matrix.inverse(): "
+                        "expected no arguments");
         return NULL;
     }
 
@@ -2250,14 +2838,16 @@ Matrix_inverse(EVSpace_Matrix* self)
         try {
 
             evspace::Matrix inverse = EVSpaceMatrix_MATRIX(self).inverse();
-            return EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(inverse)));
+            return EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(inverse),
+                                                       state->Matrix_Type));
         }
         catch (const std::bad_alloc&) {
             return PyErr_NoMemory();
         }
         catch (const std::runtime_error& e) {
             if (std::string_view(e.what()) == "Unable to invert singular matrix") {
-                PyErr_SetString(PyExc_ValueError, "unable to invert singular matrix");
+                PyErr_SetString(PyExc_ValueError, "pyevspace.Matrix.inverse(): "
+                                "unable to invert singular matrix");
                 return NULL;
             }
             else {
@@ -2274,19 +2864,22 @@ Matrix_inverse(EVSpace_Matrix* self)
 static PyObject*
 Matrix_compare_to_ulp(EVSpace_Matrix* self, PyObject* args)
 {
-    if (!EVSpaceMatrix_Check(self)) {
-        PyErr_SetString(PyExc_TypeError, "calling object must be a Matrix type");
+    EVSpace_Matrix* rhs = NULL;
+    int max_ulps{};
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+
+    if (!state) {
         return NULL;
     }
 
-    EVSpace_Matrix* rhs;
-    int max_ulps;
-    if (!PyArg_ParseTuple(args, "O!i:compare_to_ulp", &EVSpace_MatrixType, &rhs, &max_ulps)) {
+    if (!PyArg_ParseTuple(args, "O!i:compare_to_ulp", state->Matrix_Type,
+                          &rhs, &max_ulps)) {
         return NULL;
     }
 
     if (max_ulps < 0) {
-        PyErr_Format(PyExc_ValueError, "max_ulps must be non-negative (got %i)", max_ulps);
+        PyErr_Format(PyExc_ValueError, "pyevspace.Matrix.compare_to_ulp(): "
+                     "max_ulps must be non-negative (got %i)", max_ulps);
         return NULL;
     }
 
@@ -2301,25 +2894,27 @@ Matrix_compare_to_ulp(EVSpace_Matrix* self, PyObject* args)
 static PyObject*
 Matrix_compare_to_tol(EVSpace_Matrix* self, PyObject* args)
 {
-    EVSpace_Matrix* rhs;
+    EVSpace_Matrix* rhs = NULL;
     double rel_tol = evspace::DEFAULT_REL_TOL, abs_tol = evspace::DEFAULT_ABS_TOL;
 
-    if (!EVSpaceMatrix_Check(self)) {
-        PyErr_SetString(PyExc_TypeError, "calling object must be a Matrix type");
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+    if (!state) {
         return NULL;
     }
 
-    if (!PyArg_ParseTuple(args, "O!|dd:compare_to_tol", &EVSpace_MatrixType, &rhs,
+    if (!PyArg_ParseTuple(args, "O!|dd:compare_to_tol", state->Matrix_Type, &rhs,
                           &rel_tol, &abs_tol)) {
         return NULL;
     }
 
     if (rel_tol < 0) {
-        PyErr_SetString(PyExc_ValueError, "rel_tol must be non-negative");
+        PyErr_SetString(PyExc_ValueError, "pyevspace.Matrix.compare_to_tol(): "
+                        "rel_tol must be non-negative");
         return NULL;
     }
     if (abs_tol < 0) {
-        PyErr_SetString(PyExc_ValueError, "abs_tol must be non-negative");
+        PyErr_SetString(PyExc_ValueError, "pyevspace.Matrix.compare_to_tol(): "
+                        "abs_tol must be non-negative");
         return NULL;
     }
 
@@ -2331,28 +2926,6 @@ Matrix_compare_to_tol(EVSpace_Matrix* self, PyObject* args)
         Py_RETURN_FALSE;
     }
 }
-
-static PyNumberMethods matrix_as_number;
-
-static PyMappingMethods matrix_as_map = {
-    (lenfunc)EVSpaceObject_Length,      /* mp_length */
-    (binaryfunc)Matrix_map_subscript,   /* mp_subscript */
-    (objobjargproc)Matrix_map_assignment, /* mp_ass_subscript */
-};
-
-static PySequenceMethods matrix_as_sequence = {
-    (lenfunc)EVSpaceObject_Length,          /* sq_length */
-    0,                                      /* sq_concat */
-    0,                                      /* sq_repeat */
-    (ssizeargfunc)Matrix_get_item,          /* sq_item */
-    0,                                      /* was_sq_slice */
-    0,                                      /* sq_ass_item */
-};
-
-static PyBufferProcs matrix_as_buffer = {
-    (getbufferproc)Matrix_get_buffer,           /* bf_getbuffer */
-    (releasebufferproc)EVSpaceBuffer_Release    /* bf_releasebuffer */
-};
 
 PyDoc_STRVAR(matrix_reduce_doc, "pyevspace.Matrix.__reduce() -> (cls, state)\n\
 \n\
@@ -2389,21 +2962,21 @@ is within abs_tol + rel_tol * max(abs(m_ij), abs(m_ij)).");
 
 static PyMethodDef matrix_methods[] = {
 
-    {"__reduce__", (PyCFunction)Matrix_reduce, METH_NOARGS, matrix_reduce_doc},
+    {"__reduce__", (PyCFunction)(void(*)(void))Matrix_reduce, EVS_PYCMETHOD, matrix_reduce_doc},
 
-    {"transpose", (PyCFunction)Matrix_transpose, METH_NOARGS, matrix_transpose_doc},
+    {"transpose", (PyCFunction)(void(*)(void))Matrix_transpose, EVS_PYCMETHOD, matrix_transpose_doc},
 
     {"transpose_inplace", (PyCFunction)Matrix_transpose_inplace, METH_NOARGS, matrix_transpose_inplace_doc},
 
     {"determinate", (PyCFunction)Matrix_determinate, METH_NOARGS, matrix_determinate_doc},
 
-    {"inverse", (PyCFunction)Matrix_inverse, METH_NOARGS, matrix_inverse_doc},
+    {"inverse", (PyCFunction)(void(*)(void))Matrix_inverse, EVS_PYCMETHOD, matrix_inverse_doc},
 
     {"compare_to_ulp", (PyCFunction)Matrix_compare_to_ulp, METH_VARARGS, matrix_compare_to_ulp_doc},
 
     {"compare_to_tol", (PyCFunction)Matrix_compare_to_tol, METH_VARARGS, matrix_compare_to_tol_doc},
 
-    {NULL}
+    {NULL, NULL, 0, NULL}
 };
 
 PyDoc_STRVAR(matrix_doc, "pyevspace.matrix([row0: Iterable, row1: Iterable, row2: Iterable])\n\
@@ -2412,11 +2985,78 @@ The pyevspace.Matrix type can be constructed with rows of iterables all of\
 length three, whose components are numeric types. Alternatively if no arguments\
 are present each component is defaulet to zero.");
 
+static PyType_Slot matrix_slots[] = {
+    {Py_tp_dealloc,                 (void*)Matrix_dealloc},
+    {Py_tp_repr,                    (void*)Matrix_repr},
+    {Py_nb_add,                     (void*)Matrix_add},
+    {Py_nb_subtract,                (void*)Matrix_subtract},
+    {Py_nb_multiply,                (void*)Matrix_multiply},
+    {Py_nb_negative,                (void*)Matrix_negative},
+    {Py_nb_inplace_add,             (void*)Matrix_inplace_add},
+    {Py_nb_inplace_subtract,        (void*)Matrix_inplace_subtract},
+    {Py_nb_inplace_multiply,        (void*)Matrix_inplace_multiply},
+    {Py_nb_true_divide,             (void*)Matrix_divide},
+    {Py_nb_inplace_true_divide,     (void*)Matrix_inplace_divide},
+    {Py_nb_matrix_multiply,         (void*)Matrix_matrix_multiply},
+    {Py_nb_inplace_matrix_multiply, (void*)Matrix_inplace_multiply_matrix},
+    // sequence protocol is only for internal CPython support
+    {Py_sq_length,                  (void*)EVSpaceObject_Length},
+    {Py_sq_item,                    (void*)Matrix_get_item},
+    {Py_mp_length,                  (void*)EVSpaceObject_Length},
+    {Py_mp_subscript,               (void*)Matrix_map_subscript},
+    {Py_mp_ass_subscript,           (void*)Matrix_map_assignment},
+    {Py_tp_str,                     (void*)Matrix_str},
+    {Py_bf_getbuffer,               (void*)Matrix_get_buffer},
+    {Py_bf_releasebuffer,           (void*)EVSpaceBuffer_Release},
+    {Py_tp_doc,                     (void*)matrix_doc},
+    {Py_tp_richcompare,             (void*)Matrix_richcompare},
+    {Py_tp_methods,                 (void*)matrix_methods},
+    {Py_tp_init,                    (void*)Matrix_init},
+    {Py_tp_new,                     (void*)Matrix_new},
+    {0,                             NULL}
+};
+
+static PyType_Spec matrix_spec = {
+    "pyevspace.Matrix",     /* name */
+    sizeof(EVSpace_Matrix), /* basicsize */
+    0,                      /* itemsize */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE | Py_TPFLAGS_BASETYPE, /* flags */
+    matrix_slots            /* slots */
+};
+
 /* EulerAngles type constructors */
+//      EulerAngles new function(s)
+// These functions validate `type` is a subclass of EVSpace_EulerAngles
+// and allocate and initialize the underlying evspace::EulerAngles object
+// to the parameter values. The EVSpace_EulerAngles.angles instance is
+// allocated using `new` and should be freed with `delete`
+// so the desstructor is called.
+//
+// While the type supports subclassing, all methods attached to
+// EVSpace_EulerAngles strictly return EVSpace_EulerAngles instances instead
+// of subclassed types because any additional parameters to a subclasses
+// __init__ methods are not known. Any subclass wanting to return an
+// instance of that subclass should overload that function and use the
+// returned values to initialize an instance of their type.
 
 static EVSpace_Angles*
-_EVSpaceAngles_New(double alpha, double beta, double gamma, PyTypeObject* type)
+EVSpaceAngles_New(double alpha, double beta, double gamma, PyTypeObject* type)
 {
+    EVSpace_State* state = EVSpaceState_FromType(type);
+
+    if (!state)
+    {
+        PyErr_Clear();
+        PyErr_Format(PyExc_TypeError, "%s is not a subtype of pyevspace.EulerAngles", type->tp_name);
+        return NULL;
+    }
+
+    if (!PyObject_IsSubclass((PyObject*)type, (PyObject*)state->EulerAngles_Type))
+    {
+        PyErr_Format(PyExc_TypeError, "%s is not a subtype of pyevspace.EulerAngles", type->tp_name);
+        return NULL;
+    }
+
     EVSpace_Angles* angles = reinterpret_cast<EVSpace_Angles*>(type->tp_alloc(type, 0));
     if (!angles) {
         return NULL;
@@ -2428,26 +3068,14 @@ _EVSpaceAngles_New(double alpha, double beta, double gamma, PyTypeObject* type)
     )
 }
 
-static inline EVSpace_Angles*
-EVSpaceAngles_New()
-{
-    return _EVSpaceAngles_New(0.0, 0.0, 0.0, &EVSpace_AnglesType);
-}
-
-static inline EVSpace_Angles*
-EVSpaceAngles_New(double alpha, double beta, double gamma)
-{
-    return _EVSpaceAngles_New(alpha, beta, gamma, &EVSpace_AnglesType);
-}
-
 static PyObject*
-Angles_new(PyTypeObject* type, PyObject* args, PyObject* Py_UNUSED)
+Angles_new(PyTypeObject* type, PyObject* Py_UNUSED(1), PyObject* Py_UNUSED(2))
 {
-    return reinterpret_cast<PyObject*>(_EVSpaceAngles_New(0.0, 0.0, 0.0, type));
+    return reinterpret_cast<PyObject*>(EVSpaceAngles_New(0.0, 0.0, 0.0, type));
 }
 
 static int
-Angles_init(EVSpace_Angles* self, PyObject* args, PyObject* Py_UNUSED)
+Angles_init(EVSpace_Angles* self, PyObject* args, PyObject* Py_UNUSED())
 {
     double alpha, beta, gamma;
 
@@ -2475,7 +3103,7 @@ Angles_dealloc(EVSpace_Angles* self)
 
 // Creates and fills a string buffer for the inner data of an EulerAngles
 // object. On failure set an exception and return NULL. If non-NULL, the
-// caller must free the buffer by calling `delete`.
+// caller must free the buffer by calling `free` on the returned pointer.
 static inline const char*
 _EVSpaceAngles_String(const EVSpace_Angles* angles)
 {
@@ -2484,19 +3112,18 @@ _EVSpaceAngles_String(const EVSpace_Angles* angles)
     std::size_t buffer_length = snprintf(NULL, 0, format, EVSpaceAngles_ALPHA(angles),
                                          EVSpaceAngles_BETA(angles), EVSpaceAngles_GAMMA(angles));
 
-    try {
-        buffer = new char[buffer_length + 1];
-    }
-    catch (const std::bad_alloc*) {
+    buffer = (char*)malloc(buffer_length + 1);
+    if (!buffer) {
         PyErr_NoMemory();
         return NULL;
     }
+    buffer[buffer_length] = '\0';
 
     if (sprintf(buffer, format, EVSpaceAngles_ALPHA(angles), EVSpaceAngles_BETA(angles),
                 EVSpaceAngles_GAMMA(angles)) < 0)
     {
         PyErr_SetString(PyExc_RuntimeError, "error filling string buffer");
-        delete [] buffer;
+        free((void*)buffer);
         return NULL;
     }
 
@@ -2514,7 +3141,7 @@ Angles_str(const EVSpace_Angles* angles)
     }
 
     str = PyUnicode_FromFormat("[%s]", buffer);
-    delete [] buffer;
+    free((void*)buffer);
 
     return str;
 }
@@ -2546,20 +3173,36 @@ Angles_repr(const EVSpace_Angles* self)
     repr = PyUnicode_FromFormat("%U.%U(%s)", module, qualname, buffer);
     Py_DECREF(module);
     Py_DECREF(qualname);
-    delete [] buffer;
+    free((void*)buffer);
 
     return repr;
 }
 
 static PyObject*
-Angles_reduce(const EVSpace_Angles* self, PyObject* Py_UNUSED)
+Angles_reduce(EVSpace_Angles* self, PyTypeObject* defining_class,
+              PyObject* const *Py_UNUSED(), Py_ssize_t nargs,
+              PyObject* kwargs)
 {
-    return Py_BuildValue("(O(ddd))", Py_TYPE(self), EVSpaceAngles_ALPHA(self),
+    EVSpace_State* state = NULL;
+
+    if (nargs != 0 || kwargs != NULL)
+    {
+        PyErr_SetString(PyExc_TypeError, "pyevspace.EulerAngles.__reduce__() "
+                        "expected no args");
+        return NULL;
+    }
+    
+    state = (EVSpace_State*)PyType_GetModuleState(defining_class);
+    if (!state) {
+        return NULL;
+    }
+
+    return Py_BuildValue("(O(ddd))", state->EulerAngles_Type, EVSpaceAngles_ALPHA(self),
                          EVSpaceAngles_BETA(self), EVSpaceAngles_GAMMA(self));
 }
 
 static PyObject*
-Angles_get_item(const EVSpace_Angles* self, Py_ssize_t index)
+Angles_get_item(EVSpace_Angles* self, Py_ssize_t index)
 {
     if (index < 0 || index > 2)
     {
@@ -2573,7 +3216,7 @@ Angles_get_item(const EVSpace_Angles* self, Py_ssize_t index)
 static int
 Angles_set_item(EVSpace_Angles* self, Py_ssize_t index, PyObject* arg)
 {
-    double value;
+    double value{};
 
     if (!EVSpaceObject_AsDouble(arg, value)) {
         return -1;
@@ -2590,24 +3233,15 @@ Angles_set_item(EVSpace_Angles* self, Py_ssize_t index, PyObject* arg)
     return 0;
 }
 
-static PySequenceMethods angles_as_sequence = {
-    (lenfunc)EVSpaceObject_Length,      /* sq_length */
-    0,                                  /* sq_concat */
-    0,                                  /* sq_repeat */
-    (ssizeargfunc)Angles_get_item,      /* sq_item */
-    0,                                  /* was_sq_slice */
-    (ssizeobjargproc)Angles_set_item    /* sq_ass_item */
-};
-
 PyDoc_STRVAR(angles_reduce_doc, "pyevspace.__reduce__() -> (cls, state)\n\
 \n\
 Allows pickle support of EulerAngles objects.");
 
 static PyMethodDef angles_methods[] = {
 
-    {"__reduce__", (PyCFunction)Angles_reduce, METH_NOARGS, angles_reduce_doc},
+    {"__reduce__", (PyCFunction)(void(*)(void))Angles_reduce, EVS_PYCMETHOD, angles_reduce_doc},
 
-    {NULL}
+    {NULL, NULL, 0, NULL}
 };
 
 PyDoc_STRVAR(angles_doc, "pyevspace.EulerAngles(alpha: Real, beta: Real, gamma: Real)\n\
@@ -2615,12 +3249,65 @@ PyDoc_STRVAR(angles_doc, "pyevspace.EulerAngles(alpha: Real, beta: Real, gamma: 
 Sets the corresponding angles all of which are required. Unneeded\n\
 angles should be set to zero.");
 
-/* EulerOrder type */
+static PyType_Slot angles_slots[] = {
+    {Py_tp_dealloc,             (void*)Angles_dealloc},
+    {Py_tp_repr,                (void*)Angles_repr},
+    {Py_sq_length,              (void*)EVSpaceObject_Length},
+    {Py_sq_item,                (void*)Angles_get_item},
+    {Py_sq_ass_item,            (void*)Angles_set_item},
+    {Py_tp_str,                 (void*)Angles_str},
+    {Py_tp_doc,                 (void*)angles_doc},
+    {Py_tp_methods,             (void*)angles_methods},
+    {Py_tp_init,                (void*)Angles_init},
+    {Py_tp_new,                 (void*)Angles_new},
+    {0,                         NULL}
+};
+
+static PyType_Spec angles_spec = {
+    "pyevspace.EulerAngles",    /* name */
+    sizeof(EVSpace_Angles),     /* basicsize */
+    0,                          /* itemsize */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE | Py_TPFLAGS_BASETYPE, /* flags */
+    angles_slots                /* slots */
+};
+
+//      EVSpace_Order new function
+// Validate `type` is a subclass of EVSpace_Order and initialize
+// the order values. This type has no members to be allocated
+// and is an immutable type in the Python layer, so it should
+// not be mutated within this file either. The EVSpace_Order
+// struct members are `evspace::AxisDirection` types instead of
+// plain `int` types so that they can be directly used in
+// evspace functions.
+//
+// While the type supports subclassing, all methods attached to
+// EVSpace_Order strictly return EVSpace_Order instances instead
+// of subclassed types because any additional parameters to a subclasses
+// __init__ methods are not known. Any subclass wanting to return an
+// instance of that subclass should overload that function and use the
+// returned values to initialize an instance of their type.
 
 static EVSpace_Order*
-_EVSpaceOrder_New(evspace::AxisDirection first, evspace::AxisDirection second,
+EVSpaceOrder_New(evspace::AxisDirection first, evspace::AxisDirection second,
                   evspace::AxisDirection thrid, PyTypeObject* type)
 {
+    EVSpace_State* state = EVSpaceState_FromType(type);
+
+    if (!state)
+    {
+        PyErr_Clear();
+        PyErr_Format(PyExc_TypeError, "%s is not a subtype of "
+                     "pyevspace.RotationOrder", type->tp_name);
+        return NULL;
+    }
+
+    if (!PyObject_IsSubclass((PyObject*)type, (PyObject*)state->RotationOrder_Type))
+    {
+        PyErr_Format(PyExc_TypeError, "%s is not a subtype of pyevspace.RotationOrder",
+                     type->tp_name);
+        return NULL;
+    }
+
     EVSpace_Order* order = reinterpret_cast<EVSpace_Order*>(type->tp_alloc(type, 0));
     if (!order) {
         return NULL;
@@ -2633,13 +3320,6 @@ _EVSpaceOrder_New(evspace::AxisDirection first, evspace::AxisDirection second,
     return order;
 }
 
-static inline EVSpace_Order*
-EVSpaceOrder_New(evspace::AxisDirection first, evspace::AxisDirection second,
-                 evspace::AxisDirection third)
-{
-    return _EVSpaceOrder_New(first, second, third, &EVSpace_OrderType);
-}
-
 static PyObject*
 Order_new(PyTypeObject* type, PyObject* Py_UNUSED(0), PyObject* Py_UNUSED(1))
 {
@@ -2647,7 +3327,7 @@ Order_new(PyTypeObject* type, PyObject* Py_UNUSED(0), PyObject* Py_UNUSED(1))
 }
 
 static int
-Order_init(EVSpace_Order* self, PyObject* args, PyObject* Py_UNUSED)
+Order_init(EVSpace_Order* self, PyObject* args, PyObject* Py_UNUSED())
 {
     int first, second, third;
     
@@ -2681,22 +3361,6 @@ static void
 Order_dealloc(EVSpace_Order* self)
 {
     Py_TYPE(self)->tp_free(EVS_PyObject_Cast(self));
-}
-
-static inline char*
-_EVSpaceAxis_GetName(evspace::AxisDirection direction, char* string)
-{
-    if (direction == evspace::AxisDirection::X) {
-        sprintf(string, "X_AXIS");
-    }
-    else if (direction == evspace::AxisDirection::Y) {
-        sprintf(string, "Y_AXIS");
-    }
-    else if (direction == evspace::AxisDirection::Z) {
-        sprintf(string, "Z_AXIS");
-    }
-
-    return string;
 }
 
 static PyObject*
@@ -2758,10 +3422,15 @@ Order_get_item(EVSpace_Order* self, Py_ssize_t index)
 static PyObject*
 Order_richcompare(EVSpace_Order* self, PyObject* other, int op)
 {
-    EVSpace_Order* rhs;
-    bool is_equal;
+    EVSpace_Order* rhs = NULL;
+    bool is_equal = false;
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
 
-    if (EVSpaceOrder_Check(other))
+    if (!state) {
+        return NULL;
+    }
+
+    if (PyObject_TypeCheck(other, state->RotationOrder_Type))
     {
         rhs = reinterpret_cast<EVSpace_Order*>(other);
         is_equal = (self->first == rhs->first &&
@@ -2810,20 +3479,29 @@ Order_hash(EVSpace_Order* self)
 }
 
 static PyObject*
-Order_reduce(const EVSpace_Order* self, PyObject* Py_UNUSED)
+Order_reduce(EVSpace_Order* self, PyTypeObject* defining_class,
+             PyObject* const *Py_UNUSED(), Py_ssize_t nargs,
+             PyObject* kwargs)
 {
-    return Py_BuildValue("(O(iii))", Py_TYPE(self), self->first, self->second, self->third);
+    EVSpace_State* state = NULL;
+
+    if (nargs != 0 || kwargs != NULL)
+    {
+        PyErr_SetString(PyExc_TypeError, "pyevspace.RotationOrder.__reduce__ "
+                        "expected no arguments");
+        return NULL;
+    }
+
+    state = (EVSpace_State*)PyType_GetModuleState(defining_class);
+    if (!state) {
+        return NULL;
+    }
+
+    return Py_BuildValue("(O(iii))", state->RotationOrder_Type,
+                         self->first, self->second, self->third);
 }
 
-static PySequenceMethods order_as_sequence = {
-    (lenfunc)EVSpaceObject_Length,      /* sq_length */
-    0,                                  /* sq_concat */
-    0,                                  /* sq_repeat */
-    (ssizeargfunc)Order_get_item,       /* sq_item */
-};
-
 static PyMemberDef order_members[] = {
-
     {
 #if PY_VERSION_HEX < 0x030c0000
     "first", T_INT, offsetof(EVSpace_Order, first), READONLY,
@@ -2849,7 +3527,7 @@ static PyMemberDef order_members[] = {
      PyDoc_STR("third axis of a rotation")
     },
 
-     {NULL}
+    {NULL, 0, 0, 0, NULL}
 };
 
 PyDoc_STRVAR(order_reduce_doc, "pyevspace.Matrix.__reduce__() -> (cls, state)\n\
@@ -2857,10 +3535,9 @@ PyDoc_STRVAR(order_reduce_doc, "pyevspace.Matrix.__reduce__() -> (cls, state)\n\
 Allows pickle support of Order instances.");
 
 static PyMethodDef order_methods[] = {
-    
-    {"__reduce__", (PyCFunction)Order_reduce, METH_NOARGS, order_reduce_doc},
+    {"__reduce__", (PyCFunction)(void(*)(void))Order_reduce, EVS_PYCMETHOD, order_reduce_doc},
 
-    {NULL}
+    {NULL, NULL, 0, NULL}
 };
 
 PyDoc_STRVAR(order_doc, "RotationOrder(axis1: int, axis2: int, axis3: int)\n\
@@ -2868,521 +3545,39 @@ PyDoc_STRVAR(order_doc, "RotationOrder(axis1: int, axis2: int, axis3: int)\n\
 All axes are required and should be one of the three enumerated\n\
 axis types X_AXIS, Y_AXIS, or Z_AXIS.");
 
-/* ReferencceFrame type */
-
-static int
-EVSpaceReferenceFrame_UpdateMatrix(EVSpace_ReferenceFrame* frame)
-{
-    frame->matrix = _EVSpaceRotate_ComputeMatrix(frame->first, frame->second, frame->third,
-                                                 frame->angles[0], frame->angles[1],
-                                                 frame->angles[2], frame->intrinsic);
-    return (!frame->matrix) ? -1 : 0;
-}
-
-static EVSpace_ReferenceFrame*
-_EVSpaceReferenceFrame_New(evspace::AxisDirection first, evspace::AxisDirection second,
-                           evspace::AxisDirection third, const evspace::EulerAngles& angles,
-                           PyObject* offset, bool intrinsic, PyTypeObject* type)
-{
-    EVSpace_ReferenceFrame* self = (EVSpace_ReferenceFrame*)(type->tp_alloc(type, 0));
-    if (!self) {
-        return NULL;
-    }
-
-    self->first = first;
-    self->second = second;
-    self->third = third;
-
-    self->angles[0] = (angles)[0];
-    self->angles[1] = (angles)[1];
-    self->angles[2] = (angles)[2];
-
-    self->intrinsic = intrinsic;
-
-    try {
-        self->matrix = new evspace::Matrix();
-    }
-    catch (const std::bad_alloc&) {
-        Py_DECREF(self);
-        PyErr_NoMemory();
-        return NULL;
-    }
-
-    if (!offset) {
-        self->offset = Py_NewRef(Py_None);
-    }
-    else if (EVSpaceVector_Check(offset))
-    {
-        self->offset = Py_NewRef(offset);
-    }
-    else {
-        PyErr_Format(PyExc_TypeError, "offset must be Vector type or None, got %s",
-                     __EVSpace_GetTypeName(offset));
-        Py_DECREF(self);
-        return NULL;
-    }
-
-    if (EVSpaceReferenceFrame_UpdateMatrix(self) < 0)
-    {
-        Py_DECREF(self);
-        return NULL;
-    }
-
-    return self;
-}
-
-static EVSpace_ReferenceFrame*
-EVSpaceReferenceFrame_New(evspace::AxisDirection first, evspace::AxisDirection second,
-                          evspace::AxisDirection third, const evspace::EulerAngles& angles,
-                          PyObject* offset, bool intrinsic)
-{
-    // offset should be NULL to represent no offset value i.e. offset should by Py_None
-    return _EVSpaceReferenceFrame_New(first, second, third, angles, offset,
-                                      intrinsic, &EVSpace_ReferenceFrameType);
-}
-
-static PyObject*
-ReferenceFrame_New(PyTypeObject* type, PyObject* args, PyObject* kwargs)
-{
-    EVSpace_Order* order;
-    EVSpace_Angles* angles;
-    PyObject* offset = NULL;
-    int intrinsic = true;
-
-    static const char* kwargs_list[] = { "", "", "intrinsic", "offset", NULL };
-
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!|$pO", const_cast<char**>(kwargs_list),
-                                     &EVSpace_OrderType, &order, &EVSpace_AnglesType, &angles,
-                                     &intrinsic, &offset)) {
-        return NULL;
-    }
-
-    // If offset is explicitly set to None re-set it to NULL
-    if (offset && Py_IsNone(offset))
-    {
-        offset = NULL;
-    }
-    else if (offset && !EVSpaceVector_Check(offset))
-    {
-        PyErr_Format(PyExc_TypeError, "offset must be a Vector type or None, got %s",
-                     __EVSpace_GetTypeName(offset));
-        return NULL;
-    }
-
-    return reinterpret_cast<PyObject*>(
-        _EVSpaceReferenceFrame_New(order->first, order->second, order->third,
-                                  *angles->angles, offset, static_cast<bool>(intrinsic), type)
-    );
-}
-
-// Not initializing a ReferenceFrame on allocation leaves things in such
-// an invalid state I'm not implementing the __init__ method for now.
-
-static void
-ReferenceFrame_Dealloc(EVSpace_ReferenceFrame* self)
-{
-    free(self->matrix);
-    Py_DECREF(self->offset);
-    Py_TYPE(self)->tp_free(EVS_PyObject_Cast(self));
-}
-
-static PyObject*
-ReferenceFrame_GetMatrix(EVSpace_ReferenceFrame* self, PyObject* Py_UNUSED())
-{
-    return reinterpret_cast<PyObject*>(EVSpaceMatrix_New(*self->matrix));
-}
-
-static PyObject*
-ReferenceFrame_GetAngles(EVSpace_ReferenceFrame* self, PyObject* Py_UNUSED())
-{
-    return reinterpret_cast<PyObject*>(EVSpaceAngles_New(self->angles[0],
-                                                         self->angles[1],
-                                                         self->angles[2]));
-}
-
-static PyObject*
-ReferenceFrame_SetAngles(EVSpace_ReferenceFrame* self, PyObject* args, PyObject* kwargs)
-{
-    double alpha, beta, gamma;
-    PyObject* arg1 = NULL, *arg2 = NULL, *arg3 = NULL;
-    EVSpace_Angles* angles;
-    Py_ssize_t arg_count = PyTuple_GET_SIZE(args);
-
-    static const char* kwarg_names[] = {"alpha", "beta", "gamma", NULL};
-
-    if (arg_count == 1)
-    {   
-        if (PyArg_ParseTuple(args, "O!:set_angles", &EVSpace_AnglesType, &angles))
-        {
-            self->angles[0] = (*angles->angles)[0];
-            self->angles[1] = (*angles->angles)[1];
-            self->angles[2] = (*angles->angles)[2];
-            
-            EVSpaceReferenceFrame_UpdateMatrix(self);
-            
-            Py_INCREF(Py_None);
-            Py_RETURN_NONE;
-        }
-        else {
-            return NULL;
-        }
-    }
-    else if (arg_count > 1) {
-        PyErr_Format(PyExc_TypeError, "expected 1 position argument, got %d", arg_count);
-        return NULL;
-    }
-    
-    if (PyArg_ParseTupleAndKeywords(args, kwargs, "|$OOO:set_angles",
-                                    const_cast<char**>(kwarg_names),
-                                    &arg1, &arg2, &arg3))
-    {
-        // Reset args to NULL if they're None
-        if (Py_IsNone(arg1)) {
-            arg1 = NULL;
-        }
-
-        if (Py_IsNone(arg2)) {
-            arg2 = NULL;
-        }
-
-        if (Py_IsNone(arg3))
-        {
-            arg3 = NULL;
-        }
-
-
-        if (arg1 && !EVSpaceObject_AsDouble(arg1, alpha)) {
-            return NULL;
-        }
-        if (arg2 && !EVSpaceObject_AsDouble(arg2, beta)) {
-            return NULL;
-        }
-        if (arg3 && !EVSpaceObject_AsDouble(arg3, gamma)) {
-            return NULL;
-        }
-
-        if (arg1) {
-            self->angles[0] = alpha;
-        }
-        if (arg2) {
-            self->angles[1] = beta;
-        }
-        if (arg3) {
-            self->angles[2] = gamma;
-        }
-
-        EVSpaceReferenceFrame_UpdateMatrix(self);
-
-        Py_INCREF(Py_None);
-        Py_RETURN_NONE;
-    }
-    else {
-        return NULL;
-    }
-}
-
-static PyObject*
-ReferenceFrame_GetOrder(EVSpace_ReferenceFrame* self, void* closure)
-{
-    return reinterpret_cast<PyObject*>(
-        EVSpaceOrder_New(self->first, self->second, self->third)
-    );
-}
-
-static PyObject*
-ReferenceFrame_GetOffset(EVSpace_ReferenceFrame* self, void* closure)
-{
-    return Py_NewRef(self->offset);
-}
-
-static int
-ReferenceFrame_SetOffset(EVSpace_ReferenceFrame* self, PyObject* arg,
-                         void* closure)
-{
-    if (!arg) {
-        PyErr_SetString(PyExc_ValueError, "cannot delete offset attribute");
-        return -1;
-    }
-
-    if (!Py_IsNone(arg) && !EVSpaceVector_Check(arg))
-    {
-        PyErr_Format(PyExc_TypeError, "expected offset to be Vector type or None, got %s",
-                     __EVSpace_GetTypeName(arg));
-        return -1;
-    }
-
-    Py_SETREF(self->offset, Py_NewRef(arg));
-
-    return 0;
-}
-
-static PyMemberDef reference_frame_members[] = {
-    {
-#if PY_VERSION_HEX >= 0x030c0000
-    "intrinsic", Py_T_BOOL, offsetof(EVSpace_ReferenceFrame, intrinsic), Py_READONLY,
-#else
-    "intrinsic", T_BOOL, offsetof(EVSpace_ReferenceFrame, intrinsic), READONLY,
-#endif
-    PyDoc_STR("rotation intrinsic value")},
-
-    { NULL }
+static PyType_Slot order_slots[] = {
+    {Py_tp_dealloc,             (void*)Order_dealloc},
+    {Py_tp_repr,                (void*)Order_repr},
+    {Py_sq_length,              (void*)EVSpaceObject_Length},
+    {Py_sq_item,                (void*)Order_get_item},
+    {Py_tp_hash,                (void*)Order_hash},
+    {Py_tp_str,                 (void*)Order_str},
+    {Py_tp_doc,                 (void*)order_doc},
+    {Py_tp_richcompare,         (void*)Order_richcompare},
+    {Py_tp_methods,             (void*)order_methods},
+    {Py_tp_members,             (void*)order_members},
+    {Py_tp_init,                (void*)Order_init},
+    {Py_tp_new,                 (void*)Order_new},
+    {0,                         NULL}
 };
 
-static PyGetSetDef reference_frame_getset[] = {
-    {"order", (getter)ReferenceFrame_GetOrder, NULL,
-     PyDoc_STR("order of axes in the rotation"), NULL},
-
-    {"offset", (getter)ReferenceFrame_GetOffset,
-     (setter)ReferenceFrame_SetOffset,
-     PyDoc_STR("offset of the reference frame origin"), NULL},
-
-    { NULL }
+static PyType_Spec order_spec = {
+    "pyevspace.RotationOrder",  /* name */
+    sizeof(EVSpace_Order),      /* basicsize */
+    0,                          /* itemsize */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE | Py_TPFLAGS_BASETYPE, /* flags */
+    order_slots                 /* slots */
 };
 
-static PyObject*
-ReferenceFrame_RotateTo(EVSpace_ReferenceFrame* self, PyObject* args)
-{
-    PyObject* arg1, *arg2;
-    EVSpace_Vector* vector, *offset;
-    EVSpace_ReferenceFrame* other_frame;
-    Py_ssize_t arg_count = PyTuple_GET_SIZE(args);
-    evspace::Vector* tmp;
-
-    if (arg_count == 1)
-    {
-        arg1 = PyTuple_GET_ITEM(args, 0);
-        if (!EVSpaceVector_Check(arg1))
-        {
-            PyErr_Format(PyExc_TypeError,
-                         "expected argument 1 to be Vector type, got %s",
-                         __EVSpace_GetTypeName(arg1));
-            return NULL;
-        }
-
-        vector = EVSpaceVector_Cast(arg1);
-
-        if (Py_IsNone(self->offset))
-        {
-            return reinterpret_cast<PyObject*>(
-                EVSpaceVector_New(std::move(*_EVSpaceRotate_To(self->matrix, vector->vector)))
-            );
-        }
-        else
-        {
-            offset = EVSpaceVector_Cast(self->offset);
-            return reinterpret_cast<PyObject*>(
-                EVSpaceVector_New(std::move(*_EVSpaceRotate_To(self->matrix, vector->vector, offset->vector)))
-            );
-        }
-    }
-    else if (arg_count == 2)
-    {
-        arg1 = PyTuple_GET_ITEM(args, 0);
-        if (!EVSpaceReferenceFrame_Check(arg1))
-        {
-            PyErr_Format(PyExc_TypeError,
-                         "expected argument 1 to be ReferenceFrame type, got %s",
-                         __EVSpace_GetTypeName(arg1));
-            return NULL;
-        }
-
-        arg2 = PyTuple_GET_ITEM(args, 1);
-        if (!EVSpaceVector_Check(arg2))
-        {
-            PyErr_Format(PyExc_TypeError,
-                         "expected argument 2 to be Vector type, got %s",
-                         __EVSpace_GetTypeName(arg2));
-            return NULL;
-        }
-
-        other_frame = reinterpret_cast<EVSpace_ReferenceFrame*>(arg1);
-        vector = EVSpaceVector_Cast(arg2);
-
-        if (Py_IsNone(other_frame->offset))
-        {
-            tmp = _EVSpaceRotate_From(other_frame->matrix, vector->vector);
-            if (!tmp) {
-                return NULL;
-            }
-        }
-        else
-        {
-            offset = EVSpaceVector_Cast(other_frame->offset);
-            tmp = _EVSpaceRotate_From(other_frame->matrix, vector->vector, offset->vector);
-            if (!tmp) {
-                return NULL;
-            }
-        }
-
-        if (Py_IsNone(self->offset))
-        {
-            return reinterpret_cast<PyObject*>(
-                EVSpaceVector_New(std::move(*_EVSpaceRotate_To(self->matrix, tmp)))
-            );
-        }
-        else
-        {
-            offset = EVSpaceVector_Cast(self->offset);
-            return reinterpret_cast<PyObject*>(
-                EVSpaceVector_New(std::move(*_EVSpaceRotate_To(self->matrix, tmp, offset->vector)))
-            );
-        }
-    }
-    else
-    {
-        PyErr_Format(PyExc_TypeError,
-                     "expected 1 or 2 arguments, got %d",
-                     arg_count);
-        return NULL;
-    }
-}
-
-static PyObject*
-ReferenceFrame_RotateFrom(EVSpace_ReferenceFrame* self, PyObject* args)
-{
-    PyObject* arg1, *arg2;
-    EVSpace_Vector* vector, *offset;
-    EVSpace_ReferenceFrame* other_frame;
-    Py_ssize_t arg_count = PyTuple_GET_SIZE(args);
-    evspace::Vector* tmp;
-
-    if (arg_count == 1)
-    {
-        arg1 = PyTuple_GET_ITEM(args, 0);
-        if (!EVSpaceVector_Check(arg1))
-        {
-            PyErr_Format(PyExc_TypeError,
-                         "expected argument 1 to be Vector type, got %s",
-                         __EVSpace_GetTypeName(arg1));
-            return NULL;
-        }
-
-        vector = EVSpaceVector_Cast(arg1);
-
-        if (Py_IsNone(self->offset))
-        {
-            return reinterpret_cast<PyObject*>(
-                EVSpaceVector_New(std::move(*_EVSpaceRotate_From(self->matrix, vector->vector)))
-            );
-        }
-        else
-        {
-            offset = EVSpaceVector_Cast(self->offset);
-            return reinterpret_cast<PyObject*>(
-                EVSpaceVector_New(std::move(*_EVSpaceRotate_From(self->matrix, vector->vector, offset->vector)))
-            );
-        }
-    }
-    else if (arg_count == 2)
-    {
-        arg1 = PyTuple_GET_ITEM(args, 0);
-        if (!EVSpaceReferenceFrame_Check(arg1))
-        {
-            PyErr_Format(PyExc_TypeError,
-                         "expected argument 1 to be ReferenceFrame type, got %s",
-                         __EVSpace_GetTypeName(arg1));
-            return NULL;
-        }
-
-        arg2 = PyTuple_GET_ITEM(args, 1);
-        if (!EVSpaceVector_Check(arg2))
-        {
-            PyErr_Format(PyExc_TypeError,
-                         "expected argument 2 to be Vector type, got %s",
-                         __EVSpace_GetTypeName(arg2));
-            return NULL;
-        }
-
-        other_frame = reinterpret_cast<EVSpace_ReferenceFrame*>(arg1);
-        vector = EVSpaceVector_Cast(arg2);
-
-        if (Py_IsNone(self->offset))
-        {
-            tmp = _EVSpaceRotate_From(self->matrix, vector->vector);
-            if (!tmp) {
-                return NULL;
-            }
-        }
-        else
-        {
-            offset = EVSpaceVector_Cast(self->offset);
-            tmp = _EVSpaceRotate_From(self->matrix, vector->vector, offset->vector);
-            if (!tmp) {
-                return NULL;
-            }
-        }
-
-        if (Py_IsNone(other_frame->offset))
-        {
-            return reinterpret_cast<PyObject*>(
-                EVSpaceVector_New(std::move(*_EVSpaceRotate_To(other_frame->matrix, tmp)))
-            );
-        }
-        else
-        {
-            offset = EVSpaceVector_Cast(other_frame->offset);
-            return reinterpret_cast<PyObject*>(
-                EVSpaceVector_New(std::move(*_EVSpaceRotate_To(other_frame->matrix, tmp,
-                                                               offset->vector)))
-            );
-        }
-    }
-    else
-    {
-        PyErr_Format(PyExc_TypeError,
-                     "expected 1 or 2 arguments, got %d",
-                     arg_count);
-        return NULL;
-    }
-}
-
-PyDoc_STRVAR(refframe_get_matrix_doc, "get_matrix() -> Matrix\n\
-\n\
-Get a copy of the internal matrix representation of the current rotation state.");
-
-PyDoc_STRVAR(refframe_get_angles_doc, "get_angles() -> EulerAngles\n\
-\n\
-Get a new EulerAngles object representing the current values of the rotation angles.");
-
-PyDoc_STRVAR(refframe_set_angles_doc, "set_angles(angles: EulerAngles) -> None\n\
-set_angles(*, alpha: float = None, beta: float = None, gamma: float = None) -> None\n\
-\n\
-Update rotation angles and recompute internal rotation matrix.");
-
-PyDoc_STRVAR(refframe_rotate_to_doc, "rotate_to(vector: Vector) -> Vector\n\
-rotate_to(frame: ReferenceFrame, vector: Vector) -> Vector\n\
-\n\
-Rotate a vector to the reference frame. If another ReferenceFrame is provided,\n\
-vector will be rotated from that reference frame to this reference frame.");
-
-PyDoc_STRVAR(refframe_rotate_from_doc, "rotate_from(vector: Vector) -> Vector\n\
-rotate_from(frame: ReferenceFrame, vector: Vector) -> Vector\n\
-\n\
-Rotate a vector from the reference frame. If another ReferenceFrame is provided,\n\
-vector will be rotated to that reference frame from this reference frame.");
-
-static PyMethodDef reference_frame_methods[] = {
-
-    {"get_matrix", (PyCFunction)ReferenceFrame_GetMatrix, METH_NOARGS,
-     refframe_get_matrix_doc},
-
-    {"get_angles", (PyCFunction)ReferenceFrame_GetAngles, METH_NOARGS,
-     refframe_get_angles_doc},
-
-    {"set_angles", (PyCFunction)ReferenceFrame_SetAngles,
-     METH_VARARGS | METH_KEYWORDS, refframe_set_angles_doc},
-
-    {"rotate_to", (PyCFunction)ReferenceFrame_RotateTo, METH_VARARGS,
-     refframe_rotate_to_doc},
-
-    {"rotate_from", (PyCFunction)ReferenceFrame_RotateFrom, METH_VARARGS,
-     refframe_rotate_from_doc},
-
-    {NULL}
-};
-
-
-/* rotation functions */
+//      Rotation support methods
+// These methods act as a facade to the evspace rotation methods. Some
+// of these are simply meant to improve syntax, as the internals of
+// several methods would appear all throughout the code base. Others
+// are required to compute compound rotation matricies since they
+// require template parameters which cannot be deduced at runtime.
+// Functions that create dynamically allocated evspace types are
+// allocated using `new` and should be freed with `delete` to ensure
+// the destructor is called.
 
 static inline evspace::Vector*
 _EVSpaceRotate_From(const evspace::Matrix* matrix, const evspace::Vector* vector)
@@ -3516,9 +3711,11 @@ _EVSpaceRotate_ComputeMatrix(evspace::AxisDirection first, evspace::AxisDirectio
                              evspace::AxisDirection third, double alpha, double beta,
                              double gamma, bool intrinsic)
 {
-    evspace::Matrix* matrix_alpha, *matrix_beta, *matrix_gamma, result;
+    evspace::Matrix* matrix_alpha, *matrix_beta, *matrix_gamma;
 
     EXCEPTION_WRAPPER(
+        evspace::Matrix result{};
+        
         matrix_alpha = _EVSpaceRotate_ComputeMatrix(alpha, first);
         if (!matrix_alpha) {
             return NULL;
@@ -3552,235 +3749,6 @@ _EVSpaceRotate_ComputeMatrix(const EVSpace_Order* order,
     return _EVSpaceRotate_ComputeMatrix(order->first, order->second, order->third,
                                         EVSpaceAngles_ALPHA(angles), EVSpaceAngles_BETA(angles),
                                         EVSpaceAngles_GAMMA(angles), intrinsic);
-}
-
-// Get the type name of `obj` as a const char* for printing or
-// string formating.
-static inline const char*
-__EVSpace_GetTypeName(PyObject* obj)
-{
-    return Py_TYPE(obj)->tp_name;
-}
-
-// Analyze the args tuple and deduce the most likely intended signature
-// and produce an informative type error. The `args` parameter MUST be
-// a python tuple type. This function does not care about keyword arguments
-// and keyword argument errors should be handled separately.
-static void
-__EVSpace_ComputeMatrixError(PyObject* args)
-{
-    PyObject* arg1, *arg2, *arg3, *arg4;
-    Py_ssize_t arg_count = PyTuple_GET_SIZE(args);
-    double dummy_float;
-
-    arg1 = PyTuple_GET_ITEM(args, 0);
-    arg2 = PyTuple_GET_ITEM(args, 1);
-    if (arg_count == 2)
-    {
-        if (EVSpaceObject_AsDouble(arg1, dummy_float))
-        {
-            if (!PyLong_Check(arg2) && !EVSpaceVector_Check(arg2))
-            {
-                PyErr_Format(PyExc_TypeError,
-                             "expected argument 2 to be an int or Vector type, got %s",
-                             __EVSpace_GetTypeName(arg2));
-                return;
-            }
-        }
-        else if (EVSpaceOrder_Check(arg1))
-        {
-            if (!EVSpaceAngles_Check(arg2))
-            {
-                PyErr_Format(PyExc_TypeError,
-                             "expected argument 2 to be an EulerAngles type, got %s",
-                             __EVSpace_GetTypeName(arg2));
-                return;
-            }
-        }
-        else
-        {
-            PyErr_Format(PyExc_TypeError,
-                         "expected argument 1 to be a float or RotationOrder type, got %s",
-                         __EVSpace_GetTypeName(arg1));
-            return;
-        }
-    }
-    else if (arg_count == 4)
-    {
-        arg3 = PyTuple_GET_ITEM(args, 2);
-        arg4 = PyTuple_GET_ITEM(args, 3);
-        if (!EVSpaceOrder_Check(arg1))
-        {
-            PyErr_Format(PyExc_TypeError,
-                         "expected argument 1 to be a RotationOrder type, got %s",
-                         __EVSpace_GetTypeName(arg1));
-            return;
-        }
-        else if (!EVSpaceAngles_Check(arg2))
-        {
-            PyErr_Format(PyExc_TypeError,
-                         "expected argument 2 to be an EulerAngles type, got %s",
-                         __EVSpace_GetTypeName(arg2));
-            return;
-        }
-        else if (!EVSpaceOrder_Check(arg3))
-        {
-            PyErr_Format(PyExc_TypeError,
-                         "expected argument 3 to be a RotationOrder type, got %s",
-                         __EVSpace_GetTypeName(arg3));
-            return;
-        }
-        else if (!EVSpaceAngles_Check(arg4))
-        {
-            PyErr_Format(PyExc_TypeError,
-                         "expected argument 4 to be an EulerAngles type, got %s",
-                          __EVSpace_GetTypeName(arg4));
-            return;
-        }
-    }
-    else
-    {
-        PyErr_Format(PyExc_TypeError,
-                     "expected 2 or 4 positional arguments, got %d", arg_count);
-        return;
-    }
-
-    // We shouldn't be here if at least one combination above fails, give
-    // an error so we know something went wrong.
-    PyErr_SetString(PyExc_RuntimeError, "unknown error parsing arguments");
-}
-
-static PyObject*
-EVSpaceRotation_ComputeMatrix(PyObject* Py_UNUSED(_), PyObject* args, PyObject* kwargs)
-{
-    PyObject* result;
-    evspace::Matrix* matrix, *tmp;
-    EVSpace_Vector* vector_axis;
-    EVSpace_Order* order_from, *order_to;
-    EVSpace_Angles* angles_from, *angles_to;
-    double angle;
-    int axis, intrinsic_from = 1, intrinsic_to = 1;
-
-    static const char* kwlist_empty[] = { "", "", NULL };
-    static const char* kwlist_euler[] = { "", "", "intrinsic", NULL };
-    static const char* kwlist_between[] = { "", "", "", "", "intrinsic_from", "intrinsic_to", NULL };
-
-    // (a: float, ax: int)
-    if (PyArg_ParseTupleAndKeywords(args, kwargs, "di:compute_rotation_matrix",
-        const_cast<char**>(kwlist_empty), &angle, &axis))
-    {
-        if (axis < 0 || axis > 2) {
-            PyErr_Format(PyExc_ValueError, "axis must be in [0-2] (got %i)", axis);
-            return NULL;
-        }
-
-        matrix = _EVSpaceRotate_ComputeMatrix(angle, static_cast<evspace::AxisDirection>(axis));
-        if (!matrix) {
-            return NULL;
-        }
-
-        result = EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(*matrix)));
-        delete matrix;
-        return result;
-    }
-    else if (__EVSpaceRotate_CheckKeywordException()) {
-        return NULL;
-    }
-
-    // (a: float, ax: Vector)
-    PyErr_Clear();
-    if (PyArg_ParseTupleAndKeywords(args, kwargs, "dO!:compute_rotation_matrix",
-        const_cast<char**>(kwlist_empty), &angle, &EVSpace_VectorType, &vector_axis))
-    {
-        matrix = _EVSpaceRotate_ComputeMatrix(angle, vector_axis->vector);
-        if (!matrix) {
-            return NULL;
-        }
-
-        result = EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(*matrix)));
-        delete matrix;
-        return result;
-    }
-    else if (__EVSpaceRotate_CheckKeywordException()) {
-        return NULL;
-    }
-    
-    // (o: RotationOrder, a: EulerAngles, i: bool = True)
-    PyErr_Clear();
-    if (PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!|$p", const_cast<char**>(kwlist_euler),
-        &EVSpace_OrderType, &order_from, &EVSpace_AnglesType, &angles_from, &intrinsic_from))
-    {
-        matrix = _EVSpaceRotate_ComputeMatrix(order_from, angles_from, intrinsic_from);
-        if (!matrix) {
-            return NULL;
-        }
-
-        result = EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(*matrix)));
-        delete matrix;
-        return result;
-    }
-    else if (__EVSpaceRotate_CheckKeywordException()) {
-        return NULL;
-    }
-
-    // (of: RotationOrder, af: EulerAngles, ot: RotationOrder, at: EulerAngles,
-    //  if: bool = True, it: bool = True)
-    PyErr_Clear();
-    if (PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!O!O!|$pp", const_cast<char**>(kwlist_between),
-        &EVSpace_OrderType, &order_from, &EVSpace_AnglesType, &angles_from,
-        &EVSpace_OrderType, &order_to, &EVSpace_AnglesType, &angles_to,
-        &intrinsic_from, &intrinsic_to))
-    {
-        tmp = _EVSpaceRotate_ComputeMatrix(order_from, angles_from, intrinsic_from);
-        if (!tmp) {
-            return NULL;
-        }
-
-        matrix = _EVSpaceRotate_ComputeMatrix(order_to, angles_to, intrinsic_to);
-        if (!matrix) {
-            return NULL;
-        }
-
-        matrix->transpose_inplace();
-        (*matrix) *= *tmp;
-
-        result = EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(*matrix)));
-        delete matrix;
-        delete tmp;
-        return result;
-    }
-    else if (__EVSpaceRotate_CheckKeywordException()) {
-        return NULL;
-    }
-
-    PyErr_Clear();
-    __EVSpace_ComputeMatrixError(args);
-
-    return NULL;
-}
-
-// Checks the value of offset for Py_None and fills vector_offset if applicable.
-// offset_not_none is set and returns -1 on error and 0 on success.
-static inline int
-__EVSpaceRotate_HandleOffset(PyObject* offset, evspace::Vector** vector_offset,
-                             bool& offset_not_none)
-{
-    if (!Py_IsNone(offset))
-    {
-        if (!EVSpaceVector_Check(offset)) {
-            PyErr_SetString(PyExc_TypeError, "offset keyword argument expected pyevspace.Vector type");
-            return -1;
-        }
-        else {
-            **vector_offset = *EVSpaceVector_Cast(offset)->vector;
-            offset_not_none = true;
-        }
-    }
-    else {
-        offset_not_none = false;
-    }
-
-    return 0;
 }
 
 // Checks the exception state and determines if the set exception was
@@ -3870,22 +3838,907 @@ __EVSpaceRotate_CheckKeywordException(void)
     return keyword_error;
 }
 
+//      EVSpace_ReferenceFrame new function
+// Validate `type` is a subclass of EVSpace_ReferenceFrame and
+// allocate and initialize internal memory. Using an EVSpace_Matrix
+// object will be slower and unnecessary as we don't want it directly
+// exposed anyway. Use an `evspace::Matrix` object allocated using
+// `new` and free using `delete` so the destructor is called. The
+// only internal needed to be a `PyObject*` is the offset member,
+// as this can be equal to `Py_None`. The `evspace::ReferenceFrame`
+// object cannot readily be used as it's a template class, and the
+// axes values in the python module won't be known at compile time,
+// but have to be usable at runtime. Because of this we will leverage
+// some helper methods that replicate some of the internals of
+// evspace in terms of generating the correct rotation matrices
+// but using the interface we've designed here. EVSpace_ReferenceFrame
+// also requires garbage collection support because of the ownership
+// of another `PyObject*` instance.
+//
+// While the type supports subclassing, all methods attached to
+// EVSpace_ReferenceFrame strictly return EVSpace_ReferenceFrame instances
+// instead of subclassed types because any additional parameters to a
+// subclasses __init__ methods are not known. Any subclass wanting to
+// return an instance of that subclass should overload that function
+// and use the returned values to initialize an instance of their type.
+
+
+// todo: what happens when frame.matrix is NULL and another method is called?
+
+// Updates the internal rotation matrix of an EVSpace_ReferenceFrame
+// object. This function returns 0 on success with `frame->matrix`
+// being set as the updated rotation matrix, otherwise `frame->matrix`
+// is set to NULL and return -1.
+static int
+EVSpaceReferenceFrame_UpdateMatrix(EVSpace_ReferenceFrame* frame)
+{
+    frame->matrix = _EVSpaceRotate_ComputeMatrix(
+        frame->first, frame->second, frame->third, frame->angles[0],
+        frame->angles[1], frame->angles[2], frame->intrinsic);
+    return (!frame->matrix) ? -1 : 0;
+}
+
+static EVSpace_ReferenceFrame*
+EVSpaceReferenceFrame_New(evspace::AxisDirection first, evspace::AxisDirection second,
+                           evspace::AxisDirection third, const evspace::EulerAngles& angles,
+                           PyObject* offset, bool intrinsic, PyTypeObject* type)
+{
+    EVSpace_ReferenceFrame* self = NULL;
+    EVSpace_State* state = (EVSpace_State*)EVSpaceState_FromType(type);
+
+    if (!state)
+    {
+        // Since this function can be called from anywhere, we should annotate a full
+        // exception if `type` is not a correct subclass
+        if (PyErr_Occurred())
+        {
+            PyErr_Clear();
+            PyErr_Format(PyExc_TypeError, "%s is not a subtype of pyevspace.ReferenceFrame",
+                         type->tp_name);
+        }
+        return NULL;
+    }
+
+    if (!PyObject_IsSubclass((PyObject*)type, (PyObject*)state->ReferenceFrame_Type))
+    {
+        PyErr_Format(PyExc_TypeError, "%s is not a subtype of pyevspace.ReferenceFrame",
+                     type->tp_name);
+        return NULL;
+    }
+    
+    self = (EVSpace_ReferenceFrame*)(type->tp_alloc(type, 0));
+    if (!self) {
+        return NULL;
+    }
+
+    self->first = first;
+    self->second = second;
+    self->third = third;
+
+    self->angles[0] = (angles)[0];
+    self->angles[1] = (angles)[1];
+    self->angles[2] = (angles)[2];
+
+    self->intrinsic = intrinsic;
+
+    try {
+        self->matrix = new evspace::Matrix();
+    }
+    catch (const std::bad_alloc&) {
+        Py_DECREF(self);
+        PyErr_NoMemory();
+        return NULL;
+    }
+
+    if (!offset) {
+        self->offset = Py_NewRef(Py_None);
+    }
+    else if (PyObject_TypeCheck(offset, state->Vector_Type))
+    {
+        self->offset = Py_NewRef(offset);
+    }
+    else {
+        PyErr_Format(PyExc_TypeError, "offset must be Vector type or None, got %s",
+                     __EVSpace_GetTypeName(offset));
+        Py_DECREF(self);
+        return NULL;
+    }
+
+    if (EVSpaceReferenceFrame_UpdateMatrix(self) < 0)
+    {
+        Py_DECREF(self);
+        return NULL;
+    }
+
+    return self;
+}
+
+static PyObject*
+ReferenceFrame_New(PyTypeObject* type, PyObject* args, PyObject* kwargs)
+{
+    EVSpace_Order* order = NULL;
+    EVSpace_Angles* angles = NULL;
+    PyObject* offset = NULL;
+    int intrinsic = true;
+    static const char* kwargs_list[] = { "", "", "intrinsic", "offset", NULL };
+    EVSpace_State* state = EVSpaceState_FromType(type);
+
+    if (!state) {
+        return NULL;
+    }
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!|$pO", const_cast<char**>(kwargs_list),
+                                     state->RotationOrder_Type, &order, state->EulerAngles_Type,
+                                     &angles, &intrinsic, &offset)) {
+        return NULL;
+    }
+
+    // If offset is explicitly set to None re-set it to NULL
+    if (offset && Py_IsNone(offset))
+    {
+        offset = NULL;
+    }
+    else if (offset && !PyObject_TypeCheck(offset, state->Vector_Type))
+    {
+        PyErr_Format(PyExc_TypeError, "offset must be a Vector type or None, got %s",
+                     __EVSpace_GetTypeName(offset));
+        return NULL;
+    }
+
+    return reinterpret_cast<PyObject*>(
+        EVSpaceReferenceFrame_New(order->first, order->second, order->third,
+                                  *angles->angles, offset, static_cast<bool>(intrinsic), type)
+    );
+}
+
+// Not initializing a ReferenceFrame on allocation leaves things in such
+// an invalid state I'm not implementing the __init__ method for now.
+
+static int
+ReferenceFrame_traverse(EVSpace_ReferenceFrame* self, visitproc visit, void *arg)
+{
+    Py_VISIT(Py_TYPE(self));
+    Py_VISIT(self->offset);
+    return 0;
+}
+
+static int
+ReferenceFrame_clear(EVSpace_ReferenceFrame* self)
+{
+    Py_CLEAR(self->offset);
+    return 0;
+}
+
+static void
+ReferenceFrame_Dealloc(EVSpace_ReferenceFrame* self)
+{
+    PyObject_GC_UnTrack(self);
+    delete self->matrix;
+    ReferenceFrame_clear(self);
+    PyTypeObject* tp = Py_TYPE(self);
+    Py_TYPE(self)->tp_free(EVS_PyObject_Cast(self));
+    Py_DECREF(tp);
+}
+
+static PyObject*
+ReferenceFrame_GetMatrix(EVSpace_ReferenceFrame* self, PyObject* Py_UNUSED())
+{
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+
+    if (!state) {
+        return NULL;
+    }
+
+    return reinterpret_cast<PyObject*>(EVSpaceMatrix_New(*self->matrix, state->Matrix_Type));
+}
+
+static PyObject*
+ReferenceFrame_GetAngles(EVSpace_ReferenceFrame* self, PyObject* Py_UNUSED())
+{
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+
+    if (!state) {
+        return NULL;
+    }
+
+    return reinterpret_cast<PyObject*>(EVSpaceAngles_New(self->angles[0], self->angles[1],
+                                                         self->angles[2], state->EulerAngles_Type));
+}
+
+static PyObject*
+ReferenceFrame_SetAngles(EVSpace_ReferenceFrame* self, PyObject* args, PyObject* kwargs)
+{
+    double alpha{}, beta{}, gamma{};
+    PyObject* arg1{NULL}, *arg2{NULL}, *arg3{NULL};
+    EVSpace_Angles* angles{NULL};
+    Py_ssize_t arg_count = PyTuple_GET_SIZE(args);
+    static const char* kwarg_names[] = {"alpha", "beta", "gamma", NULL};
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+
+    if (!state) {
+        return NULL;
+    }
+
+    if (arg_count == 1)
+    {   
+        if (PyArg_ParseTuple(args, "O!:set_angles", state->EulerAngles_Type, &angles))
+        {
+            self->angles[0] = (*angles->angles)[0];
+            self->angles[1] = (*angles->angles)[1];
+            self->angles[2] = (*angles->angles)[2];
+            
+            EVSpaceReferenceFrame_UpdateMatrix(self);
+            
+            Py_INCREF(Py_None);
+            Py_RETURN_NONE;
+        }
+        else {
+            return NULL;
+        }
+    }
+    else if (arg_count > 1) {
+        PyErr_Format(PyExc_TypeError, "expected 1 position argument, got %d", arg_count);
+        return NULL;
+    }
+    
+    if (PyArg_ParseTupleAndKeywords(args, kwargs, "|$OOO:set_angles",
+                                    const_cast<char**>(kwarg_names),
+                                    &arg1, &arg2, &arg3))
+    {
+        // Reset args to NULL if they're None
+        if (Py_IsNone(arg1)) {
+            arg1 = NULL;
+        }
+
+        if (Py_IsNone(arg2)) {
+            arg2 = NULL;
+        }
+
+        if (Py_IsNone(arg3))
+        {
+            arg3 = NULL;
+        }
+
+
+        if (arg1 && !EVSpaceObject_AsDouble(arg1, alpha)) {
+            return NULL;
+        }
+        if (arg2 && !EVSpaceObject_AsDouble(arg2, beta)) {
+            return NULL;
+        }
+        if (arg3 && !EVSpaceObject_AsDouble(arg3, gamma)) {
+            return NULL;
+        }
+
+        if (arg1) {
+            self->angles[0] = alpha;
+        }
+        if (arg2) {
+            self->angles[1] = beta;
+        }
+        if (arg3) {
+            self->angles[2] = gamma;
+        }
+
+        EVSpaceReferenceFrame_UpdateMatrix(self);
+
+        Py_INCREF(Py_None);
+        Py_RETURN_NONE;
+    }
+    else {
+        return NULL;
+    }
+}
+
+static PyObject*
+ReferenceFrame_GetOrder(EVSpace_ReferenceFrame* self, void* Py_UNUSED())
+{
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+
+    if (!state) {
+        return NULL;
+    }
+
+    return reinterpret_cast<PyObject*>(
+        EVSpaceOrder_New(self->first, self->second, self->third,
+                         state->RotationOrder_Type)
+    );
+}
+
+static PyObject*
+ReferenceFrame_GetOffset(EVSpace_ReferenceFrame* self, void* Py_UNUSED())
+{
+    return Py_NewRef(self->offset);
+}
+
+static int
+ReferenceFrame_SetOffset(EVSpace_ReferenceFrame* self, PyObject* arg,
+                         void* Py_UNUSED())
+{
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+
+    if (!state) {
+        return -1;
+    }
+
+    if (!arg) {
+        PyErr_SetString(PyExc_ValueError, "cannot delete offset attribute");
+        return -1;
+    }
+
+    if (!Py_IsNone(arg) && !PyObject_TypeCheck(arg, state->Vector_Type))
+    {
+        PyErr_Format(PyExc_TypeError, "expected offset to be Vector type or "
+                     "None, got %s", __EVSpace_GetTypeName(arg));
+        return -1;
+    }
+
+    Py_SETREF(self->offset, Py_NewRef(arg));
+
+    return 0;
+}
+
+static PyMemberDef reference_frame_members[] = {
+    {
+#if PY_VERSION_HEX >= 0x030c0000
+    "intrinsic", Py_T_BOOL, offsetof(EVSpace_ReferenceFrame, intrinsic), Py_READONLY,
+#else
+    "intrinsic", T_BOOL, offsetof(EVSpace_ReferenceFrame, intrinsic), READONLY,
+#endif
+    PyDoc_STR("rotation intrinsic value")},
+
+    {NULL, 0, 0, 0, NULL}
+};
+
+static PyGetSetDef reference_frame_getset[] = {
+    {"order", (getter)ReferenceFrame_GetOrder, NULL,
+     PyDoc_STR("order of axes in the rotation"), NULL},
+
+    {"offset", (getter)ReferenceFrame_GetOffset,
+     (setter)ReferenceFrame_SetOffset,
+     PyDoc_STR("offset of the reference frame origin"), NULL},
+
+    {NULL, NULL, NULL, NULL, NULL}
+};
+
+static PyObject*
+ReferenceFrame_RotateTo(EVSpace_ReferenceFrame* self, PyObject* args)
+{
+    PyObject* arg1 = NULL, *arg2 = NULL;
+    EVSpace_Vector* vector = NULL, *offset = NULL;
+    EVSpace_ReferenceFrame* other_frame = NULL;
+    Py_ssize_t arg_count = PyTuple_GET_SIZE(args);
+    evspace::Vector* tmp = NULL;
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+
+    if (!state) {
+        return NULL;
+    }
+
+    if (arg_count == 1)
+    {
+        arg1 = PyTuple_GET_ITEM(args, 0);
+        if (!PyObject_TypeCheck(arg1, state->Vector_Type))
+        {
+            PyErr_Format(PyExc_TypeError,
+                         "expected argument 1 to be Vector type, got %s",
+                         __EVSpace_GetTypeName(arg1));
+            return NULL;
+        }
+
+        vector = EVSpaceVector_Cast(arg1);
+
+        if (Py_IsNone(self->offset))
+        {
+            return reinterpret_cast<PyObject*>(
+                EVSpaceVector_New(std::move(*_EVSpaceRotate_To(self->matrix, vector->vector)),
+                                  state->Vector_Type)
+            );
+        }
+        else
+        {
+            offset = EVSpaceVector_Cast(self->offset);
+            return reinterpret_cast<PyObject*>(
+                EVSpaceVector_New(
+                    std::move(*_EVSpaceRotate_To(self->matrix, vector->vector, offset->vector)),
+                    state->Vector_Type
+                )
+            );
+        }
+    }
+    else if (arg_count == 2)
+    {
+        arg1 = PyTuple_GET_ITEM(args, 0);
+        if (!PyObject_TypeCheck(arg1, state->ReferenceFrame_Type))
+        {
+            PyErr_Format(PyExc_TypeError,
+                         "expected argument 1 to be ReferenceFrame type, got %s",
+                         __EVSpace_GetTypeName(arg1));
+            return NULL;
+        }
+
+        arg2 = PyTuple_GET_ITEM(args, 1);
+        if (!PyObject_TypeCheck(arg2, state->Vector_Type))
+        {
+            PyErr_Format(PyExc_TypeError,
+                         "expected argument 2 to be Vector type, got %s",
+                         __EVSpace_GetTypeName(arg2));
+            return NULL;
+        }
+
+        other_frame = reinterpret_cast<EVSpace_ReferenceFrame*>(arg1);
+        vector = EVSpaceVector_Cast(arg2);
+
+        if (Py_IsNone(other_frame->offset))
+        {
+            tmp = _EVSpaceRotate_From(other_frame->matrix, vector->vector);
+            if (!tmp) {
+                return NULL;
+            }
+        }
+        else
+        {
+            offset = EVSpaceVector_Cast(other_frame->offset);
+            tmp = _EVSpaceRotate_From(other_frame->matrix, vector->vector, offset->vector);
+            if (!tmp) {
+                return NULL;
+            }
+        }
+
+        if (Py_IsNone(self->offset))
+        {
+            return reinterpret_cast<PyObject*>(
+                EVSpaceVector_New(std::move(*_EVSpaceRotate_To(self->matrix, tmp)),
+                                  state->Vector_Type)
+            );
+        }
+        else
+        {
+            offset = EVSpaceVector_Cast(self->offset);
+            return reinterpret_cast<PyObject*>(
+                EVSpaceVector_New(std::move(*_EVSpaceRotate_To(self->matrix, tmp, offset->vector)),
+                                  state->Vector_Type)
+            );
+        }
+    }
+    else
+    {
+        PyErr_Format(PyExc_TypeError,
+                     "expected 1 or 2 arguments, got %d",
+                     arg_count);
+        return NULL;
+    }
+}
+
+static PyObject*
+ReferenceFrame_RotateFrom(EVSpace_ReferenceFrame* self, PyObject* args)
+{
+    PyObject* arg1 = NULL, *arg2 = NULL;
+    EVSpace_Vector* vector = NULL, *offset = NULL;
+    EVSpace_ReferenceFrame* other_frame = NULL;
+    Py_ssize_t arg_count = PyTuple_GET_SIZE(args);
+    evspace::Vector* tmp = NULL;
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
+
+    if (!state) {
+        return NULL;
+    }
+
+    if (arg_count == 1)
+    {
+        arg1 = PyTuple_GET_ITEM(args, 0);
+        if (!PyObject_TypeCheck(arg1, state->Vector_Type))
+        {
+            PyErr_Format(PyExc_TypeError,
+                         "expected argument 1 to be Vector type, got %s",
+                         __EVSpace_GetTypeName(arg1));
+            return NULL;
+        }
+
+        vector = EVSpaceVector_Cast(arg1);
+
+        if (Py_IsNone(self->offset))
+        {
+            return reinterpret_cast<PyObject*>(
+                EVSpaceVector_New(std::move(*_EVSpaceRotate_From(self->matrix, vector->vector)),
+                                  state->Vector_Type)
+            );
+        }
+        else
+        {
+            offset = EVSpaceVector_Cast(self->offset);
+            return reinterpret_cast<PyObject*>(
+                EVSpaceVector_New(
+                    std::move(*_EVSpaceRotate_From(self->matrix, vector->vector, offset->vector)),
+                    state->Vector_Type
+                )
+            );
+        }
+    }
+    else if (arg_count == 2)
+    {
+        arg1 = PyTuple_GET_ITEM(args, 0);
+        if (!PyObject_TypeCheck(arg1, state->ReferenceFrame_Type))
+        {
+            PyErr_Format(PyExc_TypeError,
+                         "expected argument 1 to be ReferenceFrame type, got %s",
+                         __EVSpace_GetTypeName(arg1));
+            return NULL;
+        }
+
+        arg2 = PyTuple_GET_ITEM(args, 1);
+        if (!PyObject_TypeCheck(arg2, state->Vector_Type))
+        {
+            PyErr_Format(PyExc_TypeError,
+                         "expected argument 2 to be Vector type, got %s",
+                         __EVSpace_GetTypeName(arg2));
+            return NULL;
+        }
+
+        other_frame = reinterpret_cast<EVSpace_ReferenceFrame*>(arg1);
+        vector = EVSpaceVector_Cast(arg2);
+
+        if (Py_IsNone(self->offset))
+        {
+            tmp = _EVSpaceRotate_From(self->matrix, vector->vector);
+            if (!tmp) {
+                return NULL;
+            }
+        }
+        else
+        {
+            offset = EVSpaceVector_Cast(self->offset);
+            tmp = _EVSpaceRotate_From(self->matrix, vector->vector, offset->vector);
+            if (!tmp) {
+                return NULL;
+            }
+        }
+
+        if (Py_IsNone(other_frame->offset))
+        {
+            return reinterpret_cast<PyObject*>(
+                EVSpaceVector_New(std::move(*_EVSpaceRotate_To(other_frame->matrix, tmp)),
+                                  state->Vector_Type)
+            );
+        }
+        else
+        {
+            offset = EVSpaceVector_Cast(other_frame->offset);
+            return reinterpret_cast<PyObject*>(
+                EVSpaceVector_New(std::move(*_EVSpaceRotate_To(other_frame->matrix, tmp,
+                                                               offset->vector)),
+                                  state->Vector_Type)
+            );
+        }
+    }
+    else
+    {
+        PyErr_Format(PyExc_TypeError,
+                     "expected 1 or 2 arguments, got %d",
+                     arg_count);
+        return NULL;
+    }
+}
+
+PyDoc_STRVAR(refframe_get_matrix_doc, "get_matrix() -> Matrix\n\
+\n\
+Get a copy of the internal matrix representation of the current rotation state.");
+
+PyDoc_STRVAR(refframe_get_angles_doc, "get_angles() -> EulerAngles\n\
+\n\
+Get a new EulerAngles object representing the current values of the rotation angles.");
+
+PyDoc_STRVAR(refframe_set_angles_doc, "set_angles(angles: EulerAngles) -> None\n\
+set_angles(*, alpha: float = None, beta: float = None, gamma: float = None) -> None\n\
+\n\
+Update rotation angles and recompute internal rotation matrix.");
+
+PyDoc_STRVAR(refframe_rotate_to_doc, "rotate_to(vector: Vector) -> Vector\n\
+rotate_to(frame: ReferenceFrame, vector: Vector) -> Vector\n\
+\n\
+Rotate a vector to the reference frame. If another ReferenceFrame is provided,\n\
+vector will be rotated from that reference frame to this reference frame.");
+
+PyDoc_STRVAR(refframe_rotate_from_doc, "rotate_from(vector: Vector) -> Vector\n\
+rotate_from(frame: ReferenceFrame, vector: Vector) -> Vector\n\
+\n\
+Rotate a vector from the reference frame. If another ReferenceFrame is provided,\n\
+vector will be rotated to that reference frame from this reference frame.");
+
+static PyMethodDef reference_frame_methods[] = {
+
+    {"get_matrix", (PyCFunction)ReferenceFrame_GetMatrix, METH_NOARGS,
+     refframe_get_matrix_doc},
+
+    {"get_angles", (PyCFunction)ReferenceFrame_GetAngles, METH_NOARGS,
+     refframe_get_angles_doc},
+
+    {"set_angles", (PyCFunction)(void(*)(void))ReferenceFrame_SetAngles,
+     METH_VARARGS | METH_KEYWORDS, refframe_set_angles_doc},
+
+    {"rotate_to", (PyCFunction)ReferenceFrame_RotateTo, METH_VARARGS,
+     refframe_rotate_to_doc},
+
+    {"rotate_from", (PyCFunction)ReferenceFrame_RotateFrom, METH_VARARGS,
+     refframe_rotate_from_doc},
+
+    {NULL, NULL, 0, NULL}
+};
+
+PyDoc_STRVAR(reference_frame_doc, "ReferenceFrame(order: RotationOrder, angles: EulerAngles, *, offset: Vector | None = None, intrinsic: bool = True)\n\
+A class that represents a reference frame defined by the parameters. The class\n\
+can then be used to rotate vectors to, from, or even between other ReferenceFrame\n\
+object.");
+
+static PyType_Slot frame_slots[] = {
+    {Py_tp_dealloc,         (void*)ReferenceFrame_Dealloc},
+    {Py_tp_traverse,        (void*)ReferenceFrame_traverse},
+    {Py_tp_clear,           (void*)ReferenceFrame_clear},
+    {Py_tp_doc,             (void*)reference_frame_doc},
+    {Py_tp_methods,         (void*)reference_frame_methods},
+    {Py_tp_members,         (void*)reference_frame_members},
+    {Py_tp_getset,          (void*)reference_frame_getset},
+    {Py_tp_new,             (void*)ReferenceFrame_New},
+    {0,                     NULL}
+};
+
+static PyType_Spec frame_spec = {
+    "pyevspace.ReferenceFrame",     /* name */
+    sizeof(EVSpace_ReferenceFrame), /* basicsize */
+    0,                              /* itemsize */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,   /* flags */
+    frame_slots                     /* slots */
+};
+
+//      Module rotation methods
+
 // Analyze the args tuple and deduce the most likely intended signature
 // and produce an informative type error. The `args` parameter MUST be
 // a python tuple type. This function does not care about keyword arguments
 // and keyword argument errors should be handled separately.
 static void
-_EVSpaceRotate_ProcessArgsError(PyObject* args)
+__EVSpace_ComputeMatrixError(PyObject* args, EVSpace_State* state)
 {
+    PyObject* arg1 = NULL, *arg2 = NULL, *arg3 = NULL, *arg4 = NULL;
     Py_ssize_t arg_count = PyTuple_GET_SIZE(args);
-    PyObject* arg1, *arg2, *arg3;
-    double dummy_float;
+    double dummy_float{};
 
     arg1 = PyTuple_GET_ITEM(args, 0);
     arg2 = PyTuple_GET_ITEM(args, 1);
     if (arg_count == 2)
     {
-        if (!EVSpaceMatrix_Check(arg1))
+        if (EVSpaceObject_AsDouble(arg1, dummy_float))
+        {
+            if (!PyLong_Check(arg2) && !PyObject_TypeCheck(arg2, state->Vector_Type))
+            {
+                PyErr_Format(PyExc_TypeError,
+                             "expected argument 2 to be an int or Vector type, got %s",
+                             __EVSpace_GetTypeName(arg2));
+                return;
+            }
+        }
+        else if (PyObject_TypeCheck(arg1, state->RotationOrder_Type))
+        {
+            if (!PyObject_TypeCheck(arg2, state->EulerAngles_Type))
+            {
+                PyErr_Format(PyExc_TypeError,
+                             "expected argument 2 to be an EulerAngles type, got %s",
+                             __EVSpace_GetTypeName(arg2));
+                return;
+            }
+        }
+        else
+        {
+            PyErr_Format(PyExc_TypeError,
+                         "expected argument 1 to be a float or RotationOrder type, got %s",
+                         __EVSpace_GetTypeName(arg1));
+            return;
+        }
+    }
+    else if (arg_count == 4)
+    {
+        arg3 = PyTuple_GET_ITEM(args, 2);
+        arg4 = PyTuple_GET_ITEM(args, 3);
+        if (!PyObject_TypeCheck(arg1, state->RotationOrder_Type))
+        {
+            PyErr_Format(PyExc_TypeError,
+                         "expected argument 1 to be a RotationOrder type, got %s",
+                         __EVSpace_GetTypeName(arg1));
+            return;
+        }
+        else if (!PyObject_TypeCheck(arg2, state->EulerAngles_Type))
+        {
+            PyErr_Format(PyExc_TypeError,
+                         "expected argument 2 to be an EulerAngles type, got %s",
+                         __EVSpace_GetTypeName(arg2));
+            return;
+        }
+        else if (!PyObject_TypeCheck(arg3, state->RotationOrder_Type))
+        {
+            PyErr_Format(PyExc_TypeError,
+                         "expected argument 3 to be a RotationOrder type, got %s",
+                         __EVSpace_GetTypeName(arg3));
+            return;
+        }
+        else if (!PyObject_TypeCheck(arg4, state->EulerAngles_Type))
+        {
+            PyErr_Format(PyExc_TypeError,
+                         "expected argument 4 to be an EulerAngles type, got %s",
+                          __EVSpace_GetTypeName(arg4));
+            return;
+        }
+    }
+    else
+    {
+        PyErr_Format(PyExc_TypeError,
+                     "expected 2 or 4 positional arguments, got %d", arg_count);
+        return;
+    }
+
+    // We shouldn't be here if at least one combination above fails, give
+    // an error so we know something went wrong.
+    PyErr_SetString(PyExc_RuntimeError, "unknown error parsing arguments");
+}
+
+static PyObject*
+EVSpaceRotation_ComputeMatrix(PyObject* module, PyObject* args, PyObject* kwargs)
+{
+    PyObject* result = NULL;
+    evspace::Matrix* matrix = NULL, *tmp = NULL;
+    EVSpace_Vector* vector_axis = NULL;
+    EVSpace_Order* order_from = NULL, *order_to = NULL;
+    EVSpace_Angles* angles_from = NULL, *angles_to = NULL;
+    double angle{};
+    int axis{}, intrinsic_from = 1, intrinsic_to = 1;
+    static const char* kwlist_empty[] = { "", "", NULL };
+    static const char* kwlist_euler[] = { "", "", "intrinsic", NULL };
+    static const char* kwlist_between[] = { "", "", "", "", "intrinsic_from", "intrinsic_to", NULL };
+    EVSpace_State* state = (EVSpace_State*)PyModule_GetState(module);
+
+    if (!state) {
+        return NULL;
+    }
+
+    // (a: float, ax: int)
+    if (PyArg_ParseTupleAndKeywords(args, kwargs, "di:compute_rotation_matrix",
+        const_cast<char**>(kwlist_empty), &angle, &axis))
+    {
+        if (axis < 0 || axis > 2) {
+            PyErr_Format(PyExc_ValueError, "axis must be in [0-2] (got %i)", axis);
+            return NULL;
+        }
+
+        matrix = _EVSpaceRotate_ComputeMatrix(angle, static_cast<evspace::AxisDirection>(axis));
+        if (!matrix) {
+            return NULL;
+        }
+
+        result = EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(*matrix), state->Matrix_Type));
+        delete matrix;
+        return result;
+    }
+    else if (__EVSpaceRotate_CheckKeywordException()) {
+        return NULL;
+    }
+
+    // (a: float, ax: Vector)
+    PyErr_Clear();
+    if (PyArg_ParseTupleAndKeywords(args, kwargs, "dO!:compute_rotation_matrix",
+        const_cast<char**>(kwlist_empty), &angle, state->Vector_Type, &vector_axis))
+    {
+        matrix = _EVSpaceRotate_ComputeMatrix(angle, vector_axis->vector);
+        if (!matrix) {
+            return NULL;
+        }
+
+        result = EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(*matrix), state->Matrix_Type));
+        delete matrix;
+        return result;
+    }
+    else if (__EVSpaceRotate_CheckKeywordException()) {
+        return NULL;
+    }
+    
+    // (o: RotationOrder, a: EulerAngles, i: bool = True)
+    PyErr_Clear();
+    if (PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!|$p", const_cast<char**>(kwlist_euler),
+        state->RotationOrder_Type, &order_from, state->EulerAngles_Type, &angles_from,
+        &intrinsic_from))
+    {
+        matrix = _EVSpaceRotate_ComputeMatrix(order_from, angles_from, intrinsic_from);
+        if (!matrix) {
+            return NULL;
+        }
+
+        result = EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(*matrix), state->Matrix_Type));
+        delete matrix;
+        return result;
+    }
+    else if (__EVSpaceRotate_CheckKeywordException()) {
+        return NULL;
+    }
+
+    // (of: RotationOrder, af: EulerAngles, ot: RotationOrder, at: EulerAngles,
+    //  if: bool = True, it: bool = True)
+    PyErr_Clear();
+    if (PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!O!O!|$pp", const_cast<char**>(kwlist_between),
+        state->RotationOrder_Type, &order_from, state->EulerAngles_Type, &angles_from,
+        state->RotationOrder_Type, &order_to, state->EulerAngles_Type, &angles_to,
+        &intrinsic_from, &intrinsic_to))
+    {
+        tmp = _EVSpaceRotate_ComputeMatrix(order_from, angles_from, intrinsic_from);
+        if (!tmp) {
+            return NULL;
+        }
+
+        matrix = _EVSpaceRotate_ComputeMatrix(order_to, angles_to, intrinsic_to);
+        if (!matrix) {
+            return NULL;
+        }
+
+        matrix->transpose_inplace();
+        (*matrix) *= *tmp;
+
+        result = EVS_PyObject_Cast(EVSpaceMatrix_New(std::move(*matrix), state->Matrix_Type));
+        delete matrix;
+        delete tmp;
+        return result;
+    }
+    else if (__EVSpaceRotate_CheckKeywordException()) {
+        return NULL;
+    }
+
+    PyErr_Clear();
+    __EVSpace_ComputeMatrixError(args, state);
+
+    return NULL;
+}
+
+// Checks the value of offset for Py_None and fills vector_offset if applicable.
+// The `offset_not_none` is an easy way of directly telling callers of the
+// function which signature of a rotation computation function to call. If the
+// `offset` parameter is `Py_None` then `vector_offset` is not touched and
+// `offset_not_none is set to true, otherwise `vector_offset` is filled and
+// `offset_not_none is set to false. Returns -1 on error and 0 on success.
+static inline int
+__EVSpaceRotate_HandleOffset(PyObject* offset, evspace::Vector** vector_offset,
+                             bool& offset_not_none, EVSpace_State* state)
+{
+    if (!Py_IsNone(offset))
+    {
+        if (!PyObject_TypeCheck(offset, state->Vector_Type))
+        {
+            PyErr_SetString(PyExc_TypeError, "offset keyword argument expected pyevspace.Vector type");
+            return -1;
+        }
+        else {
+            **vector_offset = *EVSpaceVector_Cast(offset)->vector;
+            offset_not_none = true;
+        }
+    }
+    else {
+        offset_not_none = false;
+    }
+
+    return 0;
+}
+
+// Analyze the args tuple and deduce the most likely intended signature
+// and produce an informative type error. The `args` parameter MUST be
+// a python tuple type. This function does not care about keyword arguments
+// and keyword argument errors should be handled separately.
+static void
+_EVSpaceRotate_ProcessArgsError(PyObject* args, EVSpace_State* state)
+{
+    Py_ssize_t arg_count = PyTuple_GET_SIZE(args);
+    PyObject* arg1 = NULL, *arg2 = NULL, *arg3 = NULL;
+    double dummy_float{};
+
+    arg1 = PyTuple_GET_ITEM(args, 0);
+    arg2 = PyTuple_GET_ITEM(args, 1);
+    if (arg_count == 2)
+    {
+        if (!PyObject_TypeCheck(arg1, state->Matrix_Type))
         {
             PyErr_Format(PyExc_TypeError,
                          "expected argument 1 to be a Matrix type, got %s",
@@ -3893,7 +4746,7 @@ _EVSpaceRotate_ProcessArgsError(PyObject* args)
             return;
         }
 
-        if (!EVSpaceVector_Check(arg2))
+        if (!PyObject_TypeCheck(arg2, state->Vector_Type))
         {
             PyErr_Format(PyExc_TypeError,
                          "expected argument 2 to be a Vector type, got %s",
@@ -3910,14 +4763,14 @@ _EVSpaceRotate_ProcessArgsError(PyObject* args)
         // neither type for first give generic-ish error
         if (EVSpaceObject_AsDouble(arg1, dummy_float))
         {
-            if (!EVSpaceVector_Check(arg2) && !PyLong_Check(arg2))
+            if (!PyObject_TypeCheck(arg2, state->Matrix_Type) && !PyLong_Check(arg2))
             {
                 PyErr_Format(PyExc_TypeError,
                              "expected argument 2 to be an int or Vector type, got %s",
                              __EVSpace_GetTypeName(arg2));
                 return;
             }
-            else if (!EVSpaceVector_Check(arg3))
+            if (!PyObject_TypeCheck(arg3, state->Vector_Type))
             {
                 PyErr_Format(PyExc_TypeError,
                              "expected argument 3 to be a Vector type, got %s",
@@ -3925,16 +4778,16 @@ _EVSpaceRotate_ProcessArgsError(PyObject* args)
                 return;
             }
         }
-        else if (EVSpaceOrder_Check(arg1))
+        if (PyObject_TypeCheck(arg1, state->RotationOrder_Type))
         {
-            if (!EVSpaceAngles_Check(arg2))
+            if (!PyObject_TypeCheck(arg2, state->EulerAngles_Type))
             {
                 PyErr_Format(PyExc_TypeError,
                              "expected argument 2 to be an EulerAngles type, got %s",
                              __EVSpace_GetTypeName(arg2));
                 return;
             }
-            else if (!EVSpaceVector_Check(arg3))
+            if (!PyObject_TypeCheck(arg3, state->Vector_Type))
             {
                 PyErr_Format(PyExc_TypeError,
                              "expected argument 3 to be a Vector type, got %s",
@@ -3971,7 +4824,7 @@ _EVSpaceRotate_ProcessArgsError(PyObject* args)
 static int
 _EVSpaceRotate_ProcessArgs(PyObject* args, PyObject* kwargs, evspace::Matrix** matrix,
                            evspace::Vector** vector, evspace::Vector** vector_offset,
-                           bool& offset_not_none, const char* name)
+                           bool& offset_not_none, const char* name, EVSpace_State* state)
 {
     // signatures that we need to accept:
     // (matrix: Matrix, vector: Vector, *, offset: Vector = None)
@@ -3981,14 +4834,13 @@ _EVSpaceRotate_ProcessArgs(PyObject* args, PyObject* kwargs, evspace::Matrix** m
     //  intrinsic: bool = True)
 
     PyObject* offset = Py_None;
-    evspace::Matrix* matrix_tmp;
-    // evspace::Vector* vector_tmp;
-    EVSpace_Matrix* matrix_wrapper;
-    EVSpace_Vector* vector_wrapper, *vector_axis;
-    EVSpace_Order* order;
-    EVSpace_Angles* angles;
-    double angle;
-    int axis, intrinsic = 1;
+    evspace::Matrix* matrix_tmp = NULL;
+    EVSpace_Matrix* matrix_wrapper = NULL;
+    EVSpace_Vector* vector_wrapper = NULL, *vector_axis = NULL;
+    EVSpace_Order* order = NULL;
+    EVSpace_Angles* angles = NULL;
+    double angle{};
+    int axis{}, intrinsic = 1;
     char format[64];
 
     static const char* kwlist_matrix[] = { "", "", "offset", NULL };
@@ -3999,9 +4851,9 @@ _EVSpaceRotate_ProcessArgs(PyObject* args, PyObject* kwargs, evspace::Matrix** m
     strcpy(format, "O!O!|$O:");
     strcat(format, name);
     if (PyArg_ParseTupleAndKeywords(args, kwargs, format, const_cast<char**>(kwlist_matrix),
-        &EVSpace_MatrixType, &matrix_wrapper, &EVSpace_VectorType, &vector_wrapper, &offset))
+        state->Matrix_Type, &matrix_wrapper, state->Vector_Type, &vector_wrapper, &offset))
     {
-        if (__EVSpaceRotate_HandleOffset(offset, vector_offset, offset_not_none) < 0) {
+        if (__EVSpaceRotate_HandleOffset(offset, vector_offset, offset_not_none, state) < 0) {
             return -1;
         }
 
@@ -4019,9 +4871,9 @@ _EVSpaceRotate_ProcessArgs(PyObject* args, PyObject* kwargs, evspace::Matrix** m
     strcpy(format, "diO!|$O:");
     strcat(format, name);
     if (PyArg_ParseTupleAndKeywords(args, kwargs, format, const_cast<char**>(kwlist_axis),
-        &angle, &axis, &EVSpace_VectorType, &vector_wrapper, &offset))
+        &angle, &axis, state->Vector_Type, &vector_wrapper, &offset))
     {
-        if (__EVSpaceRotate_HandleOffset(offset, vector_offset, offset_not_none) < 0) {
+        if (__EVSpaceRotate_HandleOffset(offset, vector_offset, offset_not_none, state) < 0) {
             return -1;
         }
 
@@ -4046,10 +4898,10 @@ _EVSpaceRotate_ProcessArgs(PyObject* args, PyObject* kwargs, evspace::Matrix** m
     strcpy(format, "dO!O!|$O:");
     strcat(format, name);
     if (PyArg_ParseTupleAndKeywords(args, kwargs, format, const_cast<char**>(kwlist_axis),
-        &angle, &EVSpace_VectorType, &vector_axis, &EVSpace_VectorType,
+        &angle, state->Vector_Type, &vector_axis, state->Vector_Type,
         &vector_wrapper, &offset))
     {
-        if (__EVSpaceRotate_HandleOffset(offset, vector_offset, offset_not_none) < 0) {
+        if (__EVSpaceRotate_HandleOffset(offset, vector_offset, offset_not_none, state) < 0) {
             return -1;
         }
 
@@ -4073,10 +4925,10 @@ _EVSpaceRotate_ProcessArgs(PyObject* args, PyObject* kwargs, evspace::Matrix** m
     strcpy(format, "O!O!O!|$Op:");
     strcat(format, name);
     if (PyArg_ParseTupleAndKeywords(args, kwargs, format, const_cast<char**>(kwlist_euler),
-        &EVSpace_OrderType, &order, &EVSpace_AnglesType, &angles,
-        &EVSpace_VectorType, &vector_wrapper, &offset, &intrinsic))
+        state->RotationOrder_Type, &order, state->EulerAngles_Type, &angles,
+        state->Vector_Type, &vector_wrapper, &offset, &intrinsic))
     {
-        if (__EVSpaceRotate_HandleOffset(offset, vector_offset, offset_not_none) < 0) {
+        if (__EVSpaceRotate_HandleOffset(offset, vector_offset, offset_not_none, state) < 0) {
             return -1;
         }
 
@@ -4096,17 +4948,18 @@ _EVSpaceRotate_ProcessArgs(PyObject* args, PyObject* kwargs, evspace::Matrix** m
     }
     
     PyErr_Clear();
-    _EVSpaceRotate_ProcessArgsError(args);
+    _EVSpaceRotate_ProcessArgsError(args, state);
 
     return -1;
 }
 
 static PyObject*
-EVSpaceRotate_From(PyObject* Py_UNUSED, PyObject* args, PyObject* kwargs)
+EVSpaceRotate_From(PyObject* module, PyObject* args, PyObject* kwargs)
 {
-    evspace::Matrix* matrix;
-    evspace::Vector* vector, *vector_offset;
+    evspace::Matrix* matrix = NULL;
+    evspace::Vector* vector = NULL, *vector_offset = NULL;
     bool offset_not_none = true;
+    EVSpace_State* state = (EVSpace_State*)PyModule_GetState(module);
 
     EXCEPTION_WRAPPER(
         matrix = new evspace::Matrix();
@@ -4117,7 +4970,7 @@ EVSpaceRotate_From(PyObject* Py_UNUSED, PyObject* args, PyObject* kwargs)
     // Use _EVSpaceRotate_ProcessArgs to handle generating the matrix and
     // filling the vector and vector_offset values.
     if (_EVSpaceRotate_ProcessArgs(args, kwargs, &matrix, &vector,
-                                   &vector_offset, offset_not_none, "rotate_from") < 0)
+                                   &vector_offset, offset_not_none, "rotate_from", state) < 0)
     {
         delete matrix;
         delete vector;
@@ -4141,17 +4994,18 @@ EVSpaceRotate_From(PyObject* Py_UNUSED, PyObject* args, PyObject* kwargs)
     }
 
     EXCEPTION_WRAPPER(
-        EVSpace_Vector* rtn = EVSpaceVector_New(std::move(*result));
+        EVSpace_Vector* rtn = EVSpaceVector_New(std::move(*result), state->Vector_Type);
         return EVS_PyObject_Cast(rtn);
     )
 }
 
 static PyObject*
-EVSpaceRotate_To(PyObject* Py_UNUSED, PyObject* args, PyObject* kwargs)
+EVSpaceRotate_To(PyObject* module, PyObject* args, PyObject* kwargs)
 {
-    evspace::Matrix* matrix;
-    evspace::Vector* vector, *vector_offset;
+    evspace::Matrix* matrix = NULL;
+    evspace::Vector* vector = NULL, *vector_offset = NULL;
     bool offset_not_none = true;
+    EVSpace_State* state = (EVSpace_State*)PyModule_GetState(module);
 
     EXCEPTION_WRAPPER(
         matrix = new evspace::Matrix();
@@ -4162,7 +5016,7 @@ EVSpaceRotate_To(PyObject* Py_UNUSED, PyObject* args, PyObject* kwargs)
     // Use _EVSpaceRotate_ProcessArgs to handle generating the matrix and
     // filling the vector and vector_offset values.
     if (_EVSpaceRotate_ProcessArgs(args, kwargs, &matrix, &vector,
-                                   &vector_offset, offset_not_none, "rotate_from") < 0)
+                                   &vector_offset, offset_not_none, "rotate_from", state) < 0)
     {
         delete matrix;
         delete vector;
@@ -4186,29 +5040,29 @@ EVSpaceRotate_To(PyObject* Py_UNUSED, PyObject* args, PyObject* kwargs)
     }
 
     EXCEPTION_WRAPPER(
-        EVSpace_Vector* rtn = EVSpaceVector_New(std::move(*result));
+        EVSpace_Vector* rtn = EVSpaceVector_New(std::move(*result), state->Vector_Type);
         return EVS_PyObject_Cast(rtn);
     )
 }
 
 static PyObject*
-EVSpaceRotate_Between(PyObject* Py_UNUSED(_), PyObject* args, PyObject* kwargs)
+EVSpaceRotate_Between(PyObject* module, PyObject* args, PyObject* kwargs)
 {
-    EVSpace_Order* order_from, *order_to;
-    EVSpace_Angles* angles_from, *angles_to;
-    evspace::Matrix* matrix_from, *matrix_to;
-    evspace::Vector* result, *vector_offset_from = NULL, *vector_offset_to = NULL;
+    EVSpace_Order* order_from = NULL, *order_to = NULL;
+    EVSpace_Angles* angles_from = NULL, *angles_to = NULL;
+    evspace::Matrix* matrix_from = NULL, *matrix_to = NULL;
+    evspace::Vector* result = NULL, *vector_offset_from = NULL, *vector_offset_to = NULL;
     PyObject* offset_from = Py_None, *offset_to = Py_None;
-    EVSpace_Vector* rtn, *vector_wrapper;
+    EVSpace_Vector* rtn = NULL, *vector_wrapper = NULL;
     int intrinsic_from = 1, intrinsic_to = 1;
-
     static const char* kwlist[] = {"", "", "", "", "", "intrinsic_from", "intrinsic_to",
                                    "offset_from", "offset_to", NULL};
+    EVSpace_State* state = (EVSpace_State*)PyModule_GetState(module);
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!O!O!O!|$ppOO:rotate_between", const_cast<char**>(kwlist),
-        &EVSpace_OrderType, &order_from, &EVSpace_AnglesType, &angles_from,
-        &EVSpace_OrderType, &order_to, &EVSpace_AnglesType, &angles_to,
-        &EVSpace_VectorType, &vector_wrapper, &intrinsic_from, &intrinsic_to,
+        state->RotationOrder_Type, &order_from, state->EulerAngles_Type, &angles_from,
+        state->RotationOrder_Type, &order_to, state->EulerAngles_Type, &angles_to,
+        state->Vector_Type, &vector_wrapper, &intrinsic_from, &intrinsic_to,
         &offset_from, &offset_to))
     {
         return NULL;
@@ -4216,7 +5070,8 @@ EVSpaceRotate_Between(PyObject* Py_UNUSED(_), PyObject* args, PyObject* kwargs)
 
     if (!Py_IsNone(offset_from))
     {
-        if (!EVSpaceVector_Check(offset_from)) {
+        if (!PyObject_TypeCheck(offset_from, state->Vector_Type))
+        {
             PyErr_SetString(PyExc_TypeError, "offset_from argument cannot be interpreted as Vector");
             return NULL;
         }
@@ -4225,7 +5080,8 @@ EVSpaceRotate_Between(PyObject* Py_UNUSED(_), PyObject* args, PyObject* kwargs)
 
     if (!Py_IsNone(offset_to))
     {
-        if (!EVSpaceVector_Check(offset_to)) {
+        if (!PyObject_TypeCheck(offset_to, state->Vector_Type))
+        {
             PyErr_SetString(PyExc_TypeError, "offset_to argument cannot be interpreted as Vector");
             return NULL;
         }
@@ -4251,13 +5107,11 @@ EVSpaceRotate_Between(PyObject* Py_UNUSED(_), PyObject* args, PyObject* kwargs)
         return NULL;
     }
 
-    rtn = EVSpaceVector_New(std::move(*result));
+    rtn = EVSpaceVector_New(std::move(*result), state->Vector_Type);
     delete result;
 
     return EVS_PyObject_Cast(rtn);
 }
-
-/* global module level methods */
 
 PyDoc_STRVAR(vector_dot_doc, "pyevspace.vector_dot(lhs: pyevspace.Vector, rhs: pyevspace.Vector) -> float\n\
 \n\
@@ -4315,15 +5169,15 @@ Rotates vector between reference frames defined by the rotation axis orders and 
 
 static PyMethodDef evspace_methods[] = {
 
-    {"vector_dot", (PyCFunction)Vector_dot, METH_FASTCALL, vector_dot_doc},
+    {"vector_dot", (PyCFunction)(void(*)(void))Vector_dot, METH_FASTCALL, vector_dot_doc},
 
-    {"vector_cross", (PyCFunction)Vector_cross, METH_FASTCALL, vector_cross_doc},
+    {"vector_cross", (PyCFunction)(void(*)(void))Vector_cross, METH_FASTCALL, vector_cross_doc},
 
-    {"vector_angle", (PyCFunction)Vector_angle, METH_FASTCALL, vector_angle_doc},
+    {"vector_angle", (PyCFunction)(void(*)(void))Vector_angle, METH_FASTCALL, vector_angle_doc},
 
-    {"vector_exclude", (PyCFunction)Vector_exclude, METH_FASTCALL, vector_exclude_doc},
+    {"vector_exclude", (PyCFunction)(void(*)(void))Vector_exclude, METH_FASTCALL, vector_exclude_doc},
 
-    {"vector_proj", (PyCFunction)Vector_projection, METH_FASTCALL, vector_projection_doc},
+    {"vector_proj", (PyCFunction)(void(*)(void))Vector_projection, METH_FASTCALL, vector_projection_doc},
 
     {"compute_rotation_matrix", (PyCFunction)(void(*)(void))EVSpaceRotation_ComputeMatrix,
      METH_VARARGS | METH_KEYWORDS, compute_rotation_doc },
@@ -4337,28 +5191,25 @@ static PyMethodDef evspace_methods[] = {
     {"rotate_between", (PyCFunction)(void(*)(void))EVSpaceRotate_Between,
      METH_VARARGS | METH_KEYWORDS, rotate_between_doc},
 
-    {NULL}
+    {NULL, NULL, 0, NULL}
 };
 
-PyDoc_STRVAR(evspace_doc, "A 3-dimensional Euclidean vector space package for\
-vector and matrix types with support for reference frames and Euler rotations.");
-
-static PyModuleDef EVSpace_Module = {
-    PyModuleDef_HEAD_INIT,
-    "pyevspace",        // m_name
-    evspace_doc,        // m_doc
-    -1,                 // m_size
-    evspace_methods     // m_methods
-};
-
-// Capsule functions
+//      Capsule functions
+// Some of these functions requier a PyTypeObject in order to retrieve
+// the module state for validation and creating new instances of types
+// of the module.
 
 static int EVSpaceVector_GetState(PyObject* obj, double arr[3])
 {
     EVSpace_Vector* vector;
     double* state;
+    EVSpace_State* module_state = EVSpaceState_FromObject(obj);
 
-    if (!EVSpaceVector_Check(obj))
+    if (!module_state) {
+        return -1;
+    }
+
+    if (!PyObject_TypeCheck(obj, module_state->Vector_Type))
     {
         PyErr_Format(PyExc_TypeError,
                      "cannot interpret %s as Vector type",
@@ -4377,8 +5228,13 @@ static int EVSpaceMatrix_GetState(PyObject* obj, double arr[9])
 {
     EVSpace_Matrix* matrix;
     double* state;
+    EVSpace_State* module_state = EVSpaceState_FromObject(obj);
 
-    if (!EVSpaceMatrix_Check(obj))
+    if (!module_state) {
+        return -1;
+    }
+
+    if (!PyObject_TypeCheck(obj, module_state->Matrix_Type))
     {
         PyErr_Format(PyExc_TypeError,
                      "cannot interpret %s as Matrix type",
@@ -4396,8 +5252,13 @@ static int EVSpaceMatrix_GetState(PyObject* obj, double arr[9])
 static int EVSpaceAngles_GetState(PyObject* obj, double arr[3])
 {
     EVSpace_Angles* angles;
+    EVSpace_State* module_state = EVSpaceState_FromObject(obj);
 
-    if (!EVSpaceAngles_Check(obj))
+    if (!module_state) {
+        return -1;
+    }
+
+    if (!PyObject_TypeCheck(obj, module_state->EulerAngles_Type))
     {
         PyErr_Format(PyExc_TypeError,
                      "cannot interpret %s as EulerAngles type",
@@ -4416,8 +5277,13 @@ static int EVSpaceAngles_GetState(PyObject* obj, double arr[3])
 static int EVSpaceOrder_GetState(PyObject* obj, unsigned int arr[3])
 {
     EVSpace_Order* order;
+    EVSpace_State* module_state = EVSpaceState_FromObject(obj);
 
-    if (!EVSpaceOrder_Check(obj))
+    if (!module_state) {
+        return -1;
+    }
+
+    if (!PyObject_TypeCheck(obj, module_state->RotationOrder_Type))
     {
         PyErr_Format(PyExc_TypeError,
                      "cannot interpret %s as RotationOrder type",
@@ -4438,8 +5304,13 @@ static int EVSpaceFrame_GetState(PyObject* obj, unsigned int order[3], double an
 {
     EVSpace_ReferenceFrame* frame;
     EVSpace_Vector* offset_vector;
+    EVSpace_State* module_state = EVSpaceState_FromObject(obj);
 
-    if (!EVSpaceReferenceFrame_Check(obj))
+    if (!module_state) {
+        return -1;
+    }
+
+    if (!PyObject_TypeCheck(obj, module_state->ReferenceFrame_Type))
     {
         PyErr_Format(PyExc_TypeError,
                      "cannot interpret %s as ReferenceFrame type",
@@ -4475,8 +5346,13 @@ static PyObject*
 EVSpaceFrame_GetOrder(PyObject* obj)
 {
     EVSpace_ReferenceFrame* frame;
+    EVSpace_State* module_state = EVSpaceState_FromObject(obj);
 
-    if (!EVSpaceReferenceFrame_Check(obj))
+    if (!module_state) {
+        return NULL;
+    }
+
+    if (!PyObject_TypeCheck(obj, module_state->ReferenceFrame_Type))
     {
         PyErr_Format(PyExc_TypeError, "cannot interpret %s as ReferenceFrame type",
                      __EVSpace_GetTypeName);
@@ -4485,15 +5361,21 @@ EVSpaceFrame_GetOrder(PyObject* obj)
 
     frame = reinterpret_cast<EVSpace_ReferenceFrame*>(obj);
 
-    return EVS_PyObject_Cast(EVSpaceOrder_New(frame->first, frame->second, frame->third));
+    return EVS_PyObject_Cast(EVSpaceOrder_New(frame->first, frame->second, frame->third,
+                                              module_state->RotationOrder_Type));
 }
 
 static PyObject*
 EVSpaceFrame_GetAngles(PyObject* obj)
 {
     EVSpace_ReferenceFrame* frame;
+    EVSpace_State* module_state = EVSpaceState_FromObject(obj);
 
-    if (!EVSpaceReferenceFrame_Check(obj))
+    if (!module_state) {
+        return NULL;
+    }
+
+    if (!PyObject_TypeCheck(obj, module_state->ReferenceFrame_Type))
     {
         PyErr_Format(PyExc_TypeError, "cannot interpret %s as ReferenceFrame type",
                      __EVSpace_GetTypeName);
@@ -4502,7 +5384,8 @@ EVSpaceFrame_GetAngles(PyObject* obj)
 
     frame = reinterpret_cast<EVSpace_ReferenceFrame*>(obj);
 
-    return EVS_PyObject_Cast(EVSpaceAngles_New(frame->angles[0], frame->angles[1], frame->angles[2]));
+    return EVS_PyObject_Cast(EVSpaceAngles_New(frame->angles[0], frame->angles[1],
+                                               frame->angles[2], module_state->EulerAngles_Type));
 }
 
 static PyObject*
@@ -4510,8 +5393,13 @@ EVSpaceFrame_GetOffset(PyObject* obj)
 {
     EVSpace_ReferenceFrame* frame;
     EVSpace_Vector* offset;
+    EVSpace_State* module_state = EVSpaceState_FromObject(obj);
 
-    if (!EVSpaceReferenceFrame_Check(obj))
+    if (!module_state) {
+        return NULL;
+    }
+
+    if (!PyObject_TypeCheck(obj, module_state->ReferenceFrame_Type))
     {
         PyErr_Format(PyExc_TypeError, "cannot interpret %s as ReferenceFrame type",
                      __EVSpace_GetTypeName);
@@ -4526,7 +5414,7 @@ EVSpaceFrame_GetOffset(PyObject* obj)
     }
     else {
         offset = reinterpret_cast<EVSpace_Vector*>(frame->offset);
-        return EVS_PyObject_Cast(EVSpaceVector_New(*offset->vector));
+        return EVS_PyObject_Cast(EVSpaceVector_New(*offset->vector, module_state->Vector_Type));
     }
 }
 
@@ -4534,8 +5422,13 @@ static int
 EVSpaceFrame_GetIntrinsic(PyObject* obj)
 {
     EVSpace_ReferenceFrame* frame;
+    EVSpace_State* module_state = EVSpaceState_FromObject(obj);
 
-    if (!EVSpaceReferenceFrame_Check(obj))
+    if (!module_state) {
+        return -1;
+    }
+
+    if (!PyObject_TypeCheck(obj, module_state->ReferenceFrame_Type))
     {
         PyErr_Format(PyExc_TypeError, "cannot interpret %s as ReferenceFrame type",
                      __EVSpace_GetTypeName);
@@ -4546,44 +5439,55 @@ EVSpaceFrame_GetIntrinsic(PyObject* obj)
     return static_cast<int>(frame->intrinsic);
 }
 
-PyObject* EVSpaceVector_FromState(double arr[3])
+PyObject* EVSpaceVector_FromState(PyTypeObject* type, double arr[3])
 {
     // todo: evspace::Vector should be able to take a evspace::span_t
-    evspace::Vector vector{arr[0], arr[1], arr[2]};
-    EVSpace_Vector* rtn = EVSpaceVector_New(std::move(vector));
+    EVSpace_Vector* rtn = NULL;
+
+    EXCEPTION_WRAPPER(
+        evspace::Vector vector = evspace::Vector(arr[0], arr[1], arr[2]);
+        rtn = EVSpaceVector_New(std::move(vector), type);
+    )
 
     return EVS_PyObject_Cast(rtn);
 }
 
-PyObject* EVSpaceMatrix_FromState(double arr[9])
+// todo: wrap all evspace calls in exceptions
+PyObject* EVSpaceMatrix_FromState(PyTypeObject* type, double arr[9])
 {
-    evspace::span_t<double> span(arr, 9);
-    evspace::Matrix matrix{span};
-    EVSpace_Matrix* rtn = EVSpaceMatrix_New(std::move(matrix));
+    EVSpace_Matrix* rtn = NULL;
+
+    EXCEPTION_WRAPPER(
+        evspace::span_t<double> span(arr, 9);
+        evspace::Matrix matrix{span};
+        rtn = EVSpaceMatrix_New(std::move(matrix), type);
+    )        
 
     return EVS_PyObject_Cast(rtn);
 }
 
-PyObject* EVSpaceAngles_FromState(double arr[3])
+PyObject* EVSpaceAngles_FromState(PyTypeObject* type, double arr[3])
 {
-    EVSpace_Angles* angles = EVSpaceAngles_New(arr[0], arr[1], arr[2]);
+    EVSpace_Angles* angles = NULL;
+        
+    angles = EVSpaceAngles_New(arr[0], arr[1], arr[2], type);
 
     return EVS_PyObject_Cast(angles);
 }
 
-PyObject* EVSpaceOrder_FromState(unsigned int arr[3])
+PyObject* EVSpaceOrder_FromState(PyTypeObject* type, unsigned int arr[3])
 {
-    if (!(arr[0] >= 0 && arr[0] <= 2)) {
+    if (!(arr[0] <= 2)) {
         PyErr_Format(PyExc_ValueError, "first rotation order axis must be in [0-2], got %u",
                      arr[0]);
         return NULL;
     }
-    if (!(arr[1] >= 0 && arr[1] <= 2)) {
+    if (!(arr[1] <= 2)) {
         PyErr_Format(PyExc_ValueError, "second rotation order axis must be in [0-2], got %u",
                      arr[1]);
         return NULL;
     }
-    if (!(arr[2] >= 0 && arr[2] <= 2)) {
+    if (!(arr[2] <= 2)) {
         PyErr_Format(PyExc_ValueError, "third rotation order axis must be in [0-2], got %u",
                      arr[2]);
         return NULL;
@@ -4591,55 +5495,63 @@ PyObject* EVSpaceOrder_FromState(unsigned int arr[3])
     EVSpace_Order* order = EVSpaceOrder_New(
         static_cast<evspace::AxisDirection>(arr[0]),
         static_cast<evspace::AxisDirection>(arr[1]),
-        static_cast<evspace::AxisDirection>(arr[2])
+        static_cast<evspace::AxisDirection>(arr[2]), type
     );
 
     return EVS_PyObject_Cast(order);
 }
 
 static PyObject*
-EVSpaceFrame_FromState(unsigned int order[3], double angles[3], double* offset, int intrinsic)
+EVSpaceFrame_FromState(PyTypeObject* type, unsigned int order[3], double angles[3],
+                       double* offset, int intrinsic)
 {
-    evspace::EulerAngles angles_arg{angles[0], angles[1], angles[2]};
-    evspace::Vector tmp_offset;
-    EVSpace_Vector* offset_vector;
-    PyObject* offset_arg;
-    EVSpace_ReferenceFrame* frame;
+    EVSpace_Vector* offset_vector = NULL;
+    PyObject* offset_arg = NULL;
+    EVSpace_ReferenceFrame* frame = NULL;
+    EVSpace_State* state = EVSpaceState_FromType(type);
+
+    if (!state) {
+        return NULL;
+    }
     
-    if (!(order[0] >= 0 && order[0] <= 2)) {
+    if (!(order[0] <= 2)) {
         PyErr_Format(PyExc_ValueError, "first rotation order axis must be in [0-2], got %u",
                      order[0]);
         return NULL;
     }
-    if (!(order[1] >= 0 && order[1] <= 2)) {
+    if (!(order[1] <= 2)) {
         PyErr_Format(PyExc_ValueError, "second rotation order axis must be in [0-2], got %u",
                      order[1]);
         return NULL;
     }
-    if (!(order[2] >= 0 && order[2] <= 2)) {
+    if (!(order[2] <= 2)) {
         PyErr_Format(PyExc_ValueError, "third rotation order axis must be in [0-2], got %u",
                      order[2]);
         return NULL;
     }
     
-    if (!offset) {
-        offset_arg = NULL;
-    }
-    else {
-        tmp_offset = evspace::Vector(offset[0], offset[1], offset[2]);
-        offset_vector = EVSpaceVector_New(std::move(tmp_offset));
-        if (!offset_vector) {
-            return NULL;
-        }
-        offset_arg = reinterpret_cast<PyObject*>(offset_vector);
-    }
+    EXCEPTION_WRAPPER(
+        evspace::EulerAngles angles_arg = evspace::EulerAngles(angles[0], angles[1], angles[2]);
 
-    frame = EVSpaceReferenceFrame_New(
-        static_cast<evspace::AxisDirection>(order[0]),
-        static_cast<evspace::AxisDirection>(order[1]),
-        static_cast<evspace::AxisDirection>(order[2]),
-        angles_arg, offset_arg, static_cast<bool>(intrinsic)
-    );
+        if (!offset) {
+            offset_arg = NULL;
+        }
+        else {
+            evspace::Vector tmp_offset = evspace::Vector(offset[0], offset[1], offset[2]);
+            offset_vector = EVSpaceVector_New(std::move(tmp_offset), state->Vector_Type);
+            if (!offset_vector) {
+                return NULL;
+            }
+            offset_arg = reinterpret_cast<PyObject*>(offset_vector);
+        }
+        
+        frame = EVSpaceReferenceFrame_New(
+            static_cast<evspace::AxisDirection>(order[0]),
+            static_cast<evspace::AxisDirection>(order[1]),
+            static_cast<evspace::AxisDirection>(order[2]),
+            angles_arg, offset_arg, static_cast<bool>(intrinsic), type
+        );
+    )
 
     return EVS_PyObject_Cast(frame);
 }
@@ -4647,9 +5559,14 @@ EVSpaceFrame_FromState(unsigned int order[3], double angles[3], double* offset, 
 static int
 EVSpaceVector_SetState(PyObject* obj, double state[3])
 {
-    EVSpace_Vector* vector;
+    EVSpace_Vector* vector = NULL;
+    EVSpace_State* module_state = EVSpaceState_FromObject(obj);
 
-    if (!EVSpaceVector_Check(obj))
+    if (!module_state) {
+        return -1;
+    }
+
+    if (!PyObject_TypeCheck(obj, module_state->Vector_Type))
     {
         PyErr_Format(PyExc_TypeError, "cannot interpret %s as Vector type",
                      __EVSpace_GetTypeName(obj));
@@ -4666,9 +5583,14 @@ EVSpaceVector_SetState(PyObject* obj, double state[3])
 static int
 EVSpaceMatrix_SetState(PyObject* obj, double state[9])
 {
-    EVSpace_Matrix* matrix;
+    EVSpace_Matrix* matrix = NULL;
+    EVSpace_State* module_state = EVSpaceState_FromObject(obj);
 
-    if (!EVSpaceMatrix_Check(obj))
+    if (!module_state) {
+        return -1;
+    }
+
+    if (!PyObject_TypeCheck(obj, module_state->Matrix_Type))
     {
         PyErr_Format(PyExc_TypeError, "cannot interpret %s as Matrix type",
                      __EVSpace_GetTypeName(obj));
@@ -4685,9 +5607,14 @@ EVSpaceMatrix_SetState(PyObject* obj, double state[9])
 static int
 EVSpaceAngles_SetState(PyObject* obj, double state[3])
 {
-    EVSpace_Angles* angles;
+    EVSpace_Angles* angles = NULL;
+    EVSpace_State* module_state = EVSpaceState_FromObject(obj);
 
-    if (!EVSpaceAngles_Check(obj))
+    if (!module_state) {
+        return -1;
+    }
+
+    if (!PyObject_TypeCheck(obj, module_state->EulerAngles_Type))
     {
         PyErr_Format(PyExc_TypeError, "cannot interpret %s as EulerAgles type",
                      __EVSpace_GetTypeName(obj));
@@ -4705,9 +5632,14 @@ EVSpaceAngles_SetState(PyObject* obj, double state[3])
 static int
 EVSpaceFrame_SetAngles(PyObject* obj, double state[3])
 {
-    EVSpace_ReferenceFrame* frame;
+    EVSpace_ReferenceFrame* frame = NULL;
+    EVSpace_State* module_state = EVSpaceState_FromObject(obj);
 
-    if (!EVSpaceReferenceFrame_Check(obj))
+    if (!module_state) {
+        return -1;
+    }
+
+    if (!PyObject_TypeCheck(obj, module_state->ReferenceFrame_Type))
     {
         PyErr_Format(PyExc_TypeError, "cannot interpret %s as a ReferenceFrame type",
                      __EVSpace_GetTypeName(obj));
@@ -4718,18 +5650,21 @@ EVSpaceFrame_SetAngles(PyObject* obj, double state[3])
     std::memcpy(frame->angles.data(), state, 3 * sizeof(double));
 
     EVSpaceReferenceFrame_UpdateMatrix(frame);
-
     return 0;
 }
 
 static int
 EVSpaceFrame_SetOffset(PyObject* obj, double* state)
 {
-    EVSpace_ReferenceFrame* frame;
-    PyObject* vector;
-    evspace::Vector tmp;
+    EVSpace_ReferenceFrame* frame = NULL;
+    PyObject* vector = NULL;
+    EVSpace_State* module_state = EVSpaceState_FromObject(obj);
 
-    if (!EVSpaceReferenceFrame_Check(obj))
+    if (!module_state) {
+        return -1;
+    }
+
+    if (!PyObject_TypeCheck(obj, module_state->ReferenceFrame_Type))
     {
         PyErr_Format(PyExc_TypeError, "cannot interpret %s as a ReferenceFrame type",
                      __EVSpace_GetTypeName(obj));
@@ -4746,8 +5681,16 @@ EVSpaceFrame_SetOffset(PyObject* obj, double* state)
         }
     }
 
-    tmp = evspace::Vector(state[0], state[1], state[2]);
-    vector = EVS_PyObject_Cast(EVSpaceVector_New(std::move(tmp)));
+    try {
+        evspace::Vector tmp{state[0], state[1], state[2]};
+        vector = EVS_PyObject_Cast(EVSpaceVector_New(std::move(tmp), module_state->Vector_Type));
+    }
+    catch (const std::bad_alloc&) {
+        PyErr_NoMemory();
+        return -1;
+    }
+    
+    
     if (!vector) {
         return -1;
     }
@@ -4756,64 +5699,17 @@ EVSpaceFrame_SetOffset(PyObject* obj, double* state)
     return 0;
 }
 
-static PyObject*
-_initialize_vector_constants(PyObject* dict)
-{
-    EVSpace_Vector* tmp;
-    EXCEPTION_WRAPPER(
-        tmp = EVSpaceVector_New(evspace::Vector::e1);
-        if (PyDict_SetItemString(dict, "E1", EVS_PyObject_Cast(tmp)) < 0) {
-            return NULL;
-        }
-
-        tmp = EVSpaceVector_New(evspace::Vector::e2);
-        if (PyDict_SetItemString(dict, "E2", EVS_PyObject_Cast(tmp)) < 0) {
-            return NULL;
-        }
-
-        tmp = EVSpaceVector_New(evspace::Vector::e3);
-        if (PyDict_SetItemString(dict, "E3", EVS_PyObject_Cast(tmp)) < 0) {
-            return NULL;
-        }
-    )
-
-    return dict;
-}
-
-static PyObject*
-_initialize_matrix_constants(PyObject* dict)
-{
-    EVSpace_Matrix* tmp;
-
-    EXCEPTION_WRAPPER(
-        tmp = EVSpaceMatrix_New(evspace::Matrix::IDENTITY);
-
-        if (PyDict_SetItemString(dict, "IDENTITY", EVS_PyObject_Cast(tmp)) < 0) {
-            return NULL;
-        }
-    )
-
-    return dict;
-}
-
-template<typename T>
-struct _EVSpaceOrder_InitDelegate {
-    static inline int add_order(PyObject* module, const char* name);
-};
+/* module initialization */
 
 template<typename first, typename second, typename third>
-struct _EVSpaceOrder_InitDelegate<evspace::RotationOrder<first, second, third>> {
+static int
+_EVSpace_AddOrder(PyObject* module, EVSpace_State* state, const char* name)
+{
+    PyObject* order = EVS_PyObject_Cast(
+        EVSpaceOrder_New(first::direction, second::direction,
+                         third::direction, state->RotationOrder_Type)
+    );
 
-    static inline int add_order(PyObject* module, const char* name)
-    {
-        // Adds the templated RotationOrder to module with name as identifier. No owned
-        // references exist after calling this function so there is no need to cleanup
-        // on module initialization failure.
-
-        PyObject* order = EVS_PyObject_Cast(EVSpaceOrder_New(first::direction,
-                                                             second::direction,
-                                                             third::direction));
-        
 #if PY_VERSION_HEX >= 0x030d0000
         if (PyModule_Add(module, name, order) < 0) {
             return -1;
@@ -4826,62 +5722,126 @@ struct _EVSpaceOrder_InitDelegate<evspace::RotationOrder<first, second, third>> 
 #endif
 
         return 0;
-    }
-};
-
-template<typename T>
-static int
-_EVSpaceOrder_AddToModule(PyObject* module, const char* name) {
-    return _EVSpaceOrder_InitDelegate<T>::add_order(module, name);
 }
 
-static PyObject*
-_initialize_order_constants(PyObject* module)
+static int
+EVSpace_InitializeConstants(PyObject* module)
 {
+    PyObject* tmp = NULL;
+    EVSpace_State* state = (EVSpace_State*)PyModule_GetState(module);
+
+    if (!state) {
+        return -1;
+    }
+
+    tmp = (PyObject*)EVSpaceVector_New(evspace::Vector::e1, state->Vector_Type);
+    if (!tmp) return -1;
+    if (PyDict_SetItemString(state->Vector_Type->tp_dict, "E1", tmp) < 0) {
+        return -1;
+    }
+
+    tmp = (PyObject*)EVSpaceVector_New(evspace::Vector::e2, state->Vector_Type);
+    if (!tmp) return -1;
+    if (PyDict_SetItemString(state->Vector_Type->tp_dict, "E2", tmp) < 0) {
+        return -1;
+    }
+
+    tmp = (PyObject*)EVSpaceVector_New(evspace::Vector::e3, state->Vector_Type);
+    if (!tmp) return -1;
+    if (PyDict_SetItemString(state->Vector_Type->tp_dict, "E3", tmp) < 0) {
+        return -1;
+    }
+
+    tmp = (PyObject*)EVSpaceMatrix_New(evspace::Matrix::IDENTITY, state->Matrix_Type);
+    if (!tmp) return -1;
+    if (PyDict_SetItemString(state->Matrix_Type->tp_dict, "IDENTITY", tmp) < 0) {
+        return -1;
+    }
+
     if (PyModule_AddIntConstant(module, "X_AXIS", (int)evspace::AxisDirection::X) < 0) {
-        return NULL;
+        return -1;
     }
 
     if (PyModule_AddIntConstant(module, "Y_AXIS", (int)evspace::AxisDirection::Y) < 0) {
-        return NULL;
+        return -1;
     }
 
     if (PyModule_AddIntConstant(module, "Z_AXIS", (int)evspace::AxisDirection::Z) < 0) {
-        return NULL;
+        return -1;
     }
 
-    if (_EVSpaceOrder_AddToModule<evspace::XYZ>(module, "XYZ") < 0) { return module; }
-    if (_EVSpaceOrder_AddToModule<evspace::XZY>(module, "XZY") < 0) { return module; }
-    if (_EVSpaceOrder_AddToModule<evspace::YXZ>(module, "YXZ") < 0) { return module; }
-    if (_EVSpaceOrder_AddToModule<evspace::YZX>(module, "YZX") < 0) { return module; }
-    if (_EVSpaceOrder_AddToModule<evspace::ZXY>(module, "ZXY") < 0) { return module; }
-    if (_EVSpaceOrder_AddToModule<evspace::ZYX>(module, "ZYX") < 0) { return module; }
-    if (_EVSpaceOrder_AddToModule<evspace::XYX>(module, "XYX") < 0) { return module; }
-    if (_EVSpaceOrder_AddToModule<evspace::XZX>(module, "XZX") < 0) { return module; }
-    if (_EVSpaceOrder_AddToModule<evspace::YXY>(module, "YXY") < 0) { return module; }
-    if (_EVSpaceOrder_AddToModule<evspace::YZY>(module, "YZY") < 0) { return module; }
-    if (_EVSpaceOrder_AddToModule<evspace::ZXZ>(module, "ZXZ") < 0) { return module; }
-    if (_EVSpaceOrder_AddToModule<evspace::ZYZ>(module, "ZYZ") < 0) { return module; }
+    if (_EVSpace_AddOrder<evspace::XAxis, evspace::YAxis, evspace::ZAxis>(module, state, "XYZ") < 0) {
+        return -1;
+    }
+    if (_EVSpace_AddOrder<evspace::XAxis, evspace::ZAxis, evspace::YAxis>(module, state, "XZY") < 0) {
+        return -1;
+    }
+    if (_EVSpace_AddOrder<evspace::YAxis, evspace::XAxis, evspace::ZAxis>(module, state, "YXZ") < 0) {
+        return -1;
+    }
+    if (_EVSpace_AddOrder<evspace::YAxis, evspace::ZAxis, evspace::XAxis>(module, state, "YZX") < 0) {
+        return -1;
+    }
+    if (_EVSpace_AddOrder<evspace::ZAxis, evspace::XAxis, evspace::YAxis>(module, state, "ZXY") < 0) {
+        return -1;
+    }
+    if (_EVSpace_AddOrder<evspace::ZAxis, evspace::YAxis, evspace::XAxis>(module, state, "ZYX") < 0) {
+        return -1;
+    }
+    if (_EVSpace_AddOrder<evspace::XAxis, evspace::YAxis, evspace::XAxis>(module, state, "XYX") < 0) {
+        return -1;
+    }
+    if (_EVSpace_AddOrder<evspace::XAxis, evspace::ZAxis, evspace::XAxis>(module, state, "XZX") < 0) {
+        return -1;
+    }
+    if (_EVSpace_AddOrder<evspace::YAxis, evspace::XAxis, evspace::YAxis>(module, state, "YXY") < 0) {
+        return -1;
+    }
+    if (_EVSpace_AddOrder<evspace::YAxis, evspace::ZAxis, evspace::YAxis>(module, state, "YZY") < 0) {
+        return -1;
+    }
+    if (_EVSpace_AddOrder<evspace::ZAxis, evspace::XAxis, evspace::ZAxis>(module, state, "ZXZ") < 0) {
+        return -1;
+    }
+    if (_EVSpace_AddOrder<evspace::ZAxis, evspace::YAxis, evspace::ZAxis>(module, state, "ZYZ") < 0) {
+        return -1;
+    }
 
-    return module;
+    return 0;
 }
 
-static inline PyEVSpace_CAPI*
-_create_evspace_api(void)
+static void
+_EVSpaceCapsule_Destructor(PyObject* capsule)
 {
-    PyEVSpace_CAPI* evspace_api = (PyEVSpace_CAPI*)malloc(sizeof(PyEVSpace_CAPI));
+    PyEVSpace_CAPI* api = (PyEVSpace_CAPI*)PyCapsule_GetPointer(capsule, PYEVSPACE_CAPSULE_NAME);
+    free(api);
+}
+
+static int
+EVSpace_InitializeCapsule(PyObject* module)
+{
+    PyEVSpace_CAPI* evspace_api = NULL;
+    EVSpace_State* state = (EVSpace_State*)PyModule_GetState(module);
+
+    if (!state) {
+        return -1;
+    }
+
+    evspace_api = (PyEVSpace_CAPI*)malloc(sizeof(PyEVSpace_CAPI));
     if (!evspace_api) {
         PyErr_NoMemory();
-        return NULL;
+        return -1;
     }
+
+    state->capsule = evspace_api;
 
     evspace_api->version = PYEVSPACE_CAPSULE_VERSION;
 
-    evspace_api->Vector_Type = &EVSpace_VectorType;
-    evspace_api->Matrix_Type = &EVSpace_MatrixType;
-    evspace_api->EulerAngles_Type = &EVSpace_AnglesType;
-    evspace_api->RotationOrder_Type = &EVSpace_OrderType;
-    evspace_api->ReferenceFrame_Type = &EVSpace_ReferenceFrameType;
+    evspace_api->Vector_Type = state->Vector_Type;
+    evspace_api->Matrix_Type = state->Matrix_Type;
+    evspace_api->EulerAngles_Type = state->EulerAngles_Type;
+    evspace_api->RotationOrder_Type = state->RotationOrder_Type;
+    evspace_api->ReferenceFrame_Type = state->ReferenceFrame_Type;
 
     evspace_api->PyEVSpaceVector_GetState = EVSpaceVector_GetState;
     evspace_api->PyEVSpaceMatrix_GetState = EVSpaceMatrix_GetState;
@@ -4905,168 +5865,24 @@ _create_evspace_api(void)
     evspace_api->PyEVSpaceFrame_SetAngles = EVSpaceFrame_SetAngles;
     evspace_api->PyEVSpaceFrame_SetOffset = EVSpaceFrame_SetOffset;
 
-    return evspace_api;
-}
-
-static PyTypeObject* const EVSpace_Types[] = {
-    &EVSpace_VectorType,
-    &EVSpace_MatrixViewType,
-    &EVSpace_MatrixType,
-    &EVSpace_AnglesType,
-    &EVSpace_OrderType,
-    &EVSpace_ReferenceFrameType,
-};
-
-static int initialize_module(PyObject* module)
-{
-    vector_as_number.nb_add                     = (binaryfunc)Vector_add;
-    vector_as_number.nb_subtract                = (binaryfunc)Vector_subtract;
-    vector_as_number.nb_multiply                = (binaryfunc)Vector_multiply;
-    vector_as_number.nb_negative                = (unaryfunc)Vector_negative;
-    vector_as_number.nb_inplace_add             = (binaryfunc)Vector_inplace_add;
-    vector_as_number.nb_inplace_subtract        = (binaryfunc)Vector_inplace_subtract;
-    vector_as_number.nb_inplace_multiply        = (binaryfunc)Vector_inplace_multiply;
-    vector_as_number.nb_true_divide             = (binaryfunc)Vector_divide;
-    vector_as_number.nb_inplace_true_divide     = (binaryfunc)Vector_inplace_divide;
-    vector_as_number.nb_matrix_multiply         = (binaryfunc)Vector_matrix_multiply;
-    vector_as_number.nb_inplace_matrix_multiply = (binaryfunc)Vector_inplace_multiply_matrix;
-
-    EVSpace_VectorType.tp_name          = "pyevspace.Vector";
-    EVSpace_VectorType.tp_basicsize     = sizeof(EVSpace_Vector);
-    EVSpace_VectorType.tp_itemsize      = 0;
-    EVSpace_VectorType.tp_dealloc       = (destructor)Vector_dealloc;
-    EVSpace_VectorType.tp_repr          = (reprfunc)Vector_repr;
-    EVSpace_VectorType.tp_as_number     = &vector_as_number;
-    EVSpace_VectorType.tp_as_sequence   = &vector_as_sequence;
-    EVSpace_VectorType.tp_str           = (reprfunc)Vector_str;
-    EVSpace_VectorType.tp_as_buffer     = &vector_buffer;
-    EVSpace_VectorType.tp_flags         = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE | Py_TPFLAGS_BASETYPE;
-    EVSpace_VectorType.tp_doc           = vector_doc;
-    EVSpace_VectorType.tp_richcompare   = (richcmpfunc)&Vector_richcompare;
-    EVSpace_VectorType.tp_methods       = vector_methods;
-    EVSpace_VectorType.tp_init          = (initproc)Vector_init;
-    EVSpace_VectorType.tp_new           = (newfunc)Vector_new;
-
-    EVSpace_MatrixViewType.tp_name      = "pyevspace._MatrixView";
-    EVSpace_MatrixViewType.tp_basicsize = sizeof(EVSpace_MatrixView);
-    EVSpace_MatrixViewType.tp_itemsize  = 0;
-    EVSpace_MatrixViewType.tp_dealloc   = (destructor)MatrixView_dealloc;
-    EVSpace_MatrixViewType.tp_as_buffer = &matrixview_as_buffer;
-    EVSpace_MatrixViewType.tp_flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_DISALLOW_INSTANTIATION;
-
-    matrix_as_number.nb_add             = (binaryfunc)Matrix_add;
-    matrix_as_number.nb_subtract        = (binaryfunc)Matrix_subtract;
-    matrix_as_number.nb_multiply        = (binaryfunc)Matrix_multiply;
-    matrix_as_number.nb_negative        = (unaryfunc)Matrix_negative;
-    matrix_as_number.nb_inplace_add     = (binaryfunc)Matrix_inplace_add;
-    matrix_as_number.nb_inplace_subtract = (binaryfunc)Matrix_inplace_subtract;
-    matrix_as_number.nb_inplace_multiply = (binaryfunc)Matrix_inplace_multiply;
-    matrix_as_number.nb_true_divide     = (binaryfunc)Matrix_divide;
-    matrix_as_number.nb_inplace_true_divide = (binaryfunc)Matrix_inplace_divide;
-    matrix_as_number.nb_matrix_multiply = (binaryfunc)Matrix_matrix_multiply;
-    matrix_as_number.nb_inplace_matrix_multiply = (binaryfunc)Matrix_inplace_multiply_matrix;
-
-    EVSpace_MatrixType.tp_name          = "pyevspace.Matrix";
-    EVSpace_MatrixType.tp_basicsize     = sizeof(EVSpace_Matrix);
-    EVSpace_MatrixType.tp_itemsize      = 0;
-    EVSpace_MatrixType.tp_dealloc       = (destructor)Matrix_dealloc;
-    EVSpace_MatrixType.tp_repr          = (reprfunc)Matrix_repr;
-    EVSpace_MatrixType.tp_as_number     = &matrix_as_number;
-    // This is only for internal CPython support
-    EVSpace_MatrixType.tp_as_sequence   = &matrix_as_sequence;
-    EVSpace_MatrixType.tp_as_mapping    = &matrix_as_map;
-    EVSpace_MatrixType.tp_str           = (reprfunc)Matrix_str;
-    EVSpace_MatrixType.tp_as_buffer     = &matrix_as_buffer;
-    EVSpace_MatrixType.tp_flags         = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE | Py_TPFLAGS_BASETYPE;
-    EVSpace_MatrixType.tp_doc           = matrix_doc;
-    EVSpace_MatrixType.tp_richcompare   = (richcmpfunc)&Matrix_richcompare;
-    EVSpace_MatrixType.tp_methods       = matrix_methods;
-    EVSpace_MatrixType.tp_init          = (initproc)Matrix_init;
-    EVSpace_MatrixType.tp_new           = (newfunc)Matrix_new;
-
-    EVSpace_AnglesType.tp_name          = "pyevspace.EulerAngles";
-    EVSpace_AnglesType.tp_basicsize     = sizeof(EVSpace_Angles);
-    EVSpace_AnglesType.tp_itemsize      = 0;
-    EVSpace_AnglesType.tp_dealloc       = (destructor)Angles_dealloc;
-    EVSpace_AnglesType.tp_repr          = (reprfunc)Angles_repr;
-    EVSpace_AnglesType.tp_as_sequence   = &angles_as_sequence;
-    EVSpace_AnglesType.tp_str           = (reprfunc)Angles_str;
-    EVSpace_AnglesType.tp_flags         = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE | Py_TPFLAGS_BASETYPE;
-    EVSpace_AnglesType.tp_doc           = angles_doc;
-    EVSpace_AnglesType.tp_methods       = angles_methods;
-    EVSpace_AnglesType.tp_init          = (initproc)Angles_init;
-    EVSpace_AnglesType.tp_new           = (newfunc)Angles_new;
-
-    EVSpace_OrderType.tp_name           = "pyevspace.RotationOrder";
-    EVSpace_OrderType.tp_basicsize      = sizeof(EVSpace_Order);
-    EVSpace_OrderType.tp_itemsize       = 0;
-    EVSpace_OrderType.tp_dealloc        = (destructor)Order_dealloc;
-    EVSpace_OrderType.tp_repr           = (reprfunc)Order_repr;
-    EVSpace_OrderType.tp_as_sequence    = &order_as_sequence;
-    EVSpace_OrderType.tp_hash           = (hashfunc)Order_hash;
-    EVSpace_OrderType.tp_str            = (reprfunc)Order_str;
-    EVSpace_OrderType.tp_flags          = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_SEQUENCE | Py_TPFLAGS_BASETYPE;
-    EVSpace_OrderType.tp_doc            = order_doc;
-    EVSpace_OrderType.tp_richcompare    = (richcmpfunc)&Order_richcompare;
-    EVSpace_OrderType.tp_methods        = order_methods;
-    EVSpace_OrderType.tp_members        = order_members;
-    EVSpace_OrderType.tp_init           = (initproc)Order_init;
-    EVSpace_OrderType.tp_new            = (newfunc)Order_new;
-
-    EVSpace_ReferenceFrameType.tp_name      = "pyevspace.ReferenceFrame";
-    EVSpace_ReferenceFrameType.tp_basicsize = sizeof(EVSpace_ReferenceFrame);
-    EVSpace_ReferenceFrameType.tp_itemsize  = 0;
-    EVSpace_ReferenceFrameType.tp_dealloc   = (destructor)ReferenceFrame_Dealloc;
-    EVSpace_ReferenceFrameType.tp_flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
-    EVSpace_ReferenceFrameType.tp_methods   = reference_frame_methods;
-    EVSpace_ReferenceFrameType.tp_members   = reference_frame_members;
-    EVSpace_ReferenceFrameType.tp_getset    = reference_frame_getset;
-    EVSpace_ReferenceFrameType.tp_new       = (newfunc)ReferenceFrame_New;
-
-    int count = sizeof(EVSpace_Types) / sizeof(EVSpace_Types[0]);
-    for (int i = 0; i < count; i++)
-    {
-        if (PyModule_AddType(module, EVSpace_Types[i]) < 0) {
-            return -1;
-        }
-    }
-
-    PyObject* dict = EVSpace_VectorType.tp_dict;
-    if (!_initialize_vector_constants(dict)) {
-        return -1;
-    }
-
-    dict = EVSpace_MatrixType.tp_dict;
-    if (!_initialize_matrix_constants(dict)) {
-        return -1;
-    }
-
-    if (!_initialize_order_constants(module)) {
-        return -1;
-    }
-
-    // Add capsule
-    PyEVSpace_CAPI* c_api = _create_evspace_api();
-    if (!c_api) {
-        free(c_api);
-        return -1;
-    }
-
-    PyObject* capsule = PyCapsule_New((void*)c_api, PYEVSPACE_CAPSULE_NAME, NULL);
+    PyObject* capsule = PyCapsule_New((void*)evspace_api, PYEVSPACE_CAPSULE_NAME,
+                                      _EVSpaceCapsule_Destructor);
+    // It's not clear that PyModule_AddObject() below will accept NULL, so we'll check
+    // just to be safe.
     if (!capsule) {
-        free(c_api);
+        free(evspace_api);
         return -1;
     }
     
 #if PY_VERSION_HEX >= 0x030d0000
     if (PyModule_Add(module, "_C_API", capsule) < 0) {
-        free(c_api);
+        free(evspace_api);
         return -1;
     }
 #else
     if (PyModule_AddObject(module, "_C_API", capsule) < 0) {
         Py_XDECREF(capsule);
-        free(c_api);
+        free(evspace_api);
         return -1;
     }
 #endif
@@ -5074,18 +5890,128 @@ static int initialize_module(PyObject* module)
     return 0;
 }
 
+static int EVSpace_Initialize(PyObject* module)
+{
+    EVSpace_State* state = (EVSpace_State*)PyModule_GetState(module);
+    if (!state) {
+        return -1;
+    }
+
+    state->Vector_Type = (PyTypeObject*)PyType_FromModuleAndSpec(module, &vector_spec, NULL);
+    if (!state->Vector_Type) {
+        return -1;
+    }
+
+    if (PyModule_AddObjectRef(module, "Vector", (PyObject*)state->Vector_Type) < 0) {
+        return -1;
+    }
+
+    state->Matrix_Type = (PyTypeObject*)PyType_FromModuleAndSpec(module, &matrix_spec, NULL);
+    if (!state->Matrix_Type) {
+        return -1;
+    }
+
+    if (PyModule_AddObjectRef(module, "Matrix", (PyObject*)state->Matrix_Type) < 0) {
+        return -1;
+    }
+
+    state->EulerAngles_Type = (PyTypeObject*)PyType_FromModuleAndSpec(module, &angles_spec, NULL);
+    if (!state->EulerAngles_Type) {
+        return -1;
+    }
+
+    if (PyModule_AddObjectRef(module, "EulerAngles", (PyObject*)state->EulerAngles_Type) < 0) {
+        return -1;
+    }
+
+    state->RotationOrder_Type = (PyTypeObject*)PyType_FromModuleAndSpec(module, &order_spec, NULL);
+    if (!state->RotationOrder_Type) {
+        return -1;
+    }
+
+    if (PyModule_AddObjectRef(module, "RotationOrder", (PyObject*)state->RotationOrder_Type) < 0) {
+        return -1;
+    }
+
+    state->ReferenceFrame_Type = (PyTypeObject*)PyType_FromModuleAndSpec(module, &frame_spec, NULL);
+    if (!state->ReferenceFrame_Type) {
+        return -1;
+    }
+
+    if (PyModule_AddObjectRef(module, "ReferenceFrame", (PyObject*)state->ReferenceFrame_Type) < 0) {
+        return -1;
+    }
+
+    state->MatrixView_Type = (PyTypeObject*)PyType_FromModuleAndSpec(module, &matrixview_spec, NULL);
+    if (!state->MatrixView_Type) {
+        return -1;
+    }
+    
+    return 0;
+}
+
+PyDoc_STRVAR(evspace_doc, "A 3-dimensional Euclidean vector space package for\
+vector and matrix types with support for reference frames and Euler rotations.");
+
+static int
+EVSpace_traverse(PyObject* module, visitproc visit, void* arg)
+{
+    EVSpace_State* state = reinterpret_cast<EVSpace_State*>(PyModule_GetState(module));
+    if (!state) {
+        // Module's not initialized, nothing to traverse
+        return 0;
+    }
+
+    Py_VISIT(state->Vector_Type);
+    Py_VISIT(state->Matrix_Type);
+    Py_VISIT(state->MatrixView_Type);
+    Py_VISIT(state->EulerAngles_Type);
+    Py_VISIT(state->RotationOrder_Type);
+    Py_VISIT(state->ReferenceFrame_Type);
+    
+    return 0;
+}
+
+static int
+EVSpace_clear(PyObject* module)
+{
+    EVSpace_State* state = reinterpret_cast<EVSpace_State*>(PyModule_GetState(module));
+    if (!state) {
+        // Module's not initialized, nothing to clear
+        return 0;
+    }
+
+    Py_CLEAR(state->Vector_Type);
+    Py_CLEAR(state->Matrix_Type);
+    Py_CLEAR(state->MatrixView_Type);
+    Py_CLEAR(state->EulerAngles_Type);
+    Py_CLEAR(state->RotationOrder_Type);
+    Py_CLEAR(state->ReferenceFrame_Type);
+    
+    return 0;
+}
+
+static PyModuleDef_Slot evspace_slots[] = {
+    {Py_mod_exec, (void*)EVSpace_Initialize},
+    {Py_mod_exec, (void*)EVSpace_InitializeCapsule},
+    {Py_mod_exec, (void*)EVSpace_InitializeConstants},
+#if PY_VERSION_HEX >= 0x030c0000
+    {Py_mod_multiple_interpreters, Py_MOD_MULTIPLE_INTERPRETERS_SUPPORTED},
+#endif
+    {0, NULL}
+};
+
 PyMODINIT_FUNC
 PyInit__pyevspace(void)
 {
-    PyObject* module = PyModule_Create(&EVSpace_Module);
-    if (!module) {
-        return NULL;
-    }
+    // These modify global state each time a module is created, but these values
+    // are constants and are effectively no-ops.
+    EVSpace_Module.m_doc        = evspace_doc;
+    EVSpace_Module.m_size       = sizeof(EVSpace_State);
+    EVSpace_Module.m_methods    = evspace_methods;
+    EVSpace_Module.m_slots      = evspace_slots;
+    EVSpace_Module.m_traverse   = EVSpace_traverse;
+    EVSpace_Module.m_clear      = EVSpace_clear;
 
-    if (initialize_module(module) < 0) {
-        Py_DECREF(module);
-        return NULL;
-    }
-
-    return module;
+    return PyModuleDef_Init(&EVSpace_Module);
 }

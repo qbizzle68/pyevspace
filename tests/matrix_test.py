@@ -344,7 +344,7 @@ def test_matrix_iter() -> None:
     itr = iter(m)
     for i, row in enumerate(itr):
         assert list(row) == list(m[i])
-    
+
     other = Matrix(m)
     assert other == m
 
