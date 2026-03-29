@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+for arg in "$@"; do
+    if [[ "$arg" == "--help" ]] || [[ "$arg" == "-h" ]]; then
+        echo -e "Syntax: $0 [OPTIONAL_ARGS] [--help|-h]\n\n\
+Compile the extension into a temp directory and emit all warnings via -Wall,\n\
+-Wextra, and -Wpedantic. Any arguments passed will be appended to these and\n\
+passed to the build via CPPFLAGS and exit with the exit code from the build.\n"
+    exit 0
+    fi
+done
+
+_CPPFLAGS=("-Wall" "-Wextra" "-Wpedantic")
+_CPPFLAGS+=("$@")
+
+TMP_DIR=$(mktemp -d)
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+CPPFLAGS="${_CPPFLAGS}" python setup.py build_ext --inplace --build-lib "${TMP_DIR}"
+exit $?

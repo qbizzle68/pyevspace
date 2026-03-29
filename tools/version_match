@@ -3,28 +3,50 @@
 # Checks any version values in files across the repo all match. You can
 # pass an argument to enforce the version values match the passed version.
 
+SKIP_CHANGELOG=""
+
+for arg in "$@"; do
+    if [[ "$arg" == "--help" ]] || [[ "$arg" == "-h" ]]; then
+        echo -e "Syntax: $0 [VERSION] [--skip-changelog] [--help|-h]\n\n\
+Validate the version strings in project files agree. If VERSION is specified,\n\
+all version strings must also match this string.\n\
+\n\
+  --skip-changelog  Skip checking if version exists in CHANGELOG.md\n"
+        exit 0
+    elif [[ "$arg" == "--skip-changelog" ]]; then
+        SKIP_CHANGELOG="1"
+        shift
+    fi
+done
+
 # Add other version stripping here
 pkg_version=$(grep '^version' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
 src_version=$(grep '^__version__' src/pyevspace/__init__.py | sed 's/__version__ = "\(.*\)"/\1/')
+readme_version=$(grep '# PyEVSpace ' README.md | sed 's/# PyEVSpace \(.*\)/\1/')
 
 # Add other computed versions here
-versions=("$pkg_version" "$src_version")
+versions=("$pkg_version" "$src_version" "$readme_version")
 if [[ "$#" -gt "0" ]]; then
     versions+=("$1")
 fi
 
-first_value=${versions[0]}
+first_value="${versions[0]}"
 for item in "${versions[@]:1}"; do
     if [[ "$item" != "$first_value" ]]; then
         echo -e "\E[0;31mAt least one version mismatch found\E[0m"
+        echo -e "\E[0;33mPackage version: '"$pkg_version"'"
+        echo -e "Source version: '"$src_version"'"
+        echo -e "README version: '"$readme_version"'\E[0m"
         exit 1
     fi
 done
 
-cat CHANGELOG.md | grep -q "##\s*\[${first_value}\]" > /dev/null
-if [[ "$?" -ne "0" ]]; then
-    echo -e "\E[0;31mVersion number ${first_version} doesn't appear in CHANGELOG.md\E[0m"
-    exit 1
+if [[ -z "$SKIP_CHANGELOG" ]]; then
+    cat CHANGELOG.md | grep -q "##\s*\[${first_value}\]" > /dev/null
+    if [[ "$?" -ne "0" ]]; then
+        echo -e "\E[0;31mVersion number ${first_value} doesn't appear in CHANGELOG.md\E[0m"
+        exit 1
+    fi
 fi
 
 echo -e "\E[0;32mAll versions match\E[0m"

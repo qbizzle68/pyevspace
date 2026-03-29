@@ -1,13 +1,27 @@
 #!/usr/bin/env bash
 
-# Execuptes mypy.stubtest module while properly setting the MYPYPATH environment variable.
-# When a package is installed with the editable flag (`-e`) a file called `direct_url.json`
-# is created that points an importer of the package to the project root (where the pyproject.toml
-# lives). Because we use a src layout, mypy cannot resolve where the __init__.pyi file is,
-# because it's not looking for pyevspace in 'src/pyevspace'. The environment variable
-# MYPYPATH is used to resolve this, and this script just makes it faster to invoke the
-# mypy.stubtest module without typing out the MYPYPATH variable. Note this isn't required
-# when the package isn't installed as editable, because the importer points directly to
-# where the stub lives and mypy is happy :).
+# Execuptes mypy.stubtest module while properly setting the MYPYPATH
+# environment variable. When a package is installed with the editable
+# flag (`-e`) a file called `direct_url.json` is created that points
+# an importer of the package to the project root (where the pyproject.toml
+# lives). Because we use a src layout, mypy cannot resolve where the
+# __init__.pyi file is, because it's not looking for pyevspace in
+# 'src/pyevspace'. The environment variable MYPYPATH is used to resolve
+# this, and this script just makes it faster to invoke the mypy.stubtest
+# module without typing out the MYPYPATH variable. Note this isn't required
+# when the package isn't installed as editable, because the importer points
+# directly to where the stub lives and mypy is happy :).
+
+for arg in "$@"; do
+    if [[ "$arg" == "--help" ]] || [[ "$arg" == "-h" ]]; then
+        echo -e "Syntax: $0 [--help|-h]\n\n\
+Run mypy.subtest while correctly setting the MYPYPATH environment variable\n\
+when not running in an isolated invironment (i.e. in place). Without this\n\
+mypy fails to find the locally installed .pyi stub in with project source\n\
+layout. The result of this script is no different than running\n\
+\`tox -e subtest\`, but can be done without rebuilding the .so file.\n"
+    exit 0
+    fi
+done
 
 MYPYPATH="./src:$MYPYPATH" python -m mypy.stubtest pyevspace

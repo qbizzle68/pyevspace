@@ -3,6 +3,16 @@
 # Executes builds to ensure behavior before a push to remote. Documentation
 # is built in a temporary directory and important targets are ran using Tox.
 
+for arg in "$@"; do
+    if [[ "$arg" == "--help" ]] || [[ "$arg" == "-h" ]]; then
+        echo -e "Syntax: $0 [--help|-h]\n\n\
+Tests all builds across the project which includes documentation build (into)\n\
+a temp directory, tox buiilds and tests in all supported versions, and linting\n\
+and stubtests.\n"
+    exit 0
+    fi
+done
+
 RED="\E[0;31m"
 GREEN="\E[0;32m"
 YELLOW="\E[0;33m"

@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# Search source files for forgotten print statements and IO imports
+# that still need to be removed.
+
+CPP_TOKENS="#include <iostream>|#include <stdio.h>|#include <cstdio>|printf|fprintf|PyObject_Print|fflush"
+
+# Headers
+output=$(find include/ -type f -name '*.h' -o -name '*.hpp' -print0 | xargs -0 grep -HnE "${CPP_TOKENS}")
+echo "$output" | grep -vE 's(n?)printf'
+
+# Source
+output=$(find src/pyevspace/ tests/_test_capsule/ -type f -name '*.c' -o -name '*.cpp' -print0 | xargs -0 grep -HnE "${CPP_TOKENS}")
+echo "$output" | grep -vE 's(n?)printf'
+
+# Python
+find src/pyevspace/ tests/ -type f -name '*.py' -print0 | xargs -0 grep --color=always -Hn 'print'
