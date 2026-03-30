@@ -1,3 +1,5 @@
+from importlib.metadata import version, PackageNotFoundError
+
 from ._pyevspace import (
     Vector,
     vector_dot,
@@ -30,8 +32,6 @@ from ._pyevspace import (
     ZYZ,
 )
 
-__version__ = "0.16.0dev"
-
 __all__ = (
     'Vector',
     'vector_dot',
@@ -63,3 +63,8 @@ __all__ = (
     'ZXZ',
     'ZYZ',
 )
+
+try:
+    __version__ = version("pyevspace")
+except PackageNotFoundError:
+    __version__ = "unknown"
