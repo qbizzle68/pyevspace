@@ -10,16 +10,8 @@ project = 'PyEVSpace'
 copyright = '2023-2026, Quinton Barnes'
 author = 'Quinton Barnes'
 
-import tomllib
-import pathlib
-
-path = pathlib.Path(__file__)
-with open(path.parents[2] / 'pyproject.toml', 'rb') as f:
-    toml = tomllib.load(f)
-
-__version__ = toml['project']['version']
-version = __version__
-release = __version__
+version = "0.15.0"
+release = version
 
 html_title = f"PyEVSpace {version}"
 html_show_sourcelink = False
