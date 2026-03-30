@@ -3863,19 +3863,30 @@ __EVSpaceRotate_CheckKeywordException(void)
 // and use the returned values to initialize an instance of their type.
 
 
-// todo: what happens when frame.matrix is NULL and another method is called?
-
 // Updates the internal rotation matrix of an EVSpace_ReferenceFrame
-// object. This function returns 0 on success with `frame->matrix`
-// being set as the updated rotation matrix, otherwise `frame->matrix`
-// is set to NULL and return -1.
+// object. On success set `frame->matrix` to the updated matrix and
+// return 0. On failure `frame->matrix` is left untouched and -1 is
+// returned. In case of failure the `frame` object is left in an
+// invalid state: the internal rotation matrix may not reflect the
+// rotation defined by the internal order and angles (if any angles
+// were modified before this function was called, which should
+// always be the case). Because the cause of the exception is unknown
+// to any caller, an attempt to salvage the cause for error should be
+// avoided and the exception should be propagated be returning the
+// necessary value to indicate an error.
 static int
 EVSpaceReferenceFrame_UpdateMatrix(EVSpace_ReferenceFrame* frame)
 {
-    frame->matrix = _EVSpaceRotate_ComputeMatrix(
+    evspace::Matrix* tmp = _EVSpaceRotate_ComputeMatrix(
         frame->first, frame->second, frame->third, frame->angles[0],
         frame->angles[1], frame->angles[2], frame->intrinsic);
-    return (!frame->matrix) ? -1 : 0;
+
+    if (tmp) {
+        frame->matrix = tmp;
+        return 0;
+    }
+
+    return -1;
 }
 
 static EVSpace_ReferenceFrame*
@@ -3956,43 +3967,81 @@ EVSpaceReferenceFrame_New(evspace::AxisDirection first, evspace::AxisDirection s
 static PyObject*
 ReferenceFrame_New(PyTypeObject* type, PyObject* args, PyObject* kwargs)
 {
+    EVSpace_ReferenceFrame* self = (EVSpace_ReferenceFrame*)(type->tp_alloc(type, 0));
+
+    if (!self) {
+        return NULL;
+    }
+
+    try {
+        self->matrix = new evspace::Matrix();
+    }
+    catch (const std::bad_alloc&) {
+        Py_DECREF(self);
+        return PyErr_NoMemory();
+    }
+
+    self->first = evspace::AxisDirection::X;
+    self->second = evspace::AxisDirection::Y;
+    self->third = evspace::AxisDirection::Z;
+
+    self->angles[0] = 0.0;
+    self->angles[1] = 0.0;
+    self->angles[2] = 0.0;
+
+    self->intrinsic = true;
+
+    self->offset = Py_NewRef(Py_None);
+
+    return (PyObject*)self;
+}
+
+static int
+ReferenceFrame_init(EVSpace_ReferenceFrame* self, PyObject* args, PyObject* kwargs)
+{
     EVSpace_Order* order = NULL;
     EVSpace_Angles* angles = NULL;
-    PyObject* offset = NULL;
+    PyObject* offset = Py_NewRef(Py_None);
     int intrinsic = true;
     static const char* kwargs_list[] = { "", "", "intrinsic", "offset", NULL };
-    EVSpace_State* state = EVSpaceState_FromType(type);
+    EVSpace_State* state = EVSpaceState_FromObject((PyObject*)self);
 
     if (!state) {
-        return NULL;
+        return -1;
     }
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!|$pO", const_cast<char**>(kwargs_list),
                                      state->RotationOrder_Type, &order, state->EulerAngles_Type,
                                      &angles, &intrinsic, &offset)) {
-        return NULL;
+        return -1;
     }
 
-    // If offset is explicitly set to None re-set it to NULL
-    if (offset && Py_IsNone(offset))
+    if (!(Py_IsNone(offset) || PyObject_TypeCheck(offset, state->Vector_Type)))
     {
-        offset = NULL;
-    }
-    else if (offset && !PyObject_TypeCheck(offset, state->Vector_Type))
-    {
-        PyErr_Format(PyExc_TypeError, "offset must be a Vector type or None, got %s",
+        PyErr_Format(PyExc_TypeError, "offset must be a pyevspace.Vector type or None, got %s",
                      __EVSpace_GetTypeName(offset));
-        return NULL;
+        return -1;
     }
 
-    return reinterpret_cast<PyObject*>(
-        EVSpaceReferenceFrame_New(order->first, order->second, order->third,
-                                  *angles->angles, offset, static_cast<bool>(intrinsic), type)
-    );
-}
+    Py_SETREF(self->offset, Py_NewRef(offset));
 
-// Not initializing a ReferenceFrame on allocation leaves things in such
-// an invalid state I'm not implementing the __init__ method for now.
+    self->first = order->first;
+    self->second = order->second;
+    self->third = order->third;
+
+    self->angles[0] = EVSpaceAngles_ALPHA(angles);
+    self->angles[1] = EVSpaceAngles_BETA(angles);
+    self->angles[2] = EVSpaceAngles_GAMMA(angles);
+
+    self->intrinsic = intrinsic;
+
+    if (EVSpaceReferenceFrame_UpdateMatrix(self) < 0)
+    {
+        return -1;
+    }
+
+    return 0;
+}
 
 static int
 ReferenceFrame_traverse(EVSpace_ReferenceFrame* self, visitproc visit, void *arg)
@@ -4479,6 +4528,7 @@ static PyType_Slot frame_slots[] = {
     {Py_tp_members,         (void*)reference_frame_members},
     {Py_tp_getset,          (void*)reference_frame_getset},
     {Py_tp_new,             (void*)ReferenceFrame_New},
+    {Py_tp_init,            (void*)ReferenceFrame_init},
     {0,                     NULL}
 };
 

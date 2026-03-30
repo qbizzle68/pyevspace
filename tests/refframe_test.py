@@ -442,8 +442,8 @@ def test_refframe_inheritance() -> None:
     assert frame.rotate_from(derived, Vector.E1)
 
     # Test __new__
-    obj = ReferenceFrame.__new__(DerivedReferenceFrame, XYZ,
-                                 EulerAngles(1, 2, 3))
+    obj = ReferenceFrame.__new__(DerivedReferenceFrame)
+    obj.__init__(XYZ, EulerAngles(1, 2, 3))
     assert obj.order == derived.order
     assert obj.get_matrix() == derived.get_matrix()
 
