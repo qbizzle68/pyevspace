@@ -6046,7 +6046,10 @@ static PyModuleDef_Slot evspace_slots[] = {
     {Py_mod_exec, (void*)EVSpace_InitializeCapsule},
     {Py_mod_exec, (void*)EVSpace_InitializeConstants},
 #if PY_VERSION_HEX >= 0x030c0000
-    {Py_mod_multiple_interpreters, Py_MOD_MULTIPLE_INTERPRETERS_SUPPORTED},
+    {Py_mod_multiple_interpreters, Py_MOD_PER_INTERPRETER_GIL_SUPPORTED},
+#endif
+#if PY_VERSION_HEX >= 0x030d0000
+    {Py_mod_gil, Py_MOD_GIL_USED},
 #endif
     {0, NULL}
 };

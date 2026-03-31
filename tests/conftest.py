@@ -50,6 +50,12 @@ def pytest_ignore_collect(collection_path, config):
         if collection_path.name == "capsule_test.py":
             return True
 
+    # `concurrent.interpreters` doesn't exist until python 3.14
+    version = sys.version_info.major * 1000 + sys.version_info.minor
+    if version < 3014:
+        if collection_path.name == "subinterpreter_test.py":
+            return True
+
 
 def pytest_configure(config):
     """Only build capsule extension modules if --skip-capsule
