@@ -32,6 +32,7 @@ class DerivedEulerAngles(EulerAngles):
 
 class DerivedRotationOrder(RotationOrder):
     foo = 1
+
     def __new__(cls, *args, **kwargs):
         return RotationOrder.__new__(cls, *args, **kwargs)
 
