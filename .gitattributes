@@ -1,0 +1,2 @@
+# Ensure line endings are consistent
+scripts/hooks/pre-push text eol=lf

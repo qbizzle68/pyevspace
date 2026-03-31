@@ -21,11 +21,10 @@ done
 
 # Add other version stripping here
 pkg_version=$(grep '^version' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
-src_version=$(grep '^__version__' src/pyevspace/__init__.py | sed 's/__version__ = "\(.*\)"/\1/')
 readme_version=$(grep '# PyEVSpace ' README.md | sed 's/# PyEVSpace \(.*\)/\1/')
 
 # Add other computed versions here
-versions=("$pkg_version" "$src_version" "$readme_version")
+versions=("$pkg_version" "$readme_version")
 if [[ "$#" -gt "0" ]]; then
     versions+=("$1")
 fi
@@ -34,9 +33,6 @@ first_value="${versions[0]}"
 for item in "${versions[@]:1}"; do
     if [[ "$item" != "$first_value" ]]; then
         echo -e "\E[0;31mAt least one version mismatch found\E[0m"
-        echo -e "\E[0;33mPackage version: '"$pkg_version"'"
-        echo -e "Source version: '"$src_version"'"
-        echo -e "README version: '"$readme_version"'\E[0m"
         exit 1
     fi
 done

@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+print_help() {
+    echo \
+"Syntax: $0 [--update-submodules] [--help|-h]
+    
+    Setup script for the pyevspace git repo. This script initializes the environment by
+    creating symlinks for git hooks. If present, the '--update-submodules' options will
+    also update the git submodules for this repo."
+}
+
+UPDATE_SUBMODULES=
+for item in "$@"; do
+    if [[ "$item" == "--help" ]] || [[ "$item" == "-h" ]]; then
+        print_help
+        exit 0
+    elif [[ "$item" == "--update-submodules" ]]; then
+        UPDATE_SUBMODULES=1
+    else
+        echo "Error: unrecognized option '$item'" 1>&2
+        print_help 1>&2
+        exit 1
+    fi
+done
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+
+if [[ -n "$UPDATE_SUBMODULES" ]]; then
+    echo "Updating submodules"
+    git submodule update --init --recursive
+fi
+
+echo "Symlinking hooks"
+ln -fs scripts/hooks/pre-push "${REPO_ROOT}/.git/hooks/pre-push"
