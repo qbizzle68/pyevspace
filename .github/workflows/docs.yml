@@ -2,8 +2,8 @@ name: Build and deploy documentation
 
 on:
   push:
-    branches:
-      - master
+    tags:
+      - 'v*.*.*'
     paths:
       - 'docs/**'
       - '.github/workflows/docs.yml'

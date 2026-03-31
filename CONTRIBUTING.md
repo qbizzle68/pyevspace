@@ -41,15 +41,12 @@ Any values to the module/types interface need to be reflected in `__init__.pyi`.
 
 ### Workflows
 
-To support typo fixes and general errors in documentation, the `docs.yml`
-workflow is triggererd on any push to master when any tracked files in `docs/`
-(or the `docs.yml` file) have changes. This means in normal workflow, the
-final push before adding a release tag will update the online documentation
-bedore the release may be finalized. Contributors must ensure doc changes
-that reference new behavior are not pushed until the corresponding release
-tag is ready to be pushed immediately after. Similarly, any issues with the
-`release.yml` workflow need to be addressed ASAP so live documentation
-changes reflect the most recent available release in a timely manner.
+Documentation changes will now only be built and pushed on release. There is
+no real way (without using multiple branches) to continually update the
+docs and push to master while working on a prerelease and not have those
+changes, which are not reflected in any current release, pushed to the
+active documentation site. This may mean a patch update be required for
+solely documentation fixes, but that's something we have to live with.
 
 ## Tools
 The project supports some simple wrappers around commands that can make
