@@ -31,12 +31,9 @@ class DerivedEulerAngles(EulerAngles):
 
 
 class DerivedRotationOrder(RotationOrder):
+    foo = 1
     def __new__(cls, *args, **kwargs):
         return RotationOrder.__new__(cls, *args, **kwargs)
-
-    def __init__(self, *args, **kwargs):
-        self.foo = 1
-        super().__init__(*args, **kwargs)
 
 
 class DerivedReferenceFrame(ReferenceFrame):

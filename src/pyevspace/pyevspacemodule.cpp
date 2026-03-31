@@ -3321,40 +3321,35 @@ EVSpaceOrder_New(evspace::AxisDirection first, evspace::AxisDirection second,
 }
 
 static PyObject*
-Order_new(PyTypeObject* type, PyObject* Py_UNUSED(0), PyObject* Py_UNUSED(1))
-{
-    return type->tp_alloc(type, 0);
-}
-
-static int
-Order_init(EVSpace_Order* self, PyObject* args, PyObject* Py_UNUSED())
+Order_new(PyTypeObject* type, PyObject* args, PyObject* kwargs)
 {
     int first, second, third;
     
     if (!PyArg_ParseTuple(args, "iii", &first, &second, &third)) {
-        return -1;
+        return NULL;
     }
 
     if (first < 0 || first > 2) {
         PyErr_Format(PyExc_ValueError, "first axis must be in [0-2], got %d", first);
-        return -1;
+        return NULL;
     }
 
     if (second < 0 || second > 2) {
         PyErr_Format(PyExc_ValueError, "second axis must be in [0-2], got %d", second);
-        return -1;
+        return NULL;
     }
 
     if (third < 0 || third > 2) {
         PyErr_Format(PyExc_ValueError, "third axis must be in [0-2], got %d", third);
-        return -1;
+        return NULL;
     }
 
-    self->first = static_cast<evspace::AxisDirection>(first);
-    self->second = static_cast<evspace::AxisDirection>(second);
-    self->third = static_cast<evspace::AxisDirection>(third);
-
-    return 0;
+    return (PyObject*)EVSpaceOrder_New(
+        static_cast<evspace::AxisDirection>(first),
+        static_cast<evspace::AxisDirection>(second),
+        static_cast<evspace::AxisDirection>(third),
+        type
+    );
 }
 
 static void
@@ -3556,7 +3551,6 @@ static PyType_Slot order_slots[] = {
     {Py_tp_richcompare,         (void*)Order_richcompare},
     {Py_tp_methods,             (void*)order_methods},
     {Py_tp_members,             (void*)order_members},
-    {Py_tp_init,                (void*)Order_init},
     {Py_tp_new,                 (void*)Order_new},
     {0,                         NULL}
 };

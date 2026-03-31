@@ -18,6 +18,13 @@ def test_order_new():
     assert order.second == Y_AXIS
     assert order.third == Z_AXIS
 
+    order = RotationOrder.__new__(RotationOrder, 1, 2, 0)
+    assert order == YZX
+
+    # __init__ should do nothing
+    order.__init__(0, 1, 2)
+    assert order == YZX
+
     with pytest.raises(TypeError):
         RotationOrder(1.1, 1, 2)
 
@@ -139,8 +146,7 @@ def test_order_inheritance() -> None:
     assert repr(derived).startswith('tests.inherited_types')
 
     # Test __new__()
-    obj = RotationOrder.__new__(DerivedRotationOrder)
-    obj.__init__(0, 1, 2)
+    obj = RotationOrder.__new__(DerivedRotationOrder, 0, 1, 2)
 
     assert type(obj) is DerivedRotationOrder
     assert obj == derived

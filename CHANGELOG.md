@@ -32,6 +32,8 @@ which gives the benefits of not being immutable, and support being shared across
 
 ### Removed
 
+- `RotationOrder.__init__()` is removed as the `RotationOrder` class is immutable
+  and this function can be called multiple times to manipulate the object.
 - Removed old compilation branches to support implementations before CPython
   functions added in 3.10. This should only reduce source code size and readability
   and shouldn't affect any installable files (sdist/wheels).
