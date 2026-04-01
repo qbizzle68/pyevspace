@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-03-31
+
 The module now supports [multi-phase initiation](https://docs.python.org/3.13/c-api/module.html#multi-phase-initialization),
 which enables valid use within multiple [sub-interpreters](https://docs.python.org/3/library/concurrent.interpreters.html).
 All types defined in the modules are now [heap types](https://docs.python.org/3/c-api/typeobj.html#heap-types)
@@ -340,11 +342,12 @@ release will be removed from pip and git releases.
 
 Initial version of project.
 
-[unreleased]: https://github.com/qbizzle68/pyevspace/compare/v0.15.0...HEAD
-[0.15.0]: https://github.com/qbizzle68/pyevspace/compare/v0.15.0...v0.14.2
-[0.14.2]: https://github.com/qbizzle68/pyevspace/compare/v0.14.2...v0.14.1
-[0.14.1]: https://github.com/qbizzle68/pyevspace/compare/v0.14.1...v0.14.0
-[0.14.0]: https://github.com/qbizzle68/pyevspace/compare/v0.14.0...v0.13.1
+[unreleased]: https://github.com/qbizzle68/pyevspace/compare/v0.16.0...HEAD
+[0.15.0]: https://github.com/qbizzle68/pyevspace/compare/v0.15.0...v0.16.0
+[0.15.0]: https://github.com/qbizzle68/pyevspace/compare/v0.14.2...v0.15.0
+[0.14.2]: https://github.com/qbizzle68/pyevspace/compare/v0.14.1...v0.14.2
+[0.14.1]: https://github.com/qbizzle68/pyevspace/compare/v0.14.0...v0.14.1
+[0.14.0]: https://github.com/qbizzle68/pyevspace/compare/v0.13.1...v0.14.0
 [0.13.1]: https://github.com/qbizzle68/pyevspace/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/qbizzle68/pyevspace/compare/v0.12.5...v0.13.0
 [0.12.5]: https://github.com/qbizzle68/pyevspace/compare/v0.12.4...v0.12.5

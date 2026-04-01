@@ -1,4 +1,4 @@
-# PyEVSpace 0.16.0dev
+# PyEVSpace 0.16.0
 
 [![Test](https://github.com/qbizzle68/pyevspace/actions/workflows/ci.yml/badge.svg)](https://github.com/qbizzle68/pyevspace/actions/workflows/ci.yml)
 [![PyPi](https://img.shields.io/pypi/v/pyevspace?style=plastic)](https://pypi.org/project/pyevspace/#history)
