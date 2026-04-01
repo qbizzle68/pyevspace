@@ -1532,7 +1532,7 @@ Vector_projection(PyObject* module, PyObject* const* args, Py_ssize_t size)
     )
 }
 
-PyDoc_STRVAR(vector_doc, "Vector([{x, y, z | iterable}])\n\
+PyDoc_STRVAR(vector_doc, "Vector([{x, y, z | iterable}], /)\n\
 \n\
 The Vector can be constructed with an iterable of length 3, or\n\
 directly with the x, y, and z components. All components must be\n\
@@ -1563,13 +1563,13 @@ PyDoc_STRVAR(vector_reduce_doc, "__reduce__() -> (cls, (x, y, z))\n\
 \n\
 Allows pickling of the pyevspace.Vector type.");
 
-PyDoc_STRVAR(vector_compare_to_ulp_doc, "compare_to_ulp(rhs: Vector, max_ulps: int) -> bool\n\
+PyDoc_STRVAR(vector_compare_to_ulp_doc, "compare_to_ulp(rhs: Vector, max_ulps: int, /) -> bool\n\
 \n\
 Compares self to rhs using component wise ULP based mechanics. self is\n\
 considered equal to rhs if, for each respsective component, the difference\n\
 between binary representations is less than or equal to max_ulps ULPs.");
 
-PyDoc_STRVAR(vector_compare_to_tol_doc, "compare_to_tol(rhs: Vector, rel_tol: float = 1e-9, abs_tol: float = 1e-15) -> bool\n\
+PyDoc_STRVAR(vector_compare_to_tol_doc, "compare_to_tol(rhs: Vector, rel_tol: float = 1e-9, abs_tol: float = 1e-15, /) -> bool\n\
 \n\
 Compare self to rhs using absolute and relative tolerances. self is \n\
 considered equal to rhs if, for each respective component, the difference is\n\
@@ -2948,13 +2948,13 @@ PyDoc_STRVAR(matrix_inverse_doc, "pyevspace.Matrix.inverse() -> pyevspace.Matrix
 \n\
 Computes the inverse of a matrix");
 
-PyDoc_STRVAR(matrix_compare_to_ulp_doc, "compare_to_ulp(rhs: Matrix, max_ulps: int) -> bool\n\
+PyDoc_STRVAR(matrix_compare_to_ulp_doc, "compare_to_ulp(rhs: Matrix, max_ulps: int, /) -> bool\n\
 \n\
 Compares self to rhs using component wise ULP based mechanics. self is\n\
 considered equal to rhs if, for each respsective component, the difference\n\
 between binary representations is less than or equal to max_ulps ULPs.");
 
-PyDoc_STRVAR(matrix_compare_to_tol_doc, "compare_to_tol(rhs: Matrix, rel_tol: float = 1e-9, abs_tol: float = 1e-15) -> bool\n\
+PyDoc_STRVAR(matrix_compare_to_tol_doc, "compare_to_tol(rhs: Matrix, rel_tol: float = 1e-9, abs_tol: float = 1e-15, /) -> bool\n\
 \n\
 Compares self to rhs using relative and absolute tolerances. self is\n\
 considered equal to rhs if, for each respective component, the difference\n\
@@ -2979,7 +2979,7 @@ static PyMethodDef matrix_methods[] = {
     {NULL, NULL, 0, NULL}
 };
 
-PyDoc_STRVAR(matrix_doc, "pyevspace.matrix([row0: Iterable, row1: Iterable, row2: Iterable])\n\
+PyDoc_STRVAR(matrix_doc, "pyevspace.matrix([row0: Iterable, row1: Iterable, row2: Iterable], /)\n\
 \n\
 The pyevspace.Matrix type can be constructed with rows of iterables all of\
 length three, whose components are numeric types. Alternatively if no arguments\
@@ -3244,7 +3244,7 @@ static PyMethodDef angles_methods[] = {
     {NULL, NULL, 0, NULL}
 };
 
-PyDoc_STRVAR(angles_doc, "pyevspace.EulerAngles(alpha: Real, beta: Real, gamma: Real)\n\
+PyDoc_STRVAR(angles_doc, "pyevspace.EulerAngles(alpha: SupportsFloat, beta: SupportsFloat, gamma: SupportsFloat, /)\n\
 \n\
 Sets the corresponding angles all of which are required. Unneeded\n\
 angles should be set to zero.");
@@ -3535,7 +3535,7 @@ static PyMethodDef order_methods[] = {
     {NULL, NULL, 0, NULL}
 };
 
-PyDoc_STRVAR(order_doc, "RotationOrder(axis1: int, axis2: int, axis3: int)\n\
+PyDoc_STRVAR(order_doc, "RotationOrder(axis1: int, axis2: int, axis3: int, /)\n\
 \n\
 All axes are required and should be one of the three enumerated\n\
 axis types X_AXIS, Y_AXIS, or Z_AXIS.");
@@ -4471,18 +4471,18 @@ PyDoc_STRVAR(refframe_get_angles_doc, "get_angles() -> EulerAngles\n\
 \n\
 Get a new EulerAngles object representing the current values of the rotation angles.");
 
-PyDoc_STRVAR(refframe_set_angles_doc, "set_angles(angles: EulerAngles) -> None\n\
+PyDoc_STRVAR(refframe_set_angles_doc, "set_angles(angles: EulerAngles, /) -> None\n\
 set_angles(*, alpha: float = None, beta: float = None, gamma: float = None) -> None\n\
 \n\
 Update rotation angles and recompute internal rotation matrix.");
 
-PyDoc_STRVAR(refframe_rotate_to_doc, "rotate_to(vector: Vector) -> Vector\n\
+PyDoc_STRVAR(refframe_rotate_to_doc, "rotate_to(vector: Vector, /) -> Vector\n\
 rotate_to(frame: ReferenceFrame, vector: Vector) -> Vector\n\
 \n\
 Rotate a vector to the reference frame. If another ReferenceFrame is provided,\n\
 vector will be rotated from that reference frame to this reference frame.");
 
-PyDoc_STRVAR(refframe_rotate_from_doc, "rotate_from(vector: Vector) -> Vector\n\
+PyDoc_STRVAR(refframe_rotate_from_doc, "rotate_from(vector: Vector, /) -> Vector\n\
 rotate_from(frame: ReferenceFrame, vector: Vector) -> Vector\n\
 \n\
 Rotate a vector from the reference frame. If another ReferenceFrame is provided,\n\
@@ -4508,7 +4508,7 @@ static PyMethodDef reference_frame_methods[] = {
     {NULL, NULL, 0, NULL}
 };
 
-PyDoc_STRVAR(reference_frame_doc, "ReferenceFrame(order: RotationOrder, angles: EulerAngles, *, offset: Vector | None = None, intrinsic: bool = True)\n\
+PyDoc_STRVAR(reference_frame_doc, "ReferenceFrame(order: RotationOrder, angles: EulerAngles, /, *, offset: Vector | None = None, intrinsic: bool = True)\n\
 A class that represents a reference frame defined by the parameters. The class\n\
 can then be used to rotate vectors to, from, or even between other ReferenceFrame\n\
 object.");
@@ -5157,56 +5157,56 @@ EVSpaceRotate_Between(PyObject* module, PyObject* args, PyObject* kwargs)
     return EVS_PyObject_Cast(rtn);
 }
 
-PyDoc_STRVAR(vector_dot_doc, "pyevspace.vector_dot(lhs: pyevspace.Vector, rhs: pyevspace.Vector) -> float\n\
+PyDoc_STRVAR(vector_dot_doc, "pyevspace.vector_dot(lhs: pyevspace.Vector, rhs: pyevspace.Vector, /) -> float\n\
 \n\
 Computes the vector dot product of two pyevspace.Vectors.");
 
-PyDoc_STRVAR(vector_cross_doc, "pyevspace.vector_cross(lhs: pyevspace.Vector, rhs: pyevspace.Vector) -> pyevspace.Vector\n\
+PyDoc_STRVAR(vector_cross_doc, "pyevspace.vector_cross(lhs: pyevspace.Vector, rhs: pyevspace.Vector, /) -> pyevspace.Vector\n\
 \n\
 Computes the vector cross product of two pyevspace.Vectors using the right-hand rule.");
 
-PyDoc_STRVAR(vector_angle_doc, "pyevspace.vector_angle(from: pyevspace.Vector, to: pyevspace.Vector) -> float\n\
+PyDoc_STRVAR(vector_angle_doc, "pyevspace.vector_angle(from: pyevspace.Vector, to: pyevspace.Vector, /) -> float\n\
 \n\
 Determines the smallest angle between two vectors. The arguments\n\
 are commutative, i.e. order of `from` and `to` does not matter.");
 
-PyDoc_STRVAR(vector_exclude_doc, "pyevspace.vector_exclude(vector: pyevspace.Vector, exclude: pyevspace.Vector) -> pyevspace.Vector\n\
+PyDoc_STRVAR(vector_exclude_doc, "pyevspace.vector_exclude(vector: pyevspace.Vector, exclude: pyevspace.Vector, /) -> pyevspace.Vector\n\
 \n\
 Removes all portions of `exclude` from `vector`. This is equivalent to\n\
 projecting `vector` onto the plane whose normal vector is `exclude`. The\n\
 result of this function and `exclude` will have a dot product of zero.");
 
-PyDoc_STRVAR(vector_projection_doc, "pyevspace.vector_proj(project: pyevspace.Vector, onto: pyevspace.Vector) -> pyevspace.Vector\n\
+PyDoc_STRVAR(vector_projection_doc, "pyevspace.vector_proj(project: pyevspace.Vector, onto: pyevspace.Vector, /) -> pyevspace.Vector\n\
 \n\
 Projects the vector `project` onto the vector `onto`. Equivalent to\n\
 the vector dot product of `project` and `onto` divided by the magnitude\n\
 of `onto`.");
 
 PyDoc_STRVAR(compute_rotation_doc,
-    "compute_rotation_matrix(angle: float, axis: int | Vector) -> Vector\n\
-compute_rotation_matrix(order: RotationOrder, angles: EulerAngles, *, intrinsic: bool = True) -> Vector\n\
-compute_rotation_matrix(order_from: RotationOrder, angles_from: EulerAngles, order_to: RotationOrder, angles_to: EulerAngles, *, intrinsic_from: bool = True, intrinic_to: bool = True) -> Vector\n\
+    "compute_rotation_matrix(angle: float, axis: int | Vector, /) -> Vector\n\
+compute_rotation_matrix(order: RotationOrder, angles: EulerAngles, /, *, intrinsic: bool = True) -> Vector\n\
+compute_rotation_matrix(order_from: RotationOrder, angles_from: EulerAngles, order_to: RotationOrder, angles_to: EulerAngles, /, *, intrinsic_from: bool = True, intrinic_to: bool = True) -> Vector\n\
 Computes the rotation matrix for the reference frame defined by the arguments.");
 
 PyDoc_STRVAR(rotate_from_doc,
-"rotate_from(matrix: Matrix, vector: Vector, *, offset: Vector = None) -> Vector\n\
-rotate_from(angle: float, axis: int | Vector, vector: Vector, *, offset: Vector = None) -> Vector)\n\
-rotate_from(order: RotationOrder, angles: EulerAngles, vector: Vector, *, offset: Vector = None,\
+"rotate_from(matrix: Matrix, vector: Vector, /, *, offset: Vector = None) -> Vector\n\
+rotate_from(angle: float, axis: int | Vector, vector: Vector, /, *, offset: Vector = None) -> Vector)\n\
+rotate_from(order: RotationOrder, angles: EulerAngles, vector: Vector, /, *, offset: Vector = None,\
 intrinsic: bool = True) -> Vector\n\
 \n\
 Rotates a vector from a reference frame defined by the combination of function arguments.");
 
 PyDoc_STRVAR(rotate_to_doc,
-"rotate_to(matrix: Matrix, vector: Vector, *, offset: Vector = None) -> Vector\n\
-rotate_from(angle: float, axis: int | Vector, vector: Vector, *, offset: Vector = None) -> Vector\n\
-rotate_from(order: RotationOrder, angles: EulerAngles, vector: Vector, *, offset: Vector = None) -> Vector,\
+"rotate_to(matrix: Matrix, vector: Vector, /, *, offset: Vector = None) -> Vector\n\
+rotate_from(angle: float, axis: int | Vector, vector: Vector, /, *, offset: Vector = None) -> Vector\n\
+rotate_from(order: RotationOrder, angles: EulerAngles, vector: Vector, /, *, offset: Vector = None) -> Vector,\
 intrinsic: bool = True) -> Vector\n\
 \n\
 Rotates a vector to a reference frame defined by the function arguments.");
 
 PyDoc_STRVAR(rotate_between_doc,
 "rotate_between(order_from: RotationOrder, angles_from: EulerAngles, order_to: RotationOrder,\
-angles_to: EulerAngles, vector: Vector, *, intrinsic_from: bool = True, intrinsic_to: bool = True,\
+angles_to: EulerAngles, vector: Vector, /, *, intrinsic_from: bool = True, intrinsic_to: bool = True,\
 offset_from: Vector = None, offset_to: Vector = None) -> Vector\n\
 \n\
 Rotates vector between reference frames defined by the rotation axis orders and angles.");
